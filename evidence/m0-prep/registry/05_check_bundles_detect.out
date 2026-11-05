@@ -1,0 +1,52 @@
+$ python3 tools/check_bundles.py --request Detect
+== ex1 (03_four_worked_examples/validation_bundles/ex1_belief_memory) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 4 modules, 107 declarations, 61 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+0 Detect request(s), 0 admitted, 0 with diagnostics
+== ex2 (03_four_worked_examples/validation_bundles/ex2_access_policy) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 2 modules, 57 declarations, 15 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+0 Detect request(s), 0 admitted, 0 with diagnostics
+== ex3 (03_four_worked_examples/validation_bundles/ex3_skill_share) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 3 modules, 97 declarations, 32 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+0 Detect request(s), 0 admitted, 0 with diagnostics
+== ex4 (03_four_worked_examples/validation_bundles/ex4_market_maker) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 4 modules, 75 declarations, 36 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+  Detect run market_maker.metta: !(dc.run ShiftMonitors (Detect Markouts Fills (On ToxicTape) (Level (Rat 1 100)))): admitted
+  Detect run market_maker.metta: !(dc.run ShiftMonitors (Detect Markouts Fills (On BuyersTape) (Level (Rat 1 100)))): admitted
+  Detect run market_maker.metta: !(dc.run ShiftMonitors (Detect Markouts Fills (On CalmTape) (Level (Rat 1 100)))): admitted
+3 Detect request(s), 3 admitted, 0 with diagnostics
+== mg (04_omega_memory_goals_part1/validation_bundle) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 10 modules, 318 declarations, 92 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+  Detect run memory_goals.metta: !(dc.run StaleMonitor (Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))): admitted
+  Detect run memory_goals.metta: !(dc.run StaleMonitor (Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))): admitted
+2 Detect request(s), 2 admitted, 0 with diagnostics
+== ls (05_live_memory_part2/validation_bundle) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+2 file(s), 16 modules, 490 declarations, 129 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+  Detect run memory_goals.metta: !(dc.run StaleMonitor (Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))): admitted
+  Detect run memory_goals.metta: !(dc.run StaleMonitor (Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))): admitted
+  Detect run live_memory.metta: !(dc.run LiveReceipts (Detect StaleFifth (On TenPercent) (Level (Rat 1 100)))): admitted
+  Detect run live_memory.metta: !(dc.run LiveReceipts (Detect StaleTenth StaleFifth StaleTwoFifths (On TenPercent) (Level (Rat 1 100)) (Combine Mixture))): admitted
+4 Detect request(s), 4 admitted, 0 with diagnostics
+== wx (06_wmtm_worked_example/validation_bundle) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+3 file(s), 19 modules, 575 declarations, 162 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+  Detect run memory_goals.metta: !(dc.run StaleMonitor (Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))): admitted
+  Detect run memory_goals.metta: !(dc.run StaleMonitor (Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))): admitted
+  Detect run live_memory.metta: !(dc.run LiveReceipts (Detect StaleFifth (On TenPercent) (Level (Rat 1 100)))): admitted
+  Detect run live_memory.metta: !(dc.run LiveReceipts (Detect StaleTenth StaleFifth StaleTwoFifths (On TenPercent) (Level (Rat 1 100)) (Combine Mixture))): admitted
+  Detect run wmtm_example.metta: !(dc.run WMTMReceipts (Detect MissTenth MissFifth MissTwoFifths (On Replies) (Level (Rat 1 100)) (Combine Mixture))): admitted
+  Detect run wmtm_example.metta: !(dc.run WMTMReceipts (Detect MissTenth MissFifth MissTwoFifths (On Replies) (Combine Mixture) (Scheme ShiryaevRoberts) (MeanTimeToFalseAlarm 100000))): admitted
+6 Detect request(s), 6 admitted, 0 with diagnostics
+exit 0

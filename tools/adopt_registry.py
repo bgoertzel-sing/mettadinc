@@ -108,11 +108,17 @@ def build(supersede):
                 if prev is not None and js(prev[1]) != js(spec):
                     d = diff(prev[1], spec, f"{prev[0]}:{key}", f"{name}:{key}")
                     if supersede.get(key) == name:
-                        resolved.append((key, prev[0], name, d))
+                        extra = []
+                        rt = spec.get("result") if isinstance(spec, dict) else None
+                        if rt and rt in pt.get("result_fields", {}):
+                            extra.append(f"{name} also adds result_fields.{rt}: "
+                                         + json.dumps(pt["result_fields"][rt], sort_keys=True))
+                        resolved.append((key, prev[0], name, d, summarize(prev[1], spec), extra))
                     else:
                         conflicts.append(f"{key} is defined differently by {prev[0]} and {name}:\n{d}")
                 elif prev is None and head in base.get(rsec, {}) and js(base[rsec][head]) != js(spec):
-                    revisions.append((key, name, diff(base[rsec][head], spec, f"base:{key}", f"{name}:{key}")))
+                    revisions.append((key, name, diff(base[rsec][head], spec, f"base:{key}", f"{name}:{key}"),
+                                      summarize(base[rsec][head], spec)))
                 for who, fld in sorted(fields_added.get((rsec, head), set())):
                     if who != name:
                         conflicts.append(f"{name} replaces {key}, to which {who} added {fld}")
@@ -129,12 +135,13 @@ def build(supersede):
                     if prev is not None and js(prev[1]) != js(spec):
                         d = diff(prev[1], spec, f"{prev[0]}:{key}", f"{name}:{key}")
                         if supersede.get(key) == name:
-                            resolved.append((key, prev[0], name, d))
+                            resolved.append((key, prev[0], name, d, "field superseded", []))
                         else:
                             conflicts.append(f"{key} is set differently by {prev[0]} and {name}:\n{d}")
                     old = reg[rsec][head].setdefault(sub, {}).get(fld)
                     if prev is None and old is not None and js(old) != js(spec):
-                        revisions.append((key, name, diff(old, spec, f"base:{key}", f"{name}:{key}")))
+                        revisions.append((key, name, diff(old, spec, f"base:{key}", f"{name}:{key}"),
+                                          summarize(old, spec) if isinstance(old, dict) and isinstance(spec, dict) else "changed"))
                     owner_field[key] = (name, spec)
                     fields_added.setdefault((rsec, head), set()).add((name, f"{sub}.{fld}"))
                     reg[rsec][head][sub][fld] = copy.deepcopy(spec)
@@ -173,6 +180,35 @@ def build(supersede):
 
 def code(s):
     return BT + s + BT
+
+
+def summarize(old, new):
+    """One line: what a revision changes, at the top level and in args/fields."""
+    parts = []
+    for k in sorted(set(old) | set(new)):
+        if k in ("args", "fields") and isinstance(old.get(k), dict) and isinstance(new.get(k), dict):
+            o, n = old[k], new[k]
+            add = sorted(set(n) - set(o))
+            rem = sorted(set(o) - set(n))
+            chg = sorted(a for a in set(o) & set(n) if js(o[a]) != js(n[a]))
+            if add:
+                parts.append(f"{k} added: {', '.join(add)}")
+            if rem:
+                parts.append(f"{k} removed: {', '.join(rem)}")
+            for a in chg:
+                sub = [s for s in sorted(set(o[a]) | set(n[a])) if js(o[a].get(s)) != js(n[a].get(s))] \
+                    if isinstance(o[a], dict) and isinstance(n[a], dict) else []
+                parts.append(f"{k}.{a} changed ({', '.join(sub)})" if sub else f"{k}.{a} changed")
+        elif k not in old:
+            parts.append(f"{k} added")
+        elif k not in new:
+            parts.append(f"{k} removed")
+        elif js(old[k]) != js(new[k]):
+            if isinstance(old[k], dict) and isinstance(new[k], dict):
+                parts.append(f"{k} changed ({summarize(old[k], new[k])})")
+            else:
+                parts.append(f"{k} changed" + (f": {js(old[k])} -> {js(new[k])}" if len(js(old[k]) + js(new[k])) < 80 else ""))
+    return "; ".join(parts)
 
 
 # What adopting each input changes in the fixtures, the manifest and the checker (MILESTONES.md, entry checklist
@@ -229,14 +265,25 @@ def sources_md(base_sha, reg_sha, cps, revisions, resolved):
         L.append(f"| {n} | {len(c)} | {'yes' if same else '**NO**'} | " + "<br>".join(f for f, _ in c) + " |")
     L += ["", "## Resolutions of patch-vs-patch conflicts", ""]
     if resolved:
-        for key, a, b, d in resolved:
-            L += [f"- {code(key)}: defined by {a} and by {b}; **{b} supersedes {a}** "
-                  f"({code('--supersede ' + key + '=' + b)}). Diff:", "", BT * 3 + "diff", d, BT * 3, ""]
+        for key, a, b, d, summ, extra in resolved:
+            head = key.split(".", 1)[1]
+            L += [f"- **{b} supersedes {a} on {key}.** Defined by both patches; decided by the hive (answer 1 to the "
+                  f"block on t-2026-11-05-mettadinc-m0-prep: option (a), wx is a layer on ex4, every {a} form stays "
+                  f"valid), applied with {code('--supersede ' + key + '=' + b)}.",
+                  f"  Summary ({a} -> {b}): {summ}."]
+            for e in extra:
+                L.append(f"  {e}.")
+            L += ["", BT * 3 + "diff", d, BT * 3, ""]
     else:
         L.append("None.")
     L += ["", "## Revisions of base registry entries by patches", "",
-          "These replace a base head or a base argument; adopting the patch means adopting the revision.", ""]
-    for key, n, d in revisions:
+          "These replace a base head or a base argument; adopting the patch means adopting the revision. They are not",
+          "conflicts (the stop-line covers two patches defining the same head differently).", "",
+          "| Head | Patch | Summary |", "|---|---|---|"]
+    for key, n, d, summ in revisions:
+        L.append(f"| {code(key)} | {n} | {summ} |")
+    L += ["", "Diffs:", ""]
+    for key, n, d, summ in revisions:
         L += [f"- {code(key)} by {n}:", "", BT * 3 + "diff", d, BT * 3, ""]
     return "\n".join(L).rstrip() + "\n"
 
@@ -275,10 +322,10 @@ def main(argv):
         print("STOP: same-name copies differ (or unlisted patches); nothing written")
         return 1
     base, reg, conflicts, revisions, resolved = build(supersede)
-    for key, a, b, _ in resolved:
-        print(f"resolved: {key}: {b} supersedes {a}")
-    for key, n, _ in revisions:
-        print(f"revision of base: {key} by {n}")
+    for key, a, b, _, summ, extra in resolved:
+        print(f"resolved: {b} supersedes {a} on {key}: {summ}" + "".join("; " + e for e in extra))
+    for key, n, _, summ in revisions:
+        print(f"revision of base: {key} by {n}: {summ}")
     if conflicts:
         print(f"STOP: {len(conflicts)} conflict(s); nothing written")
         for c in conflicts:

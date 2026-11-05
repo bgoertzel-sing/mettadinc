@@ -1,0 +1,45 @@
+$ python3 tools/adopt_registry.py   (no resolution: stops on requests.Detect)
+ex1: 6 copies, byte-identical (b8a609764ef1)
+ex2: 5 copies, byte-identical (72e937936d19)
+ex3: 1 copies, byte-identical (61c08c4e95c3)
+ex4: 4 copies, byte-identical (3deef740c511)
+mg: 3 copies, byte-identical (2cf3248cb51f)
+ls: 2 copies, byte-identical (ef4eb8ff1bb2)
+wx: 1 copies, byte-identical (35d940acf974)
+revision of base: requests.Refine.args.Until by ex1: doc added; type changed: "enum:Stable" -> "stable-or-horizon"
+revision of base: requests.WeakestWithin.args.Kind by ex1: doc added; type changed: "enum:Behavioral|Trace|Now|Updates" -> "enum:Behavioral|Trace|Now|Updates|Radius"
+revision of base: requests.AverageModel by ex4: args added: Through; claim changed; positional changed
+revision of base: requests.CheckEqual by ex4: args added: Compare; claim changed
+revision of base: requests.OptimizePolicy by ex4: claim changed; positional changed
+revision of base: requests.EvaluatePolicy by ex4: args added: Policy, Through; args.With changed (required); claim changed; positional changed
+STOP: 1 conflict(s); nothing written
+requests.Detect is defined differently by ex4 and wx:
+--- ex4:requests.Detect
++++ wx:requests.Detect
+@@ -8,4 +8,10 @@
+   "Level": {
+-   "required": true,
++   "doc": "required with Scheme Ville: the probability bound on any false alarm",
++   "required": false,
+    "type": "rat01"
++  },
++  "MeanTimeToFalseAlarm": {
++   "doc": "required with Scheme ShiryaevRoberts: the alarm threshold, which bounds from below the expected number of observations before a false alarm",
++   "required": false,
++   "type": "nat"
+   },
+@@ -14,2 +20,8 @@
+    "type": "ref:Stream"
++  },
++  "Scheme": {
++   "default": "Ville",
++   "doc": "Ville: e-processes started at the first observation, as in the fourth of the four worked examples; ShiryaevRoberts: a changepoint detector that sums e-processes started at every observation",
++   "required": false,
++   "type": "enum:Ville|ShiryaevRoberts"
+   }
+@@ -20,3 +32,3 @@
+  ],
+- "claim": "Estimated: if the stream follows the null laws, the probability that a listed monitor ever reaches its threshold is at most Level (Ville's inequality; Union gives each of k monitors the threshold k/Level, Mixture thresholds the average of the e-values at 1/Level); the result names the first monitor and observation to reach its threshold, or reports that none did, with the stream digest, the protocol and the dependence assumptions",
++ "claim": "Estimated.  With Scheme Ville (the default): if the stream follows laws whose likelihood-ratio factors have conditional null expectation at most one, the probability that a listed monitor ever reaches its threshold is at most Level (Ville's inequality; Union gives each of k monitors the threshold k/Level, Mixture thresholds the average of the e-values at 1/Level).  With Scheme ShiryaevRoberts and Combine Mixture: each monitor's Shiryaev-Roberts statistic R_n = (1 + R_{n-1}) L_n is averaged over the monitors and the alarm is raised when the average reaches MeanTimeToFalseAlarm; under the same null condition the average minus n is a supermartingale, so the expected number of observations before a false alarm is at least MeanTimeToFalseAlarm.  The result names the first monitor (or the mixture) and observation to reach the threshold, or reports that none did with the largest value reached, with the stream digest, the protocol and the dependence assumptions",
+  "first_release": [],
+exit 1
