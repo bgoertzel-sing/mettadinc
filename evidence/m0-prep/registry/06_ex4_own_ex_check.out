@@ -1,0 +1,5 @@
+$ (03/ex4_market_maker) MDINC_PACKAGE=validation python3 ex_check.py ex1_registry_patch.json ex2_registry_patch.json ex4_registry_patch.json -- market_maker.metta   (README form: second pass is against the adopted registry)
+1 file(s), 4 modules, 75 declarations, 36 run requests
+All forms conform to the registry with the proposed patch.
+0 diagnostic(s) against the current registry (forms that need the patch):
+exit 0

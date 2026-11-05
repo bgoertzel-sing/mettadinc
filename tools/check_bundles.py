@@ -12,7 +12,8 @@ uninstall(), hard-codes a diagnostic for every compound family label, whatever t
 
 Each bundle runs in its own process.  Exit 0 if every bundle has zero diagnostics.
 --registry PATH checks against another registry instead (a canary: the unpatched base registry must give
-diagnostics).
+diagnostics).  --request HEAD also checks, one by one, every run request and every Derive declaration whose request
+has that head, and prints each with "admitted" or its diagnostics (e.g. --request Detect).
 """
 import os
 import subprocess
@@ -43,7 +44,44 @@ print(f"{len(files)} file(s), {nmod} modules, {ndecl} declarations, {nruns} run 
 print(f"{len(errors)} diagnostic(s) against {os.path.relpath(ex.cf.REGISTRY_PATH)}, no patch")
 for e in errors:
     print("  " + e)
-sys.exit(1 if errors else 0)
+H = os.environ.get("MDINC_SHOW_REQUEST")
+bad = 0
+if H:
+    cf = ex.cf
+    modules, parsed = {}, {}
+    for f in files:
+        forms = cf.read_forms(open(os.path.join(bdir, f)).read(), f)
+        parsed[f] = forms
+        for kind, form in forms:
+            if kind == "form":
+                modules[form[1]] = cf.Module(form[1], form, f)
+    for m in modules.values():
+        cf.scan_module(m)
+    for m in modules.values():
+        cf.resolve_imports(m, modules)
+    n = 0
+    for f, forms in parsed.items():
+        for kind, form in forms:
+            if kind == "run" and isinstance(form, list) and len(form) == 3 and isinstance(form[2], list) \
+                    and form[2] and form[2][0] == H:
+                cf.ERRORS.clear()
+                cf.check_run(form, modules, f)
+                n += 1
+                bad += bool(cf.ERRORS)
+                print(f"  {H} run {f}: !(dc.run {form[1]} {cf.show(form[2])}): "
+                      + ("admitted" if not cf.ERRORS else "; ".join(cf.ERRORS)))
+    for m in modules.values():
+        for name, (kind, item) in m.decls.items():
+            if kind == "Derive" and item in m.form[2:] and len(item) > 2 and isinstance(item[2], list) \
+                    and item[2] and item[2][0] == H:
+                cf.ERRORS.clear()
+                cf.check_declaration(m, name, kind, item)
+                n += 1
+                bad += bool(cf.ERRORS)
+                print(f"  {H} derivation {m.fname}: {m.name}.{name} = {cf.show(item[2])}: "
+                      + ("admitted" if not cf.ERRORS else "; ".join(cf.ERRORS)))
+    print(f"{n} {H} request(s), {n - bad} admitted, {bad} with diagnostics")
+sys.exit(1 if errors or bad else 0)
 '''
 
 
@@ -51,8 +89,11 @@ def main(argv):
     # no __pycache__ may be written into the frozen docs/e0/
     env = dict(os.environ, MDINC_PACKAGE=os.path.join(REPO, "validation"), PYTHONDONTWRITEBYTECODE="1")
     env.pop("MDINC_REGISTRY", None)
-    if argv[:1] == ["--registry"]:
-        env["MDINC_REGISTRY"] = os.path.abspath(argv[1])
+    while argv[:1] in (["--registry"], ["--request"]):
+        if argv[0] == "--registry":
+            env["MDINC_REGISTRY"] = os.path.abspath(argv[1])
+        else:
+            env["MDINC_SHOW_REQUEST"] = argv[1]
         argv = argv[2:]
     names = argv or list(BUNDLES)
     status = 0
