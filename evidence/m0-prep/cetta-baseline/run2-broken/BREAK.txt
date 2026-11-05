@@ -1,0 +1,1 @@
+echo "deliberately broken by the M0-prep break-a-test check" >> cetta/tests/rhocalc/translate_rho_to_mrho.expected   (before run2); git checkout -- cetta/tests/rhocalc/translate_rho_to_mrho.expected   (after run2; tools/check-vendored-cetta.sh: identical)

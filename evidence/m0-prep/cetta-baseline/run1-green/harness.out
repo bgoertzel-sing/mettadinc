@@ -1,0 +1,20 @@
+cetta-baseline: repo /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc
+cetta-baseline: repo commit 548633ecb57f16fd85f83c8a1e766fec6613477c
+cetta-baseline: cetta/ 12da03b4b055bfecff2add505e7e1ad4125bb352 (2026-08-14 16:58:16 +0200, "purging surface slop", 215 commits; still the head of `main` per `git ls-remote` on 2026-11-05)
+cetta-baseline: cetta/ matches the committed tree
+cetta-baseline: gcc 11.4.0, GNU Make 4.3, Python 3.10.12
+cetta-baseline: logs in /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/build/cetta-baseline/run1-green
+01_doctor_gmp: exit 0 (0 s)
+02_build_core: exit 0 (31 s)
+03_version_core: exit 0 (0 s)
+04_test_rhocalc: exit 0 (8 s)
+05_test_core_k: exit 2 (244 s)
+06_build_python: exit 0 (31 s)
+07_version_python: exit 0 (0 s)
+08_test_python_k: exit 2 (250 s)
+cetta-baseline: comparison with tools/cetta-baseline.expected
+GREEN rhocalc: PASS 261 SKIP 5 FAIL 0 failed-targets 0 exit 0 final 253/0
+GREEN core: PASS 502 SKIP 6 FAIL 1 failed-targets 2 exit 2 final 133/0
+GREEN python: PASS 503 SKIP 6 FAIL 0 failed-targets 1 exit 2 final 133/0
+RESULT: GREEN (no regression against E0's frozen baseline)
+HARNESS_EXIT=0

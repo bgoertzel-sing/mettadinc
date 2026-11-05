@@ -1,0 +1,35 @@
+cetta-baseline: repo /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc
+cetta-baseline: repo commit 548633ecb57f16fd85f83c8a1e766fec6613477c
+cetta-baseline: cetta/ 12da03b4b055bfecff2add505e7e1ad4125bb352 (2026-08-14 16:58:16 +0200, "purging surface slop", 215 commits; still the head of `main` per `git ls-remote` on 2026-11-05)
+cetta-baseline: NOTE: cetta/ has uncommitted changes:
+ cetta/tests/rhocalc/translate_rho_to_mrho.expected | 1 +
+ 1 file changed, 1 insertion(+)
+cetta-baseline: gcc 11.4.0, GNU Make 4.3, Python 3.10.12
+cetta-baseline: logs in /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/build/cetta-baseline/run2-broken
+01_doctor_gmp: exit 0 (0 s)
+02_build_core: exit 0 (0 s)
+03_version_core: exit 0 (0 s)
+04_test_rhocalc: exit 2 (9 s)
+05_test_core_k: exit 2 (136 s)
+06_build_python: exit 0 (1 s)
+07_version_python: exit 0 (0 s)
+08_test_python_k: exit 2 (149 s)
+cetta-baseline: comparison with tools/cetta-baseline.expected
+RED   rhocalc: PASS 260 SKIP 5 FAIL 1 failed-targets 1 exit 2 final 252/1
+  REGRESSION: exit status 2, expected 0
+  REGRESSION: final suite line (252, 1), expected (253, 0)
+  REGRESSION: 260 PASS lines, expected at least 261
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate rho -> mrho
+  REGRESSION: new FAIL (x1): FAIL: rhocalc translate rho -> mrho
+  REGRESSION: new failed make target (x1): test-rhocalc
+RED   core: PASS 501 SKIP 6 FAIL 2 failed-targets 3 exit 2 final 133/0
+  REGRESSION: 501 PASS lines, expected at least 502
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate rho -> mrho
+  REGRESSION: new FAIL (x1): FAIL: rhocalc translate rho -> mrho
+  REGRESSION: new failed make target (x1): test-rhocalc
+RED   python: PASS 502 SKIP 6 FAIL 1 failed-targets 2 exit 2 final 133/0
+  REGRESSION: 502 PASS lines, expected at least 503
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate rho -> mrho
+  REGRESSION: new FAIL (x1): FAIL: rhocalc translate rho -> mrho
+  REGRESSION: new failed make target (x1): test-rhocalc
+RESULT: NOT GREEN (regression, exit 1)
