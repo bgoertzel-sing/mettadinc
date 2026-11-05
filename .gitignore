@@ -1,2 +1,3 @@
-# harness logs and scratch (tools/cetta-baseline.sh)
+# harness logs and scratch (tools/cetta-baseline.sh, tools/run-oracles.sh)
 /build/
+__pycache__/
