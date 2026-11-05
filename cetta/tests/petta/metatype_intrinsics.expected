@@ -1,0 +1,14 @@
+is Grounded, should Grounded. ✅ 
+is Grounded, should Grounded. ✅ 
+is Symbol, should Symbol. ✅ 
+is Expression, should Expression. ✅ 
+true
+true
+true
+true
+3
+[1,2,3]
+'foo-bar'
+['foo-bar',true,"abc"]
+Symbol
+false

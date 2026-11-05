@@ -1,0 +1,64 @@
+# Build outputs
+/cetta
+/cetta-stage0
+/src/*.d
+/src/*.stage0.d
+/native/*.d
+/native/*.stage0.d
+/native/metamath/*.d
+/native/metamath/*.stage0.d
+/src/stdlib_blob.h
+/src/abt_default_signatures_blob.h
+
+# Local runtime snapshots and test scratch space
+/runtime/*
+
+# Profiling and result artifacts
+/massif.out.*
+/profiling/
+/results/
+
+# Local checkpoints and backups
+/_archive/
+/src/*.checkpoint_*
+/src/*.old_backup
+
+# Local tool/session debris
+/.codex
+/.generated/
+/.translator_pln_stage/
+/.oruzhi_*/
+/.oruzhi_*.metta
+/.tmp_*.metta
+/.cetta_*.metta
+/tmp_*.metta
+/tmp_cetta_logs/
+/logs/
+/benchmarks/INDEX.tsv
+/tests/tmp_*.metta
+/tests/scratch/
+/callgrind.*
+/fc_probe_*.metta
+/bench_mork.metta
+/bench_native.metta
+/bench_pathmap.metta
+
+# Local Python caches
+/scripts/__pycache__/
+/tests/support/__pycache__/
+/tests/support/import_foreign_pkg/plugin/__pycache__/
+
+# Native/Rust build products
+/native/*.o
+/native/*.stage0.o
+/src/*.o
+/src/*.stage0.o
+/runtime/bootstrap/bridge-workspace.*/
+/rust/target/
+
+# Compiled objects, deps, and caches — all build flavors, all subdirs
+*.o
+*.d
+__pycache__/
+*.pyc
+/cetta-*

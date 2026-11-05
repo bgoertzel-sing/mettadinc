@@ -1,0 +1,6 @@
+!(import! &self mork)
+!(import! &kb ../../benchmarks/data/kb_refseq_gene_annotations)
+!(space-set-match-backend! &kb pathmap-imported)
+!(bind! &compiled (mork:new-space))
+!(match &kb $atom (mork:add-atom &compiled $atom))
+!(mork:dump! &compiled "../../runtime/bench_bio_1m_refseq.act")

@@ -1,0 +1,223 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat <<'EOF'
+Usage:
+  scripts/run_witness.sh <name>
+  scripts/run_witness.sh --list
+  scripts/run_witness.sh --show-baselines
+
+Runs a named witness from benchmarks/witness_catalog.tsv with the recorded timeout and
+witness metadata, then prints a stable machine-readable summary plus a TSV record
+line that can be copied into benchmarks/baseline_records.tsv when desired.
+EOF
+}
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+catalog="$repo_root/benchmarks/witness_catalog.tsv"
+baselines="$repo_root/benchmarks/baseline_records.tsv"
+
+if [[ "${1:-}" == "--list" ]]; then
+    cat "$catalog"
+    exit 0
+fi
+
+if [[ "${1:-}" == "--show-baselines" ]]; then
+    cat "$baselines"
+    exit 0
+fi
+
+if [[ $# -ne 1 ]]; then
+    usage >&2
+    exit 2
+fi
+
+name="$1"
+row="$(awk -F '\t' -v key="$name" 'NR > 1 && $1 == key { print; exit }' "$catalog")"
+if [[ -z "$row" ]]; then
+    echo "unknown witness: $name" >&2
+    exit 2
+fi
+
+IFS=$'\t' read -r witness_name category build_hint timeout_s resource_hint_kib command notes <<< "$row"
+
+witness_bin="./cetta"
+witness_build_config="./runtime/bootstrap/build_config.core.h"
+
+canonical_build_mode() {
+    case "$1" in
+        full)
+            printf 'main\n'
+            ;;
+        pathmap)
+            printf 'mork\n'
+            ;;
+        *)
+            printf '%s\n' "$1"
+            ;;
+    esac
+}
+
+ensure_build_from_hint() {
+    local hint="$1"
+    local build_mode=""
+    local enable_runtime_stats=0
+    local runtime_target=""
+
+    case "$hint" in
+        core|python|mork|main|pathmap|full)
+            build_mode="$hint"
+            ;;
+        profile-core|profile-python|profile-mork|profile-main|profile-pathmap|profile-full)
+            build_mode="${hint#profile-}"
+            enable_runtime_stats=1
+            ;;
+        *)
+            echo "unsupported build_hint: $hint" >&2
+            exit 2
+            ;;
+    esac
+
+    build_mode="$(canonical_build_mode "$build_mode")"
+
+    if [[ "$enable_runtime_stats" -eq 1 ]]; then
+        runtime_target="runtime/cetta-${build_mode}-runtime-stats"
+        (cd "$repo_root" && \
+            make -j1 BUILD="$build_mode" ENABLE_RUNTIME_STATS=1 "$runtime_target" >/dev/null)
+        witness_bin="./$runtime_target"
+        witness_build_config="./runtime/bootstrap/build_config.${build_mode}.runtime-stats.h"
+    else
+        (cd "$repo_root" && \
+            make -j1 BUILD="$build_mode" ENABLE_RUNTIME_STATS=0 cetta >/dev/null)
+        witness_bin="./cetta"
+        witness_build_config="./runtime/bootstrap/build_config.${build_mode}.h"
+    fi
+}
+
+ensure_build_from_hint "$build_hint"
+run_command="$command"
+if [[ "$witness_bin" != "./cetta" ]]; then
+    run_command="${run_command//.\/cetta/$witness_bin}"
+fi
+if [[ -n "${RHO_BENCH_BASELINE_BIN:-}" ]]; then
+    case "$witness_name" in
+        rhocalc_threaded_standard|rhocalc_cost_threaded_heavy|rhocalc_threaded_adaptive|rhocalc_cost_threaded_adaptive)
+            printf -v baseline_arg '%q' "$RHO_BENCH_BASELINE_BIN"
+            run_command+=" --baseline-bin $baseline_arg"
+            ;;
+    esac
+fi
+export CETTA_BIN="$repo_root/${witness_bin#./}"
+export CETTA_BUILD_CONFIG="$repo_root/${witness_build_config#./}"
+
+if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    commit="$(git -C "$repo_root" rev-parse --short HEAD)"
+    branch="$(git -C "$repo_root" symbolic-ref --quiet --short HEAD 2>/dev/null || printf 'detached')"
+    repo_label="CeTTa-${branch}"
+    if git -C "$repo_root" diff --quiet --ignore-submodules HEAD -- &&
+       git -C "$repo_root" diff --quiet --ignore-submodules --cached HEAD --; then
+        tree_state="clean"
+    else
+        tree_state="dirty"
+    fi
+else
+    commit="unknown"
+    repo_label="CeTTa-nogit"
+    tree_state="nogit"
+fi
+
+logdir="$repo_root/runtime/witness-logs"
+mkdir -p "$logdir"
+logfile="$logdir/${witness_name}_$$.log"
+trap 'rm -f "$logfile"' EXIT
+
+set +e
+(
+    cd "$repo_root"
+    /usr/bin/time -f 'ELAPSED=%E\nRSS_KB=%M\nEXIT=%x' \
+        timeout "$timeout_s" bash --noprofile --norc -lc "$run_command"
+) >"$logfile" 2>&1
+shell_status=$?
+set -e
+
+elapsed="$(awk -F= '/^ELAPSED=/{print $2}' "$logfile" | tail -1)"
+rss_kib="$(awk -F= '/^RSS_KB=/{print $2}' "$logfile" | tail -1)"
+inner_exit="$(awk -F= '/^EXIT=/{print $2}' "$logfile" | tail -1)"
+
+if [[ -z "$inner_exit" ]]; then
+    inner_exit="$shell_status"
+fi
+
+status="fail"
+if [[ "$shell_status" -eq 0 && "$inner_exit" == "0" ]]; then
+    status="pass"
+elif [[ "$shell_status" -eq 124 || "$inner_exit" == "124" ]]; then
+    status="timeout"
+fi
+
+last_payload="$(awk '
+    /^[A-Z_]+=/{next}
+    { line = $0 }
+    END { print line }
+' "$logfile")"
+last_payload="${last_payload//$'\t'/ }"
+
+first_surface_error="$(awk '
+    /^[A-Z_]+=/{next}
+    index($0, "(Error ") > 0 { print; exit }
+' "$logfile")"
+first_surface_error="${first_surface_error//$'\t'/ }"
+
+structured_evidence="$(awk -F= '
+    /^WITNESS_EVIDENCE_[A-Z0-9_]+=/ { print }
+    /^SPACE_FRONTIER_[A-Z0-9_]+=/ { print }
+    /^GENERATOR_[A-Z0-9_]+=/ { print }
+    /^(record|measurement|growth)\t/ { print }
+' "$logfile")"
+
+status_reason="exit-status"
+if [[ "$status" == "timeout" ]]; then
+    status_reason="timeout"
+elif [[ "$status" == "pass" && -n "$first_surface_error" ]]; then
+    status="fail"
+    status_reason="surface-error-payload"
+fi
+
+printf 'NAME=%s\n' "$witness_name"
+printf 'CATEGORY=%s\n' "$category"
+printf 'BUILD_HINT=%s\n' "$build_hint"
+printf 'COMMIT=%s\n' "$commit"
+printf 'REPO_LABEL=%s\n' "$repo_label"
+printf 'TREE_STATE=%s\n' "$tree_state"
+printf 'STATUS=%s\n' "$status"
+printf 'STATUS_REASON=%s\n' "$status_reason"
+printf 'TIMEOUT_S=%s\n' "$timeout_s"
+printf 'RESOURCE_HINT_KIB=%s\n' "$resource_hint_kib"
+printf 'ELAPSED=%s\n' "${elapsed:-unknown}"
+printf 'RSS_KB=%s\n' "${rss_kib:-unknown}"
+printf 'COMMAND=%s\n' "$run_command"
+printf 'NOTES=%s\n' "$notes"
+printf 'LAST_PAYLOAD=%s\n' "${last_payload:-}"
+printf 'FIRST_SURFACE_ERROR=%s\n' "${first_surface_error:-}"
+if [[ -n "$structured_evidence" ]]; then
+    printf '%s\n' "$structured_evidence"
+fi
+printf 'TSV_RECORD=%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "$witness_name" \
+    "$repo_label" \
+    "$commit" \
+    "$status" \
+    "${elapsed:-unknown}" \
+    "${rss_kib:-unknown}" \
+    "$build_hint" \
+    "$timeout_s" \
+    "$resource_hint_kib" \
+    "$notes" \
+    "context"
+
+if [[ "$shell_status" -ne 0 && "$shell_status" -ne 124 ]]; then
+    cat "$logfile" >&2
+fi
+
+exit 0

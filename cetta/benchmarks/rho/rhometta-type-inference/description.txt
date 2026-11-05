@@ -1,0 +1,37 @@
+rhometta-type-inference -- type inference as concurrent proof search
+===================================================================
+
+THE IDEA
+  Type-checking is proof search: to find the type of an expression you chain
+  backward over typing rules, and the proof you build IS the typing derivation.
+  rhometta runs that search as concurrent reactions -- the subgoals of an
+  application (the operator's type, and each argument's type) are solved in
+  parallel, and an overloaded operator splits the search into several answers
+  (a "may-set"). The application rule shares its type variables across the
+  premises, so the join keeps them consistent -- which automatically prunes the
+  overloads that don't fit.
+
+  Typings are crisp: an expression either has a type or it does not, so no truth
+  value is attached to a proof. (For a genuine, *computed* truth value over
+  evidence, see rhometta-evidence-revision.)
+
+KNOWLEDGE BASE (in &kb)
+    one  : Int    |   one : Float                    (one is overloaded)
+    x    : Int
+    plus : Int->Int->Int   |   Float->Float->Float   (plus is overloaded)
+
+WHAT YOU SEE
+    (plus one one)   ->  two typings: Int and Float    (the overload may-set)
+    (plus x one)     ->  one typing:  Int              (x is Int, so Float is pruned)
+    (plus true one)  ->  no typing                     (true is Bool; nothing fits)
+
+  Each answer is a bare proof term that is exactly the typing derivation, e.g.
+    (: (app pplus-i pone-i pone-i) (HasType (plus one one) Int))
+
+  Regression-checked: a separate sequential backward chainer over the same KB
+  derives the same proofs (ACT6 in the file).
+
+RUN
+  ./cetta --quiet --profile he-extended --lang he benchmarks/rho/rhometta-type-inference/example.metta
+
+Expect: every line tagged PASS, no Error.

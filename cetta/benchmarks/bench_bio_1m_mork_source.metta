@@ -1,0 +1,11 @@
+!(import! &self mork)
+!(import! &self ../tests/support/bio_1m_mork_query_workload)
+
+!(import! &self data/kb_eqtl_gene_links)
+!(import! &self data/kb_refseq_gene_annotations)
+!(import! &self data/kb_tf_binding_sites)
+!(import! &self data/kb_multirelational_scaled)
+!(import! &self data/kb_hetionet_biomedical_graph)
+!(import! &self data/kb_mined_patterns)
+!(space-set-match-backend! &self pathmap-imported)
+!(run-bio-1m-mork-workload &self)

@@ -1,0 +1,23 @@
+Function some-func: (-> Arg1Type Arg2Type ReturnType) Test function
+Parameters:
+  Arg1Type First argument
+  Arg2Type Second argument
+Return: (type ReturnType) Return value
+Atom SomeSymbol: SomeType Test symbol atom having specific type
+Function some-gnd-atom: %Undefined% Test function
+Parameters:
+  %Undefined% First argument
+  %Undefined% Second argument
+Return: (type %Undefined%) Return value
+No documentation found for NoSuchAtom
+No documentation found for (some-func arg1 arg2)
+[()]
+[()]
+[()]
+[()]
+[()]
+[()]
+[()]
+[()]
+[()]
+[()]

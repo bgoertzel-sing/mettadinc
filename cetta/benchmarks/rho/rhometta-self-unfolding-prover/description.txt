@@ -1,0 +1,20 @@
+rhometta-self-unfolding-prover -- a proof search that builds itself
+==================================================================
+
+THE IDEA
+  Proving a goal PLANTS the reactions that prove its subgoals. Each COMM evaluates
+  one backward-chaining step whose result is *more rho process* -- the cells for the
+  subgoals -- so the reaction network keeps reducing and unfolds itself into a proof
+  tree. When a goal has several rules the step has several results, so the COMM forks:
+  rhometta:run returns one finished tree per branch (the may-set), each shown as the
+  set of primitives it bottomed out at.
+
+  The knowledge base is a tiny "can I make cake?" graph. The seed is a SINGLE cell;
+  the reactions plant everything else.
+
+WHAT YOU SEE
+  (have cake)     -> two proof trees (batter has two rules):  {flour egg oven}  and  {mix oven}
+  (have sandwich) -> one tree (a single rule):                {bread cheese}
+
+RUN
+  ./cetta --quiet --profile he-extended --lang he benchmarks/rho/rhometta-self-unfolding-prover/example.metta

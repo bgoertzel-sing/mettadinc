@@ -1,0 +1,302 @@
+!(import! &self lts:he)
+
+(= (f a) b)
+(= (f a) c)
+(= (g $x) (h $x))
+(= (h $x) (k $x))
+(= (choose-path) left)
+(= (choose-path) right)
+(= (he:true $_) True)
+(= (he:false $_) False)
+(= (he:is-b (quote b)) True)
+(= (he:is-b $_) False)
+(= (he:not-b (quote b)) False)
+(= (he:not-b $_) True)
+(= (step-inner 1) mid-inner)
+(= (wrap-inner mid-inner) done-inner)
+(= (branch-f 1) (branch-g 1))
+(= (branch-f 1) (branch-h 1))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (f a)))
+  (((quote b) (quote c))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (g a)))
+  (((quote (h a)))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (+ 1 (+ 2 3))))
+  (((quote (+ 1 5)))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (wrap-inner (step-inner 1))))
+  (((quote (wrap-inner mid-inner)))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (wrap-branch (branch-f 1))))
+  (((quote (wrap-branch (branch-g 1))) (quote (wrap-branch (branch-h 1))))))
+
+!(assertEqualToResult
+  (collapse (lts:he:step-state (quote (g a))))
+  (((quote (h a)))))
+
+!(assertEqual
+  (collapse (lts:he:step-state (quote (g a))))
+  (collapse (lts:transitions __cetta_lib_lts_he_transitions (quote (g a)))))
+
+!(assertEqual
+  (collapse (lts:he:transitions (g a)))
+  (collapse (lts:transitions lts:he:step-state (quote (g a)))))
+
+!(assertEqualToResult
+  (collapse (lts:he:step-state x))
+  (()))
+
+!(assertEqualToResult
+  (collapse (lts:he:step-state (g a)))
+  (()))
+
+!(assertEqual
+  (collapse (lts:he:step-state (quote x)))
+  (collapse (lts:transitions __cetta_lib_lts_he_transitions (quote x))))
+
+!(assertEqual
+  (collapse (lts:he:transitions x))
+  (collapse (lts:transitions lts:he:step-state (quote x))))
+
+!(assertEqualToResult
+  (collapse (lts:trace-2 lts:he:step-state (quote (g a))))
+  ((((quote (h a)) (quote (k a))))))
+
+!(assertEqualToResult
+  (collapse (lts:he:trace-2 (wrap-inner (step-inner 1))))
+  ((((quote (wrap-inner mid-inner)) (quote done-inner)))))
+
+!(assertEqualToResult
+  (collapse (lts:he:trace-2 (+ 1 (+ 2 3))))
+  ((((quote (+ 1 5)) (quote 6)))))
+
+!(assertEqual
+  (collapse (lts:he:trace-2 (g a)))
+  (collapse (lts:trace-2 lts:he:step-state (quote (g a)))))
+
+!(assertEqualToResult
+  (collapse (lts:trace-2 lts:he:step-state (quote x)))
+  (()))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (chain (f a) $r (return $r))))
+  (((quote (chain b $r (return $r))) (quote (chain c $r (return $r))))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (chain b $r (return $r))))
+  (((quote (return b)))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (chain (g a) $r (return $r))))
+  (((quote (chain (h a) $r (return $r))))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (let $x (f a) (wrap $x))))
+  (((quote (let $x b (wrap $x))) (quote (let $x c (wrap $x))))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (let (pair $x $y) (pair a b) $x)))
+  (((quote a))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (let* (($x a) ($y b)) (pair $x $y))))
+  (((quote (let $x a (let* (($y b)) (pair $x $y)))))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (let* () done)))
+  (((quote done))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (eval (g a))))
+  (((quote (g a)))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (case (f a) ((b one) (c two)))))
+  (((quote (case b ((b one) (c two)))) (quote (case c ((b one) (c two)))))))
+
+!(assertEqualToResult
+  (collapse (lts:he:trace-2 (case (f a) ((b one) (c two)))))
+  ((((quote (case b ((b one) (c two)))) (quote one))
+    ((quote (case c ((b one) (c two)))) (quote two)))))
+
+!(assertEqual
+  (collapse (lts:he:trace-2 (case (f a) ((b one) (c two)))))
+  (collapse (lts:trace-2 lts:he:step-state (quote (case (f a) ((b one) (c two)))))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (switch z ((z two)))))
+  (((quote two))))
+
+; switch evaluates its scrutinee (upstream contract; split ratified
+; 2026-06-10): the reducible scrutinee steps first.  switch-minimal
+; matches the raw scrutinee structurally.
+!(assertEqualToResult
+  (collapse (lts:he:transitions (switch (g a) (((g a) raw) ((h a) evald)))))
+  (((quote (switch (h a) (((g a) raw) ((h a) evald)))))))
+!(assertEqualToResult
+  (collapse (lts:he:transitions (switch-minimal (g a) (((g a) raw) ((h a) evald)))))
+  (((quote raw))))
+
+!(assertEqualToResult
+  (collapse (lts:he:trace-2 (let $p (choose-path) done)))
+  ((((quote (let $p left done)) (quote done))
+    ((quote (let $p right done)) (quote done)))))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions x))
+  (()))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (unknown-fn a)))
+  (()))
+
+!(assertEqualToResult
+  (lts:he:is-normal-form x)
+  (True))
+
+!(assertEqual
+  (lts:he:is-normal-form x)
+  (lts:is-normal-form lts:he:step-state (quote x)))
+
+!(assertEqualToResult
+  (lts:he:is-can-step x)
+  (False))
+
+!(assertEqual
+  (lts:he:is-can-step x)
+  (lts:is-can-step lts:he:step-state (quote x)))
+
+!(assertEqual
+  (lts:he:box he:false x)
+  (lts:he:is-normal-form x))
+
+!(assertEqual
+  (lts:he:box he:false (f a))
+  (lts:he:is-normal-form (f a)))
+
+!(assertEqual
+  (lts:he:diamond he:true x)
+  (lts:he:is-can-step x))
+
+!(assertEqual
+  (lts:he:diamond he:true (g hello))
+  (lts:he:is-can-step (g hello)))
+
+!(assertEqualToResult
+  (lts:he:box he:true (f a))
+  (True))
+
+!(assertEqualToResult
+  (lts:he:diamond he:false (f a))
+  (False))
+
+!(assertEqual
+  (lts:he:box he:is-b (f a))
+  (not (lts:he:diamond he:not-b (f a))))
+
+!(assertEqualToResult
+  (lts:he:is-normal-form (f a))
+  (False))
+
+!(assertEqualToResult
+  (lts:he:is-normal-form (+ 1 (+ 2 3)))
+  (False))
+
+!(assertEqualToResult
+  (lts:he:is-normal-form (wrap-branch done))
+  (True))
+
+!(assertEqualToResult
+  (collapse (lts:he:transitions (wrap-branch done)))
+  (()))
+
+!(assertEqual
+  (lts:he:is-normal-form (f a))
+  (lts:is-normal-form lts:he:step-state (quote (f a))))
+
+!(assertEqualToResult
+  (lts:he:is-can-step (g hello))
+  (True))
+
+!(assertEqual
+  (lts:he:is-can-step (g hello))
+  (lts:is-can-step lts:he:step-state (quote (g hello))))
+
+!(assertEqualToResult
+  (lts:he:transitions)
+  ((Error (lts:he:transitions) IncorrectNumberOfArguments)))
+
+!(assertEqualToResult
+  (lts:he:step-state)
+  ((Error (lts:he:step-state) IncorrectNumberOfArguments)))
+
+!(assertEqualToResult
+  (lts:he:trace-2)
+  ((Error (lts:he:trace-2) IncorrectNumberOfArguments)))
+
+!(assertEqualToResult
+  (lts:he:transitions (Error boom msg))
+  ((Error boom msg)))
+
+!(assertEqual
+  (lts:he:transitions (Error boom msg))
+  (lts:transitions lts:he:step-state (quote (Error boom msg))))
+
+!(assertEqualToResult
+  (lts:he:step-state (quote (Error boom msg)))
+  ((Error boom msg)))
+
+!(assertEqual
+  (lts:he:step-state (quote (Error boom msg)))
+  (lts:transitions __cetta_lib_lts_he_transitions (quote (Error boom msg))))
+
+!(assertEqualToResult
+  (lts:he:trace-2 (Error boom msg))
+  ((Error boom msg)))
+
+!(assertEqual
+  (lts:he:trace-2 (Error boom msg))
+  (lts:trace-2 lts:he:step-state (quote (Error boom msg))))
+
+!(assertEqualToResult
+  (lts:trace-2 lts:he:step-state (quote (Error boom msg)))
+  ((Error boom msg)))
+
+!(assertEqualToResult
+  (lts:he:is-normal-form (Error boom msg))
+  ((Error boom msg)))
+
+!(assertEqual
+  (lts:he:is-normal-form (Error boom msg))
+  (lts:is-normal-form lts:he:step-state (quote (Error boom msg))))
+
+!(assertEqualToResult
+  (lts:he:is-can-step (Error boom msg))
+  ((Error boom msg)))
+
+!(assertEqual
+  (lts:he:is-can-step (Error boom msg))
+  (lts:is-can-step lts:he:step-state (quote (Error boom msg))))
+
+!(assertEqualToResult
+  (lts:he:is-normal-form)
+  ((Error (lts:he:is-normal-form) IncorrectNumberOfArguments)))
+
+!(assertEqualToResult
+  (lts:he:is-can-step)
+  ((Error (lts:he:is-can-step) IncorrectNumberOfArguments)))
+
+!(assertEqualToResult
+  (lts:he:box)
+  ((Error (lts:he:box) IncorrectNumberOfArguments)))
+
+!(assertEqualToResult
+  (lts:he:diamond)
+  ((Error (lts:he:diamond) IncorrectNumberOfArguments)))

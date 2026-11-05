@@ -1,0 +1,30 @@
+rhometta-evidence-revision -- a truth value that is actually computed
+====================================================================
+
+THE IDEA
+  Two agents each watch some ravens and form an opinion about "ravens are black" (written (Inheritance raven black))
+  -- a strength (fraction seen black) and a confidence (how much evidence backs
+  it). They happen to share two observations. If you merge their opinions
+  naively, that shared evidence gets counted twice and the confidence comes out
+  too high. Overlap-corrected revision discounts the shared observations and
+  reports the honest confidence. This is the one rho demo where a truth value
+  belongs: it is COUNTED FROM OBSERVATIONS, not hand-set (a typing or a proof, by
+  contrast, is simply true or not).
+
+WHAT YOU SEE
+  Same strength either way (0.75 = 3 of 4 seen black). The honest difference is
+  the confidence:
+      naive (double-counts the shared evidence):  0.889
+      overlap-corrected (the honest value):       0.857
+
+  Two shapes of the same computation:
+    Variant B -- both agents run in parallel; the revision happens after the run.
+    Variant A -- the revision happens AT the final rendezvous (communication is
+                 computation): the first agent's result is carried into the
+                 payload that revises it against the second.
+
+  Each agent's opinion is computed at COMM time by a deferred MeTTa payload
+  (count observations -> build the stv), not read off a table.
+
+RUN
+  ./cetta --quiet --profile he-extended --lang he benchmarks/rho/rhometta-evidence-revision/example.metta

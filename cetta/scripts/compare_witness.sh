@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat <<'EOF'
+Usage:
+  scripts/compare_witness.sh <name>
+  scripts/compare_witness.sh --enforce-material <name>
+  scripts/compare_witness.sh --enforce-rss-against <baseline-name> <name>
+
+Runs a witness via scripts/run_witness.sh, compares it against a recorded
+solid-anchor baseline when one exists for the current HEAD, and also reports
+the nearest contextual checkpoint separately.  --enforce-material additionally
+fails when elapsed time or peak RSS exceeds the recorded baseline by both 25%
+and a small absolute noise allowance (10 seconds or 64 MiB respectively).
+--enforce-rss-against applies only the same peak-RSS rule, using another
+witness's solid-anchor record.  This is suitable for adaptive timing witnesses
+whose sample count deliberately varies.
+EOF
+}
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+baseline_file="$repo_root/benchmarks/baseline_records.tsv"
+
+enforce_material=0
+enforce_rss=0
+baseline_name=""
+if [[ "${1:-}" == "--enforce-material" ]]; then
+    enforce_material=1
+    shift
+elif [[ "${1:-}" == "--enforce-rss-against" ]]; then
+    enforce_rss=1
+    shift
+    baseline_name="${1:-}"
+    [[ -n "$baseline_name" ]] || { usage >&2; exit 2; }
+    shift
+fi
+
+if [[ $# -ne 1 ]]; then
+    usage >&2
+    exit 2
+fi
+
+name="$1"
+if [[ -z "$baseline_name" ]]; then
+    baseline_name="$name"
+fi
+run_output="$("$repo_root/scripts/run_witness.sh" "$name")"
+
+current_status="$(printf '%s\n' "$run_output" | awk -F= '/^STATUS=/{print $2; exit}')"
+current_elapsed="$(printf '%s\n' "$run_output" | awk -F= '/^ELAPSED=/{print $2; exit}')"
+current_rss="$(printf '%s\n' "$run_output" | awk -F= '/^RSS_KB=/{print $2; exit}')"
+current_tree="$(printf '%s\n' "$run_output" | awk -F= '/^TREE_STATE=/{print $2; exit}')"
+current_evidence_status="$(printf '%s\n' "$run_output" | awk -F= '/^WITNESS_EVIDENCE_STATUS=/{print $2; exit}')"
+sample_factor=1
+if [[ -n "${RHO_BENCH_BASELINE_BIN:-}" ]]; then
+    case "$name" in
+        rhocalc_threaded_standard|rhocalc_cost_threaded_heavy)
+            sample_factor=2
+            ;;
+    esac
+fi
+
+elapsed_to_ms() {
+    local t="$1"
+    if [[ "$t" == "unknown" || -z "$t" ]]; then
+        echo ""
+        return 0
+    fi
+    awk -v t="$t" '
+        BEGIN {
+            n = split(t, a, ":");
+            if (n == 2) {
+                mins = a[1] + 0;
+                secs = a[2] + 0;
+                printf "%.0f\n", (mins * 60 + secs) * 1000;
+            } else if (n == 3) {
+                hrs = a[1] + 0;
+                mins = a[2] + 0;
+                secs = a[3] + 0;
+                printf "%.0f\n", (hrs * 3600 + mins * 60 + secs) * 1000;
+            }
+        }'
+}
+
+cur_ms="$(elapsed_to_ms "$current_elapsed")"
+
+status_rank() {
+    case "$1" in
+        pass) echo 0 ;;
+        timeout) echo 1 ;;
+        *) echo 2 ;;
+    esac
+}
+
+baseline_line=""
+baseline_rank=""
+baseline_ms=""
+baseline_distance=""
+context_line=""
+context_distance=""
+
+while IFS=$'\t' read -r row_name repo_label commit status elapsed rss_kib \
+    _build_hint _timeout_s _resource_hint_kib note role; do
+    [[ "$row_name" == "name" ]] && continue
+    [[ "$row_name" != "$baseline_name" ]] && continue
+    if ! git -C "$repo_root" merge-base --is-ancestor "$commit" HEAD 2>/dev/null; then
+        continue
+    fi
+    role="${role:-context}"
+    distance="$(git -C "$repo_root" rev-list --count "${commit}..HEAD")"
+    if [[ "$role" == "solid_anchor" ]]; then
+        candidate_rank="$(status_rank "$status")"
+        candidate_ms="$(elapsed_to_ms "$elapsed")"
+        if [[ -z "$baseline_line" ]] ||
+           [[ "$candidate_rank" -lt "$baseline_rank" ]] ||
+           [[ "$candidate_rank" -eq "$baseline_rank" &&
+              -n "$candidate_ms" &&
+              ( -z "$baseline_ms" || "$candidate_ms" -lt "$baseline_ms" ) ]] ||
+           [[ "$candidate_rank" -eq "$baseline_rank" &&
+              ( -z "$candidate_ms" || "$candidate_ms" == "$baseline_ms" ) &&
+              ( -z "$baseline_distance" || "$distance" -lt "$baseline_distance" ) ]]; then
+            baseline_line="$repo_label"$'\t'"$commit"$'\t'"$status"$'\t'"$elapsed"$'\t'"$rss_kib"$'\t'"$note"$'\t'"$role"
+            baseline_rank="$candidate_rank"
+            baseline_ms="${candidate_ms:-}"
+            baseline_distance="$distance"
+        fi
+    else
+        if [[ -z "$context_distance" || "$distance" -lt "$context_distance" ]]; then
+            context_distance="$distance"
+            context_line="$repo_label"$'\t'"$commit"$'\t'"$status"$'\t'"$elapsed"$'\t'"$rss_kib"$'\t'"$note"$'\t'"$role"
+        fi
+    fi
+done < "$baseline_file"
+
+print_compare_block() {
+    local prefix="$1"
+    local line="$2"
+    local distance="$3"
+    local repo commit status elapsed rss note role base_ms ratio delta_ms
+
+    if [[ -z "$line" ]]; then
+        printf '%s=none\n' "$prefix"
+        return 0
+    fi
+
+    IFS=$'\t' read -r repo commit status elapsed rss note role <<< "$line"
+    base_ms="$(elapsed_to_ms "$elapsed")"
+
+    printf '%s_REPO=%s\n' "$prefix" "$repo"
+    printf '%s_COMMIT=%s\n' "$prefix" "$commit"
+    printf '%s_DISTANCE=%s\n' "$prefix" "$distance"
+    printf '%s_ROLE=%s\n' "$prefix" "$role"
+    printf '%s_STATUS=%s\n' "$prefix" "$status"
+    printf '%s_ELAPSED=%s\n' "$prefix" "$elapsed"
+    printf '%s_RSS_KB=%s\n' "$prefix" "$rss"
+    printf '%s_NOTE=%s\n' "$prefix" "$note"
+
+    if [[ -n "$cur_ms" && -n "$base_ms" && "$base_ms" -gt 0 ]]; then
+        ratio="$(awk -v cur="$cur_ms" -v base="$base_ms" 'BEGIN { printf "%.3f", cur / base }')"
+        delta_ms=$((cur_ms - base_ms))
+        printf '%s_ELAPSED_RATIO=%s\n' "$prefix" "$ratio"
+        printf '%s_ELAPSED_DELTA_MS=%s\n' "$prefix" "$delta_ms"
+    fi
+
+    if [[ -n "$current_rss" && -n "$rss" && "$current_rss" != "unknown" && "$rss" != "unknown" ]]; then
+        printf '%s_RSS_DELTA_KB=%s\n' "$prefix" "$((current_rss - rss))"
+    fi
+
+    if [[ "$current_status" == "$status" ]]; then
+        printf '%s_STATUS_SUMMARY=status-match\n' "$prefix"
+    else
+        printf '%s_STATUS_SUMMARY=status-diff\n' "$prefix"
+    fi
+}
+
+printf '%s\n' "$run_output"
+print_compare_block "COMPARE_BASELINE" "$baseline_line" "$baseline_distance"
+print_compare_block "COMPARE_CONTEXT" "$context_line" "$context_distance"
+printf 'COMPARE_TREE_STATE=%s\n' "$current_tree"
+printf 'COMPARE_SAMPLE_FACTOR=%s\n' "$sample_factor"
+printf 'COMPARE_STRUCTURED_EVIDENCE=%s\n' "${current_evidence_status:-none}"
+printf 'COMPARE_BASELINE_NAME=%s\n' "$baseline_name"
+
+if [[ "$enforce_material" -eq 1 || "$enforce_rss" -eq 1 ]]; then
+    if [[ "$current_status" != "pass" ]]; then
+        echo "FAIL: current witness did not pass" >&2
+        exit 1
+    fi
+    if [[ -n "$current_evidence_status" && "$current_evidence_status" != "passed" ]]; then
+        echo "FAIL: structured witness evidence did not pass" >&2
+        exit 1
+    fi
+    if [[ -z "$baseline_line" ]]; then
+        echo "FAIL: no ancestral solid-anchor baseline is recorded" >&2
+        exit 1
+    fi
+    IFS=$'\t' read -r _base_repo _base_commit base_status base_elapsed base_rss \
+        _base_note _base_role <<< "$baseline_line"
+    if [[ "$base_status" != "pass" ]]; then
+        echo "FAIL: selected solid-anchor baseline did not pass" >&2
+        exit 1
+    fi
+    base_ms="$(elapsed_to_ms "$base_elapsed")"
+    if [[ "$enforce_material" -eq 1 && -n "$cur_ms" && -n "$base_ms" ]]; then
+        elapsed_material="$(awk -v cur="$cur_ms" -v base="$base_ms" \
+            -v factor="$sample_factor" \
+            'BEGIN { expected = base * factor; print (cur > expected * 1.25 && cur - expected > 10000) ? 1 : 0 }')"
+        if [[ "$elapsed_material" -eq 1 ]]; then
+            echo "FAIL: material witness elapsed-time regression" >&2
+            exit 1
+        fi
+    fi
+    if [[ -n "$current_rss" && -n "$base_rss" && \
+          "$current_rss" != "unknown" && "$base_rss" != "unknown" ]]; then
+        rss_material="$(awk -v cur="$current_rss" -v base="$base_rss" \
+            'BEGIN { print (cur > base * 1.25 && cur - base > 65536) ? 1 : 0 }')"
+        if [[ "$rss_material" -eq 1 ]]; then
+            echo "FAIL: material witness peak-RSS regression" >&2
+            exit 1
+        fi
+    fi
+    if [[ "$enforce_material" -eq 1 ]]; then
+        echo "COMPARE_MATERIAL_REGRESSION=none"
+    else
+        echo "COMPARE_RSS_REGRESSION=none"
+    fi
+fi

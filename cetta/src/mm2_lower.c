@@ -1,0 +1,1139 @@
+#include "mm2_lower.h"
+
+#include "symbol.h"
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef enum {
+    MM2_CTX_GENERAL = 0,
+    MM2_CTX_PATTERN,
+    MM2_CTX_TEMPLATE
+} Mm2LowerContext;
+
+typedef struct {
+    SymbolId surf_exec;
+    SymbolId surf_btm;
+    SymbolId surf_act;
+    SymbolId surf_sink_seq;
+    SymbolId surf_neq;
+    SymbolId surf_z3;
+
+    SymbolId ir_exec;
+    SymbolId ir_pattern_and;
+    SymbolId ir_pattern_btm;
+    SymbolId ir_pattern_act;
+    SymbolId ir_guard_eq;
+    SymbolId ir_guard_neq;
+    SymbolId ir_sink_seq;
+    SymbolId ir_sink_add;
+    SymbolId ir_sink_remove;
+    SymbolId ir_sink_act;
+    SymbolId ir_sink_z3;
+} Mm2LowerSyms;
+
+static Mm2LowerSyms mm2_lower_syms(void) {
+    Mm2LowerSyms syms;
+    syms.surf_exec = symbol_intern_cstr(g_symbols, "exec");
+    syms.surf_btm = symbol_intern_cstr(g_symbols, "BTM");
+    syms.surf_act = symbol_intern_cstr(g_symbols, "ACT");
+    syms.surf_sink_seq = symbol_intern_cstr(g_symbols, "O");
+    syms.surf_neq = symbol_intern_cstr(g_symbols, "!=");
+    syms.surf_z3 = symbol_intern_cstr(g_symbols, "z3");
+
+    syms.ir_exec = symbol_intern_cstr(g_symbols, "mm2_exec");
+    syms.ir_pattern_and = symbol_intern_cstr(g_symbols, "mm2_pattern_and");
+    syms.ir_pattern_btm = symbol_intern_cstr(g_symbols, "mm2_pattern_btm");
+    syms.ir_pattern_act = symbol_intern_cstr(g_symbols, "mm2_pattern_act");
+    syms.ir_guard_eq = symbol_intern_cstr(g_symbols, "mm2_guard_eq");
+    syms.ir_guard_neq = symbol_intern_cstr(g_symbols, "mm2_guard_neq");
+    syms.ir_sink_seq = symbol_intern_cstr(g_symbols, "mm2_sink_seq");
+    syms.ir_sink_add = symbol_intern_cstr(g_symbols, "mm2_sink_add");
+    syms.ir_sink_remove = symbol_intern_cstr(g_symbols, "mm2_sink_remove");
+    syms.ir_sink_act = symbol_intern_cstr(g_symbols, "mm2_sink_act");
+    syms.ir_sink_z3 = symbol_intern_cstr(g_symbols, "mm2_sink_z3");
+    return syms;
+}
+
+bool cetta_mm2_atom_is_exec_rule(Atom *atom) {
+    Mm2LowerSyms syms = mm2_lower_syms();
+    if (!atom || atom->kind != ATOM_EXPR || atom->expr.len == 0) return false;
+    Atom *head = atom->expr.elems[0];
+    if (head->kind != ATOM_SYMBOL) return false;
+    return atom_is_symbol_id(head, syms.surf_exec) ||
+           atom_is_symbol_id(head, syms.ir_exec);
+}
+
+bool cetta_mm2_atoms_have_top_level_eval(Atom **atoms, int n) {
+    if (!atoms || n <= 0) return false;
+    for (int i = 0; i < n; i++) {
+        if (atom_is_symbol_id(atoms[i], g_builtin_syms.bang)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static Atom *mm2_raise_atom_impl(Arena *a, Atom *atom, const Mm2LowerSyms *syms);
+
+static Atom *mm2_raise_expr_with_head(Arena *a, Atom *atom, SymbolId head_id,
+                                      const Mm2LowerSyms *syms) {
+    bool changed = false;
+    Atom **elems = arena_alloc(a, sizeof(Atom *) * atom->expr.len);
+    elems[0] = atom_symbol_id(a, head_id);
+    if (elems[0] != atom->expr.elems[0]) changed = true;
+    for (uint32_t i = 1; i < atom->expr.len; i++) {
+        elems[i] = mm2_raise_atom_impl(a, atom->expr.elems[i], syms);
+        if (elems[i] != atom->expr.elems[i]) changed = true;
+    }
+    if (!changed) return atom;
+    return atom_expr_shared(a, elems, atom->expr.len);
+}
+
+static Atom *mm2_raise_plain_expr(Arena *a, Atom *atom, const Mm2LowerSyms *syms) {
+    bool changed = false;
+    Atom **elems = arena_alloc(a, sizeof(Atom *) * atom->expr.len);
+    for (uint32_t i = 0; i < atom->expr.len; i++) {
+        elems[i] = mm2_raise_atom_impl(a, atom->expr.elems[i], syms);
+        if (elems[i] != atom->expr.elems[i]) changed = true;
+    }
+    if (!changed) return atom;
+    return atom_expr_shared(a, elems, atom->expr.len);
+}
+
+static Atom *mm2_raise_atom_impl(Arena *a, Atom *atom, const Mm2LowerSyms *syms) {
+    if (!atom || atom->kind != ATOM_EXPR || atom->expr.len == 0) return atom;
+
+    Atom *head = atom->expr.elems[0];
+    if (head->kind != ATOM_SYMBOL) {
+        return mm2_raise_plain_expr(a, atom, syms);
+    }
+    if (atom_is_symbol_id(head, g_builtin_syms.quote)) {
+        return atom;
+    }
+
+    if (atom_is_symbol_id(head, syms->ir_exec)) {
+        return mm2_raise_expr_with_head(a, atom, syms->surf_exec, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_pattern_and)) {
+        return mm2_raise_expr_with_head(a, atom, g_builtin_syms.comma, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_pattern_btm)) {
+        return mm2_raise_expr_with_head(a, atom, syms->surf_btm, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_pattern_act) ||
+        atom_is_symbol_id(head, syms->ir_sink_act)) {
+        return mm2_raise_expr_with_head(a, atom, syms->surf_act, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_guard_eq)) {
+        return mm2_raise_expr_with_head(a, atom, g_builtin_syms.op_eq, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_guard_neq)) {
+        return mm2_raise_expr_with_head(a, atom, syms->surf_neq, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_sink_seq)) {
+        return mm2_raise_expr_with_head(a, atom, syms->surf_sink_seq, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_sink_add)) {
+        return mm2_raise_expr_with_head(a, atom, g_builtin_syms.op_plus, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_sink_remove)) {
+        return mm2_raise_expr_with_head(a, atom, g_builtin_syms.op_minus, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_sink_z3)) {
+        return mm2_raise_expr_with_head(a, atom, syms->surf_z3, syms);
+    }
+
+    return mm2_raise_plain_expr(a, atom, syms);
+}
+
+static Atom *mm2_lower_atom(Arena *a, Atom *atom, Mm2LowerContext ctx,
+                            const Mm2LowerSyms *syms);
+
+static Atom *mm2_lower_expr_with_head(Arena *a, Atom *atom, Atom *new_head,
+                                      uint32_t start_idx,
+                                      Mm2LowerContext child_ctx,
+                                      const Mm2LowerSyms *syms) {
+    bool changed = (new_head != atom->expr.elems[0]);
+    Atom **elems = arena_alloc(a, sizeof(Atom *) * atom->expr.len);
+    elems[0] = new_head;
+    for (uint32_t i = 1; i < atom->expr.len; i++) {
+        Mm2LowerContext next_ctx = (i >= start_idx) ? child_ctx : MM2_CTX_GENERAL;
+        elems[i] = mm2_lower_atom(a, atom->expr.elems[i], next_ctx, syms);
+        if (elems[i] != atom->expr.elems[i]) changed = true;
+    }
+    if (!changed) return atom;
+    return atom_expr_shared(a, elems, atom->expr.len);
+}
+
+static Atom *mm2_lower_expr_mixed(Arena *a, Atom *atom, Atom *new_head,
+                                  const Mm2LowerContext *child_ctxs,
+                                  const Mm2LowerSyms *syms) {
+    bool changed = (new_head != atom->expr.elems[0]);
+    Atom **elems = arena_alloc(a, sizeof(Atom *) * atom->expr.len);
+    elems[0] = new_head;
+    for (uint32_t i = 1; i < atom->expr.len; i++) {
+        elems[i] = mm2_lower_atom(a, atom->expr.elems[i], child_ctxs[i - 1], syms);
+        if (elems[i] != atom->expr.elems[i]) changed = true;
+    }
+    if (!changed) return atom;
+    return atom_expr_shared(a, elems, atom->expr.len);
+}
+
+static Atom *mm2_lower_plain_expr(Arena *a, Atom *atom, const Mm2LowerSyms *syms) {
+    bool changed = false;
+    Atom **elems = arena_alloc(a, sizeof(Atom *) * atom->expr.len);
+    for (uint32_t i = 0; i < atom->expr.len; i++) {
+        Mm2LowerContext next_ctx = (i == 0) ? MM2_CTX_GENERAL : MM2_CTX_GENERAL;
+        elems[i] = mm2_lower_atom(a, atom->expr.elems[i], next_ctx, syms);
+        if (elems[i] != atom->expr.elems[i]) changed = true;
+    }
+    if (!changed) return atom;
+    return atom_expr_shared(a, elems, atom->expr.len);
+}
+
+static Atom *mm2_lower_atom(Arena *a, Atom *atom, Mm2LowerContext ctx,
+                            const Mm2LowerSyms *syms) {
+    if (!atom || atom->kind != ATOM_EXPR || atom->expr.len == 0) return atom;
+
+    Atom *head = atom->expr.elems[0];
+    if (head->kind != ATOM_SYMBOL) {
+        return mm2_lower_plain_expr(a, atom, syms);
+    }
+    if (atom_is_symbol_id(head, g_builtin_syms.quote)) {
+        return atom;
+    }
+
+    if (atom_is_symbol_id(head, syms->surf_exec) && atom->expr.len == 4) {
+        Mm2LowerContext child_ctxs[3] = {
+            MM2_CTX_GENERAL, MM2_CTX_PATTERN, MM2_CTX_TEMPLATE
+        };
+        return mm2_lower_expr_mixed(a, atom, atom_symbol_id(a, syms->ir_exec),
+                                    child_ctxs, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_exec) && atom->expr.len == 4) {
+        Mm2LowerContext child_ctxs[3] = {
+            MM2_CTX_GENERAL, MM2_CTX_PATTERN, MM2_CTX_TEMPLATE
+        };
+        return mm2_lower_expr_mixed(a, atom, head, child_ctxs, syms);
+    }
+
+    if (atom_is_symbol_id(head, g_builtin_syms.comma) &&
+        atom->expr.len >= 3 &&
+        (ctx == MM2_CTX_PATTERN || ctx == MM2_CTX_GENERAL)) {
+        return mm2_lower_expr_with_head(a, atom,
+                                        atom_symbol_id(a, syms->ir_pattern_and),
+                                        1, MM2_CTX_PATTERN, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_pattern_and) && atom->expr.len >= 3) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_PATTERN, syms);
+    }
+
+    if (atom_is_symbol_id(head, syms->surf_btm) && atom->expr.len == 2) {
+        return mm2_lower_expr_with_head(a, atom,
+                                        atom_symbol_id(a, syms->ir_pattern_btm),
+                                        1, MM2_CTX_GENERAL, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_pattern_btm) && atom->expr.len == 2) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_GENERAL, syms);
+    }
+
+    if (atom_is_symbol_id(head, syms->surf_act) && atom->expr.len == 3) {
+        SymbolId target = (ctx == MM2_CTX_TEMPLATE) ? syms->ir_sink_act : syms->ir_pattern_act;
+        return mm2_lower_expr_with_head(a, atom, atom_symbol_id(a, target),
+                                        1, MM2_CTX_GENERAL, syms);
+    }
+    if ((atom_is_symbol_id(head, syms->ir_pattern_act) ||
+         atom_is_symbol_id(head, syms->ir_sink_act)) &&
+        atom->expr.len == 3) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_GENERAL, syms);
+    }
+
+    if (atom_is_symbol_id(head, g_builtin_syms.op_eq) && atom->expr.len == 3) {
+        return mm2_lower_expr_with_head(a, atom,
+                                        atom_symbol_id(a, syms->ir_guard_eq),
+                                        1, MM2_CTX_GENERAL, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_guard_eq) && atom->expr.len == 3) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_GENERAL, syms);
+    }
+
+    if (atom_is_symbol_id(head, syms->surf_neq) && atom->expr.len == 3) {
+        return mm2_lower_expr_with_head(a, atom,
+                                        atom_symbol_id(a, syms->ir_guard_neq),
+                                        1, MM2_CTX_GENERAL, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_guard_neq) && atom->expr.len == 3) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_GENERAL, syms);
+    }
+
+    if (atom_is_symbol_id(head, syms->surf_sink_seq) &&
+        atom->expr.len >= 2) {
+        return mm2_lower_expr_with_head(a, atom,
+                                        atom_symbol_id(a, syms->ir_sink_seq),
+                                        1, MM2_CTX_TEMPLATE, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_sink_seq) && atom->expr.len >= 2) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_TEMPLATE, syms);
+    }
+
+    if (atom_is_symbol_id(head, g_builtin_syms.op_plus) && atom->expr.len == 2) {
+        return mm2_lower_expr_with_head(a, atom,
+                                        atom_symbol_id(a, syms->ir_sink_add),
+                                        1, MM2_CTX_GENERAL, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_sink_add) && atom->expr.len == 2) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_GENERAL, syms);
+    }
+
+    if (atom_is_symbol_id(head, g_builtin_syms.op_minus) && atom->expr.len == 2) {
+        return mm2_lower_expr_with_head(a, atom,
+                                        atom_symbol_id(a, syms->ir_sink_remove),
+                                        1, MM2_CTX_GENERAL, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_sink_remove) && atom->expr.len == 2) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_GENERAL, syms);
+    }
+
+    if (atom_is_symbol_id(head, syms->surf_z3) && atom->expr.len == 3) {
+        return mm2_lower_expr_with_head(a, atom,
+                                        atom_symbol_id(a, syms->ir_sink_z3),
+                                        1, MM2_CTX_GENERAL, syms);
+    }
+    if (atom_is_symbol_id(head, syms->ir_sink_z3) && atom->expr.len == 3) {
+        return mm2_lower_expr_with_head(a, atom, head, 1, MM2_CTX_GENERAL, syms);
+    }
+
+    return mm2_lower_plain_expr(a, atom, syms);
+}
+
+void cetta_mm2_lower_atoms(Arena *a, Atom **atoms, int n) {
+    if (!a || !atoms || n <= 0) return;
+    Mm2LowerSyms syms = mm2_lower_syms();
+    for (int i = 0; i < n; i++) {
+        atoms[i] = mm2_lower_atom(a, atoms[i], MM2_CTX_GENERAL, &syms);
+    }
+}
+
+Atom *cetta_mm2_raise_atom(Arena *a, Atom *atom) {
+    if (!a || !atom) return atom;
+    Mm2LowerSyms syms = mm2_lower_syms();
+    return mm2_raise_atom_impl(a, atom, &syms);
+}
+
+char *cetta_mm2_atom_to_surface_string(Arena *a, Atom *atom) {
+    Atom *raised = cetta_mm2_raise_atom(a, atom);
+    return atom_to_string(a, raised);
+}
+
+typedef struct {
+    uint8_t *data;
+    size_t len;
+    size_t cap;
+} BridgeExprBuf;
+
+typedef struct {
+    VarId var_id;
+    SymbolId spelling;
+} BridgeVarSlot;
+
+typedef struct {
+    BridgeVarSlot slots[64];
+    uint8_t len;
+} BridgeVarMap;
+
+typedef enum {
+    BRIDGE_EXPR_WIRE_COMPACT = 0,
+    BRIDGE_EXPR_WIRE_PACKET = 1,
+} BridgeExprWire;
+
+#define BRIDGE_EXPR_PACKET_ARITY 0u
+#define BRIDGE_EXPR_PACKET_SYMBOL 1u
+#define BRIDGE_EXPR_PACKET_NEWVAR 2u
+#define BRIDGE_EXPR_PACKET_VARREF 3u
+
+static void bridge_expr_buf_init(BridgeExprBuf *buf) {
+    buf->data = NULL;
+    buf->len = 0;
+    buf->cap = 0;
+}
+
+static bool bridge_expr_buf_reserve(BridgeExprBuf *buf, size_t extra) {
+    size_t needed;
+    size_t next_cap;
+
+    if (extra > SIZE_MAX - buf->len)
+        return false;
+    needed = buf->len + extra;
+    if (needed <= buf->cap)
+        return true;
+    next_cap = buf->cap ? buf->cap : 128;
+    while (next_cap < needed) {
+        if (next_cap > SIZE_MAX / 2) {
+            next_cap = needed;
+            break;
+        }
+        next_cap *= 2;
+    }
+    buf->data = cetta_realloc(buf->data, next_cap);
+    buf->cap = next_cap;
+    return true;
+}
+
+static bool bridge_expr_buf_push_u8(BridgeExprBuf *buf, uint8_t byte) {
+    if (!bridge_expr_buf_reserve(buf, 1))
+        return false;
+    buf->data[buf->len++] = byte;
+    return true;
+}
+
+static bool bridge_expr_buf_push_u16_be(BridgeExprBuf *buf, uint16_t value) {
+    return bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 8)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)value);
+}
+
+static bool bridge_expr_buf_push_u32_be(BridgeExprBuf *buf, uint32_t value) {
+    return bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 24)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 16)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 8)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)value);
+}
+
+static bool bridge_expr_buf_push_u64_be(BridgeExprBuf *buf, uint64_t value) {
+    return bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 56)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 48)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 40)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 32)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 24)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 16)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)(value >> 8)) &&
+           bridge_expr_buf_push_u8(buf, (uint8_t)value);
+}
+
+static bool bridge_expr_buf_push_bytes(BridgeExprBuf *buf,
+                                       const uint8_t *bytes,
+                                       size_t len) {
+    if (!bridge_expr_buf_reserve(buf, len))
+        return false;
+    memcpy(buf->data + buf->len, bytes, len);
+    buf->len += len;
+    return true;
+}
+
+static bool bridge_expr_buf_push_symbol(BridgeExprBuf *buf,
+                                        const uint8_t *token,
+                                        uint32_t len,
+                                        BridgeExprWire wire,
+                                        const char **out_error) {
+    if (!token || len == 0) {
+        if (out_error)
+            *out_error = "MORK bridge tokens must not be empty";
+        return false;
+    }
+    if (wire == BRIDGE_EXPR_WIRE_PACKET) {
+        return bridge_expr_buf_push_u8(buf, BRIDGE_EXPR_PACKET_SYMBOL) &&
+               bridge_expr_buf_push_u32_be(buf, len) &&
+               bridge_expr_buf_push_bytes(buf, token, len);
+    }
+    if (len >= 64u) {
+        if (out_error)
+            *out_error = "MORK bridge tokens must be at most 63 bytes";
+        return false;
+    }
+    return bridge_expr_buf_push_u8(buf, (uint8_t)(0xC0u | len)) &&
+           bridge_expr_buf_push_bytes(buf, token, len);
+}
+
+static bool bridge_expr_buf_push_sized_symbol(BridgeExprBuf *buf,
+                                              const uint8_t *token,
+                                              size_t len,
+                                              BridgeExprWire wire,
+                                              const char **out_error) {
+    if (len > UINT32_MAX) {
+        if (out_error)
+            *out_error = "MORK bridge token exceeds the packet length limit";
+        return false;
+    }
+    return bridge_expr_buf_push_symbol(
+        buf, token, (uint32_t)len, wire, out_error);
+}
+
+static bool bridge_expr_buf_push_variable(BridgeExprBuf *buf,
+                                          uint8_t index,
+                                          bool is_new,
+                                          BridgeExprWire wire) {
+    if (wire == BRIDGE_EXPR_WIRE_PACKET) {
+        return bridge_expr_buf_push_u8(
+                   buf,
+                   is_new ? BRIDGE_EXPR_PACKET_NEWVAR
+                          : BRIDGE_EXPR_PACKET_VARREF) &&
+               (is_new || bridge_expr_buf_push_u8(buf, index));
+    }
+    return bridge_expr_buf_push_u8(
+        buf, is_new ? 0xC0u : (uint8_t)(0x80u | index));
+}
+
+static bool bridge_expr_buf_push_arity(BridgeExprBuf *buf,
+                                       uint32_t arity,
+                                       BridgeExprWire wire,
+                                       const char **out_error) {
+    if (arity >= 64u) {
+        if (out_error)
+            *out_error = "MORK bridge expressions support arity at most 63";
+        return false;
+    }
+    if (wire == BRIDGE_EXPR_WIRE_PACKET) {
+        return bridge_expr_buf_push_u8(buf, BRIDGE_EXPR_PACKET_ARITY) &&
+               bridge_expr_buf_push_u32_be(buf, arity);
+    }
+    return bridge_expr_buf_push_u8(buf, (uint8_t)arity);
+}
+
+static SymbolId bridge_raise_head_symbol_id(SymbolId head_id,
+                                            const Mm2LowerSyms *syms) {
+    if (!syms || head_id == SYMBOL_ID_NONE)
+        return head_id;
+    if (head_id == syms->ir_exec)
+        return syms->surf_exec;
+    if (head_id == syms->ir_pattern_and)
+        return g_builtin_syms.comma;
+    if (head_id == syms->ir_pattern_btm)
+        return syms->surf_btm;
+    if (head_id == syms->ir_pattern_act || head_id == syms->ir_sink_act)
+        return syms->surf_act;
+    if (head_id == syms->ir_guard_eq)
+        return g_builtin_syms.op_eq;
+    if (head_id == syms->ir_guard_neq)
+        return syms->surf_neq;
+    if (head_id == syms->ir_sink_seq)
+        return syms->surf_sink_seq;
+    if (head_id == syms->ir_sink_add)
+        return g_builtin_syms.op_plus;
+    if (head_id == syms->ir_sink_remove)
+        return g_builtin_syms.op_minus;
+    if (head_id == syms->ir_sink_z3)
+        return syms->surf_z3;
+    return head_id;
+}
+
+static bool bridge_var_map_index(BridgeVarMap *vars,
+                                 VarId var_id,
+                                 SymbolId spelling,
+                                 uint8_t *out_index,
+                                 bool *out_is_new) {
+    for (uint8_t i = 0; i < vars->len; i++) {
+        if (vars->slots[i].var_id == var_id) {
+            if (out_index)
+                *out_index = i;
+            if (out_is_new)
+                *out_is_new = false;
+            return true;
+        }
+    }
+    if (vars->len >= 64)
+        return false;
+    vars->slots[vars->len].var_id = var_id;
+    vars->slots[vars->len].spelling = spelling;
+    if (out_index)
+        *out_index = vars->len;
+    if (out_is_new)
+        *out_is_new = true;
+    vars->len++;
+    return true;
+}
+
+static bool bridge_expr_context_from_vars(const BridgeVarMap *vars,
+                                          BridgeExprBuf *context,
+                                          const char **out_error) {
+    if (!vars || !context) {
+        if (out_error)
+            *out_error = "missing bridge variable map while building opening context";
+        return false;
+    }
+    if (!bridge_expr_buf_push_u32_be(context, vars->len))
+        return false;
+    for (uint8_t i = 0; i < vars->len; i++) {
+        SymbolId spelling = vars->slots[i].spelling;
+        const uint8_t *name = (const uint8_t *)symbol_bytes(g_symbols, spelling);
+        uint32_t len = symbol_len(g_symbols, spelling);
+        if (spelling == SYMBOL_ID_NONE || !name || len == 0) {
+            if (out_error)
+                *out_error = "cannot build exact opening context for variable without spelling";
+            return false;
+        }
+        if (!bridge_expr_buf_push_u16_be(context, i) ||
+            !bridge_expr_buf_push_u8(context, 0) ||
+            !bridge_expr_buf_push_u8(context, 0) ||
+            !bridge_expr_buf_push_u64_be(context, vars->slots[i].var_id) ||
+            !bridge_expr_buf_push_u32_be(context, len) ||
+            !bridge_expr_buf_push_bytes(context, name, len)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool bridge_emit_float_token(BridgeExprBuf *buf,
+                                    double value,
+                                    BridgeExprWire wire,
+                                    const char **out_error) {
+    char tmp[128];
+    int len = 0;
+    if (isnan(value)) {
+        len = snprintf(tmp, sizeof(tmp), "NaN");
+    } else if (isinf(value)) {
+        len = snprintf(tmp, sizeof(tmp), "%s", signbit(value) ? "-inf" : "inf");
+    } else if (isfinite(value) && floor(value) == value) {
+        len = snprintf(tmp, sizeof(tmp), "%.1f", value);
+    } else {
+        len = snprintf(tmp, sizeof(tmp), "%.16g", value);
+    }
+    if (len <= 0 || (size_t)len >= sizeof(tmp)) {
+        if (out_error)
+            *out_error = "failed to format MORK bridge float token";
+        return false;
+    }
+    return bridge_expr_buf_push_symbol(buf, (const uint8_t *)tmp,
+                                       (uint32_t)len, wire, out_error);
+}
+
+static bool bridge_emit_string_token(Arena *a,
+                                     BridgeExprBuf *buf,
+                                     const char *text,
+                                     BridgeExprWire wire,
+                                     const char **out_error) {
+    size_t text_len = strlen(text);
+    char *quoted;
+    size_t off = 0;
+
+    if (text_len > (SIZE_MAX - 3) / 2) {
+        if (out_error)
+            *out_error = "MORK bridge string is too large to quote";
+        return false;
+    }
+    quoted = arena_alloc(a, text_len * 2 + 3);
+    quoted[off++] = '"';
+    for (size_t i = 0; i < text_len; i++) {
+        char c = text[i];
+        if (c == '\n') {
+            quoted[off++] = '\\';
+            quoted[off++] = 'n';
+        } else if (c == '"' || c == '\\') {
+            quoted[off++] = '\\';
+            quoted[off++] = c;
+        } else {
+            quoted[off++] = c;
+        }
+    }
+    quoted[off++] = '"';
+    quoted[off] = '\0';
+    return bridge_expr_buf_push_sized_symbol(
+        buf, (const uint8_t *)quoted, off, wire, out_error);
+}
+
+static bool bridge_encode_atom_rec(Arena *a, Atom *atom, BridgeVarMap *vars,
+                                   BridgeExprBuf *buf, BridgeExprWire wire,
+                                   const char **out_error) {
+    if (!atom) {
+        if (out_error)
+            *out_error = "cannot encode null atom to MORK bridge expr bytes";
+        return false;
+    }
+
+    switch (atom->kind) {
+    case ATOM_SYMBOL: {
+        const uint8_t *sym = (const uint8_t *)symbol_bytes(g_symbols, atom->sym_id);
+        uint32_t len = symbol_len(g_symbols, atom->sym_id);
+        return bridge_expr_buf_push_symbol(buf, sym, len, wire, out_error);
+    }
+    case ATOM_VAR: {
+        uint8_t index = 0;
+        bool is_new = false;
+        if (!bridge_var_map_index(vars, atom->var_id, atom->sym_id,
+                                  &index, &is_new)) {
+            if (out_error)
+                *out_error = "MORK bridge expressions support at most 64 distinct variables";
+            return false;
+        }
+        return bridge_expr_buf_push_variable(buf, index, is_new, wire);
+    }
+    case ATOM_GROUNDED: {
+        char tmp[128];
+        int len = 0;
+        switch (atom->ground.gkind) {
+        case GV_INT:
+            len = snprintf(tmp, sizeof(tmp), "%" PRId64, atom->ground.ival);
+            if (len <= 0 || (size_t)len >= sizeof(tmp)) {
+                if (out_error)
+                    *out_error = "failed to format MORK bridge integer token";
+                return false;
+            }
+            return bridge_expr_buf_push_symbol(buf, (const uint8_t *)tmp,
+                                               (uint32_t)len, wire, out_error);
+        case GV_FLOAT:
+            return bridge_emit_float_token(
+                buf, atom->ground.fval, wire, out_error);
+        case GV_BOOL:
+            return bridge_expr_buf_push_symbol(
+                buf,
+                (const uint8_t *)(atom->ground.bval ? "True" : "False"),
+                atom->ground.bval ? 4u : 5u,
+                wire, out_error);
+        case GV_STRING:
+            return bridge_emit_string_token(
+                a, buf, atom->ground.sval, wire, out_error);
+        case GV_BIGINT:
+        {
+            const char *text = atom_bigint_cstr(atom);
+            return bridge_expr_buf_push_sized_symbol(
+                buf, (const uint8_t *)text, strlen(text), wire, out_error);
+        }
+        case GV_RATIONAL:
+        {
+            const char *text = atom_rational_cstr(atom);
+            return bridge_expr_buf_push_sized_symbol(
+                buf, (const uint8_t *)text, strlen(text), wire, out_error);
+        }
+        case GV_SPACE:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support grounded Space values";
+            return false;
+        case GV_STATE:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support grounded State values";
+            return false;
+        case GV_CAPTURE:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support capture values";
+            return false;
+        case GV_FOREIGN:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support foreign grounded values";
+            return false;
+        case GV_PRIME_NEED_CAPABILITY:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support Prime Need capabilities";
+            return false;
+        case GV_PRIME_CONTEXT:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support Prime contexts";
+            return false;
+        case GV_INTERNAL_TAG:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not expose internal tags";
+            return false;
+        }
+        break;
+    }
+    case ATOM_EXPR:
+        if (!bridge_expr_buf_push_arity(
+                buf, atom->expr.len, wire, out_error))
+            return false;
+        for (uint32_t i = 0; i < atom->expr.len; i++) {
+            if (!bridge_encode_atom_rec(
+                    a, atom->expr.elems[i], vars, buf, wire, out_error))
+                return false;
+        }
+        return true;
+    }
+
+    if (out_error)
+        *out_error = "unknown atom kind while encoding MORK bridge expr bytes";
+    return false;
+}
+
+static bool bridge_encode_atom_id_rec(Arena *a,
+                                      const TermUniverse *universe,
+                                      AtomId atom_id,
+                                      BridgeVarMap *vars,
+                                      BridgeExprBuf *buf,
+                                      const Mm2LowerSyms *syms,
+                                      BridgeExprWire wire,
+                                      const char **out_error) {
+    if (!a || !universe || atom_id == CETTA_ATOM_ID_NONE) {
+        if (out_error)
+            *out_error = "cannot encode missing AtomId to MORK bridge expr bytes";
+        return false;
+    }
+    if (!tu_hdr(universe, atom_id)) {
+        if (out_error)
+            *out_error = "MORK bridge expr-byte encoding requires canonical TermUniverse storage";
+        return false;
+    }
+
+    switch (tu_kind(universe, atom_id)) {
+    case ATOM_SYMBOL: {
+        SymbolId sym = tu_sym(universe, atom_id);
+        return bridge_expr_buf_push_symbol(
+            buf, (const uint8_t *)symbol_bytes(g_symbols, sym),
+            symbol_len(g_symbols, sym), wire, out_error);
+    }
+    case ATOM_VAR: {
+        uint8_t index = 0;
+        bool is_new = false;
+        if (!bridge_var_map_index(vars, tu_var_id(universe, atom_id),
+                                  tu_sym(universe, atom_id), &index, &is_new)) {
+            if (out_error)
+                *out_error = "MORK bridge expressions support at most 64 distinct variables";
+            return false;
+        }
+        return bridge_expr_buf_push_variable(buf, index, is_new, wire);
+    }
+    case ATOM_GROUNDED: {
+        char tmp[128];
+        int len = 0;
+        switch (tu_ground_kind(universe, atom_id)) {
+        case GV_INT:
+            len = snprintf(tmp, sizeof(tmp), "%" PRId64, tu_int(universe, atom_id));
+            if (len <= 0 || (size_t)len >= sizeof(tmp)) {
+                if (out_error)
+                    *out_error = "failed to format MORK bridge integer token";
+                return false;
+            }
+            return bridge_expr_buf_push_symbol(buf, (const uint8_t *)tmp,
+                                               (uint32_t)len, wire, out_error);
+        case GV_FLOAT:
+            return bridge_emit_float_token(
+                buf, tu_float(universe, atom_id), wire, out_error);
+        case GV_BOOL:
+            return bridge_expr_buf_push_symbol(
+                buf,
+                (const uint8_t *)(tu_bool(universe, atom_id) ? "True" : "False"),
+                tu_bool(universe, atom_id) ? 4u : 5u,
+                wire, out_error);
+        case GV_STRING:
+            return bridge_emit_string_token(
+                a, buf, tu_string_cstr(universe, atom_id), wire, out_error);
+        case GV_BIGINT: {
+            const char *text = tu_bigint_cstr(universe, atom_id);
+            return bridge_expr_buf_push_sized_symbol(
+                buf, (const uint8_t *)text, strlen(text), wire, out_error);
+        }
+        case GV_RATIONAL: {
+            const char *text = tu_rational_cstr(universe, atom_id);
+            return bridge_expr_buf_push_sized_symbol(
+                buf, (const uint8_t *)text, strlen(text), wire, out_error);
+        }
+        case GV_SPACE:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support grounded Space values";
+            return false;
+        case GV_STATE:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support grounded State values";
+            return false;
+        case GV_CAPTURE:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support capture values";
+            return false;
+        case GV_FOREIGN:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support foreign grounded values";
+            return false;
+        case GV_PRIME_NEED_CAPABILITY:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support Prime Need capabilities";
+            return false;
+        case GV_PRIME_CONTEXT:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not support Prime contexts";
+            return false;
+        case GV_INTERNAL_TAG:
+            if (out_error)
+                *out_error = "MORK bridge expr-byte ingress does not expose internal tags";
+            return false;
+        }
+        break;
+    }
+    case ATOM_EXPR: {
+        CettaExprLen arity = tu_arity(universe, atom_id);
+        if (!bridge_expr_buf_push_arity(buf, arity, wire, out_error))
+            return false;
+        for (CettaExprIndex i = 0; i < arity; i++) {
+            AtomId child_id = tu_child(universe, atom_id, i);
+            if (i == 0 && tu_kind(universe, child_id) == ATOM_SYMBOL) {
+                SymbolId raised = bridge_raise_head_symbol_id(
+                    tu_sym(universe, child_id), syms);
+                if (!bridge_expr_buf_push_symbol(
+                        buf, (const uint8_t *)symbol_bytes(g_symbols, raised),
+                        symbol_len(g_symbols, raised), wire, out_error)) {
+                    return false;
+                }
+                continue;
+            }
+            if (!bridge_encode_atom_id_rec(
+                    a, universe, child_id, vars, buf, syms, wire, out_error)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    }
+
+    if (out_error)
+        *out_error = "unknown AtomId kind while encoding MORK bridge expr bytes";
+    return false;
+}
+
+static bool cetta_mm2_atom_to_bridge_wire(Arena *a, Atom *atom,
+                                          BridgeExprWire wire,
+                                          uint8_t **out_expr_bytes,
+                                          size_t *out_expr_len,
+                                          uint8_t **out_context_bytes,
+                                          size_t *out_context_len,
+                                          const char **out_error) {
+    BridgeExprBuf expr_buf;
+    BridgeExprBuf context_buf;
+    BridgeVarMap vars = {0};
+    Atom *raised;
+    bool contextual = out_context_bytes || out_context_len;
+
+    if (out_expr_bytes)
+        *out_expr_bytes = NULL;
+    if (out_expr_len)
+        *out_expr_len = 0;
+    if (out_context_bytes)
+        *out_context_bytes = NULL;
+    if (out_context_len)
+        *out_context_len = 0;
+    if (out_error)
+        *out_error = NULL;
+    if (!a || !atom) {
+        if (out_error)
+            *out_error = "cannot encode null atom to MORK bridge expression";
+        return false;
+    }
+
+    raised = cetta_mm2_raise_atom(a, atom);
+    bridge_expr_buf_init(&expr_buf);
+    bridge_expr_buf_init(&context_buf);
+    if (!bridge_encode_atom_rec(
+            a, raised, &vars, &expr_buf, wire, out_error) ||
+        (contextual &&
+         !bridge_expr_context_from_vars(&vars, &context_buf, out_error))) {
+        free(expr_buf.data);
+        free(context_buf.data);
+        return false;
+    }
+
+    if (out_expr_bytes)
+        *out_expr_bytes = expr_buf.data;
+    else
+        free(expr_buf.data);
+    if (out_expr_len)
+        *out_expr_len = expr_buf.len;
+    if (out_context_bytes)
+        *out_context_bytes = context_buf.data;
+    else
+        free(context_buf.data);
+    if (out_context_len)
+        *out_context_len = context_buf.len;
+    return true;
+}
+
+static bool cetta_mm2_atom_id_to_bridge_wire(
+    Arena *a, const TermUniverse *universe, AtomId atom_id,
+    BridgeExprWire wire, uint8_t **out_expr_bytes, size_t *out_expr_len,
+    uint8_t **out_context_bytes, size_t *out_context_len,
+    const char **out_error) {
+    BridgeExprBuf expr_buf;
+    BridgeExprBuf context_buf;
+    BridgeVarMap vars = {0};
+    Mm2LowerSyms syms;
+    bool contextual = out_context_bytes || out_context_len;
+
+    if (out_expr_bytes)
+        *out_expr_bytes = NULL;
+    if (out_expr_len)
+        *out_expr_len = 0;
+    if (out_context_bytes)
+        *out_context_bytes = NULL;
+    if (out_context_len)
+        *out_context_len = 0;
+    if (out_error)
+        *out_error = NULL;
+    if (!a || !universe || atom_id == CETTA_ATOM_ID_NONE) {
+        if (out_error)
+            *out_error = "cannot encode missing AtomId to MORK bridge expression";
+        return false;
+    }
+
+    syms = mm2_lower_syms();
+    bridge_expr_buf_init(&expr_buf);
+    bridge_expr_buf_init(&context_buf);
+    if (!bridge_encode_atom_id_rec(
+            a, universe, atom_id, &vars, &expr_buf, &syms, wire, out_error) ||
+        (contextual &&
+         !bridge_expr_context_from_vars(&vars, &context_buf, out_error))) {
+        free(expr_buf.data);
+        free(context_buf.data);
+        return false;
+    }
+
+    if (out_expr_bytes)
+        *out_expr_bytes = expr_buf.data;
+    else
+        free(expr_buf.data);
+    if (out_expr_len)
+        *out_expr_len = expr_buf.len;
+    if (out_context_bytes)
+        *out_context_bytes = context_buf.data;
+    else
+        free(context_buf.data);
+    if (out_context_len)
+        *out_context_len = context_buf.len;
+    return true;
+}
+
+bool cetta_mm2_atom_to_bridge_expr_bytes(Arena *a, Atom *atom,
+                                         uint8_t **out_bytes,
+                                         size_t *out_len,
+                                         const char **out_error) {
+    return cetta_mm2_atom_to_bridge_wire(
+        a, atom, BRIDGE_EXPR_WIRE_COMPACT, out_bytes, out_len,
+        NULL, NULL, out_error);
+}
+
+bool cetta_mm2_atom_to_contextual_bridge_expr_bytes(
+    Arena *a, Atom *atom, uint8_t **out_expr_bytes, size_t *out_expr_len,
+    uint8_t **out_context_bytes, size_t *out_context_len,
+    const char **out_error) {
+    return cetta_mm2_atom_to_bridge_wire(
+        a, atom, BRIDGE_EXPR_WIRE_COMPACT,
+        out_expr_bytes, out_expr_len, out_context_bytes, out_context_len,
+        out_error);
+}
+
+bool cetta_mm2_atom_id_to_bridge_expr_bytes(Arena *a,
+                                            const TermUniverse *universe,
+                                            AtomId atom_id,
+                                            uint8_t **out_bytes,
+                                            size_t *out_len,
+                                            const char **out_error) {
+    return cetta_mm2_atom_id_to_bridge_wire(
+        a, universe, atom_id, BRIDGE_EXPR_WIRE_COMPACT,
+        out_bytes, out_len, NULL, NULL, out_error);
+}
+
+bool cetta_mm2_atom_ids_to_bridge_expr_bytes_batch(
+    Arena *a, const TermUniverse *universe, const AtomId *atom_ids,
+    CettaCount atom_count, uint8_t **out_packet, size_t *out_packet_len,
+    const char **out_error) {
+    BridgeExprBuf packet;
+    Mm2LowerSyms syms;
+
+    if (out_packet)
+        *out_packet = NULL;
+    if (out_packet_len)
+        *out_packet_len = 0;
+    if (out_error)
+        *out_error = NULL;
+    if (!a || !universe || (!atom_ids && atom_count != 0) ||
+        !out_packet || !out_packet_len) {
+        if (out_error)
+            *out_error = "invalid MORK bridge batch arguments";
+        return false;
+    }
+
+    syms = mm2_lower_syms();
+    bridge_expr_buf_init(&packet);
+    for (CettaCount i = 0; i < atom_count; i++) {
+        BridgeVarMap vars = {0};
+        size_t length_offset;
+        size_t expr_offset;
+        size_t expr_len;
+        const char *encode_error = NULL;
+
+        if (atom_ids[i] == CETTA_ATOM_ID_NONE ||
+            tu_has_vars(universe, atom_ids[i])) {
+            free(packet.data);
+            if (out_error)
+                *out_error = "MORK bridge batch item encoding failed";
+            return false;
+        }
+        if (!bridge_expr_buf_reserve(&packet, sizeof(uint32_t))) {
+            free(packet.data);
+            if (out_error)
+                *out_error = "MORK bridge batch packet exceeds addressable size";
+            return false;
+        }
+        length_offset = packet.len;
+        packet.len += sizeof(uint32_t);
+        expr_offset = packet.len;
+        if (!bridge_encode_atom_id_rec(
+                a, universe, atom_ids[i], &vars, &packet, &syms,
+                BRIDGE_EXPR_WIRE_COMPACT, &encode_error)) {
+            free(packet.data);
+            if (out_error)
+                *out_error = encode_error ? encode_error
+                                          : "MORK bridge batch item encoding failed";
+            return false;
+        }
+        expr_len = packet.len - expr_offset;
+        if (expr_len > UINT32_MAX) {
+            free(packet.data);
+            if (out_error)
+                *out_error = "MORK bridge batch packet exceeds addressable size";
+            return false;
+        }
+        packet.data[length_offset] = (uint8_t)(expr_len >> 24);
+        packet.data[length_offset + 1] = (uint8_t)(expr_len >> 16);
+        packet.data[length_offset + 2] = (uint8_t)(expr_len >> 8);
+        packet.data[length_offset + 3] = (uint8_t)expr_len;
+    }
+
+    *out_packet = packet.data;
+    *out_packet_len = packet.len;
+    return true;
+}
+
+bool cetta_mm2_atom_id_to_contextual_bridge_expr_bytes(
+    Arena *a, const TermUniverse *universe, AtomId atom_id,
+    uint8_t **out_expr_bytes, size_t *out_expr_len,
+    uint8_t **out_context_bytes, size_t *out_context_len,
+    const char **out_error) {
+    return cetta_mm2_atom_id_to_bridge_wire(
+        a, universe, atom_id, BRIDGE_EXPR_WIRE_COMPACT,
+        out_expr_bytes, out_expr_len, out_context_bytes, out_context_len,
+        out_error);
+}
+
+bool cetta_mm2_atom_to_bridge_expr_packet(
+    Arena *a, Atom *atom, uint8_t **out_packet, size_t *out_len,
+    const char **out_error) {
+    return cetta_mm2_atom_to_bridge_wire(
+        a, atom, BRIDGE_EXPR_WIRE_PACKET,
+        out_packet, out_len, NULL, NULL, out_error);
+}
+
+bool cetta_mm2_atom_to_contextual_bridge_expr_packet(
+    Arena *a, Atom *atom, uint8_t **out_packet, size_t *out_packet_len,
+    uint8_t **out_context_bytes, size_t *out_context_len,
+    const char **out_error) {
+    return cetta_mm2_atom_to_bridge_wire(
+        a, atom, BRIDGE_EXPR_WIRE_PACKET,
+        out_packet, out_packet_len, out_context_bytes, out_context_len,
+        out_error);
+}
+
+bool cetta_mm2_atom_id_to_bridge_expr_packet(
+    Arena *a, const TermUniverse *universe, AtomId atom_id,
+    uint8_t **out_packet, size_t *out_len, const char **out_error) {
+    return cetta_mm2_atom_id_to_bridge_wire(
+        a, universe, atom_id, BRIDGE_EXPR_WIRE_PACKET,
+        out_packet, out_len, NULL, NULL, out_error);
+}
+
+bool cetta_mm2_atom_id_to_contextual_bridge_expr_packet(
+    Arena *a, const TermUniverse *universe, AtomId atom_id,
+    uint8_t **out_packet, size_t *out_packet_len,
+    uint8_t **out_context_bytes, size_t *out_context_len,
+    const char **out_error) {
+    return cetta_mm2_atom_id_to_bridge_wire(
+        a, universe, atom_id, BRIDGE_EXPR_WIRE_PACKET,
+        out_packet, out_packet_len, out_context_bytes, out_context_len,
+        out_error);
+}

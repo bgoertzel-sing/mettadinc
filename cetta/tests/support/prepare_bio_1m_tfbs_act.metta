@@ -1,0 +1,6 @@
+!(import! &self mork)
+!(import! &kb ../../benchmarks/data/kb_tf_binding_sites)
+!(space-set-match-backend! &kb pathmap-imported)
+!(bind! &compiled (mork:new-space))
+!(match &kb $atom (mork:add-atom &compiled $atom))
+!(mork:dump! &compiled "../../runtime/bench_bio_1m_tfbs.act")

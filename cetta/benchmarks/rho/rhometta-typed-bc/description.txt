@@ -1,0 +1,39 @@
+rhometta-typed-bc -- backward chaining with typed (Curry-Howard) proofs
+======================================================================
+
+THE IDEA
+  A goal is proved by chaining backward over rules, and the proof you build is a
+  Curry-Howard term. rhometta runs each resolution step as a reaction: proving a
+  goal plants the reactions that prove its premises, the premises run in parallel,
+  and rhometta:run returns every complete proof (a "may-set"). When a rule's two
+  premises share a variable, the join re-checks the rule against the resolved
+  premises so the shared variable must agree -- which keeps the parallel search
+  honest.
+
+  Proofs are crisp Curry-Howard terms; no truth value is attached. (For a genuine,
+  computed truth value over evidence, see rhometta-evidence-revision.)
+
+KNOWLEDGE BASE (in &kb)
+    r01 : researcher r01     r01c : curious r01
+    e01 : engineer  e01      e01c : curious e01
+    b01 : researcher b01     (NOT curious -- the negative canary)
+    mortal(x)     if researcher(x) and curious(x)   -- OR --  engineer(x) and curious(x)
+    have-batter   if have-flour and have-egg
+
+WHAT YOU SEE
+    (mortal $x)    ->  two proofs: (r-mortal r01 r01c):(mortal r01) and the e-mortal one
+    (mortal b01)   ->  no proof    (b01 is a researcher but not curious)
+    (have-batter)  ->  one proof   (a single rule => one answer)
+
+  Each answer is a bare proof term, e.g.
+    (: (r-mortal r01 r01c) (mortal r01))
+  -- exactly the term a sequential nilbc chainer produces.
+
+  The shared variable matters: without the join's agreement check, the two parallel
+  premise cells would pair researcher-r01 with curious-e01 and over-count (6, not 2).
+  Regression-checked: a sequential chainer over the same KB derives the same proofs.
+
+RUN
+  ./cetta --quiet --profile he-extended --lang he benchmarks/rho/rhometta-typed-bc/example.metta
+
+Expect: every line tagged PASS, no Error.
