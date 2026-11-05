@@ -1,0 +1,116 @@
+1 file(s), 2 modules, 57 declarations, 15 run requests
+All forms conform to the registry with the proposed patch.
+113 diagnostic(s) against the current registry (forms that need the patch):
+  access_policy.metta: AccessPolicy: compound label (activate $u $r) needs the Families library
+  access_policy.metta: AccessPolicy: compound label (approve $u) needs the Families library
+  access_policy.metta: AccessPolicy: compound label (assign $u $r) needs the Families library
+  access_policy.metta: AccessPolicy: compound label (audit $u) needs the Families library
+  access_policy.metta: AccessPolicy: compound label (configure $u) needs the Families library
+  access_policy.metta: AccessPolicy: compound label (deactivate $u $r) needs the Families library
+  access_policy.metta: AccessPolicy: compound label (read $u) needs the Families library
+  access_policy.metta: AccessPolicy: compound label (revoke $u $r) needs the Families library
+  access_policy.metta: AccessPolicy: compound label (write $u) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (activate $u $r) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (approve $u) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (assign $u $r) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (audit $u) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (configure $u) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (deactivate $u $r) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (read $u) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (revoke $u $r) needs the Families library
+  access_policy.metta: AccessPolicyFixed: compound label (write $u) needs the Families library
+  access_policy.metta: module AccessPolicy: unknown library Families
+  access_policy.metta: module AccessPolicyFixed: unknown library Families
+  access_policy.metta:AccessPolicy.ClerkWatch: unknown field (ActionsOf Policy) for Machine
+  access_policy.metta:AccessPolicy.ClerksOnly: undeclared name Any
+  access_policy.metta:AccessPolicy.Hygiene: unknown field (ActionsOf Policy) for Machine
+  access_policy.metta:AccessPolicy.NoBreach: undeclared name Any
+  access_policy.metta:AccessPolicy.Policy: Action needs a label and a map
+  access_policy.metta:AccessPolicy.Policy: expected a reference to Map, found (may-approve $u)
+  access_policy.metta:AccessPolicy.Policy: expected a reference to Map, found (may-audit $u)
+  access_policy.metta:AccessPolicy.Policy: expected a reference to Map, found (may-configure $u)
+  access_policy.metta:AccessPolicy.Policy: expected a reference to Map, found (may-read $u)
+  access_policy.metta:AccessPolicy.Policy: expected a reference to Map, found (may-write $u)
+  access_policy.metta:AccessPolicy.Policy: unknown Observe option (For $u User)
+  access_policy.metta:AccessPolicy.Policy: unknown head For in (For $r Role)
+  access_policy.metta:AccessPolicy.Policy: unknown head For in (For $u User)
+  access_policy.metta:AccessPolicy.Policy: unknown head approve in (approve $u)
+  access_policy.metta:AccessPolicy.Policy: unknown head audit in (audit $u)
+  access_policy.metta:AccessPolicy.Policy: unknown head configure in (configure $u)
+  access_policy.metta:AccessPolicy.Policy: unknown head read in (read $u)
+  access_policy.metta:AccessPolicy.Policy: unknown head write in (write $u)
+  access_policy.metta:AccessPolicy.SoDWatch: unknown field (ActionsOf Policy) for Machine
+  access_policy.metta:AccessPolicy.WellFormed: undeclared name Any
+  access_policy.metta:AccessPolicy.activate: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.activate: unknown field (Body ($x) (If (And (holds $u $r $x) (Switch $r (s for Map
+  access_policy.metta:AccessPolicy.active: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.active: unknown field (Body ($x) (Eq (BitAt $x (Add (Add (slot $u) 5) (r for Map
+  access_policy.metta:AccessPolicy.assign: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.assign: unknown field (Body ($x) (If (And (other-admin $u $x) (may-recei for Map
+  access_policy.metta:AccessPolicy.clerkless-approval: unbound variable $u
+  access_policy.metta:AccessPolicy.clerkless-approval: unknown head Exists in (Exists $u User (And (active $u approver $x) (Not (holds $u 
+  access_policy.metta:AccessPolicy.consistent: unbound variable $u
+  access_policy.metta:AccessPolicy.consistent: unknown head ForAll in (ForAll $u User (well-formed $u $x))
+  access_policy.metta:AccessPolicy.deactivate: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.deactivate: unknown field (Body ($x) (SetBit $x (Add (Add (slot $u) 5) (rank for Map
+  access_policy.metta:AccessPolicy.drop: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.drop: unknown field (Body ($x) (SetBit (SetBit $x (Add (slot $u) (rank for Map
+  access_policy.metta:AccessPolicy.grant: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.grant: unknown field (Body ($x) (SetBit $x (Add (slot $u) (rank $r)) 1) for Map
+  access_policy.metta:AccessPolicy.holds: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.holds: unknown field (Body ($x) (Eq (BitAt $x (Add (slot $u) (rank $r)) for Map
+  access_policy.metta:AccessPolicy.may-approve: expected a map-body, found (Parameters ($u User))
+  access_policy.metta:AccessPolicy.may-approve: unknown field (Body ($x) (active $u approver $x)) for Map
+  access_policy.metta:AccessPolicy.may-audit: expected a map-body, found (Parameters ($u User))
+  access_policy.metta:AccessPolicy.may-audit: unknown field (Body ($x) (active $u auditor $x)) for Map
+  access_policy.metta:AccessPolicy.may-configure: expected a map-body, found (Parameters ($u User))
+  access_policy.metta:AccessPolicy.may-configure: unknown field (Body ($x) (active $u admin $x)) for Map
+  access_policy.metta:AccessPolicy.may-read: expected a map-body, found (Parameters ($u User))
+  access_policy.metta:AccessPolicy.may-read: unknown field (Body ($x) (Or (Or (active $u staff $x) (active $u for Map
+  access_policy.metta:AccessPolicy.may-receive: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.may-receive: unknown field (Body ($x) (Switch $r (staff True) (clerk (holds $ for Map
+  access_policy.metta:AccessPolicy.may-write: expected a map-body, found (Parameters ($u User))
+  access_policy.metta:AccessPolicy.may-write: unknown field (Body ($x) (Or (active $u clerk $x) (active $u app for Map
+  access_policy.metta:AccessPolicy.other-admin: expected a map-body, found (Parameters ($u User))
+  access_policy.metta:AccessPolicy.other-admin: unbound variable $v
+  access_policy.metta:AccessPolicy.other-admin: unknown field (Body ($x) (Exists $v User (And (Not (Eq $v $u)) ( for Map
+  access_policy.metta:AccessPolicy.revoke: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicy.revoke: unknown field (Body ($x) (If (other-admin $u $x) (Switch $r (sta for Map
+  access_policy.metta:AccessPolicy.sod-breach: unbound variable $u
+  access_policy.metta:AccessPolicy.sod-breach: unknown head Exists in (Exists $u User (And (holds $u approver $x) (holds $u audito
+  access_policy.metta:AccessPolicy.well-formed: expected a map-body, found (Parameters ($u User))
+  access_policy.metta:AccessPolicy.well-formed: unbound variable $r
+  access_policy.metta:AccessPolicy.well-formed: unknown field (Body ($x) (And (ForAll $r Role (Or (Not (active $ for Map
+  access_policy.metta:AccessPolicyFixed.BobApproves: expected a reference to Map, found (may-approve bob)
+  access_policy.metta:AccessPolicyFixed.BobApproves: unknown field (ActionsOf Policy) for Machine
+  access_policy.metta:AccessPolicyFixed.BobApprovesLive: expected a reference to Map, found (may-approve bob)
+  access_policy.metta:AccessPolicyFixed.BobApprovesLive: unknown field (ActionsOf Policy) for Machine
+  access_policy.metta:AccessPolicyFixed.ClerkWatch: unknown field (ActionsOf Policy) for Machine
+  access_policy.metta:AccessPolicyFixed.ClerksOnly: undeclared name Any
+  access_policy.metta:AccessPolicyFixed.ClerksOnlyProved: undeclared name Any
+  access_policy.metta:AccessPolicyFixed.ClerksOnlyProved: unknown field (Invariant consistent) for BlockPartition
+  access_policy.metta:AccessPolicyFixed.LivePolicy: unknown field (Like Policy) for Machine
+  access_policy.metta:AccessPolicyFixed.NoBreach: undeclared name Any
+  access_policy.metta:AccessPolicyFixed.Policy: Action needs a label and a map
+  access_policy.metta:AccessPolicyFixed.Policy: expected a reference to Map, found (may-approve $u)
+  access_policy.metta:AccessPolicyFixed.Policy: expected a reference to Map, found (may-audit $u)
+  access_policy.metta:AccessPolicyFixed.Policy: expected a reference to Map, found (may-configure $u)
+  access_policy.metta:AccessPolicyFixed.Policy: expected a reference to Map, found (may-read $u)
+  access_policy.metta:AccessPolicyFixed.Policy: expected a reference to Map, found (may-write $u)
+  access_policy.metta:AccessPolicyFixed.Policy: unknown Observe option (For $u User)
+  access_policy.metta:AccessPolicyFixed.Policy: unknown head For in (For $r Role)
+  access_policy.metta:AccessPolicyFixed.Policy: unknown head For in (For $u User)
+  access_policy.metta:AccessPolicyFixed.Policy: unknown head approve in (approve $u)
+  access_policy.metta:AccessPolicyFixed.Policy: unknown head audit in (audit $u)
+  access_policy.metta:AccessPolicyFixed.Policy: unknown head configure in (configure $u)
+  access_policy.metta:AccessPolicyFixed.Policy: unknown head read in (read $u)
+  access_policy.metta:AccessPolicyFixed.Policy: unknown head write in (write $u)
+  access_policy.metta:AccessPolicyFixed.SoDWatch: unknown field (ActionsOf Policy) for Machine
+  access_policy.metta:AccessPolicyFixed.assign: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicyFixed.assign: unknown field (Body ($x) (If (And (other-admin $u $x) (may-recei for Map
+  access_policy.metta:AccessPolicyFixed.assignments: unknown head Gather in (Gather $x 0 1 2 3 4 10 11 12 13 14 20 21 22 23 24 30 31 32 
+  access_policy.metta:AccessPolicyFixed.bob-cone: unknown head Gather in (Gather $x 0 4 9 10 11 12 13 14 17 18 19 20 24 29 30 34 39)
+  access_policy.metta:AccessPolicyFixed.may-receive: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicyFixed.may-receive: unknown field (Body ($x) (Switch $r (staff True) (clerk (holds $ for Map
+  access_policy.metta:AccessPolicyFixed.revoke: expected a map-body, found (Parameters ($u User) ($r Role))
+  access_policy.metta:AccessPolicyFixed.revoke: unknown field (Body ($x) (If (other-admin $u $x) (Switch $r (sta for Map

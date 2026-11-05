@@ -1,0 +1,525 @@
+{
+ "CalmDesk: module kernels and reward laws equal the model on all 15 cells": [
+  [
+   -2,
+   -1,
+   0,
+   1,
+   2
+  ],
+  [
+   "tight",
+   "wide",
+   "lean"
+  ],
+  "9/10",
+  true
+ ],
+ "ToxicDesk: module kernels and reward laws equal the model on all 15 cells": [
+  [
+   -2,
+   -1,
+   0,
+   1,
+   2
+  ],
+  [
+   "tight",
+   "wide",
+   "lean"
+  ],
+  "9/10",
+  true
+ ],
+ "BuyersDesk: module kernels and reward laws equal the model on all 15 cells": [
+  [
+   -2,
+   -1,
+   0,
+   1,
+   2
+  ],
+  [
+   "tight",
+   "wide",
+   "lean"
+  ],
+  "9/10",
+  true
+ ],
+ "SellersDesk: module kernels and reward laws equal the model on all 15 cells": [
+  [
+   -2,
+   -1,
+   0,
+   1,
+   2
+  ],
+  [
+   "tight",
+   "wide",
+   "lean"
+  ],
+  "9/10",
+  true
+ ],
+ "Split: module kernels and expected rewards equal the model on all 30 cells": [
+  true,
+  true
+ ],
+ "calm: Risk current and update witnesses (none)": [
+  null,
+  null
+ ],
+ "calm: quotient rows, one lot (bucket -> action -> (reward, row))": {
+  "tight": [
+   "3/4",
+   {
+    "1": "1/2",
+    "0": "1/4",
+    "2": "1/4"
+   }
+  ],
+  "wide": [
+   "1/4",
+   {
+    "1": "25/32",
+    "0": "7/64",
+    "2": "7/64"
+   }
+  ],
+  "lean": [
+   "19/32",
+   {
+    "1": "1/2",
+    "0": "7/16",
+    "2": "1/16"
+   }
+  ]
+ },
+ "calm: quotient rows, flat and two lots under tight": [
+  {
+   "0": "1/2",
+   "1": "1/2"
+  },
+  {
+   "2": "1/2",
+   "1": "1/2"
+  }
+ ],
+ "calm: CalmMirror is a quotient arrow (an automorphism)": [
+  "Checked",
+  "Quotient"
+ ],
+ "calm: optimal policy (ties to the first action) and policy-iteration rounds": [
+  {
+   "-2": "tight",
+   "-1": "lean",
+   "0": "tight",
+   "1": "lean",
+   "2": "tight"
+  },
+  2
+ ],
+ "calm: the declared calm-policy is that optimum": true,
+ "calm: optimal values (-2, -1, 0)": [
+  "2033/352",
+  "217/32",
+  "2513/352"
+ ],
+ "calm: OptimizePolicy Through Risk equals the full optimum": [
+  {
+   "0": "tight",
+   "1": "lean",
+   "2": "tight"
+  },
+  "2513/352"
+ ],
+ "calm: lean equals tight when flat and at the limits": true,
+ "toxic: Risk stays exact": [
+  null,
+  null
+ ],
+ "toxic: CheckOptimal calm-policy": "Checked",
+ "toxic: values of the calm policy (-2, -1, 0)": [
+  "1541/704",
+  "189/64",
+  "2181/704"
+ ],
+ "toxic: value lost at flat": "2845/704",
+ "toxic at theta 3/4 instead of 1/2: the optimum changes only when flat, to wide": {
+  "0": "wide"
+ },
+ "toxic: fill laws equal calm's at every cell": true,
+ "buyers: InduceExact RiskBuyers refuted on current adequacy (pair, query, two rewards)": [
+  -2,
+  2,
+  "tight",
+  "-3/16",
+  "7/16"
+ ],
+ "buyers: CheckUpdates RiskBuyers witness (pair, action, bucket, two masses)": [
+  -2,
+  2,
+  "tight",
+  1,
+  "1/4",
+  "3/4"
+ ],
+ "buyers: total-variation lumpability defect and where": [
+  "1/2",
+  -2,
+  2,
+  "tight"
+ ],
+ "buyers: behavioral distances of the merged pairs at 9/10 (-2,2), (-1,1)": [
+  "56601/73472",
+  "48015/73472"
+ ],
+ "buyers: MeasureBehavioral RiskBuyers interval and the pair attaining it": [
+  "56601/73472",
+  "(-2, 2)"
+ ],
+ "buyers: immediate part d0 of the two pairs": [
+  "5/8",
+  "13/32"
+ ],
+ "buyers: binding action and optimal coupling for (-2, 2)": [
+  "tight",
+  {
+   "(-2, 1)": "1/2",
+   "(-2, 2)": "1/4",
+   "(-1, 1)": "1/4"
+  }
+ ],
+ "buyers: Kantorovich potential for (-2, 2) under tight": {
+  "-2": "1",
+  "-1": "48015/73472",
+  "1": "0",
+  "2": "16871/73472"
+ },
+ "buyers: certificate size (couplings, potentials, pairs bound by d0)": [
+  30,
+  5,
+  5
+ ],
+ "buyers: CheckOptimal calm-policy refuted (state, its action, Q, better action, Q)": [
+  "Refuted",
+  [
+   1,
+   "lean",
+   "489418779/101884448",
+   "tight",
+   "503574367/101884448"
+  ]
+ ],
+ "buyers: optimal policy": {
+  "-2": "tight",
+  "-1": "lean",
+  "0": "tight",
+  "1": "tight",
+  "2": "tight"
+ },
+ "buyers: optimal value at flat": "92970729/21404480",
+ "buyers: calm policy value at flat and at one lot long": [
+  "438585327/101884448",
+  "489418779/101884448"
+ ],
+ "buyers: OptimizePolicy Through RiskBuyers (best bucket policy is the calm one)": [
+  {
+   "0": "tight",
+   "1": "lean",
+   "2": "tight"
+  },
+  "438585327/101884448"
+ ],
+ "buyers: regret of the calm policy at flat and at one lot long (decimals)": [
+  0.0388,
+  0.2585
+ ],
+ "buyers -> sellers: Flip is a quotient arrow": [
+  "Checked",
+  "Quotient"
+ ],
+ "identity calm -> buyers is not a homomorphism (state, action, rewards)": [
+  "reward",
+  -2,
+  "tight",
+  "1/8",
+  "-3/16"
+ ],
+ "sellers: the declared sellers-policy is the sellers' optimum": true,
+ "PullbackPolicy Flip sellers-policy: policy, and values equal the sellers' values at -q": [
+  {
+   "-2": "tight",
+   "-1": "lean",
+   "0": "tight",
+   "1": "tight",
+   "2": "tight"
+  },
+  true
+ ],
+ "split: the flow is fresh": true,
+ "split: averaged kernels equal ToxicDesk's": true,
+ "split: averaged expected rewards equal ToxicDesk's (CheckEqual ... (Compare Means))": true,
+ "split: CheckEqual on reward laws refuted (state, action, P&L value, two masses)": [
+  -2,
+  "tight",
+  "-1/4",
+  "1/4",
+  "0"
+ ],
+ "split: InduceExact Coarse refuted on current adequacy": [
+  [
+   -2,
+   "noise"
+  ],
+  [
+   -2,
+   "informed"
+  ],
+  "tight",
+  "1/8",
+  "-3/8"
+ ],
+ "split: Coarse is update-compatible (the flow is fresh)": null,
+ "Proposition 6.2: the visible states and actions of the first three steps have the same law in Split and in the averaged model (a memoryless and a history-dependent policy)": [
+  true,
+  true
+ ],
+ "Proposition 6.2: given every visible history, the conditional mean of the reward is the averaged reward": [
+  true,
+  true
+ ],
+ "Proposition 6.2: expected discounted return of the calm policy from flat (Split, averaged model)": [
+  "2181/704",
+  "2181/704"
+ ],
+ "Proposition 6.2: the expected reward of tight at -2 as a function of the hidden flow (noise, informed) and in the averaged model; its law in Split and in the averaged model": [
+  [
+   "1/8",
+   "-3/8"
+  ],
+  "-1/8",
+  {
+   "1/8": "1/2",
+   "-3/8": "1/2"
+  },
+  {
+   "-1/8": "1"
+  }
+ ],
+ "split: OptimizePolicy Through Coarse (243 code policies)": [
+  {
+   "-2": "tight",
+   "-1": "lean",
+   "0": "tight",
+   "1": "lean",
+   "2": "tight"
+  },
+  "2181/704"
+ ],
+ "split: refined optimum differs from the calm policy only at flat with informed flow": {
+  "(0, 'informed')": "wide"
+ },
+ "split: refined optimal value from flat": "401605/96926",
+ "split: the signal policy differs from the calm policy only at flat with says-informed": {
+  "(0, 'says-informed')": "wide"
+ },
+ "split: EvaluatePolicy With Signal, net of cost (reduced and on hidden states)": [
+  "165927/48463",
+  "165927/48463"
+ ],
+ "split: the wrong evaluation (reading taken for the flow) and that policy's true value": [
+  "176571/48463",
+  "165927/48463"
+ ],
+ "split: the wrong evaluation is the refined optimum minus the discounted cost": "176571/48463",
+ "split: gross value of the signal and break-even cost per step": [
+  "380317/96926",
+  "28173781/341179520"
+ ],
+ "split: decimals (coarse, refined, signal net, wrong)": [
+  3.098,
+  4.1434,
+  3.4238,
+  3.6434
+ ],
+ "tape: module rows and reports equal the model's": [
+  true,
+  true,
+  true
+ ],
+ "tape: WideSeen is the wide-only reachable scope from leak and embargo": [
+  "leak",
+  "embargo",
+  "knows-up",
+  "knows-down",
+  "pending",
+  "moved-up",
+  "moved-down"
+ ],
+ "tape: bisimulation classes (Desk, WideSeen)": [
+  9,
+  7
+ ],
+ "tape: MinimalLinear dimensions (WideSeen, Desk)": [
+  5,
+  9
+ ],
+ "tape: TracePartition WideSeen": [
+  [
+   "knows-down"
+  ],
+  [
+   "knows-up"
+  ],
+  [
+   "leak",
+   "embargo"
+  ],
+  [
+   "moved-down"
+  ],
+  [
+   "moved-up"
+  ],
+  [
+   "pending"
+  ]
+ ],
+ "tape: CheckTrace MergeLeakWide (no separating word up to length 6)": null,
+ "tape: CheckTrace MergeLeak on Desk refuted (word, event, leak, embargo)": [
+  [
+   "tight",
+   "tight"
+  ],
+  [
+   "quiet",
+   "quiet",
+   "up"
+  ],
+  "0",
+  "1/2"
+ ],
+ "tape: behavioral d(leak, embargo) at discount 1 (Desk, WideSeen)": [
+  "1",
+  "1/2"
+ ],
+ "tape: behavioral d(leak, embargo) at discount 9/10 (Desk, WideSeen)": [
+  "81/100",
+  "81/200"
+ ],
+ "tape: the modal test phi at discount 1 and 9/10 (leak, embargo)": [
+  [
+   "1/2",
+   "0"
+  ],
+  [
+   "81/200",
+   "0"
+  ]
+ ],
+ "monitors: module markout laws (calm, toxic, buyers)": [
+  {
+   "adverse": "1/2",
+   "favorable": "1/2"
+  },
+  {
+   "adverse": "3/4",
+   "favorable": "1/4"
+  },
+  {
+   "adverse": "1/2",
+   "favorable": "1/2"
+  }
+ ],
+ "monitors: module fill laws equal the model's": true,
+ "monitors: validity (null expectation of every factor)": [
+  [
+   "1"
+  ],
+  [
+   "1"
+  ],
+  [
+   "1"
+  ],
+  [
+   "1"
+  ]
+ ],
+ "monitors: blind (Markouts, Fills, FillsToxic, MarkoutsBuyers)": [
+  false,
+  false,
+  true,
+  true
+ ],
+ "monitors: markout factors and chi-square": [
+  {
+   "adverse": "3/2",
+   "favorable": "1/2"
+  },
+  "1/4"
+ ],
+ "monitors: fill factors at flat with a tight quote and chi-square": [
+  {
+   "(0, 0)": "3/4",
+   "(0, 1)": "1/4",
+   "(1, 0)": "9/4",
+   "(1, 1)": "3/4"
+  },
+  "9/16"
+ ],
+ "monitors: KL per observation, nats (decimals; markout, fills at flat tight)": [
+  0.1308,
+  0.2616
+ ],
+ "monitors: Wald's approximation of markouts needed to reach 200 (decimal)": 40.5,
+ "stream toxic: digest declared in the module": true,
+ "stream buyers: digest declared in the module": true,
+ "stream calm: digest declared in the module": true,
+ "streams: rows and fills (toxic, buyers, calm)": [
+  [
+   4000,
+   3172
+  ],
+  [
+   4000,
+   1985
+  ],
+  [
+   4000,
+   3045
+  ]
+ ],
+ "Detect on ToxicTape: first monitor and step": [
+  40,
+  "Markouts"
+ ],
+ "Detect on ToxicTape: markouts used and the exact e-value at the crossing": [
+  35,
+  "7625597484987/34359738368",
+  true
+ ],
+ "Detect on ToxicTape: the fill monitor never fires (blind to toxicity)": null,
+ "Detect on BuyersTape: first monitor and step": [
+  39,
+  "Fills"
+ ],
+ "Detect on BuyersTape: the markout monitor never fires": null,
+ "Detect on CalmTape: no monitor fires in 4000 steps": null,
+ "Detect on CalmTape: largest e-values reached (decimals)": [
+  1.602,
+  2.25
+ ],
+ "_assurance": {
+  "policy": "every Checked or Refuted result of this example is an exact computation on the processes of market_maker.metta (exact rational arithmetic, policy iteration, Krylov iteration) or a replayed certificate (couplings, Kantorovich potentials, tables of Q-values, modal tests); the floating-point stage only finds candidate couplings; Detect results are Estimated, with the stream digests; no result rests on a solver, so none is Conditional",
+  "conditional": []
+ },
+ "_summary": {
+  "checks": 87,
+  "failures": [],
+  "seconds": 2.0
+ }
+}

@@ -1,0 +1,75 @@
+1 file(s), 4 modules, 75 declarations, 36 run requests
+All forms conform to the registry with the proposed patch.
+72 diagnostic(s) against the current registry (forms that need the patch):
+  market_maker.metta: Import: MarketDesk has no declaration ToxicDesk
+  market_maker.metta: module InformedFlow: unknown declaration head DecisionProcess
+  market_maker.metta: module InformedFlow: unknown library Families
+  market_maker.metta: module InformedFlow: unknown library Laws
+  market_maker.metta: module InformedFlow: unknown library NatArith
+  market_maker.metta: module MarketDesk: unknown declaration head DecisionProcess
+  market_maker.metta: module MarketDesk: unknown library Families
+  market_maker.metta: module MarketDesk: unknown library Laws
+  market_maker.metta: module MarketDesk: unknown library NatArith
+  market_maker.metta: module ShiftMonitors: unknown declaration head Monitor
+  market_maker.metta: module ShiftMonitors: unknown declaration head Stream
+  market_maker.metta: module ShiftMonitors: unknown library Families
+  market_maker.metta: module ShiftMonitors: unknown library Laws
+  market_maker.metta: module ShiftMonitors: unknown library Monitors
+  market_maker.metta:InformedFlow.Coarse: undeclared name Split (expected Machine)
+  market_maker.metta:InformedFlow.split-step: unknown head Indep in (Indep (step calm (visible-move $xa)) (LawOf Half))
+  market_maker.metta:InformedFlow.split-step: unknown head LawOf in (LawOf Half)
+  market_maker.metta:MarketDesk.CalmMirror: undeclared name CalmDesk (expected Machine)
+  market_maker.metta:MarketDesk.Flip: undeclared name BuyersDesk (expected Machine)
+  market_maker.metta:MarketDesk.Flip: undeclared name SellersDesk (expected Machine)
+  market_maker.metta:MarketDesk.Risk: undeclared name CalmDesk (expected Machine)
+  market_maker.metta:MarketDesk.RiskBuyers: undeclared name BuyersDesk (expected Machine)
+  market_maker.metta:MarketDesk.RiskToxic: undeclared name ToxicDesk (expected Machine)
+  market_maker.metta:MarketDesk.ask-fill: expected a map-body, found (Parameters ($m Market))
+  market_maker.metta:MarketDesk.ask-fill: unknown field (Cases (0 0) (1 (Switch $m (calm (Rat 1 2)) (toxic for Map
+  market_maker.metta:MarketDesk.ask-offset: unknown head Lt in (Lt $q 0)
+  market_maker.metta:MarketDesk.bid-fill: expected a map-body, found (Parameters ($m Market))
+  market_maker.metta:MarketDesk.bid-fill: unknown field (Cases (0 0) (1 (Switch $m (calm (Rat 1 2)) (toxic for Map
+  market_maker.metta:MarketDesk.bid-offset: unknown head Lt in (Lt 0 $q)
+  market_maker.metta:MarketDesk.bucket: unknown head Max in (Max $q (Sub 0 $q))
+  market_maker.metta:MarketDesk.edge: expected a map-body, found (Parameters ($m Market))
+  market_maker.metta:MarketDesk.edge: unknown field (Body ($o) (Sub $o (theta $m 0))) for Map
+  market_maker.metta:MarketDesk.fills: expected a map-body, found (Parameters ($m Market))
+  market_maker.metta:MarketDesk.fills: unknown field (Body ($xa) (Indep (Coin (ask-fill $m (ask-offset  for Map
+  market_maker.metta:MarketDesk.held: unknown head Max in (Max (after $t) (Sub 0 (after $t)))
+  market_maker.metta:MarketDesk.pnl: expected a map-body, found (Parameters ($m Market))
+  market_maker.metta:MarketDesk.pnl: unbound variable $f
+  market_maker.metta:MarketDesk.pnl: unknown field (Body ($xa) (Image $f (Sub (Add (Mul (GetTuple $f  for Map
+  market_maker.metta:MarketDesk.step: expected a map-body, found (Parameters ($m Market))
+  market_maker.metta:MarketDesk.step: unbound variable $f
+  market_maker.metta:MarketDesk.step: unknown field (Body ($xa) (Image $f (after (Tuple (GetTuple $xa  for Map
+  market_maker.metta:MarketDesk.theta: expected a map-body, found (Parameters ($m Market))
+  market_maker.metta:MarketDesk.theta: unknown field (Body ($u) (Switch $m (calm 0) (toxic (Rat 1 2)) ( for Map
+  market_maker.metta:NewsLeak.WideSeen: unknown field (Like WideDesk) for Machine
+  market_maker.metta:ShiftMonitors.markout: expected a map-body, found (Parameters ($m Market))
+  market_maker.metta:ShiftMonitors.markout: unbound variable $b
+  market_maker.metta:ShiftMonitors.markout: unknown field (Body ($u) (Image $b (If (Eq $b 1) adverse favorab for Map
+  market_maker.metta:run (CheckEqual (AverageModel Split (Through: AverageModel: unknown argument (Through Coarse) (registered: Under)
+  market_maker.metta:run (CheckEqual (AverageModel Split (Through: CheckEqual: unknown argument (Compare Means) (registered: none)
+  market_maker.metta:run (CheckEqual (AverageModel Split (Through: undeclared name Split (expected DecisionModel)
+  market_maker.metta:run (CheckEqual (AverageModel Split (Through: undeclared name ToxicDesk
+  market_maker.metta:run (CheckMonitor Fills): unregistered request CheckMonitor
+  market_maker.metta:run (CheckMonitor FillsToxic): unregistered request CheckMonitor
+  market_maker.metta:run (CheckMonitor Markouts): unregistered request CheckMonitor
+  market_maker.metta:run (CheckMonitor MarkoutsBuyers): unregistered request CheckMonitor
+  market_maker.metta:run (CheckOptimal BuyersDesk (Policy calm-po: unregistered request CheckOptimal
+  market_maker.metta:run (CheckOptimal ToxicDesk (Policy calm-pol: unregistered request CheckOptimal
+  market_maker.metta:run (Detect Markouts Fills (On BuyersTape) (: unregistered request Detect
+  market_maker.metta:run (Detect Markouts Fills (On CalmTape) (Le: unregistered request Detect
+  market_maker.metta:run (Detect Markouts Fills (On ToxicTape) (L: unregistered request Detect
+  market_maker.metta:run (EvaluatePolicy Split (With Signal) (Thr: EvaluatePolicy: unknown argument (Through Coarse) (registered: Under, With)
+  market_maker.metta:run (EvaluatePolicy Split (With Signal) (Thr: undeclared name Split (expected DecisionModel)
+  market_maker.metta:run (EvaluatePolicy ToxicDesk (Policy calm-p: EvaluatePolicy: missing required argument With
+  market_maker.metta:run (EvaluatePolicy ToxicDesk (Policy calm-p: EvaluatePolicy: unknown argument (Policy calm-policy) (registered: Under, With)
+  market_maker.metta:run (EvaluatePolicy ToxicDesk (Policy calm-p: undeclared name ToxicDesk (expected DecisionModel)
+  market_maker.metta:run (OptimizePolicy BuyersDesk (Through Risk: undeclared name BuyersDesk (expected DecisionModel)
+  market_maker.metta:run (OptimizePolicy BuyersDesk (Under Flat)): undeclared name BuyersDesk (expected DecisionModel)
+  market_maker.metta:run (OptimizePolicy CalmDesk (Through Risk) : undeclared name CalmDesk (expected DecisionModel)
+  market_maker.metta:run (OptimizePolicy CalmDesk (Under Flat)): undeclared name CalmDesk (expected DecisionModel)
+  market_maker.metta:run (OptimizePolicy Split (Through Coarse) (: undeclared name Split (expected DecisionModel)
+  market_maker.metta:run (OptimizePolicy Split (Under FlatHalf)): undeclared name Split (expected DecisionModel)
+  market_maker.metta:run (PullbackPolicy Flip (Policy sellers-pol: unregistered request PullbackPolicy

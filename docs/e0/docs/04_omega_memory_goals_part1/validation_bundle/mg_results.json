@@ -1,0 +1,2390 @@
+{
+ "P1 reachable item states": {
+  "got": 39,
+  "ok": true
+ },
+ "P1 window view, CheckNow: witness pair and answers": {
+  "got": [
+   [
+    [
+     3,
+     "none"
+    ],
+    [
+     3,
+     "d3"
+    ]
+   ],
+   "suggest",
+   true,
+   false
+  ],
+  "ok": true
+ },
+ "P1 window view, CheckUpdates: witness pair and action": {
+  "got": [
+   [
+    [
+     2,
+     "d0"
+    ],
+    [
+     2,
+     "d2"
+    ]
+   ],
+   "tick",
+   [
+    3,
+    true
+   ],
+   [
+    3,
+    false
+   ]
+  ],
+  "ok": true
+ },
+ "P1 event view: now, updates and behavioral all Checked": {
+  "got": [
+   null,
+   null,
+   null
+  ],
+  "ok": true
+ },
+ "P1 quotient sizes: engine, commitments, both": {
+  "got": [
+   9,
+   2,
+   10
+  ],
+  "ok": true
+ },
+ "P1 engine quotient: closed items share a class with the open item older than seven days": {
+  "got": [
+   [
+    8,
+    "none"
+   ],
+   [
+    8,
+    "d0"
+   ],
+   [
+    8,
+    "d1"
+   ],
+   [
+    8,
+    "d2"
+   ],
+   [
+    8,
+    "d3"
+   ]
+  ],
+  "ok": true
+ },
+ "P1 event view codes on reachable items": {
+  "got": 18,
+  "ok": true
+ },
+ "P1 seven-day cap: adequate for the engine, refuted for commitments": {
+  "got": [
+   null,
+   [
+    [
+     8,
+     "none"
+    ],
+    [
+     8,
+     "d0"
+    ]
+   ],
+   "open"
+  ],
+  "ok": true
+ },
+ "P1 dedupe: reachable engine states (topic key, question key)": {
+  "got": [
+   9,
+   7
+  ],
+  "ok": true
+ },
+ "P1 dedupe by person+topic: least violating word and state": {
+  "got": [
+   [
+    "recv1",
+    "recv2",
+    "run"
+   ],
+   [
+    true,
+    true,
+    true,
+    true,
+    2
+   ]
+  ],
+  "ok": true
+ },
+ "P1 dedupe by question: at most one suggestion on every reachable state": {
+  "got": null,
+  "ok": true
+ },
+ "P2 three slots, block of two: verdicts": {
+  "got": {
+   "Recency": {
+    "latest-F": "Refuted",
+    "latest-O": "Refuted",
+    "latest-A": "Refuted"
+   },
+   "Relevance": {
+    "latest-F": "Checked",
+    "latest-O": "Refuted",
+    "latest-A": "Refuted"
+   },
+   "ProtectedFirst": {
+    "latest-F": "Refuted",
+    "latest-O": "Refuted",
+    "latest-A": "Checked"
+   },
+   "ConsumerAware": {
+    "latest-F": "Checked",
+    "latest-O": "Refuted",
+    "latest-A": "Checked"
+   }
+  },
+  "ok": true
+ },
+ "P2 witnesses (pair, left, right)": {
+  "got": {
+   "Recency": {
+    "latest-F": [
+     [
+      [
+       "O",
+       "O",
+       "F"
+      ],
+      [
+       "O",
+       "O",
+       "O"
+      ]
+     ],
+     3,
+     0
+    ],
+    "latest-O": [
+     [
+      [
+       "F",
+       "F",
+       "F"
+      ],
+      [
+       "F",
+       "F",
+       "O"
+      ]
+     ],
+     0,
+     3
+    ],
+    "latest-A": [
+     [
+      [
+       "F",
+       "F",
+       "F"
+      ],
+      [
+       "F",
+       "F",
+       "A"
+      ]
+     ],
+     0,
+     3
+    ]
+   },
+   "Relevance": {
+    "latest-F": null,
+    "latest-O": [
+     [
+      [
+       "F",
+       "F",
+       "F"
+      ],
+      [
+       "F",
+       "F",
+       "O"
+      ]
+     ],
+     0,
+     3
+    ],
+    "latest-A": [
+     [
+      [
+       "F",
+       "F",
+       "F"
+      ],
+      [
+       "F",
+       "F",
+       "A"
+      ]
+     ],
+     0,
+     3
+    ]
+   },
+   "ProtectedFirst": {
+    "latest-F": [
+     [
+      [
+       "F",
+       "A",
+       "A"
+      ],
+      [
+       "O",
+       "A",
+       "A"
+      ]
+     ],
+     1,
+     0
+    ],
+    "latest-O": [
+     [
+      [
+       "F",
+       "F",
+       "F"
+      ],
+      [
+       "F",
+       "F",
+       "O"
+      ]
+     ],
+     0,
+     3
+    ],
+    "latest-A": null
+   },
+   "ConsumerAware": {
+    "latest-F": null,
+    "latest-O": [
+     [
+      [
+       "F",
+       "F",
+       "A"
+      ],
+      [
+       "F",
+       "O",
+       "A"
+      ]
+     ],
+     0,
+     2
+    ],
+    "latest-A": null
+   }
+  },
+  "ok": true
+ },
+ "P2 consumer-aware with 4 slots and a block of 2": {
+  "got": {
+   "latest-F": true,
+   "latest-O": false,
+   "latest-A": true
+  },
+  "ok": true
+ },
+ "P2 consumer-aware with 5 slots and a block of 3": {
+  "got": {
+   "latest-F": true,
+   "latest-O": true,
+   "latest-A": true
+  },
+  "ok": true
+ },
+ "P2 four slots, block of three: consumer-aware Checked for all three, others not": {
+  "got": {
+   "Recency": false,
+   "Relevance": false,
+   "ProtectedFirst": false,
+   "ConsumerAware": true
+  },
+  "ok": true
+ },
+ "P2 share of the 64 patterns in which the block holds the answer (F, O, A)": {
+  "got": {
+   "Recency": [
+    55,
+    55,
+    55
+   ],
+   "Relevance": [
+    64,
+    61,
+    37
+   ],
+   "ProtectedFirst": [
+    61,
+    52,
+    64
+   ],
+   "ConsumerAware": [
+    64,
+    58,
+    64
+   ]
+  },
+  "ok": true
+ },
+ "P3 policy table (now, behavioral, updates) per consumer": {
+  "got": {
+   "Majority": {
+    "contra": "RRR",
+    "eff": "RRR",
+    "regen": "RRR"
+   },
+   "Counts": {
+    "contra": "CCC",
+    "eff": "RRC",
+    "regen": "RRC"
+   },
+   "Distinct": {
+    "contra": "CCR",
+    "eff": "CRR",
+    "regen": "CRR"
+   },
+   "Protected": {
+    "contra": "CCC",
+    "eff": "RRC",
+    "regen": "CCC"
+   },
+   "Provenance": {
+    "contra": "CCC",
+    "eff": "CCC",
+    "regen": "CCC"
+   }
+  },
+  "ok": true
+ },
+ "P3 majority hides a contradiction: witness pair": {
+  "got": [
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    1,
+    0,
+    0,
+    1
+   ]
+  ],
+  "ok": true
+ },
+ "P3 counts confuse two reports from one source with two sources: eff witness": {
+  "got": [
+   [
+    [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     1,
+     1,
+     0,
+     0,
+     0
+    ]
+   ],
+   1,
+   2
+  ],
+  "ok": true
+ },
+ "P3 counts and the anchor: regen witness": {
+  "got": [
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    2
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ]
+  ],
+  "ok": true
+ },
+ "P3 distinct sources: right today, wrong tomorrow (regen word witness)": {
+  "got": [
+   [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     1
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     1,
+     0
+    ]
+   ],
+   [
+    "minus-b"
+   ]
+  ],
+  "ok": true
+ },
+ "P3 distinct sources cannot be maintained on their own: update witness": {
+  "got": [
+   [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     1
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     1,
+     0
+    ]
+   ],
+   "minus-b"
+  ],
+  "ok": true
+ },
+ "P3 coarsest memories (classes): contra, eff, regen, contra+regen, all three": {
+  "got": [
+   2,
+   5,
+   5,
+   5,
+   25
+  ],
+  "ok": true
+ },
+ "P3 codes per policy on the 729 states": {
+  "got": {
+   "Majority": 3,
+   "Counts": 9,
+   "Distinct": 16,
+   "Protected": 33,
+   "Provenance": 64
+  },
+  "ok": true
+ },
+ "P3 the minimal code (first source or two-plus, per polarity) is the 25-class quotient": {
+  "got": true,
+  "ok": true
+ },
+ "P3 naive migration: transform and repair do not commute": {
+  "got": {
+   "state": [
+    "absent",
+    "none"
+   ],
+   "action": "repair",
+   "map-then-act": [
+    "present",
+    "old"
+   ],
+   "act-then-map": [
+    "present",
+    "new"
+   ]
+  },
+  "ok": true
+ },
+ "P3 migration cell: Checked": {
+  "got": null,
+  "ok": true
+ },
+ "P4 reachable task states": {
+  "got": 12,
+  "ok": true
+ },
+ "P4 checkpoint without read sets: Checked now": {
+  "got": null,
+  "ok": true
+ },
+ "P4 checkpoint without read sets: update witness": {
+  "got": [
+   [
+    [
+     "valid",
+     "valid",
+     "r1",
+     "current"
+    ],
+    [
+     "valid",
+     "valid",
+     "r2",
+     "current"
+    ]
+   ],
+   "withdraw1"
+  ],
+  "ok": true
+ },
+ "P4 checkpoint without read sets: behavioral witness": {
+  "got": [
+   [
+    "withdraw1"
+   ],
+   "needs-revalidation",
+   true,
+   false
+  ],
+  "ok": true
+ },
+ "P4 checkpoint with read sets: Checked": {
+  "got": null,
+  "ok": true
+ },
+ "P4 restart memory: 11 classes; the only merge": {
+  "got": [
+   11,
+   [
+    [
+     [
+      "withdrawn",
+      "withdrawn",
+      "r1",
+      "stale"
+     ],
+     [
+      "withdrawn",
+      "withdrawn",
+      "r2",
+      "stale"
+     ]
+    ]
+   ]
+  ],
+  "ok": true
+ },
+ "P4 codes of the checkpoint without read sets": {
+  "got": 10,
+  "ok": true
+ },
+ "P5 goal-sufficient memories (classes)": {
+  "got": {
+   "reply": 2,
+   "nag": 4,
+   "triage": 3,
+   "reply+nag": 8,
+   "reply+nag+triage": 17,
+   "reply+triage": 5
+  },
+  "ok": true
+ },
+ "P5 adding triage: resumed refinement versus scratch (class counts per round)": {
+  "got": [
+   [
+    16,
+    17
+   ],
+   [
+    8,
+    13,
+    17
+   ],
+   true
+  ],
+  "ok": true
+ },
+ "P5 retiring nag: old memory still adequate, coarsest 5 classes, largest merge 4": {
+  "got": [
+   17,
+   5,
+   true,
+   4
+  ],
+  "ok": true
+ },
+ "P5 a distinction reply needs and nag does not": {
+  "got": [
+   [
+    "open",
+    0,
+    "ben",
+    "normal"
+   ],
+   [
+    "open",
+    0,
+    "andy",
+    "normal"
+   ]
+  ],
+  "ok": true
+ },
+ "P5 a distinction nag needs and reply does not": {
+  "got": [
+   [
+    "open",
+    0,
+    "ben",
+    "normal"
+   ],
+   [
+    "open",
+    1,
+    "ben",
+    "normal"
+   ]
+  ],
+  "ok": true
+ },
+ "P5 days-left: determines the old answers, is strictly finer, costs no memory": {
+  "got": [
+   null,
+   [
+    [
+     "open",
+     0,
+     "ben",
+     "normal"
+    ],
+    [
+     "open",
+     1,
+     "ben",
+     "normal"
+    ]
+   ],
+   4,
+   4
+  ],
+  "ok": true
+ },
+ "P5 nag-ben-first: determines the old answers; memory grows from 4 to 7 classes": {
+  "got": [
+   null,
+   [
+    [
+     "open",
+     0,
+     "ben",
+     "normal"
+    ],
+    [
+     "open",
+     0,
+     "andy",
+     "normal"
+    ]
+   ],
+   7
+  ],
+  "ok": true
+ },
+ "P5 cap3: changes goal content in both directions": {
+  "got": [
+   [
+    [
+     "open",
+     0,
+     "ben",
+     "normal"
+    ],
+    [
+     "open",
+     3,
+     "ben",
+     "normal"
+    ]
+   ],
+   [
+    [
+     "open",
+     3,
+     "ben",
+     "normal"
+    ],
+    [
+     "open",
+     4,
+     "ben",
+     "normal"
+    ]
+   ],
+   5
+  ],
+  "ok": true
+ },
+ "P5 migration to a deadline schema: Checked": {
+  "got": null,
+  "ok": true
+ },
+ "P5 a negated nag goal: both informational checks Checked, the same 4-class memory": {
+  "got": [
+   null,
+   null,
+   4,
+   true
+  ],
+  "ok": true
+ },
+ "P5 interpretation obligation with the declared decoders: least witness record or None": {
+  "got": {
+   "days-left": null,
+   "nag-ben-first": null,
+   "cap3": [
+    "open",
+    3,
+    "ben",
+    "normal"
+   ],
+   "anti-nag": [
+    "open",
+    0,
+    "ben",
+    "normal"
+   ],
+   "anti-nag-waits": null,
+   "migration": null
+  },
+  "ok": true
+ },
+ "P5 interpretation witnesses (record, answers, decisions); the negated goal disagrees on all 40 records": {
+  "got": [
+   [
+    [
+     "open",
+     3,
+     "ben",
+     "normal"
+    ],
+    false,
+    true,
+    "wait",
+    "follow-up"
+   ],
+   [
+    [
+     "open",
+     0,
+     "ben",
+     "normal"
+    ],
+    true,
+    false,
+    "follow-up",
+    "wait"
+   ],
+   40
+  ],
+  "ok": true
+ },
+ "P5 classification of the six proposed changes": {
+  "got": {
+   "days-left": "refinement",
+   "nag-ben-first": "refinement",
+   "cap3": "change of content",
+   "anti-nag": "change of content",
+   "anti-nag-waits": "renaming",
+   "migration": "migration"
+  },
+  "ok": true
+ },
+ "P5 a coarsening: dropping the days left from the refined goal again; the old answers are not recoverable (ages 0 and 1), the converse holds, the decisions agree": {
+  "got": [
+   [
+    [
+     "open",
+     0,
+     "ben",
+     "normal"
+    ],
+    [
+     "open",
+     1,
+     "ben",
+     "normal"
+    ]
+   ],
+   null,
+   null,
+   "coarsening"
+  ],
+  "ok": true
+ },
+ "P5 a failed migration: a new schema whose tick forgets to count the days left down; every record is translated correctly, and the map fails to commute at the first tick from age 0 (3 days left against 2)": {
+  "got": [
+   null,
+   [
+    [
+     "open",
+     0,
+     "ben",
+     "normal"
+    ],
+    "tick",
+    3,
+    2
+   ],
+   "failed migration"
+  ],
+  "ok": true
+ },
+ "P6 reachable claim states (weighted, norm-first)": {
+  "got": [
+   14,
+   11
+  ],
+  "ok": true
+ },
+ "P6 weighted arbitration: least unlawful word and state": {
+  "got": [
+   [
+    "evidence"
+   ],
+   [
+    "high",
+    false,
+    false,
+    "calm"
+   ]
+  ],
+  "ok": true
+ },
+ "P6 weighted arbitration: consolidation without a check after two steps": {
+  "got": [
+   "evidence",
+   "act"
+  ],
+  "ok": true
+ },
+ "P6 norm-first arbitration: lawful and never consolidates unchecked": {
+  "got": [
+   null,
+   null
+  ],
+  "ok": true
+ },
+ "P6 conflict under norm-first: least word": {
+  "got": [
+   [
+    "evidence"
+   ],
+   [
+    "high",
+    false,
+    false,
+    "calm"
+   ]
+  ],
+  "ok": true
+ },
+ "P6 conflict states reachable under norm-first": {
+  "got": [
+   [
+    "low",
+    false,
+    false,
+    "deadline"
+   ],
+   [
+    "low",
+    true,
+    false,
+    "deadline"
+   ],
+   [
+    "high",
+    false,
+    false,
+    "calm"
+   ],
+   [
+    "high",
+    false,
+    false,
+    "deadline"
+   ]
+  ],
+  "ok": true
+ },
+ "P6 the arbitrated move in each conflict state (norm-first)": {
+  "got": [
+   "verify",
+   "consolidate",
+   "verify",
+   "verify"
+  ],
+  "ok": true
+ },
+ "P7 states and settled states": {
+  "got": [
+   720,
+   80
+  ],
+  "ok": true
+ },
+ "P7 plain design leaves the safe region: least word and state": {
+  "got": [
+   [
+    "novel",
+    "cycle",
+    "cycle",
+    "cycle",
+    "cycle"
+   ],
+   [
+    1,
+    4,
+    2,
+    0,
+    1,
+    0
+   ]
+  ],
+  "ok": true
+ },
+ "P7 floor design stays in the safe region from the start state": {
+  "got": null,
+  "ok": true
+ },
+ "P7 reachable states from the start (plain, floor)": {
+  "got": [
+   96,
+   80
+  ],
+  "ok": true
+ },
+ "P7 states in the safe region": {
+  "got": 540,
+  "ok": true
+ },
+ "P7 whole safe region closed under the floor design, not under the plain one": {
+  "got": [
+   null,
+   [
+    2,
+    4,
+    0,
+    0,
+    1,
+    0
+   ]
+  ],
+  "ok": true
+ },
+ "P7 order swap, least eta at L = 1 (floor, damped)": {
+  "got": [
+   "1",
+   "1/2"
+  ],
+  "ok": true
+ },
+ "P7 order swap, floor design: witness at eta = 1/2": {
+  "got": [
+   [
+    [
+     1,
+     1,
+     2,
+     0,
+     0,
+     1
+    ],
+    [
+     1,
+     1,
+     2,
+     0,
+     0,
+     1
+    ]
+   ],
+   "3/4"
+  ],
+  "ok": true
+ },
+ "P7 order swap on settled states: least eta 1/2, goal weights agree, witness at 1/4": {
+  "got": [
+   "1/2",
+   "0",
+   [
+    [
+     1,
+     3,
+     1,
+     0,
+     1,
+     0
+    ],
+    [
+     1,
+     3,
+     1,
+     0,
+     1,
+     0
+    ]
+   ]
+  ],
+  "ok": true
+ },
+ "P7 order swap on all states, goal weights only (floor, damped)": {
+  "got": [
+   "1",
+   "1/2"
+  ],
+  "ok": true
+ },
+ "P7 contraction near the boundary at c = 1/2: least eta (floor, damped)": {
+  "got": [
+   "3/4",
+   "5/8"
+  ],
+  "ok": true
+ },
+ "P7 contraction witness at eta = 1/4 (floor)": {
+  "got": [
+   [
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     3,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "3/4",
+   "3/4"
+  ],
+  "ok": true
+ },
+ "P7 contraction at (1/2, 1/2), floor: witness": {
+  "got": [
+   [
+    [
+     1,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    [
+     2,
+     4,
+     0,
+     0,
+     0,
+     1
+    ]
+   ],
+   "1",
+   "3/4"
+  ],
+  "ok": true
+ },
+ "P8 null expectation of the factor": {
+  "got": "1",
+  "ok": true
+ },
+ "P8 factors": {
+  "got": [
+   "4",
+   "16/19"
+  ],
+  "ok": true
+ },
+ "P8 alternative stream: fires at suggestion 21 after 6 stale, e-value 2^72/19^15": {
+  "got": [
+   21,
+   6,
+   "4722366482869645213696/15181127029874798299"
+  ],
+  "ok": true
+ },
+ "P8 null stream: no detection in 400 suggestions": {
+  "got": false,
+  "ok": true
+ },
+ "P8 stale counts in the two streams": {
+  "got": [
+   79,
+   28
+  ],
+  "ok": true
+ },
+ "P8 digests": {
+  "got": [
+   "sha256:f0d4be8461a2904e728f7b0a8ad895385ccd56f340ec854d729936aaf6a48763",
+   "sha256:8e76cbdeee37a8ab4156c6068ee59fab740c2f9d1b02146e3ee7e38c594b59b0"
+  ],
+  "ok": true
+ },
+ "P8 e-value at detection, decimal": {
+  "got": 311.1,
+  "ok": true
+ },
+ "P8 floating summaries: KL rate (nats), Wald steps, largest null e-value": {
+  "got": [
+   0.1398,
+   32.9,
+   23.6
+  ],
+  "ok": true
+ },
+ "P1 the large class of the engine's memory holds ten event-view codes": {
+  "got": 10,
+  "ok": true
+ },
+ "P2 four slots, block of two: every policy's verdicts equal those with three slots": {
+  "got": {
+   "Recency": {
+    "latest-F": "Refuted",
+    "latest-O": "Refuted",
+    "latest-A": "Refuted"
+   },
+   "Relevance": {
+    "latest-F": "Checked",
+    "latest-O": "Refuted",
+    "latest-A": "Refuted"
+   },
+   "ProtectedFirst": {
+    "latest-F": "Refuted",
+    "latest-O": "Refuted",
+    "latest-A": "Checked"
+   },
+   "ConsumerAware": {
+    "latest-F": "Checked",
+    "latest-O": "Refuted",
+    "latest-A": "Checked"
+   }
+  },
+  "ok": true
+ },
+ "P2 patterns that contain an item of each kind (F, O, A)": {
+  "got": [
+   37,
+   37,
+   37
+  ],
+  "ok": true
+ },
+ "P2 of those, patterns in which the block holds the most recent item of the kind (F, O, A)": {
+  "got": {
+   "Recency": [
+    28,
+    28,
+    28
+   ],
+   "Relevance": [
+    37,
+    34,
+    10
+   ],
+   "ProtectedFirst": [
+    34,
+    25,
+    37
+   ],
+   "ConsumerAware": [
+    37,
+    31,
+    37
+   ]
+  },
+  "ok": true
+ },
+ "P2 the receipt example FOA under the consumer-aware policy: block and consumers served": {
+  "got": [
+   [
+    [
+     1,
+     "F"
+    ],
+    [
+     3,
+     "A"
+    ]
+   ],
+   [
+    true,
+    false,
+    true
+   ]
+  ],
+  "ok": true
+ },
+ "P5 retiring nag: the old classes merged with (open, 0, ben, normal) are its four age classes": {
+  "got": [
+   [
+    [
+     0
+    ],
+    [
+     1
+    ],
+    [
+     2
+    ],
+    [
+     3,
+     4
+    ]
+   ],
+   true
+  ],
+  "ok": true
+ },
+ "P6 the two goals' preferences in each conflict state (throughput, verification)": {
+  "got": [
+   [
+    "consolidate",
+    "verify"
+   ],
+   [
+    "consolidate",
+    "hold"
+   ],
+   [
+    "consolidate",
+    "verify"
+   ],
+   [
+    "consolidate",
+    "verify"
+   ]
+  ],
+  "ok": true
+ },
+ "P6 the conflict record of the appendix: forbidden moves and the move taken": {
+  "got": [
+   [
+    "consolidate"
+   ],
+   "verify"
+  ],
+  "ok": true
+ },
+ "P7 plain design along the least word: exploration and individuation after each cycle": {
+  "got": [
+   [
+    "3/4",
+    "3/4"
+   ],
+   [
+    "1",
+    "3/4"
+   ],
+   [
+    "1",
+    "1/2"
+   ],
+   [
+    "1",
+    "1/4"
+   ]
+  ],
+  "ok": true
+ },
+ "P7 order swap on settled states: the modulators differ by at most one step of the grid": {
+  "got": "1/2",
+  "ok": true
+ },
+ "P8 suggestions in each stream": {
+  "got": [
+   400,
+   400
+  ],
+  "ok": true
+ },
+ "P3 the bundle example: totals with contradiction provenance against the evaluator": {
+  "got": [
+   [
+    [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     1,
+     1,
+     0,
+     0,
+     0
+    ]
+   ],
+   1,
+   2
+  ],
+  "ok": true
+ },
+ "B OpenItems: Live has 39 states": {
+  "got": 39,
+  "ok": true
+ },
+ "B OpenItems: WindowView CheckNow witness as in Part A": {
+  "got": [
+   [
+    3,
+    "none"
+   ],
+   [
+    3,
+    "d3"
+   ]
+  ],
+  "ok": true
+ },
+ "B OpenItems: WindowView CheckUpdates witness and codes": {
+  "got": [
+   [
+    [
+     2,
+     "d0"
+    ],
+    [
+     2,
+     "d2"
+    ]
+   ],
+   "tick",
+   [
+    3,
+    "closed"
+   ],
+   [
+    3,
+    "open"
+   ]
+  ],
+  "ok": true
+ },
+ "B OpenItems: EventView Checked (behavioral, updates)": {
+  "got": [
+   null,
+   null
+  ],
+  "ok": true
+ },
+ "B OpenItems: MinimizeForQueries GoalEngine equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B OpenItems: MinimizeForQueries Commitments equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B OpenItems: MinimizeForQueries Both equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B OpenItems: CapForEngine Checked": {
+  "got": null,
+  "ok": true
+ },
+ "B OpenItems: CapForCommitments witness": {
+  "got": [
+   [
+    8,
+    "none"
+   ],
+   [
+    8,
+    "d0"
+   ]
+  ],
+  "ok": true
+ },
+ "B SuggestionDedupe: OnceByTopic": {
+  "got": [
+   [
+    "recv1",
+    "recv2",
+    "run"
+   ],
+   [
+    true,
+    true,
+    true,
+    true,
+    2
+   ]
+  ],
+  "ok": true
+ },
+ "B SuggestionDedupe: OnceByQuestion": {
+  "got": null,
+  "ok": true
+ },
+ "B ContextBlock: RecencyF as in Part A": {
+  "got": [
+   [
+    [
+     "O",
+     "O",
+     "F"
+    ],
+    [
+     "O",
+     "O",
+     "O"
+    ]
+   ],
+   3,
+   0
+  ],
+  "ok": true
+ },
+ "B ContextBlock: RecencyO as in Part A": {
+  "got": [
+   [
+    [
+     "F",
+     "F",
+     "F"
+    ],
+    [
+     "F",
+     "F",
+     "O"
+    ]
+   ],
+   0,
+   3
+  ],
+  "ok": true
+ },
+ "B ContextBlock: RecencyA as in Part A": {
+  "got": [
+   [
+    [
+     "F",
+     "F",
+     "F"
+    ],
+    [
+     "F",
+     "F",
+     "A"
+    ]
+   ],
+   0,
+   3
+  ],
+  "ok": true
+ },
+ "B ContextBlock: RelevanceF as in Part A": {
+  "got": null,
+  "ok": true
+ },
+ "B ContextBlock: RelevanceO as in Part A": {
+  "got": [
+   [
+    [
+     "F",
+     "F",
+     "F"
+    ],
+    [
+     "F",
+     "F",
+     "O"
+    ]
+   ],
+   0,
+   3
+  ],
+  "ok": true
+ },
+ "B ContextBlock: RelevanceA as in Part A": {
+  "got": [
+   [
+    [
+     "F",
+     "F",
+     "F"
+    ],
+    [
+     "F",
+     "F",
+     "A"
+    ]
+   ],
+   0,
+   3
+  ],
+  "ok": true
+ },
+ "B ContextBlock: ProtectedF as in Part A": {
+  "got": [
+   [
+    [
+     "F",
+     "A",
+     "A"
+    ],
+    [
+     "O",
+     "A",
+     "A"
+    ]
+   ],
+   1,
+   0
+  ],
+  "ok": true
+ },
+ "B ContextBlock: ProtectedO as in Part A": {
+  "got": [
+   [
+    [
+     "F",
+     "F",
+     "F"
+    ],
+    [
+     "F",
+     "F",
+     "O"
+    ]
+   ],
+   0,
+   3
+  ],
+  "ok": true
+ },
+ "B ContextBlock: ProtectedA as in Part A": {
+  "got": null,
+  "ok": true
+ },
+ "B ContextBlock: ConsumerF as in Part A": {
+  "got": null,
+  "ok": true
+ },
+ "B ContextBlock: ConsumerO as in Part A": {
+  "got": [
+   [
+    [
+     "F",
+     "F",
+     "A"
+    ],
+    [
+     "F",
+     "O",
+     "A"
+    ]
+   ],
+   0,
+   2
+  ],
+  "ok": true
+ },
+ "B ContextBlock: ConsumerA as in Part A": {
+  "got": null,
+  "ok": true
+ },
+ "B EvidenceMemory: MajorityC verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: MajorityE verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: MajorityR verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: CountsC verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: CountsE verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: CountsR verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: DistinctC verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: DistinctE verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: DistinctR verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: ProtectedC verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: ProtectedE verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: ProtectedR verdicts and witness pairs as in Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B EvidenceMemory: ProvenanceAll Checked (updates, behavioral)": {
+  "got": [
+   null,
+   null
+  ],
+  "ok": true
+ },
+ "B EvidenceMemory: MinimalAll Checked (updates, behavioral)": {
+  "got": [
+   null,
+   null
+  ],
+  "ok": true
+ },
+ "B EvidenceMemory: MinimizeForQueries Contra": {
+  "got": 2,
+  "ok": true
+ },
+ "B EvidenceMemory: MinimizeForQueries Eff": {
+  "got": 5,
+  "ok": true
+ },
+ "B EvidenceMemory: MinimizeForQueries Regen": {
+  "got": 5,
+  "ok": true
+ },
+ "B EvidenceMemory: MinimizeForQueries ContraRegen": {
+  "got": 5,
+  "ok": true
+ },
+ "B EvidenceMemory: MinimizeForQueries AllThree": {
+  "got": 25,
+  "ok": true
+ },
+ "B AnchorMigration: NaiveMigration": {
+  "got": {
+   "state": [
+    "absent",
+    "none"
+   ],
+   "action": "repair",
+   "map-then-act": [
+    "present",
+    "old"
+   ],
+   "act-then-map": [
+    "present",
+    "new"
+   ]
+  },
+  "ok": true
+ },
+ "B AnchorMigration: CellMigration": {
+  "got": null,
+  "ok": true
+ },
+ "B TaskResume: NoReadSets now / updates pair / behavioral word": {
+  "got": [
+   null,
+   [
+    [
+     "valid",
+     "valid",
+     "r1",
+     "current"
+    ],
+    [
+     "valid",
+     "valid",
+     "r2",
+     "current"
+    ]
+   ],
+   [
+    "withdraw1"
+   ]
+  ],
+  "ok": true
+ },
+ "B TaskResume: ReadSets Checked": {
+  "got": null,
+  "ok": true
+ },
+ "B TaskResume: ResumeMemory equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries Reply equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries Nag equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries Triage equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries ReplyNag equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries AllGoals equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries ReplyTriage equals Part A": {
+  "got": true,
+  "ok": true
+ },
+ "B ItemGoals: CheckNow DaysLeft as in Part A": {
+  "got": null,
+  "ok": true
+ },
+ "B ItemGoals: CheckNow BenFirst as in Part A": {
+  "got": null,
+  "ok": true
+ },
+ "B ItemGoals: CheckNow Cap3 as in Part A": {
+  "got": [
+   [
+    "open",
+    0,
+    "ben",
+    "normal"
+   ],
+   [
+    "open",
+    3,
+    "ben",
+    "normal"
+   ]
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckNow NagForDays as in Part A": {
+  "got": [
+   [
+    "open",
+    0,
+    "ben",
+    "normal"
+   ],
+   [
+    "open",
+    1,
+    "ben",
+    "normal"
+   ]
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckNow NagForBenFirst as in Part A": {
+  "got": [
+   [
+    "open",
+    0,
+    "ben",
+    "normal"
+   ],
+   [
+    "open",
+    0,
+    "andy",
+    "normal"
+   ]
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckNow NagForCap3 as in Part A": {
+  "got": [
+   [
+    "open",
+    3,
+    "ben",
+    "normal"
+   ],
+   [
+    "open",
+    4,
+    "ben",
+    "normal"
+   ]
+  ],
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries DaysGoal": {
+  "got": 4,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries BenFirstGoal": {
+  "got": 7,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries Cap3Goal": {
+  "got": 5,
+  "ok": true
+ },
+ "B ItemGoals: ToDeadline Checked": {
+  "got": null,
+  "ok": true
+ },
+ "B ItemGoals: MinimizeForQueries NagByDeadline (the migrated goal keeps 4 classes)": {
+  "got": 4,
+  "ok": true
+ },
+ "B ItemGoals: CheckNow AntiAsNag and CheckNow NagForAntiNag both Checked (informational equivalence)": {
+  "got": [
+   null,
+   null
+  ],
+  "ok": true
+ },
+ "B ItemGoals: AntiNagMemory is the 4-class partition of NagMemory": {
+  "got": [
+   4,
+   true
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckInterpretation NagFollowUps DaysFollowUps as in Part A": {
+  "got": [
+   "Checked",
+   null
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckInterpretation NagFollowUps BenFirstFollowUps as in Part A": {
+  "got": [
+   "Checked",
+   null
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckInterpretation NagFollowUps Cap3FollowUps as in Part A": {
+  "got": [
+   "Refuted",
+   [
+    [
+     "open",
+     3,
+     "ben",
+     "normal"
+    ],
+    false,
+    true,
+    "wait",
+    "follow-up"
+   ]
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckInterpretation NagFollowUps DeadlineFollowUps (Via ToDeadline) as in Part A": {
+  "got": [
+   "Checked",
+   null
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckInterpretation NagFollowUps AntiNagFollowUps as in Part A": {
+  "got": [
+   "Refuted",
+   [
+    [
+     "open",
+     0,
+     "ben",
+     "normal"
+    ],
+    true,
+    false,
+    "follow-up",
+    "wait"
+   ]
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckInterpretation NagFollowUps AntiNagWaits as in Part A": {
+  "got": [
+   "Checked",
+   null
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckInterpretation across schemas without Via is InvalidInput naming both carriers": {
+  "got": [
+   "InvalidInput",
+   "Nag has states Record and NagByDeadline has states DeadlineRecord; a change of record schema needs (Via map)"
+  ],
+  "ok": true
+ },
+ "B ItemGoals: CheckInterpretation along a map from another machine is InvalidInput naming the mismatch": {
+  "got": [
+   "InvalidInput",
+   "ToDeadline starts from Nag, not from DaysGoal, the machine of DaysFollowUps"
+  ],
+  "ok": true
+ },
+ "B ItemGoals: an interpretation result is bound to both consumers, machines, queries and decoders with their custody, and to the 40 records": {
+  "got": [
+   [
+    "NagFollowUps",
+    "AntiNagFollowUps"
+   ],
+   {
+    "consumer": "NagFollowUps",
+    "machine": "Nag",
+    "queries": {
+     "nag": "nag"
+    },
+    "decoder": "follow-up-if-true",
+    "custody": "Frame"
+   },
+   {
+    "consumer": "AntiNagFollowUps",
+    "machine": "AntiNagGoal",
+    "queries": {
+     "anti": "anti-nag"
+    },
+    "decoder": "follow-up-if-true",
+    "custody": "Frame"
+   },
+   null,
+   {
+    "records": "Record",
+    "count": 40
+   },
+   true
+  ],
+  "ok": true
+ },
+ "B ItemGoals: interpretation results carry no assumptions; Checked by enumeration, Refuted by a replayed witness": {
+  "got": {
+   "DaysFollowUps": [
+    [],
+    "Exact"
+   ],
+   "BenFirstFollowUps": [
+    [],
+    "Exact"
+   ],
+   "Cap3FollowUps": [
+    [],
+    "Witness"
+   ],
+   "DeadlineFollowUps": [
+    [],
+    "Exact"
+   ],
+   "AntiNagFollowUps": [
+    [],
+    "Witness"
+   ],
+   "AntiNagWaits": [
+    [],
+    "Exact"
+   ]
+  },
+  "ok": true
+ },
+ "B ItemGoals: the module's CheckInterpretation requests and their statuses": {
+  "got": [
+   [
+    "(CheckInterpretation NagFollowUps DaysFollowUps)",
+    "Checked"
+   ],
+   [
+    "(CheckInterpretation NagFollowUps BenFirstFollowUps)",
+    "Checked"
+   ],
+   [
+    "(CheckInterpretation NagFollowUps Cap3FollowUps)",
+    "Refuted"
+   ],
+   [
+    "(CheckInterpretation NagFollowUps DeadlineFollowUps (Via ToDeadline))",
+    "Checked"
+   ],
+   [
+    "(CheckInterpretation NagFollowUps AntiNagFollowUps)",
+    "Refuted"
+   ],
+   [
+    "(CheckInterpretation NagFollowUps AntiNagWaits)",
+    "Checked"
+   ],
+   [
+    "(CheckInterpretation NagFollowUps DeadlineFollowUps)",
+    "InvalidInput"
+   ],
+   [
+    "(CheckInterpretation DaysFollowUps DeadlineFollowUps (Via ToDeadline))",
+    "InvalidInput"
+   ]
+  ],
+  "ok": true
+ },
+ "B ItemGoals: the classification from the module's results equals Part A": {
+  "got": {
+   "days-left": "refinement",
+   "nag-ben-first": "refinement",
+   "cap3": "change of content",
+   "anti-nag": "change of content",
+   "anti-nag-waits": "renaming",
+   "migration": "migration"
+  },
+  "ok": true
+ },
+ "B ClaimArbitration: LawfulWeighted": {
+  "got": [
+   [
+    "evidence"
+   ],
+   [
+    "high",
+    false,
+    false,
+    "calm"
+   ]
+  ],
+  "ok": true
+ },
+ "B ClaimArbitration: LawfulNormFirst": {
+  "got": null,
+  "ok": true
+ },
+ "B ClaimArbitration: Agreement": {
+  "got": [
+   [
+    "evidence"
+   ],
+   [
+    "high",
+    false,
+    false,
+    "calm"
+   ]
+  ],
+  "ok": true
+ },
+ "B ClaimArbitration: reachable states (weighted, norm-first)": {
+  "got": [
+   14,
+   11
+  ],
+  "ok": true
+ },
+ "B MotivationGrid: SafePlain": {
+  "got": [
+   [
+    "novel",
+    "cycle",
+    "cycle",
+    "cycle",
+    "cycle"
+   ],
+   [
+    1,
+    4,
+    2,
+    0,
+    1,
+    0
+   ]
+  ],
+  "ok": true
+ },
+ "B MotivationGrid: SafeFloor": {
+  "got": null,
+  "ok": true
+ },
+ "B MotivationGrid: Settled has 80 states": {
+  "got": 80,
+  "ok": true
+ },
+ "B MotivationGrid: CheckImplementation OrderSwapFloor (Grade 1 1/2)": {
+  "got": false,
+  "ok": true
+ },
+ "B MotivationGrid: CheckImplementation OrderSwapDamped (Grade 1 1/2)": {
+  "got": true,
+  "ok": true
+ },
+ "B MotivationGrid: CheckImplementation OrderSwapSettled (Grade 1 1/2)": {
+  "got": true,
+  "ok": true
+ },
+ "B MotivationGrid: CheckImplementation OrderSwapSettled (Grade 1 1/4)": {
+  "got": false,
+  "ok": true
+ },
+ "B MotivationGrid: CheckImplementation NearBoundaryFloor (Grade 1/2 3/4)": {
+  "got": true,
+  "ok": true
+ },
+ "B MotivationGrid: CheckImplementation NearBoundaryFloor (Grade 1/2 1/2)": {
+  "got": false,
+  "ok": true
+ },
+ "B MotivationGrid: CheckImplementation NearBoundaryDamped (Grade 1/2 5/8)": {
+  "got": true,
+  "ok": true
+ },
+ "B StaleMonitor: null and alternative laws": {
+  "got": [
+   {
+    "1": "1/20",
+    "0": "19/20"
+   },
+   {
+    "1": "1/5",
+    "0": "4/5"
+   }
+  ],
+  "ok": true
+ },
+ "B StaleMonitor: CheckMonitor validity": {
+  "got": "1",
+  "ok": true
+ },
+ "B StaleMonitor: LiveSuggestions digest matches the stored file": {
+  "got": "sha256:f0d4be8461a2904e728f7b0a8ad895385ccd56f340ec854d729936aaf6a48763",
+  "ok": true
+ },
+ "B StaleMonitor: QuietSuggestions digest matches the stored file": {
+  "got": "sha256:8e76cbdeee37a8ab4156c6068ee59fab740c2f9d1b02146e3ee7e38c594b59b0",
+  "ok": true
+ },
+ "B Consumers: every Accepts declaration parses; frame consumers accept only Checked results": {
+  "got": [
+   15,
+   15,
+   []
+  ],
+  "ok": true
+ },
+ "B Consumers: what EngineQueries and CommitmentQueries accept (Checked; Conditional on cvc5, on z3, on both; Estimated; Unknown)": {
+  "got": {
+   "EngineQueries": [
+    true,
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "CommitmentQueries": [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "ok": true
+ },
+ "B Consumers: the specification's combined form (Accepts Checked Estimated (Conditional (TrustedBackend cvc5) (Assumption StepModel))) against (Accepts Checked (Conditional (TrustedBackend cvc5))), on results Conditional on cvc5, on StepModel, on another assumption, on an estimate, on cvc5 and StepModel, on StepModel and z3": {
+  "got": [
+   [
+    true,
+    true,
+    false,
+    true,
+    true,
+    false
+   ],
+   [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  ],
+  "ok": true
+ },
+ "B Gate: the binding of (CheckUpdates MinimalAll) as printed in Appendix C.6": {
+  "got": {
+   "module": "EvidenceMemory",
+   "subject": [
+    "MinimalAll",
+    "minimal"
+   ],
+   "machine": "AllThree",
+   "states": "Evidence",
+   "queries": {
+    "contra": "contra",
+    "eff": "eff",
+    "regen": "regen"
+   },
+   "actions": {
+    "(plus a)": "(plus a)",
+    "(plus b)": "(plus b)",
+    "(plus c)": "(plus c)",
+    "(minus a)": "(minus a)",
+    "(minus b)": "(minus b)",
+    "(minus c)": "(minus c)"
+   },
+   "merges": {},
+   "tolerance": "exact",
+   "scope": {
+    "horizon": 1
+   },
+   "assumptions": [],
+   "assurance": "Exact"
+  },
+  "ok": true
+ },
+ "B Gate: the binding of (CheckUpdates WindowView) as printed in Appendix C.2": {
+  "got": [
+   "Refuted",
+   {
+    "subject": [
+     "WindowView",
+     "window-view"
+    ],
+    "machine": "GoalEngine",
+    "states": "Live",
+    "queries": {
+     "suggest": "suggest"
+    },
+    "actions": {
+     "tick": "tick",
+     "reply": "on-reply"
+    },
+    "merges": {},
+    "tolerance": "exact",
+    "scope": {
+     "horizon": 1
+    },
+    "assumptions": [],
+    "assurance": "Witness"
+   }
+  ],
+  "ok": true
+ },
+ "B Gate: the bundle of Appendix C.6 covers its three consumers through the joint machine AllThree": {
+  "got": [
+   {
+    "ContraProbe": "covered",
+    "EffectiveSupport": "covered",
+    "AnchorCues": "covered"
+   },
+   [
+    "removed queries",
+    "removed queries",
+    "removed queries"
+   ]
+  ],
+  "ok": true
+ },
+ "B Gate: a result bound to Contra covers ContraProbe and is InvalidInput for EffectiveSupport": {
+  "got": [
+   "covered",
+   "inadequate",
+   [
+    {
+     "request": "(CheckBehavioral CountsC)",
+     "status": "InvalidInput",
+     "mismatch": "bound to Contra, checked without the query eff that EffectiveSupport reads through Eff"
+    }
+   ]
+  ],
+  "ok": true
+ },
+ "B Gate: the Refuted (CheckNow ProtectedE) blocks EffectiveSupport and does not count for the other two": {
+  "got": {
+   "ContraProbe": "covered",
+   "EffectiveSupport": "blocked",
+   "AnchorCues": "covered"
+  },
+  "ok": true
+ },
+ "B Gate: results Conditional on cvc5 cover EngineQueries and are inadequate coverage for CommitmentQueries": {
+  "got": [
+   {
+    "EngineQueries": "covered",
+    "CommitmentQueries": "inadequate"
+   },
+   [
+    {
+     "request": "CommitmentMemory",
+     "status": "Conditional",
+     "not_accepted": "CommitmentQueries accepts no Conditional result"
+    }
+   ]
+  ],
+  "ok": true
+ },
+ "seconds": 68.3
+}

@@ -1,0 +1,62 @@
+1 file(s), 4 modules, 107 declarations, 61 run requests
+All forms conform to the registry with the proposed patch.
+59 diagnostic(s) against the current registry (forms that need the patch):
+  belief_memory.metta: module AgentMemory: unknown declaration head ParallelMachine
+  belief_memory.metta: module AgentMemory: unknown declaration head ProductRepresentation
+  belief_memory.metta: module AgentMemory: unknown library NatArith
+  belief_memory.metta: module AgentMemory: unknown library Parallel
+  belief_memory.metta: module BeliefMemory: unknown library NatArith
+  belief_memory.metta: module GentleMemory: unknown declaration head EncodingFamily
+  belief_memory.metta: module GentleMemory: unknown library NatArith
+  belief_memory.metta: module ReceiptLedger: unknown library NatArith
+  belief_memory.metta:BeliefMemory.FewestAtFifth: WeakestWithin: unknown argument (Objective Codes) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:BeliefMemory.FewestAtHalf: WeakestWithin: unknown argument (Objective Codes) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:BeliefMemory.Staged2: Refine Until: expected one of Stable, found (Steps 2)
+  belief_memory.metta:BeliefMemory.add-neg: unknown head Min in (Min (Add $n 1) 15)
+  belief_memory.metta:BeliefMemory.add-pos: unknown head Min in (Min (Add $p 1) 15)
+  belief_memory.metta:BeliefMemory.cap7: unknown head Min in (Min $n 7)
+  belief_memory.metta:BeliefMemory.cap7: unknown head Min in (Min $p 7)
+  belief_memory.metta:BeliefMemory.halve: unknown head Quot in (Quot $n 2)
+  belief_memory.metta:BeliefMemory.halve: unknown head Quot in (Quot $p 2)
+  belief_memory.metta:BeliefMemory.status: unknown head Le in (Le (Mul 2 $n) $p)
+  belief_memory.metta:BeliefMemory.status: unknown head Le in (Le (Mul 2 $p) $n)
+  belief_memory.metta:BeliefMemory.status: unknown head Le in (Le 4 (Add $p $n))
+  belief_memory.metta:BeliefMemory.tv-grid-10-7: unknown head Quot in (Quot (Add (Mul 15 (Add $p $n)) 4) (Add (Mul 2 (Add $p $n)) 
+  belief_memory.metta:BeliefMemory.tv-grid-10-7: unknown head Quot in (Quot (Add (Mul 20 $p) (Add $p $n)) (Mul 2 (Add $p $n)))
+  belief_memory.metta:BeliefMemory.tv-grid-10: unknown head Quot in (Quot (Add (Mul 20 $p) (Add $p $n)) (Mul 2 (Add $p $n)))
+  belief_memory.metta:BeliefMemory.tv-grid-10: unknown head Quot in (Quot (Add (Mul 21 (Add $p $n)) 4) (Add (Mul 2 (Add $p $n)) 
+  belief_memory.metta:BeliefMemory.tv-grid-20: unknown head Quot in (Quot (Add (Mul 40 $p) (Add $p $n)) (Mul 2 (Add $p $n)))
+  belief_memory.metta:BeliefMemory.tv-grid-20: unknown head Quot in (Quot (Add (Mul 41 (Add $p $n)) 4) (Add (Mul 2 (Add $p $n)) 
+  belief_memory.metta:GentleMemory.BestBuckets: WeakestWithin: unknown argument (Family CountBuckets) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:GentleMemory.BestBuckets: WeakestWithin: unknown argument (Objective Codes) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:GentleMemory.BestGrid: WeakestWithin: unknown argument (Family TVGrids) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:GentleMemory.BestGrid: WeakestWithin: unknown argument (Objective Codes) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:GentleMemory.ColdStoreCenters: result Frontier has no field Representatives (available: Value, Certificate, Defect, Optimality, Partition, Representation, Weakness)
+  belief_memory.metta:GentleMemory.Fewest: WeakestWithin: unknown argument (Objective Codes) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:GentleMemory.FewestCenters: WeakestWithin Kind: expected one of Behavioral|Trace|Now|Updates, found Radius
+  belief_memory.metta:GentleMemory.FewestCenters: WeakestWithin: unknown argument (Objective Codes) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:GentleMemory.FewestDiscounted: WeakestWithin: unknown argument (Objective Codes) (registered: Budget, Discount, Kind, Search, Under, Within)
+  belief_memory.metta:GentleMemory.halve-gentle: unknown head Le in (Le 8 (Add $p $n))
+  belief_memory.metta:GentleMemory.halve-gentle: unknown head Quot in (Quot (Add $n 1) 2)
+  belief_memory.metta:GentleMemory.halve-gentle: unknown head Quot in (Quot (Add $p 1) 2)
+  belief_memory.metta:ReceiptLedger.TallyDistance: expected a tolerance-body, found (Meet (Pullback tally-strength Dist01) (Pullback t
+  belief_memory.metta:ReceiptLedger.based: unknown head BitAnd in (BitAnd (GetTuple $t 0) (GetTuple $t 1))
+  belief_memory.metta:ReceiptLedger.based: unknown head BitAnd in (BitAnd (GetTuple $t 0) (GetTuple $t 2))
+  belief_memory.metta:ReceiptLedger.compact-merge: unknown head BitOr in (BitOr (Slice (GetTuple $pair 0) 2 3) (Slice (GetTuple $pair
+  belief_memory.metta:ReceiptLedger.compact-merge: unknown head BitOr in (BitOr (Slice (GetTuple $pair 0) 4 5) (Slice (GetTuple $pair
+  belief_memory.metta:ReceiptLedger.compact-merge: unknown head PopCount in (PopCount (BitOr (Slice (GetTuple $pair 0) 2 3) (Slice (GetT
+  belief_memory.metta:ReceiptLedger.compact-merge: unknown head PopCount in (PopCount (BitOr (Slice (GetTuple $pair 0) 4 5) (Slice (GetT
+  belief_memory.metta:ReceiptLedger.compact-merge: unknown head PopCount in (PopCount (Slice (GetTuple $pair 0) 0 1))
+  belief_memory.metta:ReceiptLedger.compact: unknown head PopCount in (PopCount (Slice $r 0 1))
+  belief_memory.metta:ReceiptLedger.counts: unknown head PopCount in (PopCount (Slice $r 0 3))
+  belief_memory.metta:ReceiptLedger.counts: unknown head PopCount in (PopCount (Slice $r 4 5))
+  belief_memory.metta:ReceiptLedger.fork-union: unknown head BitOr in (BitOr (GetTuple $t 1) (GetTuple $t 2))
+  belief_memory.metta:ReceiptLedger.fresh-news: unknown head BitAnd in (BitAnd (BitXor (GetTuple $t 1) (GetTuple $t 0)) (BitXor (Ge
+  belief_memory.metta:ReceiptLedger.fresh-news: unknown head BitXor in (BitXor (GetTuple $t 1) (GetTuple $t 0))
+  belief_memory.metta:ReceiptLedger.fresh-news: unknown head BitXor in (BitXor (GetTuple $t 2) (GetTuple $t 0))
+  belief_memory.metta:ReceiptLedger.max-tallies: unknown head Max in (Max (GetTuple (counts (GetTuple $pair 0)) 0) (GetTuple (cou
+  belief_memory.metta:ReceiptLedger.max-tallies: unknown head Max in (Max (GetTuple (counts (GetTuple $pair 0)) 1) (GetTuple (cou
+  belief_memory.metta:ReceiptLedger.union: unknown head BitOr in (BitOr (GetTuple $pair 0) (GetTuple $pair 1))
+  belief_memory.metta:run (CheckBehavioral Fewest6 (Within (Rat 1 : undeclared name Fewest6 (expected Representation)
+  belief_memory.metta:run (CheckBehavioral Grid6 (Within (Rat 1 5): undeclared name Grid6 (expected Representation)
+  belief_memory.metta:run (MeasureBehavioral Grid6 (Discount (Rat : undeclared name Grid6 (expected Representation)

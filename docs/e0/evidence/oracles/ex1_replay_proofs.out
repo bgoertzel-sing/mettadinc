@@ -1,0 +1,17 @@
+belief_memory.metta
+ex1lib.py
+ex1_obligations.tar.xz
+ex1_oracle.py
+ex1_registry_patch.json
+ex1_results.json
+ex_check.py
+metta_eval.py
+obligations
+__pycache__
+README.txt
+replay_proofs.py
+Replays the unsatisfiability proofs shipped with a worked-example bundle.
+
+The archive exN_obligations.tar.xz holds, for every unsatisfiable obligation of the example, the
+CNF that the oracle generated and the DRAT proof that CaDiCaL 1.5.3 wrote, together with index.json,
+which lists each obligation's name, claim and CNF digest and the digest of the module file the

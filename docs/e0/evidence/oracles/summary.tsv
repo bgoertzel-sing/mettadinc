@@ -1,0 +1,19 @@
+name	exit	ok_lines	fail_lines	secs	results_json_identical
+spec_oracle	0	157	0	6	-
+spec_check_fixtures	0	0	0	0	-
+ex1_oracle	0	92	0	134	-
+ex2_oracle	0	69	0	123	-
+ex3_oracle	0	57	0	7	-
+ex4_oracle	0	87	0	3	-
+ex1_check	0	0	0	0	-
+ex2_check	0	0	0	0	-
+ex3_check	0	0	0	0	-
+ex4_check	0	0	0	0	-
+ex1_replay_proofs	0	0	0	0	-
+mg_oracle	0	195	0	89	-
+mg_check	0	0	0	0	-
+ls_oracle	0	94	0	16	-
+ls_check	0	0	0	0	-
+wx_oracle	0	99	0	23	-
+wx_check	0	0	0	0	-
+DONE

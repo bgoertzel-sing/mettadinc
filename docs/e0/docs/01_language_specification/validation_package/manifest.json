@@ -1,0 +1,1900 @@
+{
+ "manifest": "MeTTaDinC claims manifest",
+ "date": "2026-11-04",
+ "explanation": "status is the result a complete implementation returns; release1 says whether the first release must answer it (Supported) or return Unsupported; until, where present, names a replay capability the status needs and the statuses an implementation returns while it lacks that capability; where a statement names a witness it is the canonical witness of the registry's witness_order, and an implementation may return any witness that replays",
+ "claims": [
+  {
+   "id": "E01",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "(Defects KeepA)",
+   "status": "Checked",
+   "statement": "current defect 0, update defect 1, behavioral defect 1",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "E02",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "(CheckUpdates KeepA)",
+   "status": "Refuted",
+   "statement": "update compatibility fails at (000,010) under swap",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "E03",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "(CheckBehavioral KeepA)",
+   "status": "Refuted",
+   "statement": "word witness: pair (000,010), continuation swap, answers 0 and 1; bound n-|X/K_O| = 6",
+   "oracle": [
+    {
+     "key": "eight_state.witness",
+     "value": [
+      [
+       [
+        0,
+        0,
+        0
+       ],
+       [
+        0,
+        1,
+        0
+       ]
+      ],
+      [
+       "swap"
+      ],
+      "a",
+      0,
+      1
+     ]
+    },
+    {
+     "key": "eight_state.witness_bound",
+     "value": 6
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "E04",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "(CheckBehavioral KeepA (Horizon (Steps 0)))",
+   "status": "Checked",
+   "statement": "horizon 0 checks the initial observation only",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "E05",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "(InduceExact KeepA)",
+   "status": "Refuted",
+   "statement": "exact induction fails on the update obligation",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "E06",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "Repair",
+   "status": "Checked",
+   "statement": "four blocks {ab}; ledger 1/2 to 1/4 under the uniform law",
+   "oracle": [
+    {
+     "key": "eight_state.repair_blocks",
+     "value": [
+      [
+       [
+        0,
+        0,
+        0
+       ],
+       [
+        0,
+        0,
+        1
+       ]
+      ],
+      [
+       [
+        0,
+        1,
+        0
+       ],
+       [
+        0,
+        1,
+        1
+       ]
+      ],
+      [
+       [
+        1,
+        0,
+        0
+       ],
+       [
+        1,
+        0,
+        1
+       ]
+      ],
+      [
+       [
+        1,
+        1,
+        0
+       ],
+       [
+        1,
+        1,
+        1
+       ]
+      ]
+     ]
+    },
+    {
+     "key": "small_fixtures.eight_state_ledger",
+     "value": [
+      "1/2",
+      "1/4"
+     ]
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "E07",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "(SamePartition (Output Repair Representation) KeepAB)",
+   "status": "Checked",
+   "statement": "the repair equals the encoding (a,b)",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "E08",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "AB",
+   "status": "Checked",
+   "statement": "exact quotient on pairs (a,b); the bit c disappears",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "E09",
+   "fixture": "eight_state.metta",
+   "module": "EightState",
+   "request": "Composed",
+   "status": "Checked",
+   "statement": "composite quotient (a,b,c) -> 2a+b",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "F01",
+   "fixture": "forty_bits.metta",
+   "module": "FortyBits",
+   "request": "(CheckNow KeepX0)",
+   "status": "Checked",
+   "statement": "keeping x0 answers the query now",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "F02",
+   "fixture": "forty_bits.metta",
+   "module": "FortyBits",
+   "request": "(CheckBehavioral KeepX0)",
+   "status": "Refuted",
+   "statement": "two words differing only in x1, continuation swap",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "F03",
+   "fixture": "forty_bits.metta",
+   "module": "FortyBits",
+   "request": "ZeroQuotient",
+   "status": "Checked",
+   "statement": "eight blocks (x0, x1, tail = 0); symbolic certificate; no enumeration",
+   "oracle": [
+    {
+     "key": "zero_fixture.classes",
+     "value": 8
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "F04",
+   "fixture": "forty_bits.metta",
+   "module": "FortyBits",
+   "request": "ParityQuotient",
+   "status": "Checked",
+   "statement": "eight blocks (x0, x1, parity); observable dimension 3, unobservable 37",
+   "oracle": [
+    {
+     "key": "parity.classes",
+     "value": 8
+    },
+    {
+     "key": "parity.max_separating_word",
+     "value": 2
+    },
+    {
+     "key": "parity_linear.observable_dimension",
+     "value": 3
+    },
+    {
+     "key": "parity_linear.unobservable_dimension_width_40",
+     "value": 37
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "F05",
+   "fixture": "forty_bits.metta",
+   "module": "FortyBits",
+   "request": "WholeCarrier",
+   "status": "Refuted",
+   "statement": "the four zero-tail blocks fail coverage of the full carrier; witness word 4",
+   "oracle": [
+    {
+     "key": "symbolic_admission.adversarial_candidate",
+     "value": {
+      "status": "Refuted",
+      "obligation": "Coverage",
+      "witness_word": 4
+     }
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "F06",
+   "fixture": "forty_bits.metta",
+   "module": "FortyBits",
+   "request": "OnReach",
+   "status": "Checked",
+   "statement": "the same blocks partition Reach(0), which has four words with witnessing words",
+   "oracle": [
+    {
+     "key": "symbolic_admission.reach_from_zero.size",
+     "value": 4
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "F07",
+   "fixture": "forty_bits.metta",
+   "module": "FortyBitsScreens",
+   "request": "ZeroRates",
+   "status": "Checked",
+   "statement": "each tail coordinate has mean clock rate 2^-37 under the uniform law",
+   "oracle": [
+    {
+     "key": "zero_fixture.clock_rate_width_40",
+     "value": "2^-37"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "P01",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "(CheckNow PosteriorOnly)",
+   "status": "Checked",
+   "statement": "the posterior encoding answers the posterior query",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "P02",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "(CheckBehavioral PosteriorOnly)",
+   "status": "Refuted",
+   "statement": "witness (UOnly,VOnly), add-u, posterior 3/4 versus 9/10",
+   "oracle": [
+    {
+     "key": "packets.d_UV",
+     "value": "3/20"
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "P03",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "(Defects PosteriorOnly)",
+   "status": "Checked",
+   "statement": "defects 0, 3/20, 3/20",
+   "oracle": [
+    {
+     "key": "packets.defects_posterior_only",
+     "value": [
+      "0",
+      "3/20",
+      "3/20",
+      "27/200"
+     ]
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "P04",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "(MeasureBehavioral PosteriorOnly (Discount (Rat 9 10)))",
+   "status": "Checked",
+   "statement": "discounted behavioral defect 27/200",
+   "oracle": [
+    {
+     "key": "packets.d_UV_disc_9_10",
+     "value": "27/200"
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "P05",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "(CheckBehavioral PosteriorOnly (Within (Rat 3 20)))",
+   "status": "Checked",
+   "statement": "the bound 3/20 holds",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "P06",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "(CheckBehavioral PosteriorOnly (Within (Rat 1 10)))",
+   "status": "Refuted",
+   "statement": "the bound 1/10 fails; the measurement itself succeeds",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "P07",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "Repair",
+   "status": "Checked",
+   "statement": "four singletons; ledger 3/8 to 1/4",
+   "oracle": [
+    {
+     "key": "small_fixtures.packet_ledger",
+     "value": [
+      "3/8",
+      "1/4"
+     ]
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "P08",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "TwoClass",
+   "status": "Checked",
+   "statement": "{E},{U,V,B} with weakness 5/8 at bound 3/20; optimality Checked by exhaustive search",
+   "oracle": [
+    {
+     "key": "packets.frontier.1",
+     "value": [
+      "3/20",
+      "5/8",
+      [
+       [
+        "E"
+       ],
+       [
+        "U",
+        "V",
+        "B"
+       ]
+      ]
+     ]
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "P09",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "TwoClassMachine",
+   "status": "Checked",
+   "statement": "representative Both: radius 3/20, arrow defect 3/20",
+   "oracle": [
+    {
+     "key": "packets.induced_defect_E_UVB",
+     "value": "3/20"
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "P10",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "(CheckUpdates PosteriorCodes)",
+   "status": "Refuted",
+   "statement": "merge witness (U,U) and (U,V) merge to U and B",
+   "oracle": [
+    {
+     "key": "merge.congruence_witness",
+     "value": [
+      [
+       "U",
+       "U"
+      ],
+      [
+       "U",
+       "V"
+      ],
+      "U",
+      "B"
+     ]
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "P11",
+   "fixture": "receipt_packets.metta",
+   "module": "HyperseedMemory",
+   "request": "MergeRepair",
+   "status": "Checked",
+   "statement": "with the merge as the only operation, refinement returns the four receipt sets",
+   "oracle": [
+    {
+     "key": "gauge_policy_merge.merge_only_classes",
+     "value": 4
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "P12",
+   "fixture": "receipt_packets.metta",
+   "module": "PacketMerges",
+   "request": "(CheckImplementation IndependentMerge (Grade 1 (Rat 3 20)))",
+   "status": "Checked",
+   "statement": "independent-evidence merge errs by at most 3/20",
+   "oracle": [
+    {
+     "key": "merge.worst_error",
+     "value": "3/20"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "P13",
+   "fixture": "receipt_packets.metta",
+   "module": "PacketMerges",
+   "request": "(CheckImplementation IndependentMerge (Grade 1 (Rat 1 10)))",
+   "status": "Refuted",
+   "statement": "the error 3/20 at (UOnly,UOnly) exceeds 1/10",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "S01",
+   "fixture": "seven_state.metta",
+   "module": "SevenState",
+   "request": "Bisimulation",
+   "status": "Checked",
+   "statement": "seven bisimulation classes",
+   "oracle": [
+    {
+     "key": "trace_example.bisim_classes",
+     "value": 7
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "S02",
+   "fixture": "seven_state.metta",
+   "module": "SevenState",
+   "request": "TraceClasses",
+   "status": "Checked",
+   "statement": "six trace classes; x and y merge",
+   "oracle": [
+    {
+     "key": "trace_example.trace_classes",
+     "value": 6
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "S03",
+   "fixture": "seven_state.metta",
+   "module": "SevenState",
+   "request": "Behavioral",
+   "status": "Refuted",
+   "statement": "behavioral defect 1/2 with modal witness phi(x)=1/2, phi(y)=0",
+   "oracle": [
+    {
+     "key": "seven_state.merge_xy.behavioral_defect",
+     "value": "1/2"
+    },
+    {
+     "key": "seven_state.modal_witness",
+     "value": {
+      "phi_x": "1/2",
+      "phi_y": "0"
+     }
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "S04",
+   "fixture": "seven_state.metta",
+   "module": "SevenState",
+   "request": "(MeasureBehavioral MergeXY (Discount (Rat 9 10)))",
+   "status": "Checked",
+   "statement": "d(x,y) = gamma^2/2 = 81/200",
+   "oracle": [
+    {
+     "key": "seven_state.d_xy_gamma_9_10",
+     "value": "81/200"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "S05",
+   "fixture": "seven_state.metta",
+   "module": "SevenState",
+   "request": "Trace",
+   "status": "Checked",
+   "statement": "trace laws of x and y agree",
+   "oracle": [
+    {
+     "key": "seven_state.merge_xy.trace_tv",
+     "value": "0"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "S06",
+   "fixture": "seven_state.metta",
+   "module": "SevenState",
+   "request": "Linear",
+   "status": "Checked",
+   "statement": "minimal signed linear dimension 5",
+   "oracle": [
+    {
+     "key": "seven_state_linear.signed_minimum",
+     "value": 5
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "S07",
+   "fixture": "seven_state.metta",
+   "module": "SevenState",
+   "request": "Positive",
+   "status": "Checked",
+   "statement": "positive dimension in [5,5]: lower bound from the signed minimum",
+   "oracle": [
+    {
+     "key": "seven_state_linear.positive_interval",
+     "value": [
+      5,
+      5
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "H01",
+   "fixture": "hypotheses.metta",
+   "module": "ObserverEquality",
+   "request": "(MeasureNow BlindConstant)",
+   "status": "Checked",
+   "statement": "defect 0 with Equality Observer; no literal decoder exists",
+   "oracle": [
+    {
+     "key": "counterexamples.pseudometric_zero",
+     "value": "dnow 0 without literal decoder"
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "H02",
+   "fixture": "hypotheses.metta",
+   "module": "ObserverEquality",
+   "request": "(InduceExact BlindConstant)",
+   "status": "Checked",
+   "statement": "exact up to the observer: decoders land in Y/~0",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "H03",
+   "fixture": "hypotheses.metta",
+   "module": "ObserverEquality",
+   "request": "(CheckNow SharpConstant)",
+   "status": "Refuted",
+   "statement": "a constant code on red and blue fails",
+   "oracle": [
+    {
+     "key": "counterexamples.restriction.full",
+     "value": 1
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "H04",
+   "fixture": "hypotheses.metta",
+   "module": "ObserverEquality",
+   "request": "(CheckNow SharpConstantA)",
+   "status": "Checked",
+   "statement": "on the forward-closed subset {a} the same code passes",
+   "oracle": [
+    {
+     "key": "counterexamples.restriction.singletons",
+     "value": [
+      0,
+      0
+     ]
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "H05",
+   "fixture": "hypotheses.metta",
+   "module": "Staged",
+   "request": "(CheckBehavioral Merge01 (Horizon (Steps 0)))",
+   "status": "Checked",
+   "statement": "horizon 0",
+   "oracle": [
+    {
+     "key": "counterexamples.horizon_index.correct",
+     "value": [
+      0,
+      0,
+      1,
+      1
+     ]
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "H06",
+   "fixture": "hypotheses.metta",
+   "module": "Staged",
+   "request": "(CheckBehavioral Merge01 (Horizon (Steps 1)))",
+   "status": "Checked",
+   "statement": "horizon 1: still adequate",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "H07",
+   "fixture": "hypotheses.metta",
+   "module": "Staged",
+   "request": "(CheckBehavioral Merge01 (Horizon (Steps 2)))",
+   "status": "Refuted",
+   "statement": "horizon 2 separates 0 from 1",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "H08",
+   "fixture": "hypotheses.metta",
+   "module": "Staged",
+   "request": "(InduceExact Merge01)",
+   "status": "Refuted",
+   "statement": "the block {0,1} has successors in two blocks",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "H09",
+   "fixture": "hypotheses.metta",
+   "module": "DescentConverse",
+   "request": "(CheckBehavioral Q)",
+   "status": "Checked",
+   "statement": "behavioral defect 0",
+   "oracle": [
+    {
+     "key": "small_fixtures.descent_converse",
+     "value": {
+      "behavioral": "0",
+      "update": "1"
+     }
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "H10",
+   "fixture": "hypotheses.metta",
+   "module": "DescentConverse",
+   "request": "(CheckUpdates Q)",
+   "status": "Refuted",
+   "statement": "update defect 1",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "C01",
+   "fixture": "hypotheses.metta",
+   "module": "LiteralCongruence",
+   "request": "(MeasureNow Blurred)",
+   "status": "Checked",
+   "statement": "current defect 0 under the indiscrete code tolerance",
+   "oracle": [
+    {
+     "key": "literal_congruence.now",
+     "value": "0"
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "C02",
+   "fixture": "hypotheses.metta",
+   "module": "LiteralCongruence",
+   "request": "(CheckUpdates Blurred)",
+   "status": "Checked",
+   "statement": "the graded update check passes: defect 0, because the code tolerance identifies every pair of codes",
+   "oracle": [
+    {
+     "key": "literal_congruence.updates",
+     "value": "0"
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "C03",
+   "fixture": "hypotheses.metta",
+   "module": "LiteralCongruence",
+   "request": "(InduceExact Blurred)",
+   "status": "Refuted",
+   "statement": "literal congruence fails: congruence witness (0,1), same code 0, action hop, successor codes 0 and 1",
+   "oracle": [
+    {
+     "key": "literal_congruence.witness",
+     "value": [
+      0,
+      1,
+      "hop",
+      0,
+      1
+     ]
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "H11",
+   "fixture": "hypotheses.metta",
+   "module": "ChainBound",
+   "request": "(CheckBehavioral Join01)",
+   "status": "Refuted",
+   "statement": "shortest witness has length n-2 = 4",
+   "oracle": [
+    {
+     "key": "small_fixtures.chain_six_witness_length",
+     "value": 4
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "H12",
+   "fixture": "hypotheses.metta",
+   "module": "Surjectivity",
+   "request": "(CheckAbstractionMap Embed)",
+   "status": "Checked",
+   "statement": "Kind Homomorphism: zero defect, not surjective",
+   "oracle": [
+    {
+     "key": "counterexamples.non_surjective_homomorphism",
+     "value": true
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "H13",
+   "fixture": "hypotheses.metta",
+   "module": "SimulationScope",
+   "request": "(CheckSimulation Empty)",
+   "status": "Checked",
+   "statement": "the empty relation is a simulation",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "H14",
+   "fixture": "hypotheses.metta",
+   "module": "SimulationScope",
+   "request": "(CheckSafety Abstract (Never (Shows flag Bad)) (Via Empty) (Init c0))",
+   "status": "Unknown",
+   "statement": "initial coverage fails; the empty simulation proves nothing",
+   "oracle": [
+    {
+     "key": "counterexamples.empty_simulation",
+     "value": "vacuous"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "O01",
+   "fixture": "certificate_limits.metta",
+   "module": "AdaptiveProbe",
+   "request": "(MeasureTrace MergeX (Horizon (Steps 2)))",
+   "status": "Checked",
+   "statement": "over fixed words of length two the trace defect of {x,x2} is 1/2",
+   "oracle": [
+    {
+     "key": "adaptive_policy.words_tv",
+     "value": "1/2"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "O02",
+   "fixture": "certificate_limits.metta",
+   "module": "AdaptiveProbe",
+   "request": "(CheckTrace MergeX (Horizon (Steps 2)) (Within (Rat 3 4)))",
+   "status": "Checked",
+   "statement": "the bound 3/4 holds over fixed words",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "O03",
+   "fixture": "certificate_limits.metta",
+   "module": "AdaptiveProbe",
+   "request": "(CheckTrace MergeX (Horizon (Steps 2)) (Policies ObservationBased) (Within (Rat 3 4)))",
+   "status": "Refuted",
+   "statement": "policy-tree witness: a, then b after report 1 and c after report 2; event last report 3; probabilities 1 and 0",
+   "oracle": [
+    {
+     "key": "adaptive_policy.witness.left",
+     "value": "1"
+    },
+    {
+     "key": "adaptive_policy.witness.right",
+     "value": "0"
+    },
+    {
+     "key": "adaptive_policy.bound_3_4.ObservationBased",
+     "value": "Refuted"
+    }
+   ],
+   "release1": "Unsupported",
+   "until": {
+    "capability": "PolicyTreeWitness",
+    "statuses": [
+     "Unsupported",
+     "Unknown"
+    ]
+   }
+  },
+  {
+   "id": "O04",
+   "fixture": "certificate_limits.metta",
+   "module": "AdaptiveProbe",
+   "request": "(MeasureTrace MergeX (Horizon (Steps 2)) (Policies ObservationBased))",
+   "status": "Checked",
+   "statement": "over observation-based policies the trace defect is 1",
+   "oracle": [
+    {
+     "key": "adaptive_policy.policies_tv",
+     "value": "1"
+    }
+   ],
+   "release1": "Unsupported",
+   "until": {
+    "capability": "PolicyTreeWitness",
+    "statuses": [
+     "Unsupported",
+     "Unknown"
+    ]
+   }
+  },
+  {
+   "id": "U01",
+   "fixture": "certificate_limits.metta",
+   "module": "UnattainedSupremum",
+   "request": "(MeasureBehavioral JoinXY)",
+   "status": "Unknown",
+   "statement": "d(x,y) = 1 is the supremum of the horizon distances 1-2^-h, attained by no finite test; at Precision 0 the interval does not close",
+   "oracle": [
+    {
+     "key": "unattained.undiscounted.limit",
+     "value": "1"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "U02",
+   "fixture": "certificate_limits.metta",
+   "module": "UnattainedSupremum",
+   "request": "(MeasureBehavioral JoinXY (Horizon (Steps 3)))",
+   "status": "Checked",
+   "statement": "horizon 3: 7/8, from a depth-3 test and a layered prefixpoint",
+   "oracle": [
+    {
+     "key": "unattained.undiscounted.horizon_3",
+     "value": "7/8"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "U03",
+   "fixture": "certificate_limits.metta",
+   "module": "UnattainedSupremum",
+   "request": "(CheckBehavioral JoinXY (Within (Rat 99 100)))",
+   "status": "Refuted",
+   "statement": "a test of depth 7 separates x from y by 127/128",
+   "oracle": [
+    {
+     "key": "unattained.undiscounted.within_99_100",
+     "value": [
+      7,
+      "127/128"
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "U04",
+   "fixture": "certificate_limits.metta",
+   "module": "UnattainedSupremum",
+   "request": "(MeasureBehavioral JoinXY (Discount (Rat 1 2)))",
+   "status": "Checked",
+   "statement": "1/3 from a coupling prefixpoint and a dual post-fixpoint; every test gives (1-4^-h)/3",
+   "oracle": [
+    {
+     "key": "unattained.discount_1_2.limit",
+     "value": "1/3"
+    }
+   ],
+   "release1": "Unsupported",
+   "until": {
+    "capability": "DualPostfixpoint",
+    "statuses": [
+     "Unknown"
+    ]
+   }
+  },
+  {
+   "id": "L01",
+   "fixture": "linear_composition.metta",
+   "module": "LinearComposition",
+   "request": "LChecked",
+   "status": "Checked",
+   "statement": "grade (Lambda 3, Rho 0)",
+   "oracle": [
+    {
+     "key": "linear_composition.lambda_L",
+     "value": "3"
+    },
+    {
+     "key": "linear_composition.rho_L",
+     "value": "0"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "L02",
+   "fixture": "linear_composition.metta",
+   "module": "LinearComposition",
+   "request": "KChecked",
+   "status": "Checked",
+   "statement": "grade (Lambda 1, Rho 1/5)",
+   "oracle": [
+    {
+     "key": "linear_composition.rho_K",
+     "value": "1/5"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "L03",
+   "fixture": "linear_composition.metta",
+   "module": "LinearComposition",
+   "request": "LK",
+   "status": "Checked",
+   "statement": "composite grade (3, 3/5), attained; plain addition would give 1/5",
+   "oracle": [
+    {
+     "key": "linear_composition.rho_LK",
+     "value": "3/5"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "G01",
+   "fixture": "graded_closure.metta",
+   "module": "GradedClosure",
+   "request": "Increase",
+   "status": "Checked",
+   "statement": "brackets 34/45 and 41/45, increase 7/45",
+   "oracle": [
+    {
+     "key": "closure.before",
+     "value": "34/45"
+    },
+    {
+     "key": "closure.after",
+     "value": "41/45"
+    },
+    {
+     "key": "closure.increase",
+     "value": "7/45"
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "G02",
+   "fixture": "graded_closure.metta",
+   "module": "GradedClosure",
+   "request": "(CheckTransitive (Output Thresholded Relation) (Algebra Boolean))",
+   "status": "Refuted",
+   "statement": "the 9/10 threshold is not transitive",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "G03",
+   "fixture": "graded_closure.metta",
+   "module": "GradedClosure",
+   "request": "(CheckTransitive (Output Closed Kernel))",
+   "status": "Checked",
+   "statement": "the closed kernel is metric; raised entry 4/5",
+   "oracle": [
+    {
+     "key": "closure.closed_AC",
+     "value": "4/5"
+    }
+   ],
+   "release1": "Supported"
+  },
+  {
+   "id": "G04",
+   "fixture": "graded_closure.metta",
+   "module": "GradedClosure",
+   "request": "(CheckTransitive Alpha)",
+   "status": "Refuted",
+   "statement": "the original kernel is not metric",
+   "oracle": [],
+   "release1": "Supported"
+  },
+  {
+   "id": "A01",
+   "fixture": "affine_contracts.metta",
+   "module": "AffineContracts",
+   "request": "Composite",
+   "status": "Checked",
+   "statement": "composite grade (6, 1/2)",
+   "oracle": [
+    {
+     "key": "affine.composite",
+     "value": [
+      "6",
+      "1/2"
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "A02",
+   "fixture": "affine_contracts.metta",
+   "module": "AffineContracts",
+   "request": "(CheckImplementation Direct (Grade 6 (Rat 1 2)))",
+   "status": "Checked",
+   "statement": "the composite grade holds directly",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "A03",
+   "fixture": "affine_contracts.metta",
+   "module": "AffineContracts",
+   "request": "(CheckImplementation Direct (Grade 6 (Rat 3 10)))",
+   "status": "Refuted",
+   "statement": "unamplified sum fails at input 0",
+   "oracle": [
+    {
+     "key": "affine.refuted",
+     "value": [
+      "6",
+      "3/10"
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "N01",
+   "fixture": "neural_audit.metta",
+   "module": "NeuralAudit",
+   "request": "(CheckNow SymbolicOld)",
+   "status": "Checked",
+   "statement": "the old report keeps the task",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "N02",
+   "fixture": "neural_audit.metta",
+   "module": "NeuralAudit",
+   "request": "(CheckNow SymbolicNew)",
+   "status": "Refuted",
+   "statement": "pair (0,0),(0,1) shares report 0 and differs in answer",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "N03",
+   "fixture": "neural_audit.metta",
+   "module": "NeuralAudit",
+   "request": "(CompareDistinctions SymbolicOld SymbolicNew (Under II))",
+   "status": "Checked",
+   "statement": "masses 1/2, creation 1/4, erasure 1/4, turnover 1/2",
+   "oracle": [
+    {
+     "key": "neural.masses",
+     "value": "1/2"
+    },
+    {
+     "key": "neural.creation",
+     "value": "1/4"
+    },
+    {
+     "key": "neural.erasure",
+     "value": "1/4"
+    },
+    {
+     "key": "neural.turnover",
+     "value": "1/2"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "N04",
+   "fixture": "neural_audit.metta",
+   "module": "NeuralAudit",
+   "request": "(AuditIntervention (Systems OldSystem NewSystem) (Intervention (SetReport 0)) (Task xor) (Under Inputs) (Metric Accuracy))",
+   "status": "Checked",
+   "statement": "accuracy after SetReport 0: old 1/2, new 1",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "N05",
+   "fixture": "neural_audit.metta",
+   "module": "NeuralAudit",
+   "request": "(Refine SymbolicNew (Preserve Encoding))",
+   "status": "Checked",
+   "statement": "four singleton classes",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "N06",
+   "fixture": "neural_audit.metta",
+   "module": "NeuralAudit",
+   "request": "(MinimizeForQueries Task)",
+   "status": "Checked",
+   "statement": "two XOR classes",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "V01",
+   "fixture": "evolution_archive.metta",
+   "module": "EvolutionArchive",
+   "request": "(CheckUpdates FitnessOnly)",
+   "status": "Refuted",
+   "statement": "update witness: (G00,G01), mutate, class score = 1, masses 0 and 1/2",
+   "oracle": [
+    {
+     "key": "small_fixtures.evolution_witness",
+     "value": [
+      "G00",
+      "G01",
+      "mutate",
+      "score=1",
+      "0",
+      "1/2"
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "V02",
+   "fixture": "evolution_archive.metta",
+   "module": "EvolutionArchive",
+   "request": "Repaired",
+   "status": "Checked",
+   "statement": "three blocks {G00},{G01,G10},{G11}",
+   "oracle": [
+    {
+     "key": "evolution.quotient",
+     "value": [
+      [
+       "G00"
+      ],
+      [
+       "G01",
+       "G10"
+      ],
+      [
+       "G11"
+      ]
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "V03",
+   "fixture": "evolution_archive.metta",
+   "module": "EvolutionArchive",
+   "request": "ControlledClasses",
+   "status": "Checked",
+   "statement": "labelled flips need four classes",
+   "oracle": [
+    {
+     "key": "evolution.controllable_classes",
+     "value": 4
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "V04",
+   "fixture": "evolution_archive.metta",
+   "module": "EvolutionArchive",
+   "request": "Discovery",
+   "status": "Checked",
+   "statement": "five proposals in expectation",
+   "oracle": [
+    {
+     "key": "evolution.discovery",
+     "value": "5"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K01",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "(CheckTransfer BadCA)",
+   "status": "Refuted",
+   "statement": "reward-law defect 1",
+   "oracle": [
+    {
+     "key": "transfer.bad",
+     "value": 1
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K02",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "(CheckValuePullback BadCA)",
+   "status": "Checked",
+   "statement": "optimal value is preserved; not a transfer certificate",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K03",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "GoodCAchecked",
+   "status": "Checked",
+   "statement": "defect 0",
+   "oracle": [
+    {
+     "key": "transfer.good",
+     "value": 0
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K04",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "RoundTrip",
+   "status": "Checked",
+   "statement": "the round trip flips state and method",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K05",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "(CheckTransferHive Beacons)",
+   "status": "Checked",
+   "statement": "gauges intertwined by the transfers; holonomy (flip, flip) lies in the gauge",
+   "oracle": [
+    {
+     "key": "beacon_hives.holonomy",
+     "value": "(flip, flip)"
+    },
+    {
+     "key": "beacon_hives.transfer_hive",
+     "value": "coherent up to declared gauge"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K06",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "(CheckTransferHive BeaconsStrict)",
+   "status": "Refuted",
+   "statement": "without a declared gauge the holonomy is a witness",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K07",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "(CheckKernelCoherence (Output Derived Hive))",
+   "status": "Refuted",
+   "statement": "the unsaturated derived kernel hive is the parity triangle",
+   "oracle": [
+    {
+     "key": "beacon_hives.kernel_hive_unsaturated",
+     "value": "incoherent"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K08",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "(ConsensusCost (Output Derived Hive))",
+   "status": "Checked",
+   "statement": "closure consensus cost 1/2",
+   "oracle": [
+    {
+     "key": "beacon_hives.kernel_hive_closure_cost",
+     "value": "1/2"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K09",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHive",
+   "request": "(CheckKernelCoherence (Output Saturated Hive))",
+   "status": "Checked",
+   "statement": "saturated by the gauge, the kernel hive is coherent",
+   "oracle": [
+    {
+     "key": "beacon_hives.kernel_hive_saturated",
+     "value": "coherent"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K10",
+   "fixture": "skill_hive.metta",
+   "module": "SkillHiveOriented",
+   "request": "(CheckTransfer GoodCA2)",
+   "status": "Refuted",
+   "statement": "an orientation observer breaks the symmetry",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K11",
+   "fixture": "skill_hive.metta",
+   "module": "TickLibrary",
+   "request": "(CheckTransfer Translate)",
+   "status": "Checked",
+   "statement": "transfer defect 0",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K12",
+   "fixture": "skill_hive.metta",
+   "module": "TickLibrary",
+   "request": "(LibraryGap Translate)",
+   "status": "Checked",
+   "statement": "library gap 1/4",
+   "oracle": [
+    {
+     "key": "transfer.tick_gap",
+     "value": "1/4"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K13",
+   "fixture": "skill_hive.metta",
+   "module": "TickLibrary",
+   "request": "(CheckTransfer Copy (Metric ExpectedReward))",
+   "status": "Refuted",
+   "statement": "expected-reward discrepancy 3/4",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "K14",
+   "fixture": "skill_hive.metta",
+   "module": "TickLibrary",
+   "request": "(CheckTransfer Copy)",
+   "status": "Refuted",
+   "statement": "reward-law total variation 1",
+   "oracle": [
+    {
+     "key": "small_fixtures.tick_copy_tv",
+     "value": "1"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "T01",
+   "fixture": "parity_triangle.metta",
+   "module": "ParityTriangle",
+   "request": "(CheckKernelCoherence Triangle)",
+   "status": "Refuted",
+   "statement": "holonomy from M1 is the swap",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "T02",
+   "fixture": "parity_triangle.metta",
+   "module": "ParityTriangle",
+   "request": "(Holonomy Triangle (Cycle M1 M2 M3))",
+   "status": "Checked",
+   "statement": "the swap kernel",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "T03",
+   "fixture": "parity_triangle.metta",
+   "module": "ParityTriangle",
+   "request": "(ConsensusCost Triangle)",
+   "status": "Checked",
+   "statement": "closure cost 1/2",
+   "oracle": [
+    {
+     "key": "hive.closure_cost",
+     "value": "1/2"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "T04",
+   "fixture": "parity_triangle.metta",
+   "module": "ParityTriangle",
+   "request": "(LeastCoherentRefinement Triangle)",
+   "status": "Checked",
+   "statement": "least coherent refinement costs 1/6",
+   "oracle": [
+    {
+     "key": "hive.least_refinement_cost",
+     "value": "1/6"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "R01",
+   "fixture": "regime_repair.metta",
+   "module": "RegimeRepair",
+   "request": "(CheckEqual (AverageModel Old (Under Fair)) (AverageModel New (Under Fair)))",
+   "status": "Checked",
+   "statement": "equal averaged reward laws",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "R02",
+   "fixture": "regime_repair.metta",
+   "module": "RegimeRepair",
+   "request": "(AverageModel New (Under Skewed))",
+   "status": "Checked",
+   "statement": "with prior 3/4 the new averages are 3/4 and 1/4",
+   "oracle": [
+    {
+     "key": "small_fixtures.regime_skewed",
+     "value": [
+      "3/4",
+      "1/4"
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "R03",
+   "fixture": "regime_repair.metta",
+   "module": "RegimeRepair",
+   "request": "(InduceExact Coarse)",
+   "status": "Refuted",
+   "statement": "current adequacy fails: the reward-law query separates Plus from Minus",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "R04",
+   "fixture": "regime_repair.metta",
+   "module": "RegimeRepair",
+   "request": "(OptimizePolicy New (Through Coarse) (Under Fair))",
+   "status": "Checked",
+   "statement": "coarse optimum 1/2",
+   "oracle": [
+    {
+     "key": "transfer.regime.0",
+     "value": "1/2"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "R05",
+   "fixture": "regime_repair.metta",
+   "module": "RegimeRepair",
+   "request": "(OptimizePolicy New (Under Fair))",
+   "status": "Checked",
+   "statement": "refined optimum 1",
+   "oracle": [
+    {
+     "key": "transfer.regime.1",
+     "value": "1"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "R06",
+   "fixture": "regime_repair.metta",
+   "module": "RegimeRepair",
+   "request": "(EvaluatePolicy New (With Sensor) (Under Fair))",
+   "status": "Checked",
+   "statement": "net value with the sensor 17/20",
+   "oracle": [
+    {
+     "key": "transfer.regime.2",
+     "value": "17/20"
+    },
+    {
+     "key": "transfer.regime.3",
+     "value": "7/20"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "X01",
+   "fixture": "arithmetic_probes.metta",
+   "module": "ArithmeticProbes",
+   "request": "(MinimizeForQueries Structures)",
+   "status": "Checked",
+   "statement": "the Jordan summary merges the two candidates",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "X02",
+   "fixture": "arithmetic_probes.metta",
+   "module": "ArithmeticProbes",
+   "request": "Separation",
+   "status": "Checked",
+   "statement": "first separator b = 1 with ranks 0 and 1",
+   "oracle": [
+    {
+     "key": "arithmetic.ranks.1",
+     "value": [
+      0,
+      1
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "X03",
+   "fixture": "arithmetic_probes.metta",
+   "module": "ArithmeticProbes",
+   "request": "(CheckNow JordanOnly)",
+   "status": "Refuted",
+   "statement": "on the enriched interface the Jordan encoding fails",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "X04",
+   "fixture": "arithmetic_probes.metta",
+   "module": "ArithmeticProbes",
+   "request": "Decided",
+   "status": "Refuted",
+   "statement": "dim End(K_A) = 6 and dim Hom(K_A,K_B) = 5",
+   "oracle": [
+    {
+     "key": "arithmetic.hom_dims",
+     "value": [
+      6,
+      5,
+      6
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "Y01",
+   "fixture": "access_protocol.metta",
+   "module": "AccessProtocol",
+   "request": "(InduceExact StageQuotient)",
+   "status": "Refuted",
+   "statement": "S0 and S2 share Start but fail leads to Start and Locked",
+   "oracle": [
+    {
+     "key": "security.exact_refuted",
+     "value": [
+      "S0",
+      "S2",
+      "fail",
+      "Start",
+      "Locked"
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "Y02",
+   "fixture": "access_protocol.metta",
+   "module": "AccessProtocol",
+   "request": "(CheckSimulation StageSim)",
+   "status": "Checked",
+   "statement": "the stage map is a simulation",
+   "oracle": [
+    {
+     "key": "security.simulation",
+     "value": true
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "Y03",
+   "fixture": "access_protocol.metta",
+   "module": "AccessProtocol",
+   "request": "Safe",
+   "status": "Checked",
+   "statement": "Admin is entered only from Auth",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "Y04",
+   "fixture": "access_protocol.metta",
+   "module": "AccessProtocol",
+   "request": "Lockout",
+   "status": "Unknown",
+   "statement": "abstract counterexample Start -> Locked is spurious; refinement splits Start",
+   "oracle": [
+    {
+     "key": "small_fixtures.lockout_concrete_steps",
+     "value": 3
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "D01",
+   "fixture": "reads.metta",
+   "module": "Reads",
+   "request": "(Outcomes Shared (From Start) (After (Do read)) (Observe agree))",
+   "status": "Checked",
+   "statement": "outcomes {Agree}",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "D02",
+   "fixture": "reads.metta",
+   "module": "Reads",
+   "request": "(Outcomes Fresh (From Start) (After (Do read)) (Observe agree))",
+   "status": "Checked",
+   "statement": "outcomes {Agree, Differ}",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "D03",
+   "fixture": "reads.metta",
+   "module": "Reads",
+   "request": "(OutcomeProbability Shared (From Start) (After (Do read)) (Event (Shows agree Agree)) (Scheduler Fair))",
+   "status": "Checked",
+   "statement": "agreement probability 1",
+   "oracle": [
+    {
+     "key": "reads.agree_shared",
+     "value": "1"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "D04",
+   "fixture": "reads.metta",
+   "module": "Reads",
+   "request": "(OutcomeProbability Fresh (From Start) (After (Do read)) (Event (Shows agree Agree)) (Scheduler Fair))",
+   "status": "Checked",
+   "statement": "agreement probability 1/2",
+   "oracle": [
+    {
+     "key": "reads.agree_fresh",
+     "value": "1/2"
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "W01",
+   "fixture": "availability.metta",
+   "module": "Availability",
+   "request": "(CheckNow DefaultZero)",
+   "status": "Refuted",
+   "statement": "Absent and Neither merge",
+   "oracle": [
+    {
+     "key": "small_fixtures.availability.default_zero",
+     "value": [
+      [
+       "Absent",
+       "Neither"
+      ]
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "W02",
+   "fixture": "availability.metta",
+   "module": "Availability",
+   "request": "(CheckNow Bias)",
+   "status": "Refuted",
+   "statement": "bias also merges Neither and Both",
+   "oracle": [
+    {
+     "key": "small_fixtures.availability.bias",
+     "value": [
+      [
+       "Absent",
+       "Both"
+      ],
+      [
+       "Absent",
+       "Neither"
+      ],
+      [
+       "Both",
+       "Neither"
+      ]
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "Q01",
+   "fixture": "patterns.metta",
+   "module": "Patterns",
+   "request": "(FindCheapestDescription Streams (Target (Tokens A B A B A B)))",
+   "status": "Checked",
+   "statement": "RepeatAB at cost 4 against 6",
+   "oracle": [
+    {
+     "key": "small_fixtures.pattern_costs",
+     "value": [
+      6,
+      4
+     ]
+    }
+   ],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "Q02",
+   "fixture": "patterns.metta",
+   "module": "Patterns",
+   "request": "(CheckPatternWitness Periodic)",
+   "status": "Checked",
+   "statement": "decodes to the target and beats the baseline",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "Z01",
+   "fixture": "snapshot_receipts.metta",
+   "module": "SnapshotReceipts",
+   "request": "(CheckNow BySource)",
+   "status": "Checked",
+   "statement": "holds for any snapshot content, since the code is the query; tests admission of a keyed snapshot carrier and map",
+   "oracle": [],
+   "release1": "Unsupported"
+  },
+  {
+   "id": "M01",
+   "fixture": "hyperseed_methods.metta",
+   "module": "HyperseedMethods",
+   "request": "Repaired",
+   "status": "Checked",
+   "statement": "the method returns an ExactAbstraction of the four-singleton repair",
+   "oracle": [],
+   "release1": "Unsupported"
+  }
+ ]
+}

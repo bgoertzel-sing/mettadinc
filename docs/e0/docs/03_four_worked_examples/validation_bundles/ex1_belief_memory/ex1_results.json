@@ -1,0 +1,1614 @@
+{
+ "module: the observations, actions and encodings of belief_memory.metta equal the model on all 256 states (both decay rules, both interfaces)": [
+  [
+   true,
+   true
+  ],
+  true
+ ],
+ "source": {
+  "file": "belief_memory.metta",
+  "digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d"
+ },
+ "floor-halve: rounds to the undiscounted / discounted fixpoint": [
+  15,
+  12
+ ],
+ "gentle: rounds to the undiscounted / discounted fixpoint": [
+  23,
+  12
+ ],
+ "floor-halve: decision refinement classes by round": [
+  3,
+  17,
+  68,
+  144,
+  206,
+  220,
+  225
+ ],
+ "floor-halve: weakness of the decision quotient": "81/16384",
+ "gentle: decision refinement classes by round": [
+  3,
+  15,
+  56,
+  126,
+  198,
+  240,
+  256
+ ],
+ "gentle: weakness of the decision quotient": "1/256",
+ "floor-halve: the only exact merges are the saturation pairs": [
+  [
+   [
+    0,
+    14
+   ],
+   [
+    0,
+    15
+   ]
+  ],
+  [
+   [
+    1,
+    14
+   ],
+   [
+    1,
+    15
+   ]
+  ],
+  [
+   [
+    2,
+    14
+   ],
+   [
+    2,
+    15
+   ]
+  ],
+  [
+   [
+    3,
+    14
+   ],
+   [
+    3,
+    15
+   ]
+  ],
+  [
+   [
+    4,
+    14
+   ],
+   [
+    4,
+    15
+   ]
+  ],
+  [
+   [
+    5,
+    14
+   ],
+   [
+    5,
+    15
+   ]
+  ],
+  [
+   [
+    6,
+    14
+   ],
+   [
+    6,
+    15
+   ]
+  ],
+  [
+   [
+    7,
+    14
+   ],
+   [
+    7,
+    15
+   ]
+  ],
+  [
+   [
+    8,
+    14
+   ],
+   [
+    8,
+    15
+   ]
+  ],
+  [
+   [
+    9,
+    14
+   ],
+   [
+    9,
+    15
+   ]
+  ],
+  [
+   [
+    10,
+    14
+   ],
+   [
+    10,
+    15
+   ]
+  ],
+  [
+   [
+    11,
+    14
+   ],
+   [
+    11,
+    15
+   ]
+  ],
+  [
+   [
+    12,
+    14
+   ],
+   [
+    12,
+    15
+   ]
+  ],
+  [
+   [
+    13,
+    14
+   ],
+   [
+    13,
+    15
+   ]
+  ],
+  [
+   [
+    14,
+    0
+   ],
+   [
+    15,
+    0
+   ]
+  ],
+  [
+   [
+    14,
+    1
+   ],
+   [
+    15,
+    1
+   ]
+  ],
+  [
+   [
+    14,
+    2
+   ],
+   [
+    15,
+    2
+   ]
+  ],
+  [
+   [
+    14,
+    3
+   ],
+   [
+    15,
+    3
+   ]
+  ],
+  [
+   [
+    14,
+    4
+   ],
+   [
+    15,
+    4
+   ]
+  ],
+  [
+   [
+    14,
+    5
+   ],
+   [
+    15,
+    5
+   ]
+  ],
+  [
+   [
+    14,
+    6
+   ],
+   [
+    15,
+    6
+   ]
+  ],
+  [
+   [
+    14,
+    7
+   ],
+   [
+    15,
+    7
+   ]
+  ],
+  [
+   [
+    14,
+    8
+   ],
+   [
+    15,
+    8
+   ]
+  ],
+  [
+   [
+    14,
+    9
+   ],
+   [
+    15,
+    9
+   ]
+  ],
+  [
+   [
+    14,
+    10
+   ],
+   [
+    15,
+    10
+   ]
+  ],
+  [
+   [
+    14,
+    11
+   ],
+   [
+    15,
+    11
+   ]
+  ],
+  [
+   [
+    14,
+    12
+   ],
+   [
+    15,
+    12
+   ]
+  ],
+  [
+   [
+    14,
+    13
+   ],
+   [
+    15,
+    13
+   ]
+  ],
+  [
+   [
+    14,
+    14
+   ],
+   [
+    14,
+    15
+   ],
+   [
+    15,
+    14
+   ],
+   [
+    15,
+    15
+   ]
+  ]
+ ],
+ "floor-halve: refinement ledger (weakness by round)": [
+  "11931/32768",
+  "7525/32768",
+  "3953/32768",
+  "59/2048",
+  "143/16384",
+  "11/2048",
+  "81/16384"
+ ],
+ "StatusOnly: update witness": [
+  [
+   0,
+   0
+  ],
+  [
+   0,
+   3
+  ],
+  "pos",
+  "Uncertain",
+  "Disbelieved"
+ ],
+ "StatusOnly: behavioral witness at horizon 1": [
+  [
+   [
+    0,
+    0
+   ],
+   [
+    0,
+    3
+   ]
+  ],
+  [
+   "pos"
+  ]
+ ],
+ "staged partition P_1: update witness (InduceExact refuted)": [
+  [
+   0,
+   0
+  ],
+  [
+   0,
+   2
+  ],
+  "pos"
+ ],
+ "staged partition P_2: update witness (InduceExact refuted)": [
+  [
+   0,
+   0
+  ],
+  [
+   0,
+   1
+  ],
+  "pos"
+ ],
+ "staged partition P_3: update witness (InduceExact refuted)": [
+  [
+   0,
+   0
+  ],
+  [
+   6,
+   6
+  ],
+  "pos"
+ ],
+ "floor-halve: RoundedTV20 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  113,
+  "5/104",
+  [
+   "5/104",
+   "1/10",
+   "1/4",
+   "1/2",
+   "1/2",
+   "1/2",
+   "1",
+   "1",
+   "1"
+  ],
+  "1",
+  "531441/1000000"
+ ],
+ "floor-halve: RoundedTV20 update defect with crisp codes": 1,
+ "floor-halve: RoundedTV10 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  53,
+  "33/340",
+  [
+   "33/340",
+   "1/5",
+   "1/2",
+   "1",
+   "1",
+   "1",
+   "1",
+   "1",
+   "1"
+  ],
+  "1",
+  "729/1000"
+ ],
+ "floor-halve: RoundedTV10 update defect with crisp codes": 1,
+ "floor-halve: Buckets7 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  49,
+  "1/5",
+  [
+   "1/5",
+   "1/5",
+   "1/3",
+   "1",
+   "1",
+   "1",
+   "1",
+   "1",
+   "1"
+  ],
+  "1",
+  "729/1000"
+ ],
+ "floor-halve: Buckets7 update defect with crisp codes": 1,
+ "floor-halve: Capped7 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  64,
+  "4/11",
+  [
+   "4/11",
+   "2/5",
+   "1/2",
+   "1",
+   "1",
+   "1",
+   "1",
+   "1",
+   "1"
+  ],
+  "1",
+  "729/1000"
+ ],
+ "floor-halve: Capped7 update defect with crisp codes": 1,
+ "gentle: RoundedTV20 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  113,
+  "5/104",
+  [
+   "5/104",
+   "3/22",
+   "1/7",
+   "3/20",
+   "3/20",
+   "1/5",
+   "1/5",
+   "1/5",
+   "1/5"
+  ],
+  "1/5",
+  "27/220"
+ ],
+ "gentle: RoundedTV20 update defect with crisp codes": 1,
+ "gentle: RoundedTV10 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  53,
+  "33/340",
+  [
+   "33/340",
+   "3/20",
+   "1/5",
+   "1/5",
+   "1/5",
+   "1/5",
+   "1/5",
+   "7/30",
+   "7/30"
+  ],
+  "7/30",
+  "81/500"
+ ],
+ "gentle: RoundedTV10 update defect with crisp codes": 1,
+ "gentle: Buckets7 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  49,
+  "1/5",
+  [
+   "1/5",
+   "1/4",
+   "1/4",
+   "1/4",
+   "1/4",
+   "1/4",
+   "1/4",
+   "1/4",
+   "1/4"
+  ],
+  "1/4",
+  "9/40"
+ ],
+ "gentle: Buckets7 update defect with crisp codes": 1,
+ "gentle: Capped7 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  64,
+  "4/11",
+  [
+   "4/11",
+   "4/11",
+   "4/11",
+   "4/11",
+   "4/11",
+   "4/11",
+   "4/11",
+   "4/11",
+   "4/11"
+  ],
+  "4/11",
+  "4/11"
+ ],
+ "gentle: Capped7 update defect with crisp codes": 1,
+ "gentle: Grid10x7 codes, now, horizons 0-8, undiscounted, discounted 9/10": [
+  43,
+  null,
+  null,
+  "1/5",
+  null
+ ],
+ "gentle: Grid10x7 update defect with crisp codes": 1,
+ "RoundedTV20: update witness": [
+  [
+   0,
+   7
+  ],
+  [
+   0,
+   8
+  ],
+  "pos",
+  [
+   3,
+   13
+  ],
+  [
+   2,
+   14
+  ]
+ ],
+ "floor-halve: RoundedTV20 within 1/5 refuted, canonical witness": [
+  [
+   [
+    3,
+    11
+   ],
+   [
+    4,
+    14
+   ]
+  ],
+  [
+   "decay",
+   "decay"
+  ],
+  [
+   0,
+   2
+  ],
+  [
+   1,
+   3
+  ]
+ ],
+ "floor-halve: RoundedTV20 within 1/2 refuted, canonical witness": [
+  [
+   [
+    11,
+    12
+   ],
+   [
+    12,
+    11
+   ]
+  ],
+  [
+   "decay",
+   "decay",
+   "pos",
+   "neg",
+   "decay",
+   "decay"
+  ],
+  [
+   0,
+   1
+  ],
+  [
+   1,
+   0
+  ]
+ ],
+ "gentle: RoundedTV20 within 1/5 checked": null,
+ "gentle: RoundedTV20 within 3/20 refuted, canonical witness": [
+  [
+   [
+    4,
+    10
+   ],
+   [
+    5,
+    11
+   ]
+  ],
+  [
+   "decay",
+   "decay",
+   "pos",
+   "pos",
+   "decay"
+  ],
+  [
+   2,
+   3
+  ],
+  [
+   4,
+   3
+  ]
+ ],
+ "floor-halve: pairs <= 1/29, <= 2/5 (resp. 1/5), <= 1/2, = 1; least distance": [
+  34,
+  34,
+  10788,
+  14161,
+  "1/58"
+ ],
+ "gentle: pairs <= 1/29, <= 2/5 (resp. 1/5), <= 1/2, = 1; least distance": [
+  0,
+  7561,
+  25983,
+  225,
+  "6/35"
+ ],
+ "gentle: (14,14) and (15,15) are 6/35 apart": "6/35",
+ "decay rule floor-halve: RoundedTV20 defect, decision classes, least distance": [
+  "1",
+  225,
+  "1/58"
+ ],
+ "decay rule ceil-halve: RoundedTV20 defect, decision classes, least distance": [
+  "1/3",
+  256,
+  "1/6"
+ ],
+ "decay rule floor-halve-if-t>=8: RoundedTV20 defect, decision classes, least distance": [
+  "4/15",
+  225,
+  "1/58"
+ ],
+ "decay rule gentle: RoundedTV20 defect, decision classes, least distance": [
+  "1/5",
+  256,
+  "6/35"
+ ],
+ "decay rule minus-one: RoundedTV20 defect, decision classes, least distance": [
+  "1",
+  256,
+  "1/2"
+ ],
+ "floor-halve: frontier at 1/5, codes objective (clique bound, minimum)": [
+  225,
+  225
+ ],
+ "floor-halve: frontier at 2/5, codes objective (clique bound, minimum)": [
+  225,
+  225
+ ],
+ "floor-halve: frontier at 1/2, codes objective (clique bound, minimum)": [
+  17,
+  17
+ ],
+ "gentle: frontier at 6/35, codes objective (clique bound, minimum)": [
+  32,
+  33
+ ],
+ "gentle: frontier at 1/5, codes objective (clique bound, minimum)": [
+  20,
+  21
+ ],
+ "gentle: frontier at 1/4, codes objective (clique bound, minimum)": [
+  18,
+  19
+ ],
+ "gentle: frontier at 3/10, codes objective (clique bound, minimum)": [
+  12,
+  12
+ ],
+ "gentle: frontier at 1/3, codes objective (clique bound, minimum)": [
+  8,
+  8
+ ],
+ "gentle: frontier at 2/5, codes objective (clique bound, minimum)": [
+  6,
+  6
+ ],
+ "gentle: frontier at 1/2, codes objective (clique bound, minimum)": [
+  4,
+  5
+ ],
+ "floor-halve: the 34 pairs within 1/29: 33 at distance 1/58, and ((14,15),(15,14)) at 1/29": [
+  34,
+  33,
+  [
+   [
+    [
+     14,
+     15
+    ],
+    [
+     15,
+     14
+    ]
+   ]
+  ]
+ ],
+ "floor-halve: frontier below 1/58, at 1/58, between 1/58 and 1/29, and at 1/29 (clique bound, minimum)": [
+  [
+   256,
+   256
+  ],
+  [
+   226,
+   226
+  ],
+  [
+   226,
+   226
+  ],
+  [
+   225,
+   225
+  ]
+ ],
+ "gentle: radius 1/5 needs 10 centers (9 refuted, 10 found)": [
+  false,
+  true
+ ],
+ "gentle: radius 6/35 needs 12 centers (11 refuted, 12 found)": [
+  false,
+  true
+ ],
+ "gentle: best tied bucketing at 1/5 (32768 candidates)": [
+  49,
+  [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    2,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    7
+   ],
+   [
+    8,
+    10
+   ],
+   [
+    11,
+    15
+   ]
+  ]
+ ],
+ "gentle: best rounding grid at 1/5 (1600 candidates)": [
+  43,
+  [
+   10,
+   7
+  ]
+ ],
+ "gentle: InduceApprox RoundedTV20 radius and arrow defect": [
+  "6/35",
+  "20/63"
+ ],
+ "gentle: InduceApprox RoundedTV20 arrow defect at horizons 1-4": [
+  "3/22",
+  "3/22",
+  "3/20",
+  "6/35"
+ ],
+ "gentle: InduceApprox Grid10x7 radius and arrow defect": [
+  "6/35",
+  "29/55"
+ ],
+ "floor-halve: InduceApprox RoundedTV20 radius and arrow defect": [
+  "1/2",
+  "2/3"
+ ],
+ "product rule: distance of two copies with shared decay = max of component distances": true,
+ "Counts: update witness": [
+  "{u1}",
+  "{u2}",
+  "hear-u1",
+  [
+   1,
+   0
+  ],
+  [
+   2,
+   0
+  ]
+ ],
+ "Counts: behavioral defect with hear actions": "1/3",
+ "Counts: behavioral defect with hear actions and merge translations": "1/3",
+ "AddMerge: worst error and least witness": [
+  "6/35",
+  [
+   "{u1,u2,u3}",
+   "{u1,u2,u3}"
+  ]
+ ],
+ "MaxMerge: worst error and least witness": [
+  "6/35",
+  [
+   "{u1,u2,v1}",
+   "{u3,u4,v2}"
+  ]
+ ],
+ "no merge on counts has worst error below": "6/35",
+ "ThreeWay: worst error over all forks / forks with disjoint news": [
+  "6/35",
+  "0"
+ ],
+ "module: counts, ledger-strength and ledger-confidence of ReceiptLedger equal the model on all 64 receipt sets": true,
+ "Compacted on Ledger (every hear action allowed): CheckUpdates refuted (pair, action, codes after)": [
+  "{u1}",
+  "{u2}",
+  "hear-u1",
+  [
+   1,
+   0
+  ],
+  [
+   2,
+   0
+  ]
+ ],
+ "Compacted: CheckBehavioral within 1/10 refuted (word, pair, confidence after the word, gap)": [
+  [
+   "hear-u1"
+  ],
+  "{u1}",
+  "{u2}",
+  "1/5",
+  "1/3",
+  "2/15"
+ ],
+ "Compacted: MeasureBehavioral (the largest distance between two receipt sets with the same code)": "1/6",
+ "CompactedSettled on SettledLedger (the protocol: u1 and u2 never delivered again): CheckUpdates checked, MeasureBehavioral 0": [
+  null,
+  "0"
+ ],
+ "CompactMerge over all fork pairs refuted (worst error, least witness, its error); over forks that share the compacted part checked with error 0": [
+  "2/3",
+  [
+   "{}",
+   "{u1}"
+  ],
+  "1/2",
+  "0"
+ ],
+ "gentle: pairs of states at the floor 6/35": 5106,
+ "gentle: (14,14) and (15,15): current distance, shortest word reaching the floor": [
+  "1/136",
+  11
+ ],
+ "gentle: discounted 9/10 frontier at 1/20, 1/10, 3/20, 1/5 (clique bound, minimum)": [
+  [
+   256,
+   256
+  ],
+  [
+   54,
+   54
+  ],
+  [
+   26,
+   26
+  ],
+  [
+   15,
+   15
+  ]
+ ],
+ "floor-halve: discounted 9/10 frontier at 1/20, 1/10, 3/20, 1/5 (clique bound, minimum)": [
+  [
+   225,
+   225
+  ],
+  [
+   225,
+   225
+  ],
+  [
+   225,
+   225
+  ],
+  [
+   225,
+   225
+  ]
+ ],
+ "gentle: radius frontier at 1/4, 1/3, 1/2 (k-1 refuted, k found)": [
+  [
+   false,
+   true
+  ],
+  [
+   false,
+   true
+  ],
+  [
+   false,
+   true
+  ]
+ ],
+ "gentle: the quoted ten centers cover every state within 1/5": true,
+ "gentle: greedy weakness search at 1/5 (classes, weakness, defect within bound)": [
+  24,
+  "1187/16384",
+  true
+ ],
+ "gentle: InduceApprox RoundedTV20 first reaches its full drift at horizon": 33,
+ "gentle: least arrow defect running on codes over the 1600 rounding grids (center representatives)": [
+  "4/15",
+  true
+ ],
+ "bits for six beliefs (raw, decision quotient, RoundedTV20, Grid10x7, 21 codes, 10 centers)": [
+  48.0,
+  46.9,
+  40.9,
+  32.6,
+  26.4,
+  19.9
+ ],
+ "frontier: every refutation (codes at 6/35, 1/5, 1/4, 1/2; centers at 6/35, 1/5, 1/4, 1/3, 1/2) has a DRAT proof that drat-trim converted to LRAT and cake_lpr checked": [
+  9,
+  true
+ ],
+ "frontier: the nine refuted obligations (variables, clauses), codes at 6/35, 1/5, 1/4, 1/2, centers at 6/35, 1/5, 1/4, 1/3, 1/2": {
+  "gentle_codes_6_35_colors32": [
+   8192,
+   881376
+  ],
+  "gentle_codes_1_5_colors20": [
+   5120,
+   501856
+  ],
+  "gentle_codes_1_4_colors18": [
+   4608,
+   432022
+  ],
+  "gentle_codes_1_2_colors4": [
+   1024,
+   26888
+  ],
+  "gentle_radius_1_5_centers9": [
+   2479,
+   4940
+  ],
+  "gentle_radius_6_35_centers11": [
+   2951,
+   5880
+  ],
+  "gentle_radius_1_4_centers9": [
+   2479,
+   4940
+  ],
+  "gentle_radius_1_3_centers3": [
+   1015,
+   2024
+  ],
+  "gentle_radius_1_2_centers1": [
+   511,
+   1020
+  ]
+ },
+ "claims: Fewest at 1/5 (21 codes) and FewestCenters at 1/5 (10 centers); the cliques alone at 3/10, 1/3, 2/5": [
+  "Checked",
+  "Checked",
+  [
+   "Checked",
+   "Checked",
+   "Checked"
+  ]
+ ],
+ "claims": [
+  {
+   "request": "floor-halve_codes_1_100",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/100",
+    "clique": 256,
+    "codes": 256,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_codes_1_2",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/2",
+    "clique": 17,
+    "codes": 17,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_codes_1_29",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/29",
+    "clique": 225,
+    "codes": 225,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_codes_1_40",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/40",
+    "clique": 226,
+    "codes": 226,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_codes_1_5",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/5",
+    "clique": 225,
+    "codes": 225,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_codes_1_58",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/58",
+    "clique": 226,
+    "codes": 226,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_codes_2_5",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "2/5",
+    "clique": 225,
+    "codes": 225,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_discounted_codes_1_10",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/10",
+    "clique": 225,
+    "codes": 225,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_discounted_codes_1_20",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/20",
+    "clique": 225,
+    "codes": 225,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_discounted_codes_1_5",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/5",
+    "clique": 225,
+    "codes": 225,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "floor-halve_discounted_codes_3_20",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "3/20",
+    "clique": 225,
+    "codes": 225,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "BeliefMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_codes_1_2",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/2",
+    "clique": 4,
+    "codes": 5,
+    "certificate": "refutation of 4"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_codes_1_3",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/3",
+    "clique": 8,
+    "codes": 8,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_codes_1_4",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/4",
+    "clique": 18,
+    "codes": 19,
+    "certificate": "refutation of 18"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_codes_1_5",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/5",
+    "clique": 20,
+    "codes": 21,
+    "certificate": "refutation of 20"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_codes_2_5",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "2/5",
+    "clique": 6,
+    "codes": 6,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_codes_3_10",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "3/10",
+    "clique": 12,
+    "codes": 12,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_codes_6_35",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "6/35",
+    "clique": 32,
+    "codes": 33,
+    "certificate": "refutation of 32"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_discounted_codes_1_10",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/10",
+    "clique": 54,
+    "codes": 54,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_discounted_codes_1_20",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/20",
+    "clique": 256,
+    "codes": 256,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_discounted_codes_1_5",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "1/5",
+    "clique": 15,
+    "codes": 15,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_discounted_codes_3_20",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "bound": "3/20",
+    "clique": 26,
+    "codes": 26,
+    "certificate": "clique"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_radius_1_2",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "radius": "1/2",
+    "centers": 2,
+    "certificate": "refutation of 1"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_radius_1_3",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "radius": "1/3",
+    "centers": 4,
+    "certificate": "refutation of 3"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_radius_1_4",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "radius": "1/4",
+    "centers": 10,
+    "certificate": "refutation of 9"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_radius_1_5",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "radius": "1/5",
+    "centers": 10,
+    "certificate": "refutation of 9"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  },
+  {
+   "request": "gentle_radius_6_35",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "radius": "6/35",
+    "centers": 12,
+    "certificate": "refutation of 11"
+   },
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:341ba5513456aa3647608cc420e6ff87cc9c751032e9ff69a7a82991482b306d",
+    "file": "belief_memory.metta",
+    "module": "GentleMemory",
+    "declarations": [
+     "Report",
+     "WeakestWithin"
+    ]
+   }
+  }
+ ],
+ "proofs": {
+  "refutations": 9,
+  "replayed": 9,
+  "tools": true
+ },
+ "_assurance": {
+  "policy": "Checked: exact computation on the machines of belief_memory.metta, a replayed clique or coloring, or a refutation whose DRAT proof drat-trim converted to LRAT and cake_lpr checked; Conditional: a refutation whose proof was not replayed, with a TrustedBackend assumption",
+  "conditional": []
+ },
+ "seconds": 111.9
+}

@@ -1,0 +1,14 @@
+ex1_results.json 1 diffs
+    ('/seconds', '111.9', '133.2')
+ex2_results.json 1 diffs
+    ('/seconds', '112.3', '122.6')
+ex3_results.json 1 diffs
+    ('/seconds', '5.6', '7.4')
+ex4_results.json 1 diffs
+    ('/_summary/seconds', '2.0', '2.1')
+mg_results.json 1 diffs
+    ('/seconds', '68.3', '88.4')
+ls_results.json 1 diffs
+    ('/seconds', '10.1', '15.9')
+wx_results.json 1 diffs
+    ('/facts/seconds', '12.4', '22.4')

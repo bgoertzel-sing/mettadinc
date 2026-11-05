@@ -1,0 +1,1772 @@
+{
+ "A1 confidence sequence at level 0.05: the true rate leaves it in at most 5% of 2,000 runs of 2,000 events (p = 0.01, 0.05, 0.2, 0.5)": {
+  "got": true,
+  "ok": true
+ },
+ "A1 coverage miss fractions": {
+  "0.01": 0.023,
+  "0.05": 0.0185,
+  "0.2": 0.0335,
+  "0.5": 0.0355
+ },
+ "A1 zero-failure upper bounds at level 0.01, anytime and fixed-n (n = 100, 1e3, 1e4, 1e5)": {
+  "got": [
+   [
+    0.08808,
+    0.045007
+   ],
+   [
+    0.011448,
+    0.004595
+   ],
+   [
+    0.001381,
+    0.00046
+   ],
+   [
+    0.000161,
+    4.6e-05
+   ]
+  ],
+  "ok": true
+ },
+ "A1 the zero-failure bound is the upper end of the mixture sequence at S = 0 (n = 1000)": {
+  "got": true,
+  "ok": true
+ },
+ "A1 events from which on the upper end stays below a target, and the first event at which it dips below, counts rounded half up (0.01->0.02, 0.05->0.10, 0.05->0.075, 0.2->0.25)": {
+  "got": [
+   [
+    3275,
+    514,
+    1811,
+    1179
+   ],
+   [
+    3135,
+    486,
+    1729,
+    1147
+   ]
+  ],
+  "ok": true
+ },
+ "A1 drift of the log e-value per observation, fixed alternative 1/5 against 1/20, at rates 1/10, 1/5, 3/10": {
+  "got": [
+   -0.016,
+   0.1398,
+   0.2956
+  ],
+  "ok": true
+ },
+ "A1 detection within 2,000 observations at rate 1/10: fixed, finite mixture, uniform mixture": {
+  "got": [
+   0.496,
+   1.0,
+   1.0
+  ],
+  "ok": true
+ },
+ "A1 median detection time at rate 1/10 (finite and uniform mixture) and at rate 1/5 (fixed, finite, uniform)": {
+  "got": [
+   224.0,
+   310.0,
+   32.0,
+   37.0,
+   40.0
+  ],
+  "ok": true
+ },
+ "A1 false alarms at the null rate 1/20 in 2,000 runs, all three at most 0.01": {
+  "got": true,
+  "ok": true
+ },
+ "A1 false alarm fractions": {
+  "fixed": 0.0045,
+  "finite": 0.005,
+  "uniform": 0.0055
+ },
+ "A1 Proposition 5.1's bound for the claim 'rate below 1/20' at level 0.01: 0.05/(99 + 0.05)": {
+  "got": 0.000505,
+  "ok": true
+ },
+ "A1 Proposition 5.1 at level 0.05, 2,000 runs of 2,000 rows whose conditional rates are all at least 1/20 (common rate, rates spread over [1/20, 3/20], labels in runs): the upper end falls below 1/20 in no more runs than the bound 0.0026 allows": {
+  "got": true,
+  "ok": true
+ },
+ "A1 Proposition 5.1 simulation: the largest of the three error fractions (0.15 percent)": {
+  "got": 0.0015,
+  "ok": true
+ },
+ "A1 one-sided error fractions": {
+  "common": 0.0015,
+  "spread": 0.0,
+  "runs": 0.0
+ },
+ "A2 stream digests": {
+  "got": {
+   "context_receipts_seed2": "sha256:71b78af0105a000962267564e4ecf181ff696b2d227523e37b7dfd3011491019",
+   "stale_ten_seed1": "sha256:d1c692b4962de6113c041d046f012d93348fb1779dcbfa99d94f713356608dcc",
+   "stale_alt_seed1": "sha256:f0d4be8461a2904e728f7b0a8ad895385ccd56f340ec854d729936aaf6a48763",
+   "stale_null_seed1": "sha256:8e76cbdeee37a8ab4156c6068ee59fab740c2f9d1b02146e3ee7e38c594b59b0"
+  },
+  "ok": true
+ },
+ "A2 stale_ten_seed1: stale suggestions among 2,000": {
+  "got": 200,
+  "ok": true
+ },
+ "A2 stale_ten_seed1: confidence-sequence interval at level 0.01": {
+  "got": [
+   0.0744,
+   0.1303
+  ],
+  "ok": true
+ },
+ "A2 stale_ten_seed1: first crossing of 100 (fixed 1/5, finite mixture, uniform mixture)": {
+  "got": [
+   27,
+   132,
+   152
+  ],
+  "ok": true
+ },
+ "A2 stale_ten_seed1: fixed alternative, largest e-value and e-value after 2,000 observations": {
+  "got": [
+   154.7,
+   "1.18e-14"
+  ],
+  "ok": true
+ },
+ "A2 Part I streams: stale counts and intervals at level 0.01 (alternative stream, null stream)": {
+  "got": [
+   [
+    79,
+    0.128,
+    0.2822
+   ],
+   [
+    28,
+    0.03,
+    0.1327
+   ]
+  ],
+  "ok": true
+ },
+ "A3 open items, 120 days: items, replies, query times": {
+  "got": [
+   917,
+   650,
+   960
+  ],
+  "ok": true
+ },
+ "A3 the keyed event statistic answers every suggestion query and every count exactly": {
+  "got": [
+   true,
+   true
+  ],
+  "ok": true
+ },
+ "A3 the window view: stale suggestions among its suggestions": {
+  "got": [
+   15800,
+   40208
+  ],
+  "ok": true
+ },
+ "A3 creation-day histogram: two-sided bounds hold; total width against total count": {
+  "got": [
+   true,
+   2150,
+   24408
+  ],
+  "ok": true
+ },
+ "A3 with 10% of replies missed (seed 2): items, replies, missed replies, stale suggestions, all stale ones are missed replies": {
+  "got": [
+   974,
+   677,
+   71,
+   2907,
+   true
+  ],
+  "ok": true
+ },
+ "A3 Z3: event, joint and engine statistics, every obligation unsat": {
+  "got": true,
+  "ok": true
+ },
+ "A3 Z3: the window view, now and updates (sat) and the designed witnesses": {
+  "got": [
+   "sat",
+   true,
+   "sat",
+   true
+  ],
+  "ok": true
+ },
+ "A4 consumer-aware blocks serve every consumer whenever the required items fit (20,000 random snapshots of 1 to 80 items, four budgets)": {
+  "got": [
+   true,
+   16399,
+   3601
+  ],
+  "ok": true
+ },
+ "A4 snapshots in which the required items fit but another policy misses a consumer": {
+  "got": 13057,
+  "ok": true
+ },
+ "A4 receipt log, 2,000 snapshots: misses of the fresh, open and anchor consumers per policy": {
+  "got": {
+   "recency": [
+    53,
+    182,
+    298
+   ],
+   "relevance": [
+    139,
+    817,
+    1856
+   ],
+   "protected": [
+    262,
+    1063,
+    0
+   ],
+   "consumer": [
+    0,
+    0,
+    0
+   ]
+  },
+  "ok": true
+ },
+ "A4 receipt log: the largest token cost of the required items (budget 1,500)": {
+  "got": 349,
+  "ok": true
+ },
+ "A4 relevance policy, anchor consumer: interval at level 0.01": {
+  "got": [
+   0.9012,
+   0.9498
+  ],
+  "ok": true
+ },
+ "A4 consumer-aware policy, anchor consumer: upper end after 2,000 snapshots without a miss": {
+  "got": 0.00608,
+  "ok": true
+ },
+ "A4 paired comparison, relevance against consumer-aware on the anchor: discordant snapshots and the lower end of the share": {
+  "got": [
+   1856,
+   0,
+   0.9935
+  ],
+  "ok": true
+ },
+ "A5 D_2 against brute force, every incident sequence of length at most 6 over 4 sources": {
+  "got": [
+   299593,
+   true
+  ],
+  "ok": true
+ },
+ "A5 D_2 is minimal: distinct reachable values separated (3 sources K = 2; 4 sources K = 3)": {
+  "got": [
+   {
+    "values": 5,
+    "separated": true
+   },
+   {
+    "values": 12,
+    "separated": true
+   }
+  ],
+  "ok": true
+ },
+ "A5 D_K on 100,000 incidents over 10,000 sources (K = 1, 2, 3, 5)": {
+  "got": true,
+  "ok": true
+ },
+ "A5 merges of forks with a shared history: D_2 exact; summed totals wrong in trials": {
+  "got": [
+   true,
+   15017
+  ],
+  "ok": true
+ },
+ "A5 D_2 is not maintainable under withdrawals: {a, b} and {a, b, c} share the value Many and differ after withdrawing a and b": {
+  "got": [
+   true,
+   [
+    false,
+    true
+   ]
+  ],
+  "ok": true
+ },
+ "A5 Z3: D_2 on an unbounded sort of sources (initial, step, reads, merge)": {
+  "got": {
+   "initial": "unsat",
+   "step": "unsat",
+   "reads": "unsat",
+   "merge": "unsat"
+  },
+  "ok": true
+ },
+ "A6 inverted index exact; Bloom filters miss no stale result": {
+  "got": [
+   true,
+   0
+  ],
+  "ok": true
+ },
+ "A6 Bloom filters, 10 bits per item, 7 hashes: unaffected results flagged at least once (of all unaffected), stale results, results flagged in total, false positives per result-withdrawal pair, observed and predicted false-positive rates": {
+  "got": [
+   1720,
+   1761,
+   239,
+   1959,
+   8483,
+   999744,
+   0.00849,
+   0.00819
+  ],
+  "ok": true
+ },
+ "A7 Z3: classification of the three changes (days-left, ben-first, three days): new determines old, old determines new": {
+  "got": [
+   [
+    "unsat",
+    "sat"
+   ],
+   [
+    "unsat",
+    "sat"
+   ],
+   [
+    "sat",
+    "sat"
+   ]
+  ],
+  "ok": true
+ },
+ "A7 Z3: certificates for saturation at two and at three days and for the deadline migration": {
+  "got": true,
+  "ok": true
+ },
+ "A7 Z3: the two-day statistic also answers the days-left goal (a refinement at no cost in memory)": {
+  "got": "unsat",
+  "ok": true
+ },
+ "A7 Z3: among statistics that keep the open flag, saturating at the threshold is the coarsest (two and three days): open ages up to the threshold are separated by a wait": {
+  "got": [
+   "unsat",
+   "unsat"
+  ],
+  "ok": true
+ },
+ "A7 Z3: the two-day statistic cannot serve the three-day goal; ages 5/2 and 7/2 witness it": {
+  "got": [
+   "sat",
+   true
+  ],
+  "ok": true
+ },
+ "A8 Z3: stuttering simulation of both rules onto Part I's model (every obligation unsat)": {
+  "got": true,
+  "ok": true
+ },
+ "A8 Z3: the two evidence obligations become linear when lambda (1 - c) is replaced by t with 0 <= t <= 1 - c: matching and closure unsat, the forms linear, the original nonlinear, the range lemma unsat": {
+  "got": [
+   "unsat",
+   "unsat",
+   true,
+   true,
+   "unsat"
+  ],
+  "ok": true
+ },
+ "A8 Z3: the norm-first rule never picks a forbidden move; the weighted rule can": {
+  "got": [
+   "unsat",
+   "sat"
+  ],
+  "ok": true
+ },
+ "A8 live runs of the weighted rule from the start: (evidence 4/5) and (deadline 1/2) each reach an unlawful state": {
+  "got": [
+   true,
+   true,
+   true
+  ],
+  "ok": true
+ },
+ "A8 20,000 random real runs of 8 steps per rule: every step a stutter or the matching step; abstract states visited, Part I reachable states": {
+  "got": [
+   [
+    true,
+    true,
+    14,
+    14
+   ],
+   [
+    true,
+    true,
+    11,
+    11
+   ]
+  ],
+  "ok": true
+ },
+ "A8 random runs in which the rule consolidates an unchecked claim (weighted, norm-first)": {
+  "got": [
+   true,
+   0
+  ],
+  "ok": true
+ },
+ "A8 weighted runs consolidating unchecked": 6298,
+ "A9 Z3: the floor keeps the safe region (unsat); the plain rule leaves it (sat), to 1/4 from the designed witness": {
+  "got": [
+   "unsat",
+   "sat",
+   "1/4"
+  ],
+  "ok": true
+ },
+ "A9 Z3: on settled states the two orders give equal goal weights": {
+  "got": "unsat",
+  "ok": true
+ },
+ "A9 Z3 optimization: the largest goal-weight difference between the two orders, and a maximizer": {
+  "got": [
+   "9/10",
+   [
+    "1",
+    "2/5",
+    "1",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "ok": true
+ },
+ "A9 exact run from the start after (stimulus 1 0): individuation after four cycles, plain and floor": {
+  "got": [
+   [
+    "3/4",
+    "3/4",
+    "1/2",
+    "1/4"
+   ],
+   [
+    "3/4",
+    "3/4",
+    "1/2",
+    "1/2"
+   ]
+  ],
+  "ok": true
+ },
+ "A10 attention decaying by 1/2 with rounding after every update: largest error over 5,000 updates within the contraction bound 1": {
+  "got": [
+   true,
+   "1"
+  ],
+  "ok": true
+ },
+ "A10 attention largest error": 0.9045515775045712,
+ "A10 running totals of 100,000 weights rounded half up: largest and final error without recomputation, largest error with exact recomputation from the records every 100 updates (bound 50.5)": {
+  "got": [
+   534.8,
+   512.09,
+   12.44,
+   true
+  ],
+  "ok": true
+ },
+ "A10 totals": {
+  "steps": 100000,
+  "R": 100,
+  "max_error_plain": 534.8,
+  "final_error_plain": 512.09,
+  "max_error_anchored": 12.44,
+  "anchored_bound": 50.5
+ },
+ "B number of run requests in live_memory.metta": {
+  "got": 37,
+  "ok": true
+ },
+ "B LiveOpenItems: CheckStatistic EventStat: every obligation unsat, Conditional on cvc5, as Z3 (A3)": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   [
+    "unsat"
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: CheckStatistic JointStat: every obligation unsat, Conditional on cvc5, as Z3 (A3)": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   [
+    "unsat"
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: CheckStatistic EngineStat: every obligation unsat, Conditional on cvc5, as Z3 (A3)": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   [
+    "unsat"
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: CheckStatistic EventIndex by lifting, bound to ItemTime's queries, Conditional as its premise": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   "Lift",
+   "ItemTime",
+   [
+    "open",
+    "suggest"
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: CheckStatistic JointIndex by lifting, bound to ItemTime's queries, Conditional as its premise": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   "Lift",
+   "ItemTime",
+   [
+    "open",
+    "suggest"
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: the engine statistic lifted to a declared view is bound to that view's one query": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   "EngineTime",
+   [
+    "suggest"
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: negative fixture: a statistic of EngineTime lifted as an index of the store's item machine is InvalidInput": {
+  "got": [
+   "InvalidInput",
+   true
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: why the wrong lift is refused: (8, false, 0) and (8, true, 0) have the same engine code and different open answers": {
+  "got": [
+   true,
+   true,
+   false
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: WindowView refuted now and under updates, as Z3 (A3)": {
+  "got": [
+   "Refuted",
+   "Refuted"
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: the CheckNow witness replays (equal codes, different suggest answers)": {
+  "got": [
+   true,
+   true,
+   true,
+   true
+  ],
+  "ok": true
+ },
+ "B LiveOpenItems: the CheckUpdates witness replays (equal codes, different codes after the wait)": {
+  "got": [
+   true,
+   true
+  ],
+  "ok": true
+ },
+ "B LiveEvidence: CheckStatistic FirstOrMore Conditional on cvc5, merge included, as Z3 (A5)": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   "unsat"
+  ],
+  "ok": true
+ },
+ "B LiveEvidence: the module's maps against the brute-force answers on 3,000 random incident logs": {
+  "got": true,
+  "ok": true
+ },
+ "B LiveGoals: CheckNow verdicts, as Z3 (A7)": {
+  "got": {
+   "DaysLeft": "Conditional",
+   "NagForDays": "Refuted",
+   "BenFirst": "Conditional",
+   "NagForBenFirst": "Refuted",
+   "Cap3": "Refuted",
+   "NagForCap3": "Refuted",
+   "TwoForBoth": "Refuted"
+  },
+  "ok": true
+ },
+ "B LiveGoals: CheckStatistic SaturateAtTwo Conditional on cvc5, as Z3 (A7)": {
+  "got": [
+   "Conditional",
+   "cvc5"
+  ],
+  "ok": true
+ },
+ "B LiveGoals: CheckStatistic SaturateAtThree Conditional on cvc5, as Z3 (A7)": {
+  "got": [
+   "Conditional",
+   "cvc5"
+  ],
+  "ok": true
+ },
+ "B LiveGoals: CheckStatistic Deadline Conditional on cvc5, as Z3 (A7)": {
+  "got": [
+   "Conditional",
+   "cvc5"
+  ],
+  "ok": true
+ },
+ "B LiveGoals: every CheckNow witness replays": {
+  "got": true,
+  "ok": true
+ },
+ "B LiveArbitration: CheckSimulation StutterWeighted Conditional on cvc5, with stuttering, as Z3 (A8)": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   "Stutter"
+  ],
+  "ok": true
+ },
+ "B LiveArbitration: CheckSimulation StutterNormFirst Conditional on cvc5, with stuttering, as Z3 (A8)": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   "Stutter"
+  ],
+  "ok": true
+ },
+ "B LiveArbitration: CheckSafety NormFirst, Conditional as its simulation; Part I's reachable states; the result is about RealNormFirst": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   11,
+   "RealNormFirst"
+  ],
+  "ok": true
+ },
+ "B LiveArbitration: negative fixture: safety of NormFirst along StutterWeighted, whose target is Weighted, is InvalidInput": {
+  "got": [
+   "InvalidInput",
+   true
+  ],
+  "ok": true
+ },
+ "B LiveArbitration: CheckSafety Weighted refuted by a concrete live run, as A8": {
+  "got": [
+   "Refuted",
+   [
+    "(evidence 4/5)"
+   ],
+   [
+    "4/5",
+    false,
+    false,
+    "0"
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveArbitration: the module's rules against Part I's rules through the class map, 5,000 random real states": {
+  "got": true,
+  "ok": true
+ },
+ "B LiveMotivation: SafePlain refuted: the invariant is not inductive, and a reachable run leaves the safe region, as A9": {
+  "got": [
+   "Refuted",
+   false,
+   "cover",
+   [
+    "(stimulus 1 0)",
+    "cycle",
+    "cycle",
+    "cycle",
+    "cycle"
+   ],
+   "1/4"
+  ],
+  "ok": true
+ },
+ "B LiveMotivation: the non-inductiveness witness replays": {
+  "got": [
+   true,
+   true
+  ],
+  "ok": true
+ },
+ "B LiveMotivation: SafeFloor established by the inductive invariant, Conditional on cvc5, as A9": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   true
+  ],
+  "ok": true
+ },
+ "B LiveMotivation: order swap within 9/10 (Conditional on cvc5), refuted at 4/5, exact on settled states (Conditional on cvc5), as A9": {
+  "got": [
+   [
+    "Conditional",
+    "cvc5"
+   ],
+   "Refuted",
+   [
+    "Conditional",
+    "cvc5"
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveMotivation: the 4/5 witness replays (difference above 4/5, at most 9/10)": {
+  "got": [
+   true,
+   true
+  ],
+  "ok": true
+ },
+ "B LiveMotivation: the module's appraisal against the model's on 3,000 grid states": {
+  "got": true,
+  "ok": true
+ },
+ "B LiveReceipts: each estimate is bound to its stream, digest, population, selection rule and policy": {
+  "got": [
+   "ContextReceipts",
+   true,
+   [
+    "policy",
+    "population",
+    "selection"
+   ],
+   "LiveSuggestions"
+  ],
+  "ok": true
+ },
+ "B LiveReceipts: EstimateRate and CompareRates from the frozen stream equal A4 recomputed from the generator": {
+  "got": [
+   [
+    1856,
+    0.9012,
+    0.9498
+   ],
+   [
+    0,
+    0.00608
+   ],
+   [
+    1856,
+    0,
+    0.9935
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveReceipts: EstimateRate on Part I's alternative stream equals A2": {
+  "got": [
+   79,
+   0.128,
+   0.2822
+  ],
+  "ok": true
+ },
+ "B LiveReceipts: CheckMonitor StaleFifth: null expectation of the factor exactly one, Checked by exact arithmetic": {
+  "got": [
+   "Checked",
+   "Exact",
+   true,
+   true,
+   false
+  ],
+  "ok": true
+ },
+ "B LiveReceipts: Detect in exact arithmetic: first crossings equal A2 (fixed 27, mixture 132)": {
+  "got": [
+   [
+    "StaleFifth",
+    27
+   ],
+   [
+    "Mixture",
+    132
+   ]
+  ],
+  "ok": true
+ },
+ "B LiveReceipts: negative fixture: every stale label of LiveSuggestions set to 0 under the declared digest; EstimateRate is InvalidInput and computes no count": {
+  "got": [
+   "InvalidInput",
+   false,
+   true
+  ],
+  "ok": true
+ },
+ "B every Conditional verdict records the agreement of Z3 under agreed_by (lifts through their premises, the safety transfer through its simulation)": {
+  "got": [
+   18,
+   18
+  ],
+  "ok": true
+ },
+ "verdicts": {
+  "LiveOpenItems (CheckStatistic EventStat (Method Symbolic))": {
+   "module": "LiveOpenItems",
+   "request": "(CheckStatistic EventStat (Method Symbolic))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Symbolic",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:3ef85319be7e9894b54114c9e11c341625bb6628018c75fef34878b6d3ec0657"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveOpenItems",
+     "EventStat"
+    ],
+    "machine": [
+     "LiveOpenItems",
+     "ItemTime"
+    ],
+    "queries": [
+     "open",
+     "suggest"
+    ],
+    "actions": [
+     "reply",
+     "wait"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveOpenItems (CheckStatistic JointStat (Method Symbolic))": {
+   "module": "LiveOpenItems",
+   "request": "(CheckStatistic JointStat (Method Symbolic))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Symbolic",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:49ec7f234e9bc8823d3a02d744075a1295f6ec4de65bc052317bce279df84b3b"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveOpenItems",
+     "JointStat"
+    ],
+    "machine": [
+     "LiveOpenItems",
+     "ItemTime"
+    ],
+    "queries": [
+     "open",
+     "suggest"
+    ],
+    "actions": [
+     "reply",
+     "wait"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveOpenItems (CheckStatistic EngineStat (Method Symbolic))": {
+   "module": "LiveOpenItems",
+   "request": "(CheckStatistic EngineStat (Method Symbolic))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Symbolic",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:86e0c9900b0ac0827ddb2a60e45fc3fe834734c682f398747e777475206bf887"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveOpenItems",
+     "EngineStat"
+    ],
+    "machine": [
+     "LiveOpenItems",
+     "EngineTime"
+    ],
+    "queries": [
+     "suggest"
+    ],
+    "actions": [
+     "reply",
+     "wait"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveOpenItems (CheckNow WindowView)": {
+   "module": "LiveOpenItems",
+   "request": "(CheckNow WindowView)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "now",
+    "values": {
+     "x": [
+      "3",
+      true,
+      "3"
+     ],
+     "y": [
+      "3",
+      false,
+      "0"
+     ]
+    }
+   }
+  },
+  "LiveOpenItems (CheckUpdates WindowView)": {
+   "module": "LiveOpenItems",
+   "request": "(CheckUpdates WindowView)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "updates wait",
+    "values": {
+     "x": [
+      "2",
+      true,
+      "0"
+     ],
+     "y": [
+      "2",
+      true,
+      "2"
+     ],
+     "$d": "1"
+    }
+   }
+  },
+  "LiveOpenItems (CheckStatistic EventIndex (Method Lift))": {
+   "module": "LiveOpenItems",
+   "request": "(CheckStatistic EventIndex (Method Lift))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Lift",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:fdcc3d8900bc5e858d0812c60b0b8d8801eb30dc4f45ae557b15d8fc59a932f6"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveOpenItems",
+     "EventIndex"
+    ],
+    "store": [
+     "LiveOpenItems",
+     "Items"
+    ],
+    "item_machine": [
+     "LiveOpenItems",
+     "ItemTime"
+    ],
+    "bound_to": [
+     "LiveOpenItems",
+     "ItemTime"
+    ],
+    "queries": [
+     "open",
+     "suggest"
+    ],
+    "premise": [
+     "LiveOpenItems",
+     "EventStat"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveOpenItems (CheckStatistic JointIndex (Method Lift))": {
+   "module": "LiveOpenItems",
+   "request": "(CheckStatistic JointIndex (Method Lift))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Lift",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:aaa1f849520d14f2bf33805d6c82d41c758cc35aae2edaa27932cd2a69bfb7ec"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveOpenItems",
+     "JointIndex"
+    ],
+    "store": [
+     "LiveOpenItems",
+     "Items"
+    ],
+    "item_machine": [
+     "LiveOpenItems",
+     "ItemTime"
+    ],
+    "bound_to": [
+     "LiveOpenItems",
+     "ItemTime"
+    ],
+    "queries": [
+     "open",
+     "suggest"
+    ],
+    "premise": [
+     "LiveOpenItems",
+     "JointStat"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveOpenItems (CheckStatistic EngineIndex (Method Lift))": {
+   "module": "LiveOpenItems",
+   "request": "(CheckStatistic EngineIndex (Method Lift))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Lift",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:6d2d7cc3ad961140aee978ec7edfe897df02b78f8f24f5520dc76b5b6064e55d"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveOpenItems",
+     "EngineIndex"
+    ],
+    "store": [
+     "LiveOpenItems",
+     "Items"
+    ],
+    "item_machine": [
+     "LiveOpenItems",
+     "ItemTime"
+    ],
+    "bound_to": [
+     "LiveOpenItems",
+     "EngineTime"
+    ],
+    "queries": [
+     "suggest"
+    ],
+    "premise": [
+     "LiveOpenItems",
+     "EngineStat"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveOpenItems (CheckStatistic EngineAsItems (Method Lift))": {
+   "module": "LiveOpenItems",
+   "request": "(CheckStatistic EngineAsItems (Method Lift))",
+   "status": "InvalidInput",
+   "assurance": null,
+   "method": "Lift",
+   "mismatch": "EngineStat is a statistic of EngineTime, not of the store's item machine ItemTime; declare (View EngineTime) to index that view"
+  },
+  "LiveEvidence (CheckStatistic FirstOrMore (Method Symbolic))": {
+   "module": "LiveEvidence",
+   "request": "(CheckStatistic FirstOrMore (Method Symbolic))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Symbolic",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:4c31e276f19ee1740591fbf2d46ff45409451256b9dd95731f86293139ebe230"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveEvidence",
+     "FirstOrMore"
+    ],
+    "machine": [
+     "LiveEvidence",
+     "EvidenceStream"
+    ],
+    "queries": [
+     "contra",
+     "eff",
+     "regen"
+    ],
+    "actions": [
+     "minus",
+     "plus"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveGoals (CheckNow DaysLeft)": {
+   "module": "LiveGoals",
+   "request": "(CheckNow DaysLeft)",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:d0c331d86697dbc670463a1d4f07a5fb3f6ec961911da59817723cd8c55d6fce"
+     }
+    }
+   ],
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveGoals (CheckNow NagForDays)": {
+   "module": "LiveGoals",
+   "request": "(CheckNow NagForDays)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "now",
+    "values": {
+     "x": [
+      true,
+      "0",
+      "ben"
+     ],
+     "y": [
+      true,
+      "1/2",
+      "ben"
+     ]
+    }
+   }
+  },
+  "LiveGoals (CheckNow BenFirst)": {
+   "module": "LiveGoals",
+   "request": "(CheckNow BenFirst)",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:4345e632358de76ceaa40ee00830b7634307b8b73b86c53e59ec33fe1daf4a37"
+     }
+    }
+   ],
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveGoals (CheckNow NagForBenFirst)": {
+   "module": "LiveGoals",
+   "request": "(CheckNow NagForBenFirst)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "now",
+    "values": {
+     "x": [
+      true,
+      "0",
+      "ben"
+     ],
+     "y": [
+      true,
+      "0",
+      "andy"
+     ]
+    }
+   }
+  },
+  "LiveGoals (CheckNow Cap3)": {
+   "module": "LiveGoals",
+   "request": "(CheckNow Cap3)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "now",
+    "values": {
+     "x": [
+      true,
+      "0",
+      "ben"
+     ],
+     "y": [
+      true,
+      "5/2",
+      "ben"
+     ]
+    }
+   }
+  },
+  "LiveGoals (CheckNow NagForCap3)": {
+   "module": "LiveGoals",
+   "request": "(CheckNow NagForCap3)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "now",
+    "values": {
+     "x": [
+      true,
+      "5/2",
+      "ben"
+     ],
+     "y": [
+      false,
+      "0",
+      "ben"
+     ]
+    }
+   }
+  },
+  "LiveGoals (CheckStatistic SaturateAtTwo (Method Symbolic))": {
+   "module": "LiveGoals",
+   "request": "(CheckStatistic SaturateAtTwo (Method Symbolic))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Symbolic",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:fdb81cc1076ead6eea709f84b45e868c9f2f109837c02fb4b1cd907bef4ba459"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveGoals",
+     "SaturateAtTwo"
+    ],
+    "machine": [
+     "LiveGoals",
+     "Nag"
+    ],
+    "queries": [
+     "nag"
+    ],
+    "actions": [
+     "close",
+     "wait"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveGoals (CheckNow TwoForBoth)": {
+   "module": "LiveGoals",
+   "request": "(CheckNow TwoForBoth)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "now",
+    "values": {
+     "x": [
+      true,
+      "7/2",
+      "ben"
+     ],
+     "y": [
+      true,
+      "5/2",
+      "ben"
+     ]
+    }
+   }
+  },
+  "LiveGoals (CheckStatistic SaturateAtThree (Method Symbolic))": {
+   "module": "LiveGoals",
+   "request": "(CheckStatistic SaturateAtThree (Method Symbolic))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Symbolic",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:a63ed19ee000e04fa3e230c9fc78d94a8f7fbcc10f03da44a8b77bc3584ff1eb"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveGoals",
+     "SaturateAtThree"
+    ],
+    "machine": [
+     "LiveGoals",
+     "BothNags"
+    ],
+    "queries": [
+     "nag",
+     "nag3"
+    ],
+    "actions": [
+     "close",
+     "wait"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveGoals (CheckStatistic Deadline (Method Symbolic))": {
+   "module": "LiveGoals",
+   "request": "(CheckStatistic Deadline (Method Symbolic))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "method": "Symbolic",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:a40c83954ab7fdb27ff84320657de5a30cf73e00fb3910b7b112638ecca29271"
+     }
+    }
+   ],
+   "binding": {
+    "subject": [
+     "LiveGoals",
+     "Deadline"
+    ],
+    "machine": [
+     "LiveGoals",
+     "Nag"
+    ],
+    "queries": [
+     "nag"
+    ],
+    "actions": [
+     "close",
+     "wait"
+    ]
+   },
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveArbitration (CheckSimulation StutterWeighted)": {
+   "module": "LiveArbitration",
+   "request": "(CheckSimulation StutterWeighted)",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:aa933a57eba49c144ec09286215778191d6be75b898663ea3ca0dc860d3108ea"
+     }
+    }
+   ],
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveArbitration (CheckSimulation StutterNormFirst)": {
+   "module": "LiveArbitration",
+   "request": "(CheckSimulation StutterNormFirst)",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:f6f3df452019d6c4f3b2e1a81e4e07b814df6dd241e188c1dab6a2454be7cb4c"
+     }
+    }
+   ],
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveArbitration (CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterNormFirst) (Init live-start))": {
+   "module": "LiveArbitration",
+   "request": "(CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterNormFirst) (Init live-start))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:a8c5aeceaebbac3a85d74e6e59bd7832a53fe87b26ee64cc4bd461d17ef27615"
+     }
+    }
+   ],
+   "binding": {
+    "about": [
+     "LiveArbitration",
+     "RealNormFirst"
+    ],
+    "target": [
+     "LiveArbitration",
+     "NormFirst"
+    ],
+    "via": [
+     "LiveArbitration",
+     "StutterNormFirst"
+    ],
+    "init": "live-start",
+    "property": "(Shows unlawful True)"
+   },
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveArbitration (CheckSafety Weighted (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))": {
+   "module": "LiveArbitration",
+   "request": "(CheckSafety Weighted (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))",
+   "status": "Refuted",
+   "assurance": "Witness"
+  },
+  "LiveArbitration (CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))": {
+   "module": "LiveArbitration",
+   "request": "(CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))",
+   "status": "InvalidInput",
+   "assurance": null,
+   "mismatch": "the simulation StutterWeighted relates RealWeighted to Weighted, not to NormFirst; safety of NormFirst does not transfer along it"
+  },
+  "LiveMotivation (CheckBlockPartition SafePlain (Of PlainWatch) (Budget (Unrollings 8)))": {
+   "module": "LiveMotivation",
+   "request": "(CheckBlockPartition SafePlain (Of PlainWatch) (Budget (Unrollings 8)))",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "invariant closed under cycle",
+    "values": {
+     "x": [
+      "1/2",
+      "3/4",
+      "0",
+      "0",
+      "1",
+      "0"
+     ]
+    }
+   }
+  },
+  "LiveMotivation (CheckBlockPartition SafeFloor (Of FloorWatch))": {
+   "module": "LiveMotivation",
+   "request": "(CheckBlockPartition SafeFloor (Of FloorWatch))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:4e3b421cf01e647de216ea2ac107bd7bf301cedaeb294bb5f3f63d1037761e9a"
+     }
+    }
+   ],
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveMotivation (CheckImplementation OrderSwapGoals (Grade 1 (Rat 9 10)))": {
+   "module": "LiveMotivation",
+   "request": "(CheckImplementation OrderSwapGoals (Grade 1 (Rat 9 10)))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:fc17c79df5cb6f529186428b7b79e81ad4312da692d88fade2d74b235269e804"
+     }
+    }
+   ],
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveMotivation (CheckImplementation OrderSwapGoals (Grade 1 (Rat 4 5)))": {
+   "module": "LiveMotivation",
+   "request": "(CheckImplementation OrderSwapGoals (Grade 1 (Rat 4 5)))",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "witness": {
+    "obligation": "contract",
+    "values": {
+     "xh": [
+      "1",
+      "176/325",
+      "1",
+      "27/325",
+      "0",
+      "1"
+     ],
+     "x": [
+      "1",
+      "176/325",
+      "1",
+      "27/325",
+      "0",
+      "1"
+     ]
+    },
+    "out": "107/130"
+   }
+  },
+  "LiveMotivation (CheckImplementation OrderSwapSettled (Grade 1 0))": {
+   "module": "LiveMotivation",
+   "request": "(CheckImplementation OrderSwapSettled (Grade 1 0))",
+   "status": "Conditional",
+   "assurance": "TrustedBackend",
+   "assumptions": [
+    {
+     "TrustedBackend": {
+      "solver": "cvc5",
+      "version": "1.4.2",
+      "logic": "ALL",
+      "obligations": "sha256:8d8e8ff4d8dc9438f2b1bc66acb500197c63c6b22731ac8bff46e70cb8dc23ce"
+     }
+    }
+   ],
+   "witness": null,
+   "agreed_by": [
+    "z3 5.3.3"
+   ]
+  },
+  "LiveReceipts (EstimateRate (On ContextReceipts) (Column \"relevance_A\") (Equals 0) (Level (Rat 1 100)))": {
+   "module": "LiveReceipts",
+   "request": "(EstimateRate (On ContextReceipts) (Column \"relevance_A\") (Equals 0) (Level (Rat 1 100)))",
+   "status": "Estimated",
+   "assurance": "Statistical",
+   "binding": {
+    "stream": [
+     "LiveReceipts",
+     "ContextReceipts"
+    ],
+    "digest": "sha256:71b78af0105a000962267564e4ecf181ff696b2d227523e37b7dfd3011491019",
+    "population": "context blocks built for the simulated workload",
+    "selection": "one row per snapshot, written when its block is built",
+    "policy": "the budgeted block builder of Pattern 2, simulation p2_live, seed 2"
+   }
+  },
+  "LiveReceipts (EstimateRate (On ContextReceipts) (Column \"consumer_A\") (Equals 0) (Level (Rat 1 100)))": {
+   "module": "LiveReceipts",
+   "request": "(EstimateRate (On ContextReceipts) (Column \"consumer_A\") (Equals 0) (Level (Rat 1 100)))",
+   "status": "Estimated",
+   "assurance": "Statistical",
+   "binding": {
+    "stream": [
+     "LiveReceipts",
+     "ContextReceipts"
+    ],
+    "digest": "sha256:71b78af0105a000962267564e4ecf181ff696b2d227523e37b7dfd3011491019",
+    "population": "context blocks built for the simulated workload",
+    "selection": "one row per snapshot, written when its block is built",
+    "policy": "the budgeted block builder of Pattern 2, simulation p2_live, seed 2"
+   }
+  },
+  "LiveReceipts (CompareRates (On ContextReceipts) (First \"relevance_A\") (Second \"consumer_A\") (Equals 0) (Level (Rat 1 100)))": {
+   "module": "LiveReceipts",
+   "request": "(CompareRates (On ContextReceipts) (First \"relevance_A\") (Second \"consumer_A\") (Equals 0) (Level (Rat 1 100)))",
+   "status": "Estimated",
+   "assurance": "Statistical",
+   "binding": {
+    "stream": [
+     "LiveReceipts",
+     "ContextReceipts"
+    ],
+    "digest": "sha256:71b78af0105a000962267564e4ecf181ff696b2d227523e37b7dfd3011491019",
+    "population": "context blocks built for the simulated workload",
+    "selection": "one row per snapshot, written when its block is built",
+    "policy": "the budgeted block builder of Pattern 2, simulation p2_live, seed 2"
+   }
+  },
+  "LiveReceipts (EstimateRate (On LiveSuggestions) (Column \"stale\") (Equals 1) (Level (Rat 1 100)))": {
+   "module": "LiveReceipts",
+   "request": "(EstimateRate (On LiveSuggestions) (Column \"stale\") (Equals 1) (Level (Rat 1 100)))",
+   "status": "Estimated",
+   "assurance": "Statistical",
+   "binding": {
+    "stream": [
+     "LiveReceipts",
+     "LiveSuggestions"
+    ],
+    "digest": "sha256:f0d4be8461a2904e728f7b0a8ad895385ccd56f340ec854d729936aaf6a48763",
+    "population": "suggestions of Part I's alternative engine",
+    "selection": "one row per suggestion, written when it is made",
+    "policy": "Part I's alternative engine, simulated, seed 1"
+   }
+  },
+  "LiveReceipts (CheckMonitor StaleFifth)": {
+   "module": "LiveReceipts",
+   "request": "(CheckMonitor StaleFifth)",
+   "status": "Checked",
+   "assurance": "Exact"
+  },
+  "LiveReceipts (Detect StaleFifth (On TenPercent) (Level (Rat 1 100)))": {
+   "module": "LiveReceipts",
+   "request": "(Detect StaleFifth (On TenPercent) (Level (Rat 1 100)))",
+   "status": "Estimated",
+   "assurance": "Statistical",
+   "binding": {
+    "stream": [
+     "LiveReceipts",
+     "TenPercent"
+    ],
+    "digest": "sha256:d1c692b4962de6113c041d046f012d93348fb1779dcbfa99d94f713356608dcc",
+    "population": "suggestions of a simulated engine",
+    "selection": "one row per suggestion, written when it is made",
+    "policy": "a simulated engine, stale with probability 1/10, seed 1"
+   }
+  },
+  "LiveReceipts (Detect StaleTenth StaleFifth StaleTwoFifths (On TenPercent) (Level (Rat 1 100)) (Combine Mixture))": {
+   "module": "LiveReceipts",
+   "request": "(Detect StaleTenth StaleFifth StaleTwoFifths (On TenPercent) (Level (Rat 1 100)) (Combine Mixture))",
+   "status": "Estimated",
+   "assurance": "Statistical",
+   "binding": {
+    "stream": [
+     "LiveReceipts",
+     "TenPercent"
+    ],
+    "digest": "sha256:d1c692b4962de6113c041d046f012d93348fb1779dcbfa99d94f713356608dcc",
+    "population": "suggestions of a simulated engine",
+    "selection": "one row per suggestion, written when it is made",
+    "policy": "a simulated engine, stale with probability 1/10, seed 1"
+   }
+  }
+ },
+ "seconds": 10.1
+}

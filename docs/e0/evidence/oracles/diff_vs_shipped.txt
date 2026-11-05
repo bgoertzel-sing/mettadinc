@@ -1,0 +1,21 @@
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/01_language_specification/validation_package: __pycache__
+Files /home/openclaw/scratch/mettadinc-e0/raw/03_four_worked_examples/validation_bundles/ex1_belief_memory/ex1_results.json and /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex1_belief_memory/ex1_results.json differ
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex1_belief_memory: obligations
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex1_belief_memory: __pycache__
+Files /home/openclaw/scratch/mettadinc-e0/raw/03_four_worked_examples/validation_bundles/ex2_access_policy/ex2_results.json and /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex2_access_policy/ex2_results.json differ
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex2_access_policy: obligations
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex2_access_policy: __pycache__
+Files /home/openclaw/scratch/mettadinc-e0/raw/03_four_worked_examples/validation_bundles/ex3_skill_share/ex3_results.json and /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex3_skill_share/ex3_results.json differ
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex3_skill_share: __pycache__
+Files /home/openclaw/scratch/mettadinc-e0/raw/03_four_worked_examples/validation_bundles/ex4_market_maker/ex4_results.json and /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex4_market_maker/ex4_results.json differ
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/03_four_worked_examples/validation_bundles/ex4_market_maker: __pycache__
+Files /home/openclaw/scratch/mettadinc-e0/raw/04_omega_memory_goals_part1/validation_bundle/mg_results.json and /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/04_omega_memory_goals_part1/validation_bundle/mg_results.json differ
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/04_omega_memory_goals_part1/validation_bundle/models: __pycache__
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/04_omega_memory_goals_part1/validation_bundle: __pycache__
+Files /home/openclaw/scratch/mettadinc-e0/raw/05_live_memory_part2/validation_bundle/ls_results.json and /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/05_live_memory_part2/validation_bundle/ls_results.json differ
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/05_live_memory_part2/validation_bundle/models: __pycache__
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/05_live_memory_part2/validation_bundle/part1_models: __pycache__
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/05_live_memory_part2/validation_bundle: __pycache__
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/06_wmtm_worked_example/validation_bundle/models: __pycache__
+Only in /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/06_wmtm_worked_example/validation_bundle: __pycache__
+Files /home/openclaw/scratch/mettadinc-e0/raw/06_wmtm_worked_example/validation_bundle/wx_results.json and /home/openclaw/scratch/mettadinc-e0/runs/oracles/pkg/06_wmtm_worked_example/validation_bundle/wx_results.json differ

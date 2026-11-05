@@ -1,0 +1,639 @@
+PASS: test manifest covers 570 top-level MeTTa tests
+PASS: test manifest has 609 rows
+PASS: dynamic git-module! fixture
+PASS: git-module! cache refresh
+---
+2 passed, 0 failed
+PASS: symbolid guard
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -o runtime/test_variant_shape_roundtrip-python.prime-need-heap-index.prime-eval-stack tests/test_variant_shape_roundtrip.c src/symbol.c src/atom.c src/match.c src/prime_need.c src/term_canon.c src/variant_shape.c src/variant_instance.c src/term_universe.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+PASS: variant shape roundtrip
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -o runtime/test_bindings_lookup_index-python.prime-need-heap-index.prime-eval-stack tests/test_bindings_lookup_index.c src/symbol.c src/atom.c src/match.c src/prime_need.c src/term_canon.c src/variant_shape.c src/variant_instance.c src/term_universe.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+(BindingsLookupIndexSummary 40 40 0)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -o runtime/test_atom_deep_copy_iterative-python.prime-need-heap-index.prime-eval-stack tests/test_atom_deep_copy_iterative.c src/symbol.c src/atom.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+PASS: iterative atom copy, printing, and multi-root closure
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -o runtime/test_abt-python.prime-need-heap-index.prime-eval-stack tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -o runtime/test_abt_mm2_boundary-python.prime-need-heap-index.prime-eval-stack tests/test_abt_mm2_boundary.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c src/match.c src/prime_need.c src/term_canon.c src/variant_shape.c src/mm2_lower.c src/term_universe.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+(ABTMM2BoundarySummary 10 10 0)
+PASS: closed ABT/MM2/MORK boundary
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_rhocalc_abt_substitution.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_rhocalc_abt_substitution.python.prime-need-heap-index.prime-eval-stack.o tests/support/test_rhocalc_abt_substitution.c
+(RhoABTSubstitutionSummary 1 1 0)
+PASS: nameful rho substitution agrees with canonical ABT substitution
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=1 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-1 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=2 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-2 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=3 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-3 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=4 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-4 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=5 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-5 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=6 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-6 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=7 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-7 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=8 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-8 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=9 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-9 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=10 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-10 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=11 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-11 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=12 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-12 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=13 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-13 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=14 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-14 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=15 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-15 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=16 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-16 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=17 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-17 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=18 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-18 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=19 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-19 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=20 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-20 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=21 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-21 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=22 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-22 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -DCETTA_ABT_MUTATION=23 -o runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-23 tests/test_abt.c src/symbol.c src/atom.c src/atom_blob.c src/abt.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-1
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-2
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-3
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-4
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-5
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-6
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-7
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-8
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-9
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-10
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-11
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-12
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-13
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-14
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-15
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-16
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-17
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-18
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-19
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-20
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-21
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-22
+PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-23
+PASS: ABT mutation gate (23/23)
+PASS: ABT default declarations have one MeTTa source; drift mutant killed
+SKIP: ABT differential (set METTAPEDIA_ROOT to a Mettapedia checkout)
+PASS: lib_parse ABT bridge (18 admitted, 5 rejected, 2 preserved)
+(ABTIntegrationLedgerSummary 3 3 0)
+(ABTIntegrationLedgerMutationSummary 5 5 0)
+(ABTCoreSummary 110 110 0)
+PASS: iterative capture-avoiding ABT core
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_rhometta_payload_map_capacity.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_rhometta_payload_map_capacity.python.prime-need-heap-index.prime-eval-stack.o tests/support/test_rhometta_payload_map_capacity.c
+PASS: rhometta payload map capacity C test
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -DCETTA_RUNTIME_STATS_IMPL=1 -O3 -Wall -Werror -std=c11 -pthread -o runtime/test_space_term_universe_membership-python.prime-need-heap-index.prime-eval-stack tests/test_space_term_universe_membership.c src/symbol.c src/atom.c src/match.c src/prime_need.c src/subst_tree.c src/term_canon.c src/variant_shape.c src/variant_instance.c src/term_universe.c src/grounded.c src/petta_semantics.c src/abt.c src/atom_blob.c src/native_sha256.c src/search_machine.c src/space.c src/parser.c src/name_key.c  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+PASS: space term universe membership
+PASS: cli help flags
+PASS: pure-rho canonical selector agrees with exhaustive frontier (8 named + 96 generated; seed=800634)
+PASS: examples/rho/pure/eval_at_comm.rho
+PASS: examples/rho/cost/parallel_settlement.mrho
+PASS: examples/rho/cost/vending_machine.rho
+PASS: examples/rho/cost/budget_meter.metta
+PASS: examples/rho/cost/notary_chain.metta
+PASS: examples/rho/cost/parallel_settlement.mrho (threaded matches sequential)
+---
+6 passed, 0 failed
+PASS: tests/rhocalc_run/branching_deterministic_choice.mrho
+PASS: tests/rhocalc_run/core_comm_run.mrho
+PASS: tests/rhocalc_run/literal_drop_quote_static_after_comm.mrho
+PASS: tests/rhocalc_run/pipeline_two_forwarders.mrho
+PASS: tests/rhocalc_run/quiescent_nil_core.mrho
+PASS: tests/rhocalc_run/stuck_pending_receive.mrho
+PASS: tests/rhocalc_run/stuck_pending_send.mrho
+PASS: tests/rhocalc_run/substituted_drop_reveals_static_inner_drop.mrho
+PASS: tests/rhocalc_run/pipeline_two_forwarders_surface.rho
+PASS: tests/rhocalc_run/quiescent_nil_surface.rho
+PASS: tests/rhocalc_cost_run/internal_split_tokens_basic.mrho
+PASS: tests/rhocalc_cost_run/parallel_claim_rollback_competition.mrho
+PASS: tests/rhocalc_cost_run/compound_sig_missing_partial_token_quiescent.rho
+PASS: tests/rhocalc_cost_run/missing_token_quiescent.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_alpha.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_quote_drop.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_wrong_purse.rho
+PASS: tests/rhocalc_cost_run/split_tokens_basic.rho
+PASS: tests/rhocalc_cost_run/split_tokens_compound_sig_combined_token.rho
+PASS: tests/rhocalc_cost_run/substitution_quote_term.rho
+PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_combined_token.rho
+PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_split_tokens.rho
+PASS: tests/rhocalc_cost_run/whole_redex_single_sig.rho
+PASS: rhocalc run reduction-limit exhaustion
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_fresh.mrho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_join.mrho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_quoted_payload.rho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_send_continuation.mrho
+PASS: rhocalc cost dequotation tests/rhocalc_cost/reject_dequote.rho
+PASS: rhocalc cost threaded execution (2 workers)
+PASS: rhocalc cost threaded execution (4 workers)
+PASS: rhocalc zero thread budget uses sequential path
+PASS: rhocalc rejects scheduler with threaded execution
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/no_reduction_under_recv_puritanical.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/quoted_process_not_reduced_in_name_eq.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_name_variable_roundtrip_h7.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_quoted_name_roundtrip_h7.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/free_drop_is_stuck_h4.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/surface_open_name_variable.rho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/branching_relation.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_avoidance_alpha_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_free_var_rejected_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_shadow_ok_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_discrimination_survives_after_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_alpha_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_assoc_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_comm_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_zero_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_var_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/comm_par_chain_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/core_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/literal_drop_quote_static_after_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_free_name_same_spelling_binder.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_inner_binder_restores_scope.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_seals_outer_binder.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_shadow_same_spelling.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_path_a.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_path_b.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_setup.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_pass_basic_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_quote_drop.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/nested_drop_quote_h5.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_divergence_self_recreates_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_input_guarded_replication_unfold_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_reflection_name_generation_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_drop_comm_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_substitution_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_substitution_opaque_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/recv_under_binder_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/rotating_scheduler_persistent_branch.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_alpha_dedup_display.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_hot_successors.mrho
+PASS: rhocalc thread-budget plumbing
+PASS: rhocalc threaded stress independent-many-comms
+PASS: rhocalc threaded stress hot-channel-linear-consumption
+PASS: rhocalc threaded stress payload-race
+PASS: rhocalc threaded stress dequote-spawn
+PASS: rhocalc threaded stress limit-batch-exact
+PASS: rhocalc threaded stress alpha-capture-stress
+PASS: rhocalc threaded stress randomized-threaded-loop
+PASS: cost-rho parallel stress independent-surfaces
+PASS: cost-rho parallel stress same-surface-disjoint-occurrences
+PASS: cost-rho parallel stress one-purse-serialization
+PASS: cost-rho parallel stress search-budget-monotonicity
+PASS: cost-rho parallel stress large-cover-laziness
+PASS: cost-rho parallel stress randomized-independent-receipts
+PASS: rhocalc canonical scheduler witness
+PASS: rhocalc rotating scheduler witness
+PASS: rhocalc scheduler reachability branching-relation-one-step
+PASS: rhocalc scheduler reachability comm-par-chain-one-step
+PASS: rhocalc scheduler reachability capture-shadow-recv-one-step
+PASS: rhocalc scheduler reachability core-comm-one-step
+PASS: rhocalc scheduler reachability name-quote-drop-one-step
+PASS: rhocalc scheduler reachability nested-drop-quote-one-step
+PASS: rhocalc scheduler reachability name-pass-basic-one-step
+PASS: rhocalc scheduler reachability recv-under-binder-one-step
+PASS: rhocalc scheduler reachability channel-var-one-step
+PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step
+PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step
+PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step
+PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step
+PASS: rhocalc scheduler reachability literal-drop-static-one-step
+PASS: rhocalc scheduler reachability channel-discrimination-one-step
+PASS: rhocalc scheduler reachability paper-divergence-one-step
+PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step
+PASS: rhocalc scheduler reachability multistep-diamond-two-step
+PASS: rhocalc scheduler reachability rotating-persistent-canonical-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-three-step
+PASS: rhocalc scheduler reachability pure-surface-one-step
+PASS: rhocalc scheduler reachability surface-name-output-one-step
+PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step
+PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step
+PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step
+PASS: rhocalc scheduler reachability surface-rotating-persistent-canonical-two-step
+PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-two-step
+PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-three-step
+PASS: rhocalc scheduler reachability branching-relation-one-step-rotating
+PASS: rhocalc scheduler reachability comm-par-chain-one-step-rotating
+PASS: rhocalc scheduler reachability capture-shadow-recv-one-step-rotating
+PASS: rhocalc scheduler reachability core-comm-one-step-rotating
+PASS: rhocalc scheduler reachability name-quote-drop-one-step-rotating
+PASS: rhocalc scheduler reachability nested-drop-quote-one-step-rotating
+PASS: rhocalc scheduler reachability name-pass-basic-one-step-rotating
+PASS: rhocalc scheduler reachability recv-under-binder-one-step-rotating
+PASS: rhocalc scheduler reachability channel-var-one-step-rotating
+PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step-rotating
+PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step-rotating
+PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step-rotating
+PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step-rotating
+PASS: rhocalc scheduler reachability literal-drop-static-one-step-rotating
+PASS: rhocalc scheduler reachability channel-discrimination-one-step-rotating
+PASS: rhocalc scheduler reachability paper-divergence-one-step-rotating
+PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step-rotating
+PASS: rhocalc scheduler reachability multistep-diamond-two-step-rotating
+PASS: rhocalc scheduler reachability rotating-persistent-rotating-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-three-step
+PASS: rhocalc scheduler reachability pure-surface-one-step-rotating
+PASS: rhocalc scheduler reachability surface-name-output-one-step-rotating
+PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step-rotating
+PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step-rotating
+PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step-rotating
+PASS: rhocalc scheduler reachability surface-rotating-persistent-rotating-two-step
+PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-two-step
+PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-three-step
+PASS: rhocalc scheduler reachability branching-relation-one-step-threaded
+PASS: rhocalc scheduler reachability comm-par-chain-one-step-threaded
+PASS: rhocalc scheduler reachability multistep-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-persistent-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-primed-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-primed-diamond-three-step-threaded
+PASS: rhocalc scheduler reachability surface-rotating-persistent-two-step-threaded
+PASS: rhocalc scheduler reachability surface-primed-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability surface-primed-diamond-three-step-threaded
+PASS: rhocalc bounded relation equivalence pure-surface-vs-core-comm
+PASS: rhocalc bounded relation equivalence surface-reflection-vs-core-reflection
+PASS: rhocalc bounded relation equivalence surface-input-guarded-vs-core-input-guarded
+PASS: rhocalc bounded relation equivalence surface-rotating-witness-vs-core-rotating-witness
+PASS: rhocalc bounded relation equivalence surface-primed-diamond-vs-core-primed-diamond
+PASS: rhocalc bounded relation equivalence core-comm-vs-quote-drop-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-zero-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-comm-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-assoc-name-equivalence
+PASS: rhocalc bounded relation equivalence diamond-path-a-vs-path-b
+PASS: rhocalc bounded relation inequivalence literal-static-drop
+PASS: rhocalc bounded bisimulation pure-surface-vs-core-comm
+PASS: rhocalc bounded bisimulation surface-reflection-vs-core-reflection
+PASS: rhocalc bounded bisimulation surface-input-guarded-vs-core-input-guarded
+PASS: rhocalc bounded bisimulation surface-rotating-witness-vs-core-rotating-witness
+PASS: rhocalc bounded bisimulation surface-primed-diamond-vs-core-primed-diamond
+PASS: rhocalc bounded bisimulation core-comm-vs-quote-drop-name-equivalence
+PASS: rhocalc bounded bisimulation scheduler-persistent-limit1-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limit3-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation core-comm-vs-alpha-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-zero-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-comm-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-assoc-name-equivalence
+PASS: rhocalc bounded bisimulation diamond-path-a-vs-path-b
+PASS: rhocalc bounded bisimulation scheduler-persistent-limit2-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limit2-canonical-vs-rotating
+PASS: rhocalc M3 overlap basic-comm
+PASS: rhocalc M3 overlap reflection-name-generation
+PASS: rhocalc M3 overlap input-guarded-unfold
+PASS: rhocalc M3 rholang-cli parser/oracle selftest
+PASS: rhocalc M3 may/must frontier pipeline-forward-empty
+PASS: rhocalc M3 may/must frontier fanout-empty
+PASS: rhocalc M3 may/must frontier comm-contention-two-outputs
+PASS: rhocalc M3 may/must frontier metta-certificate-quorum
+PASS: rhocalc M3 may/must frontier metta-demand-index
+PASS: rhocalc M3 may/must frontier metta-fanout
+PASS: rhocalc M3 may/must frontier metta-comm-contention
+PASS: rhocalc M3 may/must frontier metta-indexed-demand
+PASS: rhocalc M3 may/must frontier metta-pipeline-forward
+PASS: rhocalc M3 may/must frontier metta-route-policy
+PASS: rhocalc M3 may/must frontier metta-route-synthesis
+PASS: rhocalc M3 may/must frontier metta-registry-lookup
+PASS: rhocalc M3 may/must frontier metta-conditional-route
+PASS: rhocalc M3 may/must frontier metta-computed-payload
+PASS: rhocalc M3 may/must frontier metta-iterated-workload
+PASS: rhocalc M3 may/must frontier metta-private-channel
+PASS: rhocalc M3 may/must frontier metta-fresh-extrusion
+PASS: rhocalc M3 may/must frontier metta-private-session
+PASS: rhocalc M3 may/must frontier metta-space-registry
+PASS: rhocalc M3 may/must frontier metta-threshold-quorum
+PASS: rhocalc M3 may/must frontier metta-reflection-loader
+PASS: rhocalc M3 may/must frontier metta-finite-replication
+PASS: rhocalc M3 may/must frontier metta-private-no-leak
+PASS: rhocalc M3 may/must frontier metta-job-queue-collector
+PASS: rhocalc M3 may/must frontier paper-reflection-name-generation
+PASS: rhocalc M3 may/must frontier paper-input-guarded-replication
+SKIP: rhocalc M3 rholang-cli overlap (set RHOLANG_CLI or install rholang-cli)
+PASS: rhocalc lib/rho surface tests/test_lts_surface.metta
+PASS: rhocalc lib/rho surface tests/test_rho_lib_surface.metta
+PASS: rhocalc lib/rho surface tests/test_rho_lib_hygiene_surface.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_lib_surface.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_isolation_oracle.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_demo_dedfarm.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_demo_revision.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_demo_mayset.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_demo_ecan.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_surface.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_surface.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_causal_trace.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_parallel_branches.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_search_budget.metta
+PASS: rhocalc tiny oracle core-comm
+PASS: rhocalc tiny oracle branching-relation
+PASS: rhocalc tiny oracle multistep-diamond-setup
+PASS: rhocalc tiny oracle multistep-diamond-path-a
+PASS: rhocalc tiny oracle multistep-diamond-path-b
+PASS: rhocalc tiny oracle self-recreation
+PASS: rhocalc tiny oracle no-reduction-under-recv
+PASS: rhocalc tiny oracle no-reduction-inside-quote
+PASS: rhocalc tiny oracle open-name-variable
+PASS: rhocalc tiny oracle open-quoted-name
+PASS: rhocalc tiny oracle free-drop-is-stuck
+PASS: rhocalc tiny oracle quiescent-nil
+PASS: rhocalc tiny oracle stuck-pending-send
+PASS: rhocalc tiny oracle stuck-pending-receive
+SKIP: rhocalc lean trace bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+SKIP: rhocalc cost lean bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+SKIP: cost-rho differential harness (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+SKIP: rhocalc lean microcheck (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+PASS: rhocalc lib/rho hygiene
+PASS: rhocalc old step surface purged
+PASS: rhocalc de-step allow-list surface
+PASS: rhocalc translate rho -> mrho
+PASS: rhocalc translate mrho -> rho
+PASS: rhocalc translate alpha mrho -> mrho
+PASS: rhocalc translate alpha mrho -> rho
+PASS: rhocalc translate shadow rho -> mrho
+---
+253 passed, 0 failed
+Traceback (most recent call last):
+  File "/home/openclaw/research-agent/projects/mettadinc/repos/cetta/scripts/test_he_compat_catalog_guards.py", line 175, in <module>
+    raise SystemExit(main())
+  File "/home/openclaw/research-agent/projects/mettadinc/repos/cetta/scripts/test_he_compat_catalog_guards.py", line 159, in main
+    module = load_generator()
+  File "/home/openclaw/research-agent/projects/mettadinc/repos/cetta/scripts/test_he_compat_catalog_guards.py", line 24, in load_generator
+    spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/home/openclaw/research-agent/projects/mettadinc/repos/cetta/scripts/build_he_compat_catalog.py", line 31, in <module>
+    METTAPEDIA = discover_mettapedia_root()
+  File "/home/openclaw/research-agent/projects/mettadinc/repos/cetta/scripts/mettapedia_paths.py", line 36, in discover_mettapedia_root
+    return _resolve_first_existing(
+  File "/home/openclaw/research-agent/projects/mettadinc/repos/cetta/scripts/mettapedia_paths.py", line 29, in _resolve_first_existing
+    raise FileNotFoundError(f"unable to locate {label}; tried: {joined}")
+FileNotFoundError: unable to locate Mettapedia Lean root; tried: /home/openclaw/research-agent/projects/mettadinc/Mettapedia/lean/mettapedia
+make: *** [Makefile:8913: test-he-compat-catalog-guards] Error 1
+PASS: HE return-contract correlation (he)
+PASS: HE return-contract correlation (he-compat)
+PASS: HE return-contract correlation (he-extended)
+PASS: HE return-contract correlation (he-prime)
+PASS: HE return-contract correlation (GC relocation)
+---
+5 passed, 0 failed
+PASS: test_closed_stream_fastpath
+PASS: parse depth guard
+PASS: stdlib growth memory regression rss_kb=25700
+=== 0/147 programs diverged (macro-set != exact-set); 27 named fixtures + 120 random ===
+PASS: rhometta macro differential audit
+---
+1 passed, 0 failed
+PASS: tests/gc/test_eval_gc_adversarial.metta budget-invariance
+PASS: tests/gc/test_eval_gc_adversarial.metta eval-hashcons guard
+PASS: tests/gc/test_eval_gc_indirect_state_stream.metta budget-invariance
+PASS: tests/gc/test_eval_gc_indirect_state_stream.metta eval-hashcons guard
+PASS: tests/gc/test_eval_gc_nested_outcome_roots.metta budget-invariance
+PASS: tests/gc/test_eval_gc_nested_outcome_roots.metta eval-hashcons guard
+PASS: GC adversarial audit
+(ListLaneGateSummary 47 47 0)
+(SyntaxLaneGateSummary 23 23 0)
+PASS: shared lib_prolog surface in HE, Prime, and PeTTa
+PASS: optional PeTTa/libpl boundary invariants
+PASS: native PeTTa process_metta_string
+(MatchDecisionPolicyV1Summary 4 4 0)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_match_decision.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_match_decision.python.prime-need-heap-index.prime-eval-stack.o tests/support/test_match_decision.c
+PASS: revision-pinned ordered MatchDecision oracle
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_petta_search_machine.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_petta_search_machine.python.prime-need-heap-index.prime-eval-stack.o tests/support/test_petta_search_machine.c
+PASS: all 14 PeTTa capability clusters have positive and negative executable contracts
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_petta_specializer_prepare.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_petta_specializer_prepare.python.prime-need-heap-index.prime-eval-stack.o tests/test_petta_specializer_prepare.c
+PASS: specializer prepare boundary (7 checks)
+PASS: PeTTa specializer boundary and route cache preserve exact answers
+/bin/bash: line 21: 2147459 Aborted                 (core dumped) "$mutation_dir/test-source-memo-ignore-arena-reset" > /dev/null 2>&1
+PASS: source-AtomId memo rejects stale entries after arena reset
+PASS: PeTTa MAM contender mutations are killed
+PASS: PeTTa extended query/space algebra is executable and profile-local
+PASS: PeTTa prepared register loop preserves aliasing, ambiguity, table, and count boundaries
+PASS: PeTTa specialized recursion preserves opaque values and evaluates active constructor fields
+PASS: PeTTa opt-in memoization policy and effect boundaries
+PASS: PeTTa ground exact existence fusion and decline boundaries
+PASS: explicit PeTTa search machine
+PASS: native PeTTa machine evaluator integration
+PASS: PeTTa ordered files preserve per-file scope and working directories; other dialect argv is unchanged
+PASS: PeTTa relational control, stream bags, list length, parse-as-data, implicit spaces, shared sequencing, named state, alpha uniqueness, metatype and typed-failure policy, library descriptors, and stable term order
+.............................
+----------------------------------------------------------------------
+Ran 29 tests in 0.317s
+
+OK
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+(GsltLanguageGenerationV1Summary deterministic=1 checked-in=1 semantic-digest-closure=1 compiled-plan-closure=1 compiler-closure=1)
+gcc -O3 -Wall -Werror -std=c11 -pthread -Isrc -Iexperiments/gslt2parse_foundation/native -o runtime/finite_horn_chart_v1-python.prime-need-heap-index.prime-eval-stack \
+	experiments/gslt2parse_foundation/native/finite_horn_chart_v1.c \
+	experiments/gslt2parse_foundation/native/finite_horn_gslt_v1.c \
+	src/native_sha256.c
+(SubzeroFreeBagV1Summary substitution=1 repeated-positive=1 repeated-negative=1 ordered-environment=5 integer=1 string=1 contextual-occurrences=2 duplicate-rule-occurrences=2 application-head=1 order-invariance=1 inert-ignorance=1 data-inertness=1 unbound-template-rejected=1 one-step-observation=1 empty-expression=1 empty-template=1 opaque-ground-positive=1 opaque-ground-negative=1 opaque-ground-template=1 public-result-multiplicity=2)
+(GsltLanguageRuleMutationsV1Summary rules=37 killed=37)
+(SubzeroRealizationTriangleV1Summary native-chart=1 horn-reference=1 compiled-worklist=1 duplicate-bag=2 contextual=1 repeated-negative=1)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -o runtime/test_gslt_horn_runtime-python.prime-need-heap-index.prime-eval-stack \
+	tests/support/test_gslt_horn_runtime.c \
+	src/symbol.python.prime-need-heap-index.prime-eval-stack.o src/atom.python.prime-need-heap-index.prime-eval-stack.o src/name_key.python.prime-need-heap-index.prime-eval-stack.o src/atom_blob.python.prime-need-heap-index.prime-eval-stack.o src/abt.python.prime-need-heap-index.prime-eval-stack.o src/parser.python.prime-need-heap-index.prime-eval-stack.o src/mm2_lower.python.prime-need-heap-index.prime-eval-stack.o src/subst_tree.python.prime-need-heap-index.prime-eval-stack.o src/space.python.prime-need-heap-index.prime-eval-stack.o src/registry_resolver.python.prime-need-heap-index.prime-eval-stack.o src/space_match_backend.python.prime-need-heap-index.prime-eval-stack.o src/match.python.prime-need-heap-index.prime-eval-stack.o src/match_decision.python.prime-need-heap-index.prime-eval-stack.o src/term_canon.python.prime-need-heap-index.prime-eval-stack.o src/variant_shape.python.prime-need-heap-index.prime-eval-stack.o src/variant_instance.python.prime-need-heap-index.prime-eval-stack.o src/answer_bank.python.prime-need-heap-index.prime-eval-stack.o src/table_store.python.prime-need-heap-index.prime-eval-stack.o src/search_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_program.python.prime-need-heap-index.prime-eval-stack.o src/petta_search_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_typecheck.python.prime-need-heap-index.prime-eval-stack.o src/petta_specializer.python.prime-need-heap-index.prime-eval-stack.o src/rule_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_libpl_stub.python.prime-need-heap-index.prime-eval-stack.o src/term_universe.python.prime-need-heap-index.prime-eval-stack.o src/stats.python.prime-need-heap-index.prime-eval-stack.o src/parallel_executor.python.prime-need-heap-index.prime-eval-stack.o src/prime_need.python.prime-need-heap-index.prime-eval-stack.o src/petta_semantics.python.prime-need-heap-index.prime-eval-stack.o src/prepared_pure_machine.python.prime-need-heap-index.prime-eval-stack.o src/eval.python.prime-need-heap-index.prime-eval-stack.o src/grounded.python.prime-need-heap-index.prime-eval-stack.o src/he_typing.python.prime-need-heap-index.prime-eval-stack.o src/prime_semantics.python.prime-need-heap-index.prime-eval-stack.o src/text_source.python.prime-need-heap-index.prime-eval-stack.o src/native_handle.python.prime-need-heap-index.prime-eval-stack.o src/native_sha256.python.prime-need-heap-index.prime-eval-stack.o src/mork_space_bridge_runtime.python.prime-need-heap-index.prime-eval-stack.o src/library.python.prime-need-heap-index.prime-eval-stack.o src/langdef_pack.python.prime-need-heap-index.prime-eval-stack.o src/gslt_horn_runtime.python.prime-need-heap-index.prime-eval-stack.o src/gslt_compiled_runtime.python.prime-need-heap-index.prime-eval-stack.o src/gslt_language_runtime.python.prime-need-heap-index.prime-eval-stack.o src/generated/subzero_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/generated/zero_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/generated/zero_exp_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/he_small_step_pack.python.prime-need-heap-index.prime-eval-stack.o src/lib_parse_native_grammar.python.prime-need-heap-index.prime-eval-stack.o src/lib_parse_inference_native.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/finite_horn_gslt_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/finite_horn_ground_term_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_term_projection_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_abi_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_action_bytecode_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_native_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_lexical_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_gll_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_glr_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/regular_span_dfa_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/regular_span_nfa_v1.python.prime-need-heap-index.prime-eval-stack.o src/foreign.python.prime-need-heap-index.prime-eval-stack.o src/session.python.prime-need-heap-index.prime-eval-stack.o src/lang.python.prime-need-heap-index.prime-eval-stack.o src/rhocalc_core.python.prime-need-heap-index.prime-eval-stack.o src/rhocalc_syntax.python.prime-need-heap-index.prime-eval-stack.o src/compile.python.prime-need-heap-index.prime-eval-stack.o src/runtime.python.prime-need-heap-index.prime-eval-stack.o src/cetta_stdlib.python.prime-need-heap-index.prime-eval-stack.o native/native_modules.python.prime-need-heap-index.prime-eval-stack.o  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+(GsltHornRuntimeSummary checks=20 failures=0)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -o runtime/test_gslt_language_runtime-python.prime-need-heap-index.prime-eval-stack \
+	tests/support/test_gslt_language_runtime.c \
+	tests/generated/gslt_compiled_canary_v1.generated.c \
+	tests/generated/gslt_pipeline_canary_v1.generated.c \
+	tests/generated/metta_zero_ground_library_v1.generated.c \
+	src/symbol.python.prime-need-heap-index.prime-eval-stack.o src/atom.python.prime-need-heap-index.prime-eval-stack.o src/name_key.python.prime-need-heap-index.prime-eval-stack.o src/atom_blob.python.prime-need-heap-index.prime-eval-stack.o src/abt.python.prime-need-heap-index.prime-eval-stack.o src/parser.python.prime-need-heap-index.prime-eval-stack.o src/mm2_lower.python.prime-need-heap-index.prime-eval-stack.o src/subst_tree.python.prime-need-heap-index.prime-eval-stack.o src/space.python.prime-need-heap-index.prime-eval-stack.o src/registry_resolver.python.prime-need-heap-index.prime-eval-stack.o src/space_match_backend.python.prime-need-heap-index.prime-eval-stack.o src/match.python.prime-need-heap-index.prime-eval-stack.o src/match_decision.python.prime-need-heap-index.prime-eval-stack.o src/term_canon.python.prime-need-heap-index.prime-eval-stack.o src/variant_shape.python.prime-need-heap-index.prime-eval-stack.o src/variant_instance.python.prime-need-heap-index.prime-eval-stack.o src/answer_bank.python.prime-need-heap-index.prime-eval-stack.o src/table_store.python.prime-need-heap-index.prime-eval-stack.o src/search_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_program.python.prime-need-heap-index.prime-eval-stack.o src/petta_search_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_typecheck.python.prime-need-heap-index.prime-eval-stack.o src/petta_specializer.python.prime-need-heap-index.prime-eval-stack.o src/rule_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_libpl_stub.python.prime-need-heap-index.prime-eval-stack.o src/term_universe.python.prime-need-heap-index.prime-eval-stack.o src/stats.python.prime-need-heap-index.prime-eval-stack.o src/parallel_executor.python.prime-need-heap-index.prime-eval-stack.o src/prime_need.python.prime-need-heap-index.prime-eval-stack.o src/petta_semantics.python.prime-need-heap-index.prime-eval-stack.o src/prepared_pure_machine.python.prime-need-heap-index.prime-eval-stack.o src/eval.python.prime-need-heap-index.prime-eval-stack.o src/grounded.python.prime-need-heap-index.prime-eval-stack.o src/he_typing.python.prime-need-heap-index.prime-eval-stack.o src/prime_semantics.python.prime-need-heap-index.prime-eval-stack.o src/text_source.python.prime-need-heap-index.prime-eval-stack.o src/native_handle.python.prime-need-heap-index.prime-eval-stack.o src/native_sha256.python.prime-need-heap-index.prime-eval-stack.o src/mork_space_bridge_runtime.python.prime-need-heap-index.prime-eval-stack.o src/library.python.prime-need-heap-index.prime-eval-stack.o src/langdef_pack.python.prime-need-heap-index.prime-eval-stack.o src/gslt_horn_runtime.python.prime-need-heap-index.prime-eval-stack.o src/gslt_compiled_runtime.python.prime-need-heap-index.prime-eval-stack.o src/gslt_language_runtime.python.prime-need-heap-index.prime-eval-stack.o src/generated/subzero_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/generated/zero_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/generated/zero_exp_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/he_small_step_pack.python.prime-need-heap-index.prime-eval-stack.o src/lib_parse_native_grammar.python.prime-need-heap-index.prime-eval-stack.o src/lib_parse_inference_native.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/finite_horn_gslt_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/finite_horn_ground_term_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_term_projection_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_abi_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_action_bytecode_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_native_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_lexical_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_gll_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_glr_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/regular_span_dfa_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/regular_span_nfa_v1.python.prime-need-heap-index.prime-eval-stack.o src/foreign.python.prime-need-heap-index.prime-eval-stack.o src/session.python.prime-need-heap-index.prime-eval-stack.o src/lang.python.prime-need-heap-index.prime-eval-stack.o src/rhocalc_core.python.prime-need-heap-index.prime-eval-stack.o src/rhocalc_syntax.python.prime-need-heap-index.prime-eval-stack.o src/compile.python.prime-need-heap-index.prime-eval-stack.o src/runtime.python.prime-need-heap-index.prime-eval-stack.o src/cetta_stdlib.python.prime-need-heap-index.prime-eval-stack.o native/native_modules.python.prime-need-heap-index.prime-eval-stack.o \
+	src/he_compiled_reader.python.prime-need-heap-index.prime-eval-stack.o src/gslt_direct_reader_v1.python.prime-need-heap-index.prime-eval-stack.o src/generated/he_reader_direct_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/petta_compiled_reader.python.prime-need-heap-index.prime-eval-stack.o src/generated/petta_reader_direct_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/prime_compiled_reader.python.prime-need-heap-index.prime-eval-stack.o src/generated/prime_reader_direct_v1.generated.python.prime-need-heap-index.prime-eval-stack.o  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+(GsltLanguageRuntimeSummary checks=198 failures=0)
+(SubzeroCliV1Summary realizations=2 fixtures=8 bag=1 contextual=2 inert=2 scope=1 scalars=1 empty=1 he-isolation=1)
+PASS: staged Subzero candidate
+(GsltLanguageGenerationV1Summary deterministic=1 checked-in=1 semantic-digest-closure=1 compiled-plan-closure=1 compiler-closure=1)
+(GsltLanguageGenerationV1Summary deterministic=1 checked-in=1 semantic-digest-closure=1 compiled-plan-closure=1 compiler-closure=1)
+(GsltLanguageGenerationV1Summary deterministic=1 checked-in=1 semantic-digest-closure=1 compiled-plan-closure=1 compiler-closure=1)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -o runtime/check_mettazero_compilation_certificate_v1-python.prime-need-heap-index.prime-eval-stack \
+	tests/support/check_mettazero_compilation_certificate_v1.c \
+	src/symbol.python.prime-need-heap-index.prime-eval-stack.o src/atom.python.prime-need-heap-index.prime-eval-stack.o src/name_key.python.prime-need-heap-index.prime-eval-stack.o src/atom_blob.python.prime-need-heap-index.prime-eval-stack.o src/abt.python.prime-need-heap-index.prime-eval-stack.o src/parser.python.prime-need-heap-index.prime-eval-stack.o src/mm2_lower.python.prime-need-heap-index.prime-eval-stack.o src/subst_tree.python.prime-need-heap-index.prime-eval-stack.o src/space.python.prime-need-heap-index.prime-eval-stack.o src/registry_resolver.python.prime-need-heap-index.prime-eval-stack.o src/space_match_backend.python.prime-need-heap-index.prime-eval-stack.o src/match.python.prime-need-heap-index.prime-eval-stack.o src/match_decision.python.prime-need-heap-index.prime-eval-stack.o src/term_canon.python.prime-need-heap-index.prime-eval-stack.o src/variant_shape.python.prime-need-heap-index.prime-eval-stack.o src/variant_instance.python.prime-need-heap-index.prime-eval-stack.o src/answer_bank.python.prime-need-heap-index.prime-eval-stack.o src/table_store.python.prime-need-heap-index.prime-eval-stack.o src/search_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_program.python.prime-need-heap-index.prime-eval-stack.o src/petta_search_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_typecheck.python.prime-need-heap-index.prime-eval-stack.o src/petta_specializer.python.prime-need-heap-index.prime-eval-stack.o src/rule_machine.python.prime-need-heap-index.prime-eval-stack.o src/petta_libpl_stub.python.prime-need-heap-index.prime-eval-stack.o src/term_universe.python.prime-need-heap-index.prime-eval-stack.o src/stats.python.prime-need-heap-index.prime-eval-stack.o src/parallel_executor.python.prime-need-heap-index.prime-eval-stack.o src/prime_need.python.prime-need-heap-index.prime-eval-stack.o src/petta_semantics.python.prime-need-heap-index.prime-eval-stack.o src/prepared_pure_machine.python.prime-need-heap-index.prime-eval-stack.o src/eval.python.prime-need-heap-index.prime-eval-stack.o src/grounded.python.prime-need-heap-index.prime-eval-stack.o src/he_typing.python.prime-need-heap-index.prime-eval-stack.o src/prime_semantics.python.prime-need-heap-index.prime-eval-stack.o src/text_source.python.prime-need-heap-index.prime-eval-stack.o src/native_handle.python.prime-need-heap-index.prime-eval-stack.o src/native_sha256.python.prime-need-heap-index.prime-eval-stack.o src/mork_space_bridge_runtime.python.prime-need-heap-index.prime-eval-stack.o src/library.python.prime-need-heap-index.prime-eval-stack.o src/langdef_pack.python.prime-need-heap-index.prime-eval-stack.o src/gslt_horn_runtime.python.prime-need-heap-index.prime-eval-stack.o src/gslt_compiled_runtime.python.prime-need-heap-index.prime-eval-stack.o src/gslt_language_runtime.python.prime-need-heap-index.prime-eval-stack.o src/generated/subzero_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/generated/zero_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/generated/zero_exp_language_v1.generated.python.prime-need-heap-index.prime-eval-stack.o src/he_small_step_pack.python.prime-need-heap-index.prime-eval-stack.o src/lib_parse_native_grammar.python.prime-need-heap-index.prime-eval-stack.o src/lib_parse_inference_native.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/finite_horn_gslt_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/finite_horn_ground_term_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_term_projection_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_abi_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_action_bytecode_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_native_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_lexical_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_gll_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/parser_pack_glr_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/regular_span_dfa_v1.python.prime-need-heap-index.prime-eval-stack.o experiments/gslt2parse_foundation/native/regular_span_nfa_v1.python.prime-need-heap-index.prime-eval-stack.o src/foreign.python.prime-need-heap-index.prime-eval-stack.o src/session.python.prime-need-heap-index.prime-eval-stack.o src/lang.python.prime-need-heap-index.prime-eval-stack.o src/rhocalc_core.python.prime-need-heap-index.prime-eval-stack.o src/rhocalc_syntax.python.prime-need-heap-index.prime-eval-stack.o src/compile.python.prime-need-heap-index.prime-eval-stack.o src/runtime.python.prime-need-heap-index.prime-eval-stack.o src/cetta_stdlib.python.prime-need-heap-index.prime-eval-stack.o native/native_modules.python.prime-need-heap-index.prime-eval-stack.o  -ldl -lm -pthread -lgmp   -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.10 -lcrypt -ldl  -lm -lm  -Wl,-rpath,/usr/lib/x86_64-linux-gnu
+(GsltCompilationCertificateV1Summary profile=base deterministic=1 artifact-erasure=1 accepted=1 tamper-rejections=5)
+(GsltCompilationCertificateV1Summary profile=exp deterministic=1 artifact-erasure=1 accepted=1 tamper-rejections=5)
+(MettaZeroCompilationCertificateV1Summary profiles=2 stages=4 tamper-rejections=10 runtime-linked=0)
+(MettaZeroCliV1Summary realizations=2 fixtures=13 query=4 reflection=1 evaluation=1 inert=2 hygiene=1 reify=4)
+(MettaZeroRealizationTriangleV1Summary native-chart=1 horn-reference=1 compiled-worklist=1 classification=4 query-multiplicity=2 reflection=3 query-derived-evaluation=1 inert-completion=1 empty-query=1 reify=4 collapse-not-zero=1 ground-capability=1 semantic-runner=4 profile-isolation=1 structural-cases=20)
+(MettaZeroRuleMutationsV1Summary rules=58 killed=58)
+PASS: staged query-first MeTTa Zero candidate
+make: Target 'test-correctness' not remade because of errors.
+PASS: test manifest covers 570 top-level MeTTa tests
+PASS: test manifest has 609 rows
+PASS: no forbidden feature-availability rejection text
+PASS: he-compat git-module! surface
+---
+1 passed, 0 failed
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_fallback_eval_session.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_fallback_eval_session.python.prime-need-heap-index.prime-eval-stack.o tests/support/test_fallback_eval_session.c
+PASS: fallback eval session leaves uninterpreted extension call inert
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_he_compiled_reader_v1.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_he_compiled_reader_v1.python.prime-need-heap-index.prime-eval-stack.o tests/support/test_he_compiled_reader_v1.c
+(HECompiledReaderV1Summary 47 47 0 routed-text 1 routed-file 1)
+PASS: all four HE profiles select the compiled LanguageDef reader
+PASS: checked-in PeTTa direct reader regenerates byte-for-byte
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_petta_compiled_reader_v1.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_petta_compiled_reader_v1.python.prime-need-heap-index.prime-eval-stack.o tests/support/test_petta_compiled_reader_v1.c
+(PeTTaCompiledReaderV1Summary 24 24 0 source-pass 1 two-stage 1)
+PASS: --lang petta owns compiled text/file parsing and remains distinct from HE and Prime
+PASS: checked-in Prime direct reader regenerates byte-for-byte
+(GSLTPrefixReaderCompilerV1Summary 3 5 0)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native  -I/usr/include/python3.10 -I/usr/include/python3.10     -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.python.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_prime_compiled_reader_v1.python.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_prime_compiled_reader_v1.python.prime-need-heap-index.prime-eval-stack.o tests/support/test_prime_compiled_reader_v1.c
+(PrimeCompiledReaderV1Summary 89 89 0 cases 39)
+PASS: --lang prime owns its compiled reader and remains distinct from HE profiles
+PASS: default relative import mode stays local
+PASS: ancestor-walk import mode finds parent helper
+PASS: module inventory reports import mode
+PASS: premise-cap-one mutation is killed by proof-enumeration gates
+PASS: implicit-scheme mutation is killed by rigid-variable gates
+PASS: dependent-binders (independent lane contracts)
+PASS: type-formation (independent lane contracts)
+PASS: dtt-typed-corpus (independent lane contracts)
+PASS: dtt-tutorial-ladder (independent lane contracts)
+PASS: recursive-search (independent lane contracts)
+PASS: dtt-chainer-showcase (independent lane contracts)
+PASS: dtt-adversarial (independent lane contracts)
+PASS: search-enumeration (independent lane contracts)
+PASS: explicit-schemes (independent lane contracts)
+PASS: search-fuel-prefix (independent lane contracts)
+PASS: search-unbounded (independent lane contracts)
+PASS: search-pln-multi (independent lane contracts)
+PASS: shared-type-level-query (independent lane contracts)
+PASS: typed-equality-boundary (independent lane contracts)
+PASS: language-identity (independent lane contracts)
+PASS: normative test-prime target is --lang prime only
+Prime/HE-prime ownership gate: 16 passed, 0 failed
+PASS: HE profile he unchanged by Prime Need
+PASS: HE profile he-compat unchanged by Prime Need
+PASS: HE profile he-extended unchanged by Prime Need
+PASS: HE profile he-prime unchanged by Prime Need
+PASS: profile inventory
+PASS: PeTTa extended profile inventory
+PASS: he base leaves uninterpreted extension calls inert
+PASS: mm2 has no named profiles
+PASS: mm2 rejects foreign profiles
+PASS: rhocalc profile inventory
+PASS: rhocalc strict-core profile
+PASS: rhocalc cost profile slice
+PASS: he-extended lts:he surface
+PASS: formal he eval surface
+PASS: formal he no-return surface
+PASS: formal he documentation surface
+PASS: he-compat import modules
+PASS: he-extended import modules
+PASS: he-prime import modules
+PASS: he-extended count-atoms extension
+PASS: he-compat count-atoms Rust-inert surface
+PASS: he-compat new-space kind overload is hidden
+PASS: he-compat bind! propagates generated initializer errors
+PASS: assertion diagnostics handle large failure terms
+PASS: he-extended new-space kind overload is visible
+PASS: he-compat core-surface extensions are hidden
+PASS: he-compat filter-atom helper overload is hidden
+PASS: he-compat include target overload is hidden
+PASS: he-compat include Rust result surface
+PASS: he-compat if two-argument extension is hidden
+PASS: he-compat numeric Rust behavior
+PASS: he-compat math-domain Rust behavior
+PASS: he-compat parse Rust surface
+PASS: formal he numeric surface
+PASS: he-compat get-doc Rust surface
+PASS: formal he get-doc surface
+PASS: he-extended get-doc surface
+PASS: he-extended size extension
+PASS: he-compat size Rust-inert surface
+PASS: he-compat size compile leaves extension call inert
+PASS: he-extended size compile
+PASS: he-extended foldl-atom-in-space extension
+PASS: he-compat foldl-atom-in-space Rust-inert surface
+PASS: he-compat foldl-atom Rust core surface
+PASS: he-extended collect extension
+PASS: he-compat collect Rust-inert surface
+PASS: he-extended select extension
+PASS: he-compat select Rust-inert surface
+PASS: he-extended fold extension
+PASS: he-compat fold Rust-inert surface
+PASS: he-extended fold-by-key extension
+PASS: he-compat fold-by-key Rust-inert surface
+PASS: he-extended reduce extension
+PASS: he-compat reduce Rust-inert surface
+PASS: he-extended runtime-stats extension
+PASS: he-compat runtime-stats Rust-inert surface
+PASS: he-extended once alias
+PASS: he-compat once Rust-inert surface
+PASS: he-extended hyperpose extension
+PASS: he-prime hyperpose extension
+PASS: he-compat hyperpose non-reduction
+PASS: he-compat inactive hyperpose arguments stay unevaluated
+PASS: he base hyperpose non-reduction
+PASS: he-compat compile hyperpose pass-through
+PASS: he-extended compile hyperpose
+PASS: he-extended hyperpose CLI threads
+PASS: he-extended search-policy capability
+PASS: he-compat search-policy Rust-inert surface
+PASS: he-compat compile search-policy leaves extension call inert
+PASS: he-extended compile search-policy
+PASS: he-extended space-set-match-backend! extension
+PASS: he-compat space-set-match-backend! Rust-inert surface
+PASS: he-compat compile space-set-match-backend! leaves extension call inert
+PASS: he-extended compile space-set-match-backend!
+PASS: he-compat compile count-atoms leaves extension call inert
+PASS: he-extended compile extension
+PASS: he-compat compile collect leaves extension call inert
+PASS: he-extended compile collect
+PASS: he-compat compile select leaves extension call inert
+PASS: he-extended compile select
+PASS: he-compat compile fold leaves extension call inert
+PASS: he-extended compile fold
+PASS: he-compat compile fold-by-key leaves extension call inert
+PASS: he-extended compile fold-by-key
+PASS: he-compat compile reduce leaves extension call inert
+PASS: he-extended compile reduce
+PASS: he-compat compile runtime-stats leaves extension call inert
+PASS: he-extended compile runtime-stats
+PASS: he-extended module-inventory extension
+PASS: he-compat module-inventory Rust-inert surface
+PASS: he-compat system capability
+PASS: he-compat compile system capability
+PASS: he-extended system capability
+PASS: he-extended compile system capability
+PASS: he-prime system capability
+PASS: he-prime compile system capability
+PASS: he-compat fs capability
+PASS: he-compat compile fs capability
+PASS: he-extended fs capability
+PASS: he-extended compile fs capability
+PASS: he-prime fs capability
+PASS: he-prime compile fs capability
+PASS: he-compat str capability
+PASS: he-compat compile str capability
+PASS: he-extended str capability
+PASS: he-extended compile str capability
+PASS: he-prime str capability
+PASS: he-prime compile str capability
+PASS: he shared HE typing conformance
+PASS: he-compat shared HE typing conformance
+PASS: he-extended shared HE typing conformance
+PASS: he-prime shared HE typing conformance
+PASS: he leaves type-level user computation residual
+PASS: he leaves he-prime extensions inert
+PASS: he-compat leaves type-level user computation residual
+PASS: he-compat leaves he-prime extensions inert
+PASS: he-extended leaves type-level user computation residual
+PASS: he-extended leaves he-prime extensions inert
+PASS: he-prime normal get-type performs checked type-level computation
+PASS: he-extended keeps literal binder-domain behavior
+PASS: he-prime dependent binder telescope
+PASS: he-prime declared-constructor type formation
+PASS: he-prime DTT typed seed corpus
+PASS: he-prime DTT tutorial ladder
+PASS: he-prime recursive dependent search
+PASS: he-prime structural == policy
+PASS: he-prime DTT-chainer showcase
+PASS: he-prime DTT discipline adversarial negatives
+PASS: he-prime finite-fixture typed-search enumeration
+PASS: he-prime explicit schemes and elaboration receipts
+PASS: he-prime typed-search fuel-prefix preservation
+PASS: he-prime recursive PLN multi-answer prefix
+PASS: he leaves he-prime typed search inert
+PASS: he-compat leaves he-prime typed search inert
+PASS: he-extended leaves he-prime typed search inert
+PASS: he-compat module-inventory compile leaves extension call inert
+PASS: he-extended compile module-inventory
+---
+133 passed, 0 failed
+EXIT=2 SECS=283

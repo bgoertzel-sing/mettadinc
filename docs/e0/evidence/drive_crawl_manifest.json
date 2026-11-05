@@ -1,0 +1,1446 @@
+[
+ {
+  "kind": "folder",
+  "id": "19N7lojqSWhkRHWnCwETbtMUuqiTHV2m-",
+  "path": "01_language_specification",
+  "url": "https://drive.google.com/drive/folders/19N7lojqSWhkRHWnCwETbtMUuqiTHV2m-"
+ },
+ {
+  "kind": "folder",
+  "id": "1Wex8O9dcmurryZ1u1ZHHmR_61DB-tzyW",
+  "path": "01_language_specification/validation_package",
+  "url": "https://drive.google.com/drive/folders/1Wex8O9dcmurryZ1u1ZHHmR_61DB-tzyW"
+ },
+ {
+  "kind": "folder",
+  "id": "1WJF8k32-k2swl4k2Zggyd3apVIqX_BWe",
+  "path": "01_language_specification/validation_package/fixtures",
+  "url": "https://drive.google.com/drive/folders/1WJF8k32-k2swl4k2Zggyd3apVIqX_BWe"
+ },
+ {
+  "kind": "file",
+  "id": "1RAhUKMtgONdUC8vGqrp782JM4YNL1hUO",
+  "path": "01_language_specification/validation_package/fixtures/access_protocol.metta",
+  "url": "https://drive.google.com/file/d/1RAhUKMtgONdUC8vGqrp782JM4YNL1hUO/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "19FyxV7bP93f2Jr-YYtB3ZLCA8Ew1tow-",
+  "path": "01_language_specification/validation_package/fixtures/affine_contracts.metta",
+  "url": "https://drive.google.com/file/d/19FyxV7bP93f2Jr-YYtB3ZLCA8Ew1tow-/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1f55RMTLJpvMvDUUWTHG8x3w1HdKz2hUZ",
+  "path": "01_language_specification/validation_package/fixtures/arithmetic_probes.metta",
+  "url": "https://drive.google.com/file/d/1f55RMTLJpvMvDUUWTHG8x3w1HdKz2hUZ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1PxvS8sG26Mq-EW691xywoykixo7zz9nS",
+  "path": "01_language_specification/validation_package/fixtures/availability.metta",
+  "url": "https://drive.google.com/file/d/1PxvS8sG26Mq-EW691xywoykixo7zz9nS/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1xBXxawj84RNHFMZrT3kNkvO_xCLgr02b",
+  "path": "01_language_specification/validation_package/fixtures/certificate_limits.metta",
+  "url": "https://drive.google.com/file/d/1xBXxawj84RNHFMZrT3kNkvO_xCLgr02b/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1C-2SX6tlEHbuxXk9hzzWgLsjmsmgRKFw",
+  "path": "01_language_specification/validation_package/fixtures/eight_state.metta",
+  "url": "https://drive.google.com/file/d/1C-2SX6tlEHbuxXk9hzzWgLsjmsmgRKFw/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1C4aZHGQXw8s5e2hN4RXC_FeAXBFX_MNQ",
+  "path": "01_language_specification/validation_package/fixtures/evolution_archive.metta",
+  "url": "https://drive.google.com/file/d/1C4aZHGQXw8s5e2hN4RXC_FeAXBFX_MNQ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Reip6zKaoNxXNM3Qj9RB4kMUj0u0Bggl",
+  "path": "01_language_specification/validation_package/fixtures/forty_bits.metta",
+  "url": "https://drive.google.com/file/d/1Reip6zKaoNxXNM3Qj9RB4kMUj0u0Bggl/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1ptZzvCRxsKYsjzBono2ib6C6ndUHJkRp",
+  "path": "01_language_specification/validation_package/fixtures/graded_closure.metta",
+  "url": "https://drive.google.com/file/d/1ptZzvCRxsKYsjzBono2ib6C6ndUHJkRp/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1MOdQEAUjriljaGvhPFwpkbLsYL1-YKAv",
+  "path": "01_language_specification/validation_package/fixtures/hyperseed_methods.metta",
+  "url": "https://drive.google.com/file/d/1MOdQEAUjriljaGvhPFwpkbLsYL1-YKAv/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "150XECCwGukkBc_5zxBJJ2jvOsISlnjRd",
+  "path": "01_language_specification/validation_package/fixtures/hypotheses.metta",
+  "url": "https://drive.google.com/file/d/150XECCwGukkBc_5zxBJJ2jvOsISlnjRd/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1K8n2hekJshuHWnVX8KVSpGYs-hB1vQye",
+  "path": "01_language_specification/validation_package/fixtures/linear_composition.metta",
+  "url": "https://drive.google.com/file/d/1K8n2hekJshuHWnVX8KVSpGYs-hB1vQye/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1waOe6yVaRw5ci4xdlOwbmo7-tF-yiuMx",
+  "path": "01_language_specification/validation_package/fixtures/neural_audit.metta",
+  "url": "https://drive.google.com/file/d/1waOe6yVaRw5ci4xdlOwbmo7-tF-yiuMx/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1RLxMvCpY-xgiExQ-w7mzKwlYiNiUUE81",
+  "path": "01_language_specification/validation_package/fixtures/parity_triangle.metta",
+  "url": "https://drive.google.com/file/d/1RLxMvCpY-xgiExQ-w7mzKwlYiNiUUE81/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1otHwm8q-etZj3vEA9MYdBZkL2Mg5QBmW",
+  "path": "01_language_specification/validation_package/fixtures/patterns.metta",
+  "url": "https://drive.google.com/file/d/1otHwm8q-etZj3vEA9MYdBZkL2Mg5QBmW/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1iRr1z0WrAdKlVw3skOIj0v2DDN-ULNeX",
+  "path": "01_language_specification/validation_package/fixtures/reads.metta",
+  "url": "https://drive.google.com/file/d/1iRr1z0WrAdKlVw3skOIj0v2DDN-ULNeX/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1AWhcAmEWHznZEu_UUxCfCiI1K7A_4Rum",
+  "path": "01_language_specification/validation_package/fixtures/receipt_packets.metta",
+  "url": "https://drive.google.com/file/d/1AWhcAmEWHznZEu_UUxCfCiI1K7A_4Rum/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1jlnWsBODR6Cgtx0TQjY9xd1_CXSZon02",
+  "path": "01_language_specification/validation_package/fixtures/regime_repair.metta",
+  "url": "https://drive.google.com/file/d/1jlnWsBODR6Cgtx0TQjY9xd1_CXSZon02/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1u6FzPxfgBHy3wPJ1eKNhYhh48utGu-nO",
+  "path": "01_language_specification/validation_package/fixtures/seven_state.metta",
+  "url": "https://drive.google.com/file/d/1u6FzPxfgBHy3wPJ1eKNhYhh48utGu-nO/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1GctCLjZ6xy5WqgcnF-5RVScrGmvEHuHW",
+  "path": "01_language_specification/validation_package/fixtures/skill_hive.metta",
+  "url": "https://drive.google.com/file/d/1GctCLjZ6xy5WqgcnF-5RVScrGmvEHuHW/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1mPi0uIOPs11Waz5UmhkchgEIz12H8sYI",
+  "path": "01_language_specification/validation_package/fixtures/snapshot_receipts.metta",
+  "url": "https://drive.google.com/file/d/1mPi0uIOPs11Waz5UmhkchgEIz12H8sYI/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1qaIxG0ihaAe5sR1BW52y0F5Y_v3-VLXQ",
+  "path": "01_language_specification/validation_package/oracle",
+  "url": "https://drive.google.com/drive/folders/1qaIxG0ihaAe5sR1BW52y0F5Y_v3-VLXQ"
+ },
+ {
+  "kind": "file",
+  "id": "1762KoOlwteqWMd43XfbD3ztQ3ua1Dssw",
+  "path": "01_language_specification/validation_package/oracle/mettadinc_oracle_results.json",
+  "url": "https://drive.google.com/file/d/1762KoOlwteqWMd43XfbD3ztQ3ua1Dssw/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1nl8_PDYWlcqKW4SkWEoMz1aufYf9GOIg",
+  "path": "01_language_specification/validation_package/oracle/oracle_report.txt",
+  "url": "https://drive.google.com/file/d/1nl8_PDYWlcqKW4SkWEoMz1aufYf9GOIg/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "11ImQhectF41w8fj_ngIOxGkccO1Vzx2I",
+  "path": "01_language_specification/validation_package/oracle/verify_mettadinc.py",
+  "url": "https://drive.google.com/file/d/11ImQhectF41w8fj_ngIOxGkccO1Vzx2I/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1OFrbpuwGs315ztGTJQ47EU4Tpqur0_W4",
+  "path": "01_language_specification/validation_package/registry",
+  "url": "https://drive.google.com/drive/folders/1OFrbpuwGs315ztGTJQ47EU4Tpqur0_W4"
+ },
+ {
+  "kind": "file",
+  "id": "1l9-W7GhBHx-xgn-8CrK3zu6GMgZlWtPZ",
+  "path": "01_language_specification/validation_package/registry/mettadinc_registry.json",
+  "url": "https://drive.google.com/file/d/1l9-W7GhBHx-xgn-8CrK3zu6GMgZlWtPZ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1j1AWcxuN1r0wiWhPtXY0uItpbh_dgsCu",
+  "path": "01_language_specification/validation_package/check_fixtures.py",
+  "url": "https://drive.google.com/file/d/1j1AWcxuN1r0wiWhPtXY0uItpbh_dgsCu/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1MEo5l9KRk2McE0U0FRmSo25HB7fCBlil",
+  "path": "01_language_specification/validation_package/DEPENDENCIES.json",
+  "url": "https://drive.google.com/file/d/1MEo5l9KRk2McE0U0FRmSo25HB7fCBlil/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1EbyYYCLGXqdYUwWV9msgXa2xtoKyO0JO",
+  "path": "01_language_specification/validation_package/manifest.json",
+  "url": "https://drive.google.com/file/d/1EbyYYCLGXqdYUwWV9msgXa2xtoKyO0JO/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1AiWcvtvHnCVClvV2CR1z8DAjQWJ8wlBd",
+  "path": "01_language_specification/validation_package/README.txt",
+  "url": "https://drive.google.com/file/d/1AiWcvtvHnCVClvV2CR1z8DAjQWJ8wlBd/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1zRkY6sbRLIZaoXkpp4lYRN36JG5A6O0t",
+  "path": "01_language_specification/mettadinc_language_spec.pdf",
+  "url": "https://drive.google.com/file/d/1zRkY6sbRLIZaoXkpp4lYRN36JG5A6O0t/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1baDwVdbOMbkGv2B1TpU1pLg0_9Sypn6w",
+  "path": "01_language_specification/mettadinc_language_spec.tex",
+  "url": "https://drive.google.com/file/d/1baDwVdbOMbkGv2B1TpU1pLg0_9Sypn6w/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1wmJNMigwYU2dIY12c47y0f2OXUkJWpKy",
+  "path": "02_cetta_implementation_guide",
+  "url": "https://drive.google.com/drive/folders/1wmJNMigwYU2dIY12c47y0f2OXUkJWpKy"
+ },
+ {
+  "kind": "file",
+  "id": "1p3i8wGC_U4Hufr9-R7lhM0PoAcTbTW6e",
+  "path": "02_cetta_implementation_guide/mettadinc_cetta_implementation_guide.pdf",
+  "url": "https://drive.google.com/file/d/1p3i8wGC_U4Hufr9-R7lhM0PoAcTbTW6e/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1lN9jHDbm7Aq5FkeDuxbQHFSoqFsFKscb",
+  "path": "02_cetta_implementation_guide/mettadinc_cetta_implementation_guide.tex",
+  "url": "https://drive.google.com/file/d/1lN9jHDbm7Aq5FkeDuxbQHFSoqFsFKscb/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "121QafVjOg5RmAfmA65flStM_fu4Ac5Xg",
+  "path": "03_four_worked_examples",
+  "url": "https://drive.google.com/drive/folders/121QafVjOg5RmAfmA65flStM_fu4Ac5Xg"
+ },
+ {
+  "kind": "folder",
+  "id": "14DHa1phoH7BrlSm6EgxW3SqOKmLVr9UN",
+  "path": "03_four_worked_examples/validation_bundles",
+  "url": "https://drive.google.com/drive/folders/14DHa1phoH7BrlSm6EgxW3SqOKmLVr9UN"
+ },
+ {
+  "kind": "folder",
+  "id": "1Z2QXo-4XxbKf94_7fSLnzA5Vkt_ySHZn",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory",
+  "url": "https://drive.google.com/drive/folders/1Z2QXo-4XxbKf94_7fSLnzA5Vkt_ySHZn"
+ },
+ {
+  "kind": "file",
+  "id": "1S1carrvI_KsHy3UFvXtjnNFF3nLUXpdg",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/belief_memory.metta",
+  "url": "https://drive.google.com/file/d/1S1carrvI_KsHy3UFvXtjnNFF3nLUXpdg/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "16arYq_b3VDZVjgnSOgArPhbq_p9RDx-k",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/ex1_obligations.tar.xz",
+  "url": "https://drive.google.com/file/d/16arYq_b3VDZVjgnSOgArPhbq_p9RDx-k/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1wg4IdTzC2nUrLLTRlLCKzgGC_o90pSNj",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/ex1_oracle.py",
+  "url": "https://drive.google.com/file/d/1wg4IdTzC2nUrLLTRlLCKzgGC_o90pSNj/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1qvL3kj7akIo0I910wGqfHILCSkHHj-Ju",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/ex1_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1qvL3kj7akIo0I910wGqfHILCSkHHj-Ju/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "11g49jwOMEuerAlLa8G9EmxnWrxnh1nsG",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/ex1_results.json",
+  "url": "https://drive.google.com/file/d/11g49jwOMEuerAlLa8G9EmxnWrxnh1nsG/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1WGnYUrfIOIMEuY3SSU4XCrRcXdxxmWza",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/ex1lib.py",
+  "url": "https://drive.google.com/file/d/1WGnYUrfIOIMEuY3SSU4XCrRcXdxxmWza/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1EGAMYQONq1RpkGVV7Ulu7Nktl58WcACi",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/ex_check.py",
+  "url": "https://drive.google.com/file/d/1EGAMYQONq1RpkGVV7Ulu7Nktl58WcACi/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1uHwWlh1OBFMdDbJnlpOk_UhcTzvWb3dP",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/metta_eval.py",
+  "url": "https://drive.google.com/file/d/1uHwWlh1OBFMdDbJnlpOk_UhcTzvWb3dP/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1PKOjn5TJf3NOHcQ-cE8pstdCvTb85w5A",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/README.txt",
+  "url": "https://drive.google.com/file/d/1PKOjn5TJf3NOHcQ-cE8pstdCvTb85w5A/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1PqGDkCcZlbMhjNin9iC0EDqkwxk_0A87",
+  "path": "03_four_worked_examples/validation_bundles/ex1_belief_memory/replay_proofs.py",
+  "url": "https://drive.google.com/file/d/1PqGDkCcZlbMhjNin9iC0EDqkwxk_0A87/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1lrNoykjTkHKnAez5xLsxOIJ4OHdv8-F5",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy",
+  "url": "https://drive.google.com/drive/folders/1lrNoykjTkHKnAez5xLsxOIJ4OHdv8-F5"
+ },
+ {
+  "kind": "file",
+  "id": "1byNPR8evipuv5CjPOlKG29U8dKYBchN4",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/access_policy.metta",
+  "url": "https://drive.google.com/file/d/1byNPR8evipuv5CjPOlKG29U8dKYBchN4/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Psozt-zD0S0dst6jiiiEAG95a2YTY5Oj",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/bdd_reach.py",
+  "url": "https://drive.google.com/file/d/1Psozt-zD0S0dst6jiiiEAG95a2YTY5Oj/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1vqYF26eXVwN__VGMaQiF7rCBVHvLsFOc",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/circuits.py",
+  "url": "https://drive.google.com/file/d/1vqYF26eXVwN__VGMaQiF7rCBVHvLsFOc/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "16TPCBLmbzxJOoAntnCmdS29yj4RMlC3c",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/ex2_obligations.tar.xz",
+  "url": "https://drive.google.com/file/d/16TPCBLmbzxJOoAntnCmdS29yj4RMlC3c/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1_5LAcwDaZRHsK4Ea4re40DGmBxs1p2NZ",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/ex2_oracle.py",
+  "url": "https://drive.google.com/file/d/1_5LAcwDaZRHsK4Ea4re40DGmBxs1p2NZ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "11pkmVgaxZRYIO1LZNfNbjGdCGiHSXDtb",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/ex2_registry_patch.json",
+  "url": "https://drive.google.com/file/d/11pkmVgaxZRYIO1LZNfNbjGdCGiHSXDtb/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1G3b6HFdVeKMSvoqzzG9Iq0j2LQGjX6QC",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/ex2_results.json",
+  "url": "https://drive.google.com/file/d/1G3b6HFdVeKMSvoqzzG9Iq0j2LQGjX6QC/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1ke2zxMcmo8UOwF4glCAdbP4u3Bv4q7VU",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/ex_check.py",
+  "url": "https://drive.google.com/file/d/1ke2zxMcmo8UOwF4glCAdbP4u3Bv4q7VU/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Efxe6Sy_90EM0fTK7PABAKm3ErLClQS8",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/obligations.py",
+  "url": "https://drive.google.com/file/d/1Efxe6Sy_90EM0fTK7PABAKm3ErLClQS8/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1ojFsmAw9QB7gU78NKJuTg0LF1geaeg7N",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/policy_ir.py",
+  "url": "https://drive.google.com/file/d/1ojFsmAw9QB7gU78NKJuTg0LF1geaeg7N/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1pFIuuFEczkSbWd39STYjYphCSUZO5Y1k",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/rbac.py",
+  "url": "https://drive.google.com/file/d/1pFIuuFEczkSbWd39STYjYphCSUZO5Y1k/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "15bElryfMamxk52rK08srvFMUo6GgkZRa",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/README.txt",
+  "url": "https://drive.google.com/file/d/15bElryfMamxk52rK08srvFMUo6GgkZRa/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "18okDlQcEIJ3rA3caKaEuAGQ3XW6zp9hj",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/replay_proofs.py",
+  "url": "https://drive.google.com/file/d/18okDlQcEIJ3rA3caKaEuAGQ3XW6zp9hj/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1AgPcPkWHeZjyxlTYveusvli1U56QYxTc",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/sat_obligations.py",
+  "url": "https://drive.google.com/file/d/1AgPcPkWHeZjyxlTYveusvli1U56QYxTc/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1rAqFq23USguq3OxTUCC7aHJO_-GLhraa",
+  "path": "03_four_worked_examples/validation_bundles/ex2_access_policy/validate_small_lib.py",
+  "url": "https://drive.google.com/file/d/1rAqFq23USguq3OxTUCC7aHJO_-GLhraa/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1rEE0l-FON4AiKBjoPtI39igRZbUjErzZ",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share",
+  "url": "https://drive.google.com/drive/folders/1rEE0l-FON4AiKBjoPtI39igRZbUjErzZ"
+ },
+ {
+  "kind": "file",
+  "id": "1kBwWUy4MlgZgIJZJKCvhzccuWsIaBD8D",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/d4.py",
+  "url": "https://drive.google.com/file/d/1kBwWUy4MlgZgIJZJKCvhzccuWsIaBD8D/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1No2yAFOwRKzuBK0uPY6p9cXQQzKH57IT",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/ex1_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1No2yAFOwRKzuBK0uPY6p9cXQQzKH57IT/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1EDT9ru7tzZPh4QSH8bZRvY6wmibGv6up",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/ex3_oracle.py",
+  "url": "https://drive.google.com/file/d/1EDT9ru7tzZPh4QSH8bZRvY6wmibGv6up/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Q-jVAvdbATdoZivvNbltgtBUNT-kjyzg",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/ex3_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1Q-jVAvdbATdoZivvNbltgtBUNT-kjyzg/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1FRG2HnTFdiHr3MDZG-_HiwVBcAvi2WsH",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/ex3_results.json",
+  "url": "https://drive.google.com/file/d/1FRG2HnTFdiHr3MDZG-_HiwVBcAvi2WsH/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "10F5yicemE62oUQVFZ5Gyje5Tco50wki0",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/ex_check.py",
+  "url": "https://drive.google.com/file/d/10F5yicemE62oUQVFZ5Gyje5Tco50wki0/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1GoWiyBIFvEkzlMiLf5Ffu7mtPIj71TVJ",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/hive.py",
+  "url": "https://drive.google.com/file/d/1GoWiyBIFvEkzlMiLf5Ffu7mtPIj71TVJ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "146INk1L8vGaXquejub80d2v4gyTu_VPQ",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/metta_eval.py",
+  "url": "https://drive.google.com/file/d/146INk1L8vGaXquejub80d2v4gyTu_VPQ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1NOk9Pjsd_qh3CqSCXtSv8D5HKMfwI6bg",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/README.txt",
+  "url": "https://drive.google.com/file/d/1NOk9Pjsd_qh3CqSCXtSv8D5HKMfwI6bg/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "10pT2atnRubyo5SZiwlkX7DKvek7zQMJZ",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/robots.py",
+  "url": "https://drive.google.com/file/d/10pT2atnRubyo5SZiwlkX7DKvek7zQMJZ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1EFOW0rzl1Wc-TtfI_o1m2qgzRhjVE7am",
+  "path": "03_four_worked_examples/validation_bundles/ex3_skill_share/skill_share.metta",
+  "url": "https://drive.google.com/file/d/1EFOW0rzl1Wc-TtfI_o1m2qgzRhjVE7am/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1kOIMLuXkjDuiiczPxi3av3zbUpFITLRt",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker",
+  "url": "https://drive.google.com/drive/folders/1kOIMLuXkjDuiiczPxi3av3zbUpFITLRt"
+ },
+ {
+  "kind": "folder",
+  "id": "146RxJosVM4HdIJJMdaP7u61shvh0UmFn",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/streams",
+  "url": "https://drive.google.com/drive/folders/146RxJosVM4HdIJJMdaP7u61shvh0UmFn"
+ },
+ {
+  "kind": "file",
+  "id": "1NxYy5SJUE7PqAtvUbZs6JkzUVBnWzZj0",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/streams/buyers_seed1.json",
+  "url": "https://drive.google.com/file/d/1NxYy5SJUE7PqAtvUbZs6JkzUVBnWzZj0/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "115fmx6oLT-oKEuuURzxuM0uG3Gr1qQYR",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/streams/calm_seed1.json",
+  "url": "https://drive.google.com/file/d/115fmx6oLT-oKEuuURzxuM0uG3Gr1qQYR/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1zC_wAd2QS2Jk5hAW5PtPNym5NzjaaOv4",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/streams/toxic_seed1.json",
+  "url": "https://drive.google.com/file/d/1zC_wAd2QS2Jk5hAW5PtPNym5NzjaaOv4/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1ipUlkBOVk1me3MSG2wzuiRE9eqNYcq3J",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/ex1_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1ipUlkBOVk1me3MSG2wzuiRE9eqNYcq3J/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1OXWD1JOFrLwuwR3AXekHuC_wYlsKRxcM",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/ex2_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1OXWD1JOFrLwuwR3AXekHuC_wYlsKRxcM/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1RxEIVIzTNufL7VzEJ9x89FE5iBEL2uIA",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/ex4_oracle.py",
+  "url": "https://drive.google.com/file/d/1RxEIVIzTNufL7VzEJ9x89FE5iBEL2uIA/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1PQJ0O4jSbPM0WeY64Gt7Lo7CLT0HQJTG",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/ex4_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1PQJ0O4jSbPM0WeY64Gt7Lo7CLT0HQJTG/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1XTssVZ5fwlA5lQiv8zyvl8rc3ie05puy",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/ex4_results.json",
+  "url": "https://drive.google.com/file/d/1XTssVZ5fwlA5lQiv8zyvl8rc3ie05puy/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1gG_6zrGytsVtGAuOQiewEqbFD3ndlYwI",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/ex_check.py",
+  "url": "https://drive.google.com/file/d/1gG_6zrGytsVtGAuOQiewEqbFD3ndlYwI/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1GiTlOJA8X5mYs-p4gE_DXt2nRKd8MZJR",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/kantorovich.py",
+  "url": "https://drive.google.com/file/d/1GiTlOJA8X5mYs-p4gE_DXt2nRKd8MZJR/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1VbP-jk9w84VMw41HofxhKzlGHZQ0456H",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/make_patch.py",
+  "url": "https://drive.google.com/file/d/1VbP-jk9w84VMw41HofxhKzlGHZQ0456H/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1fDOgdktn_GyJFBfRxigi477kMHNc_KIr",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/market_maker.metta",
+  "url": "https://drive.google.com/file/d/1fDOgdktn_GyJFBfRxigi477kMHNc_KIr/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1HSQmPm63bjTBVDIq6gpehnEKMEG7dzwt",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/metta_eval.py",
+  "url": "https://drive.google.com/file/d/1HSQmPm63bjTBVDIq6gpehnEKMEG7dzwt/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1PUQQBD6WxHnHasQAbESRsav23byOtcsj",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/mm.py",
+  "url": "https://drive.google.com/file/d/1PUQQBD6WxHnHasQAbESRsav23byOtcsj/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1MuSgISxY1TOdaQ_sDwnpZum0LUBzhbh8",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/monitors.py",
+  "url": "https://drive.google.com/file/d/1MuSgISxY1TOdaQ_sDwnpZum0LUBzhbh8/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1MXL6TlC55l6SNvrlROJhI9uauPAvZIDl",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/news.py",
+  "url": "https://drive.google.com/file/d/1MXL6TlC55l6SNvrlROJhI9uauPAvZIDl/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1foiplimJ8JRLj2awVK6n_-uiIT1q_-SS",
+  "path": "03_four_worked_examples/validation_bundles/ex4_market_maker/README.txt",
+  "url": "https://drive.google.com/file/d/1foiplimJ8JRLj2awVK6n_-uiIT1q_-SS/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1_N95fVunPQUFc7045sbSswAU_COu1hsJ",
+  "path": "03_four_worked_examples/validation_bundles/README.txt",
+  "url": "https://drive.google.com/file/d/1_N95fVunPQUFc7045sbSswAU_COu1hsJ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1vba_pWboQSkW_fKViUy1PTffzR5QCbsZ",
+  "path": "03_four_worked_examples/mettadinc_worked_examples.pdf",
+  "url": "https://drive.google.com/file/d/1vba_pWboQSkW_fKViUy1PTffzR5QCbsZ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1QqK4M4_MjciQgIQR8Hnx14c1DfhHSzNh",
+  "path": "03_four_worked_examples/mettadinc_worked_examples.tex",
+  "url": "https://drive.google.com/file/d/1QqK4M4_MjciQgIQR8Hnx14c1DfhHSzNh/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1XjY0uEn4l_PotyPn5XD36vubrDGPYyj1",
+  "path": "04_omega_memory_goals_part1",
+  "url": "https://drive.google.com/drive/folders/1XjY0uEn4l_PotyPn5XD36vubrDGPYyj1"
+ },
+ {
+  "kind": "folder",
+  "id": "1TNgkV627KlkDVUPhiATXFxL4kLPwQ2m9",
+  "path": "04_omega_memory_goals_part1/validation_bundle",
+  "url": "https://drive.google.com/drive/folders/1TNgkV627KlkDVUPhiATXFxL4kLPwQ2m9"
+ },
+ {
+  "kind": "folder",
+  "id": "1wU8tr-GDcXKyOT5a_OIwIuFyjpuLTAdb",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models",
+  "url": "https://drive.google.com/drive/folders/1wU8tr-GDcXKyOT5a_OIwIuFyjpuLTAdb"
+ },
+ {
+  "kind": "file",
+  "id": "1gdS6jQ7CbfjbOQ-iz5CaKNwgIHayt88i",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/dclib.py",
+  "url": "https://drive.google.com/file/d/1gdS6jQ7CbfjbOQ-iz5CaKNwgIHayt88i/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1UNHRiXRtY3wcPVvNyCDTGSfEfEse9ADC",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/p1_open_items.py",
+  "url": "https://drive.google.com/file/d/1UNHRiXRtY3wcPVvNyCDTGSfEfEse9ADC/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1VhUyjvgr_aSrIajAIhQa6B2YMuIMURdt",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/p2_context.py",
+  "url": "https://drive.google.com/file/d/1VhUyjvgr_aSrIajAIhQa6B2YMuIMURdt/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1jeR7Trh6_ZG7gQxUkk5LV7DEKiMBBZRO",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/p3_consolidation.py",
+  "url": "https://drive.google.com/file/d/1jeR7Trh6_ZG7gQxUkk5LV7DEKiMBBZRO/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1T6kzqdxS2d-9orbyBMhSkEY2GyZOyKnn",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/p4_checkpoint.py",
+  "url": "https://drive.google.com/file/d/1T6kzqdxS2d-9orbyBMhSkEY2GyZOyKnn/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1sEqPK-8SRbPKXhfBm_fQEuxSY7eKHYgM",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/p5_goals.py",
+  "url": "https://drive.google.com/file/d/1sEqPK-8SRbPKXhfBm_fQEuxSY7eKHYgM/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "146vBrXoO_o80bzsca0re_oyj_x-Btvgi",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/p6_conflicts.py",
+  "url": "https://drive.google.com/file/d/146vBrXoO_o80bzsca0re_oyj_x-Btvgi/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1miRhgxXqIOmHvHRsGL4jo8GOaeoOwhmi",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/p7_metamo.py",
+  "url": "https://drive.google.com/file/d/1miRhgxXqIOmHvHRsGL4jo8GOaeoOwhmi/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1h3gWGx7tbyg2Hp7C_dkqWL6TC_ubGDux",
+  "path": "04_omega_memory_goals_part1/validation_bundle/models/p8_monitor.py",
+  "url": "https://drive.google.com/file/d/1h3gWGx7tbyg2Hp7C_dkqWL6TC_ubGDux/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1zIXqcaRrekuiN8YES_Afs0t7ajJ4KiZk",
+  "path": "04_omega_memory_goals_part1/validation_bundle/streams",
+  "url": "https://drive.google.com/drive/folders/1zIXqcaRrekuiN8YES_Afs0t7ajJ4KiZk"
+ },
+ {
+  "kind": "file",
+  "id": "1fVWD5qzO0eMZLUzGItzRpZFqFyVCSw9s",
+  "path": "04_omega_memory_goals_part1/validation_bundle/streams/stale_alt_seed1.json",
+  "url": "https://drive.google.com/file/d/1fVWD5qzO0eMZLUzGItzRpZFqFyVCSw9s/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1CBzZRkUZe5ffalml_VPOFUVgBH_DVVqe",
+  "path": "04_omega_memory_goals_part1/validation_bundle/streams/stale_null_seed1.json",
+  "url": "https://drive.google.com/file/d/1CBzZRkUZe5ffalml_VPOFUVgBH_DVVqe/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1mVH7phH9O21YYGnImAfj3Kl7krJhEj6U",
+  "path": "04_omega_memory_goals_part1/validation_bundle/ex1_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1mVH7phH9O21YYGnImAfj3Kl7krJhEj6U/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1bXyjCriff2MvYQsOzf3BFHYqDSVbkpOs",
+  "path": "04_omega_memory_goals_part1/validation_bundle/ex2_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1bXyjCriff2MvYQsOzf3BFHYqDSVbkpOs/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1ts-RiK2pvzR9WI96zv9zglWkPBjqwOlM",
+  "path": "04_omega_memory_goals_part1/validation_bundle/ex4_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1ts-RiK2pvzR9WI96zv9zglWkPBjqwOlM/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1_2Bp_T-wFK44rz5Y11H2-ikZ-NFljwwa",
+  "path": "04_omega_memory_goals_part1/validation_bundle/ex_check.py",
+  "url": "https://drive.google.com/file/d/1_2Bp_T-wFK44rz5Y11H2-ikZ-NFljwwa/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "19OmlowWeY7U-qEL4_Aj_wolEZiz6zfSC",
+  "path": "04_omega_memory_goals_part1/validation_bundle/memory_goals.metta",
+  "url": "https://drive.google.com/file/d/19OmlowWeY7U-qEL4_Aj_wolEZiz6zfSC/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1EkmKG7JZVAcK1_vGXu8MFlZOyWZciJnh",
+  "path": "04_omega_memory_goals_part1/validation_bundle/mg_eval.py",
+  "url": "https://drive.google.com/file/d/1EkmKG7JZVAcK1_vGXu8MFlZOyWZciJnh/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "15vaRlRN5Yg838ieYKdz2wLy_YEG62ym3",
+  "path": "04_omega_memory_goals_part1/validation_bundle/mg_oracle.py",
+  "url": "https://drive.google.com/file/d/15vaRlRN5Yg838ieYKdz2wLy_YEG62ym3/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1yZPR9Muy-GSXZRsPQ3N-URvRZALXGDJ9",
+  "path": "04_omega_memory_goals_part1/validation_bundle/mg_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1yZPR9Muy-GSXZRsPQ3N-URvRZALXGDJ9/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1JLxklkVZ4njIl583-yXuokZ2ECaBATWa",
+  "path": "04_omega_memory_goals_part1/validation_bundle/mg_results.json",
+  "url": "https://drive.google.com/file/d/1JLxklkVZ4njIl583-yXuokZ2ECaBATWa/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1xaCYgXkth0MRLLUbOvgFvgLsaFiO3Gz-",
+  "path": "04_omega_memory_goals_part1/validation_bundle/README.txt",
+  "url": "https://drive.google.com/file/d/1xaCYgXkth0MRLLUbOvgFvgLsaFiO3Gz-/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "12Edfpa2NGSa72uap2pmPSvRXvgPcCdfV",
+  "path": "04_omega_memory_goals_part1/mettadinc_omega_memory_goals.pdf",
+  "url": "https://drive.google.com/file/d/12Edfpa2NGSa72uap2pmPSvRXvgPcCdfV/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1X0YOBfgTvEMRooXfs9tXoHMF08uOopif",
+  "path": "04_omega_memory_goals_part1/mettadinc_omega_memory_goals.tex",
+  "url": "https://drive.google.com/file/d/1X0YOBfgTvEMRooXfs9tXoHMF08uOopif/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "11QeBXmsKhEMKqsr-duxxyy20v-FmZpcw",
+  "path": "05_live_memory_part2",
+  "url": "https://drive.google.com/drive/folders/11QeBXmsKhEMKqsr-duxxyy20v-FmZpcw"
+ },
+ {
+  "kind": "folder",
+  "id": "1uUgdvux5thk2-Qj9N1VFaPlZIcijlU_T",
+  "path": "05_live_memory_part2/validation_bundle",
+  "url": "https://drive.google.com/drive/folders/1uUgdvux5thk2-Qj9N1VFaPlZIcijlU_T"
+ },
+ {
+  "kind": "folder",
+  "id": "1oZ9iRDIpAeX7Q_Pt2p8eIpmA-BptAffM",
+  "path": "05_live_memory_part2/validation_bundle/models",
+  "url": "https://drive.google.com/drive/folders/1oZ9iRDIpAeX7Q_Pt2p8eIpmA-BptAffM"
+ },
+ {
+  "kind": "file",
+  "id": "1UyZIcptxfOOCO-68G1NlRg7PqFzlqiRR",
+  "path": "05_live_memory_part2/validation_bundle/models/cs.py",
+  "url": "https://drive.google.com/file/d/1UyZIcptxfOOCO-68G1NlRg7PqFzlqiRR/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1_e79hC1dR8QSdbYS4A6McH1Vo7XYLjWy",
+  "path": "05_live_memory_part2/validation_bundle/models/estimates.py",
+  "url": "https://drive.google.com/file/d/1_e79hC1dR8QSdbYS4A6McH1Vo7XYLjWy/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1zO28Yg4d1YjCJInlt4x42HGp46NcxE06",
+  "path": "05_live_memory_part2/validation_bundle/models/make_streams.py",
+  "url": "https://drive.google.com/file/d/1zO28Yg4d1YjCJInlt4x42HGp46NcxE06/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1pTqYX8AgVbmv1EwSRBl1MkbDpX5ryMmN",
+  "path": "05_live_memory_part2/validation_bundle/models/p1_live.py",
+  "url": "https://drive.google.com/file/d/1pTqYX8AgVbmv1EwSRBl1MkbDpX5ryMmN/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1zhBnLZ-4nqZYEqUHmdSrnjx9fts0rrkA",
+  "path": "05_live_memory_part2/validation_bundle/models/p2_live.py",
+  "url": "https://drive.google.com/file/d/1zhBnLZ-4nqZYEqUHmdSrnjx9fts0rrkA/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1pcGsRZWlYgspcku9Ph3f3ZGRNU-B0yam",
+  "path": "05_live_memory_part2/validation_bundle/models/p3_live.py",
+  "url": "https://drive.google.com/file/d/1pcGsRZWlYgspcku9Ph3f3ZGRNU-B0yam/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1NuD0_InFeyc-jP-VcOJonXO_M7bUaoFv",
+  "path": "05_live_memory_part2/validation_bundle/models/p4_live.py",
+  "url": "https://drive.google.com/file/d/1NuD0_InFeyc-jP-VcOJonXO_M7bUaoFv/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1E15cH2fx0VWpjZspRUxAdkMzmFrXRPLT",
+  "path": "05_live_memory_part2/validation_bundle/models/p6_live.py",
+  "url": "https://drive.google.com/file/d/1E15cH2fx0VWpjZspRUxAdkMzmFrXRPLT/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1qZC2cCmEFcyQw32s13HwFv0QqT9f-5jF",
+  "path": "05_live_memory_part2/validation_bundle/models/p_attention.py",
+  "url": "https://drive.google.com/file/d/1qZC2cCmEFcyQw32s13HwFv0QqT9f-5jF/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1m2uiqLS-9FpkWBs0j9DSxWw13pgpHKK0",
+  "path": "05_live_memory_part2/validation_bundle/models/smt_live.py",
+  "url": "https://drive.google.com/file/d/1m2uiqLS-9FpkWBs0j9DSxWw13pgpHKK0/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1F6_BeAC0ZVS6Yt4RtI3wF_-pxmwQ4a0P",
+  "path": "05_live_memory_part2/validation_bundle/part1_models",
+  "url": "https://drive.google.com/drive/folders/1F6_BeAC0ZVS6Yt4RtI3wF_-pxmwQ4a0P"
+ },
+ {
+  "kind": "file",
+  "id": "1zOVZZDu_hjGuWpGWMgZ8fSxn37qnKWIb",
+  "path": "05_live_memory_part2/validation_bundle/part1_models/dclib.py",
+  "url": "https://drive.google.com/file/d/1zOVZZDu_hjGuWpGWMgZ8fSxn37qnKWIb/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1OO_ATs4NLNMeMTZBRmeDFkybPGYb_2Vm",
+  "path": "05_live_memory_part2/validation_bundle/part1_models/p6_conflicts.py",
+  "url": "https://drive.google.com/file/d/1OO_ATs4NLNMeMTZBRmeDFkybPGYb_2Vm/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1tmrzo3raOD-2mfFdbWfHRq8i6OBXP9xn",
+  "path": "05_live_memory_part2/validation_bundle/streams",
+  "url": "https://drive.google.com/drive/folders/1tmrzo3raOD-2mfFdbWfHRq8i6OBXP9xn"
+ },
+ {
+  "kind": "file",
+  "id": "1Tnsoc4P7SwI97yXA_5zrnI-kpNEAttfW",
+  "path": "05_live_memory_part2/validation_bundle/streams/context_receipts_seed2.json",
+  "url": "https://drive.google.com/file/d/1Tnsoc4P7SwI97yXA_5zrnI-kpNEAttfW/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1NXzP7m3FzhGHDnK-JHPvKqr8SPL3RZXu",
+  "path": "05_live_memory_part2/validation_bundle/streams/stale_alt_seed1.json",
+  "url": "https://drive.google.com/file/d/1NXzP7m3FzhGHDnK-JHPvKqr8SPL3RZXu/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Q5rm7mE_unQkaV5rYgT2c_ba6ASqpo0Y",
+  "path": "05_live_memory_part2/validation_bundle/streams/stale_null_seed1.json",
+  "url": "https://drive.google.com/file/d/1Q5rm7mE_unQkaV5rYgT2c_ba6ASqpo0Y/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1tlbMsArZXSlkSeB7iBbv8-E5-FOiB5EJ",
+  "path": "05_live_memory_part2/validation_bundle/streams/stale_ten_seed1.json",
+  "url": "https://drive.google.com/file/d/1tlbMsArZXSlkSeB7iBbv8-E5-FOiB5EJ/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1bVcAhfDlCy38D1FrsGfszbJst9wWeI4v",
+  "path": "05_live_memory_part2/validation_bundle/ex1_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1bVcAhfDlCy38D1FrsGfszbJst9wWeI4v/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1KLx_KKbLKxY5ljp0x7KEJHAr-oz3KIEL",
+  "path": "05_live_memory_part2/validation_bundle/ex2_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1KLx_KKbLKxY5ljp0x7KEJHAr-oz3KIEL/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "17fR5DuyA9sykLehFVBj0o5KHEZu8tMfj",
+  "path": "05_live_memory_part2/validation_bundle/ex4_registry_patch.json",
+  "url": "https://drive.google.com/file/d/17fR5DuyA9sykLehFVBj0o5KHEZu8tMfj/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1z9Q_srpph4okFDBvkh9rLPpwfz6uxvS5",
+  "path": "05_live_memory_part2/validation_bundle/ex_check.py",
+  "url": "https://drive.google.com/file/d/1z9Q_srpph4okFDBvkh9rLPpwfz6uxvS5/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1MejgKJCzpsytJHCNT_Q_T42raySxg1s_",
+  "path": "05_live_memory_part2/validation_bundle/live_memory.metta",
+  "url": "https://drive.google.com/file/d/1MejgKJCzpsytJHCNT_Q_T42raySxg1s_/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1lk2Gojq0txGeZ4o5-ewkPWRtRhE_w9Nt",
+  "path": "05_live_memory_part2/validation_bundle/ls_eval.py",
+  "url": "https://drive.google.com/file/d/1lk2Gojq0txGeZ4o5-ewkPWRtRhE_w9Nt/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "16cFml5AsQq2QRGGoYfEzt-QoeSElS-v0",
+  "path": "05_live_memory_part2/validation_bundle/ls_oracle.py",
+  "url": "https://drive.google.com/file/d/16cFml5AsQq2QRGGoYfEzt-QoeSElS-v0/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1_vaXNDCOsZGgXOgR8mQ1fPvz5hV2Am43",
+  "path": "05_live_memory_part2/validation_bundle/ls_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1_vaXNDCOsZGgXOgR8mQ1fPvz5hV2Am43/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "10Ba-etOh2cIOtXul7n4wFZhhb_TEJdE_",
+  "path": "05_live_memory_part2/validation_bundle/ls_results.json",
+  "url": "https://drive.google.com/file/d/10Ba-etOh2cIOtXul7n4wFZhhb_TEJdE_/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1MgI2Pfc1SkVDXTSClFBICtdPNmDAgiIH",
+  "path": "05_live_memory_part2/validation_bundle/memory_goals.metta",
+  "url": "https://drive.google.com/file/d/1MgI2Pfc1SkVDXTSClFBICtdPNmDAgiIH/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Uw8wTo-8mEFraw7DwR90nSunwFqEKUFN",
+  "path": "05_live_memory_part2/validation_bundle/mg_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1Uw8wTo-8mEFraw7DwR90nSunwFqEKUFN/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1MPiSomm15zuLFIoNSgqnBan4NwJWLvhF",
+  "path": "05_live_memory_part2/validation_bundle/README.txt",
+  "url": "https://drive.google.com/file/d/1MPiSomm15zuLFIoNSgqnBan4NwJWLvhF/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1d9rolKioqc6YpWKVzKKyu1hMBpJm_Fro",
+  "path": "05_live_memory_part2/mettadinc_live_memory.pdf",
+  "url": "https://drive.google.com/file/d/1d9rolKioqc6YpWKVzKKyu1hMBpJm_Fro/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "13fL-yTfDOI48rNkhX6bm1OjsxQhffNEO",
+  "path": "05_live_memory_part2/mettadinc_live_memory.tex",
+  "url": "https://drive.google.com/file/d/13fL-yTfDOI48rNkhX6bm1OjsxQhffNEO/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1rifJhassgEjBRCKOCGpAZAKccy4uHbuG",
+  "path": "06_wmtm_worked_example",
+  "url": "https://drive.google.com/drive/folders/1rifJhassgEjBRCKOCGpAZAKccy4uHbuG"
+ },
+ {
+  "kind": "folder",
+  "id": "1DZ5khqPxnRV5UMIX2myfHdfRIx2rWnMQ",
+  "path": "06_wmtm_worked_example/validation_bundle",
+  "url": "https://drive.google.com/drive/folders/1DZ5khqPxnRV5UMIX2myfHdfRIx2rWnMQ"
+ },
+ {
+  "kind": "folder",
+  "id": "1YirCFJjXNDxtGezhhmVS4NxI0RfFUc6K",
+  "path": "06_wmtm_worked_example/validation_bundle/models",
+  "url": "https://drive.google.com/drive/folders/1YirCFJjXNDxtGezhhmVS4NxI0RfFUc6K"
+ },
+ {
+  "kind": "file",
+  "id": "19PzXX4jo0oH652SjTWmxBipwdpHaXZUc",
+  "path": "06_wmtm_worked_example/validation_bundle/models/cs.py",
+  "url": "https://drive.google.com/file/d/19PzXX4jo0oH652SjTWmxBipwdpHaXZUc/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1oaP8_qEdYPdTkp8Ue-pYSRXrxLKse1NM",
+  "path": "06_wmtm_worked_example/validation_bundle/models/wx_facts.py",
+  "url": "https://drive.google.com/file/d/1oaP8_qEdYPdTkp8Ue-pYSRXrxLKse1NM/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Leh3AoX25FpTw4TU6OIG29VvAMoYZBAV",
+  "path": "06_wmtm_worked_example/validation_bundle/models/wx_sim.py",
+  "url": "https://drive.google.com/file/d/1Leh3AoX25FpTw4TU6OIG29VvAMoYZBAV/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1z2rQUI-voxsgm6DbdIIg04k8s-e6-Pnz",
+  "path": "06_wmtm_worked_example/validation_bundle/models/wx_smt.py",
+  "url": "https://drive.google.com/file/d/1z2rQUI-voxsgm6DbdIIg04k8s-e6-Pnz/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "folder",
+  "id": "1f3paPcQvQF7AZjRNoiAUlLWJM1WCTNfQ",
+  "path": "06_wmtm_worked_example/validation_bundle/streams",
+  "url": "https://drive.google.com/drive/folders/1f3paPcQvQF7AZjRNoiAUlLWJM1WCTNfQ"
+ },
+ {
+  "kind": "file",
+  "id": "17OyXpyjFbBmfp-jHwDo1rhwasbdLzLI9",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/audit_after_alarm.json",
+  "url": "https://drive.google.com/file/d/17OyXpyjFbBmfp-jHwDo1rhwasbdLzLI9/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "19tRz7TxC7G8_wNehiFJfUbkk6LVhx1YN",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/audit_open_gate.json",
+  "url": "https://drive.google.com/file/d/19tRz7TxC7G8_wNehiFJfUbkk6LVhx1YN/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1-vYKua863EjXGcWhxGk3djhu-N_7XsmX",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/audit_replies_gate.json",
+  "url": "https://drive.google.com/file/d/1-vYKua863EjXGcWhxGk3djhu-N_7XsmX/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1mwRZ7wB4p0qBo4qiim39z4rqbUDZPUN3",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/audit_replies_v2.json",
+  "url": "https://drive.google.com/file/d/1mwRZ7wB4p0qBo4qiim39z4rqbUDZPUN3/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1TqxPQm3Znk9GtvDmYt0zpx6FOd-yHinK",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/closures_gate.json",
+  "url": "https://drive.google.com/file/d/1TqxPQm3Znk9GtvDmYt0zpx6FOd-yHinK/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Wpe02K1axWnjxajFc3U28IuUFSBnpqBa",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/journal.json",
+  "url": "https://drive.google.com/file/d/1Wpe02K1axWnjxajFc3U28IuUFSBnpqBa/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1cWpubrxoD40czWGy-1LhUkxA5rH_-LbM",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/keys_gate.json",
+  "url": "https://drive.google.com/file/d/1cWpubrxoD40czWGy-1LhUkxA5rH_-LbM/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1mhzANJBBMPUmXBWuueujOD6kIPH0bIV6",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/lives_gate.json",
+  "url": "https://drive.google.com/file/d/1mhzANJBBMPUmXBWuueujOD6kIPH0bIV6/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1qFRezVMZHGu3luBg8RyhPuTRmqffy0Dv",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/proposals.json",
+  "url": "https://drive.google.com/file/d/1qFRezVMZHGu3luBg8RyhPuTRmqffy0Dv/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1bqdaZVYDlriRmeY0zRjrZ8r_4X1jWSLb",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/replies.json",
+  "url": "https://drive.google.com/file/d/1bqdaZVYDlriRmeY0zRjrZ8r_4X1jWSLb/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1lcxp-4abKomyYhYRI8ucGVjDAJ3keoWr",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/replies_before.json",
+  "url": "https://drive.google.com/file/d/1lcxp-4abKomyYhYRI8ucGVjDAJ3keoWr/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1zPxH61aT6mRxxk7jGU0psxACh8g52bZy",
+  "path": "06_wmtm_worked_example/validation_bundle/streams/replies_gate.json",
+  "url": "https://drive.google.com/file/d/1zPxH61aT6mRxxk7jGU0psxACh8g52bZy/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1gPBHmwXJRSdimYkDeF_lNo3ove5OiBdU",
+  "path": "06_wmtm_worked_example/validation_bundle/ex1_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1gPBHmwXJRSdimYkDeF_lNo3ove5OiBdU/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1KIBDSMSw5Db6-4glgMMGfGA3jPwIJUwY",
+  "path": "06_wmtm_worked_example/validation_bundle/ex2_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1KIBDSMSw5Db6-4glgMMGfGA3jPwIJUwY/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1BHpZq7Cg-QBJ9uQ2ntmV4pgER7shMoK0",
+  "path": "06_wmtm_worked_example/validation_bundle/ex4_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1BHpZq7Cg-QBJ9uQ2ntmV4pgER7shMoK0/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Kvw7QixBRuwMYXXdqQ8K5SZMcjipCXP8",
+  "path": "06_wmtm_worked_example/validation_bundle/ex_check.py",
+  "url": "https://drive.google.com/file/d/1Kvw7QixBRuwMYXXdqQ8K5SZMcjipCXP8/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1hqnTYLPuKLtgob5dTML62PDLITDnBCsK",
+  "path": "06_wmtm_worked_example/validation_bundle/live_memory.metta",
+  "url": "https://drive.google.com/file/d/1hqnTYLPuKLtgob5dTML62PDLITDnBCsK/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1xP3Td2pd2ZtBEvnthvW6X6Uc0O910JaD",
+  "path": "06_wmtm_worked_example/validation_bundle/ls_eval.py",
+  "url": "https://drive.google.com/file/d/1xP3Td2pd2ZtBEvnthvW6X6Uc0O910JaD/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1eQS3fAtMEDnAl_dZgM79Ypa12xYsMPse",
+  "path": "06_wmtm_worked_example/validation_bundle/ls_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1eQS3fAtMEDnAl_dZgM79Ypa12xYsMPse/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Rk1v9-tdTxEQZrRoFGGQ6Av3qiuqqCmE",
+  "path": "06_wmtm_worked_example/validation_bundle/make_module.py",
+  "url": "https://drive.google.com/file/d/1Rk1v9-tdTxEQZrRoFGGQ6Av3qiuqqCmE/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1z3NJApgoAJsBhfzNKhmASryDxd1IpDho",
+  "path": "06_wmtm_worked_example/validation_bundle/memory_goals.metta",
+  "url": "https://drive.google.com/file/d/1z3NJApgoAJsBhfzNKhmASryDxd1IpDho/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1bireBBbyIsZyqWZArFtuAT6uoTypNh32",
+  "path": "06_wmtm_worked_example/validation_bundle/mg_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1bireBBbyIsZyqWZArFtuAT6uoTypNh32/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1DFLp-IE9OX1cmo56H3ePjkdgD_hJP5SX",
+  "path": "06_wmtm_worked_example/validation_bundle/README.txt",
+  "url": "https://drive.google.com/file/d/1DFLp-IE9OX1cmo56H3ePjkdgD_hJP5SX/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1_rMTUx_9YjgiyCTf9RIr-8efGAIbP5pf",
+  "path": "06_wmtm_worked_example/validation_bundle/wmtm_example.metta",
+  "url": "https://drive.google.com/file/d/1_rMTUx_9YjgiyCTf9RIr-8efGAIbP5pf/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1Z5pYRB2ldrgY_nJRV8k-J52NWqM0j_IK",
+  "path": "06_wmtm_worked_example/validation_bundle/wmtm_example.template.metta",
+  "url": "https://drive.google.com/file/d/1Z5pYRB2ldrgY_nJRV8k-J52NWqM0j_IK/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1-YEVdccWSW-QoEnrnUmRYI2mTtoa8oFm",
+  "path": "06_wmtm_worked_example/validation_bundle/wx_oracle.py",
+  "url": "https://drive.google.com/file/d/1-YEVdccWSW-QoEnrnUmRYI2mTtoa8oFm/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1jGYx47OX0INPsZ7w-dVc8hfQbofaI0AD",
+  "path": "06_wmtm_worked_example/validation_bundle/wx_registry_patch.json",
+  "url": "https://drive.google.com/file/d/1jGYx47OX0INPsZ7w-dVc8hfQbofaI0AD/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1KThZwTYgtBXKAutK1uyd0eLd5KWjL1hB",
+  "path": "06_wmtm_worked_example/validation_bundle/wx_results.json",
+  "url": "https://drive.google.com/file/d/1KThZwTYgtBXKAutK1uyd0eLd5KWjL1hB/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1aRxRnQco125YlXH331rLM96RRBnXnXzk",
+  "path": "06_wmtm_worked_example/mettadinc_wmtm_worked_example.pdf",
+  "url": "https://drive.google.com/file/d/1aRxRnQco125YlXH331rLM96RRBnXnXzk/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1YWz3V5k3aQ_KqeEhiVwpG2gn6P1jZHxP",
+  "path": "06_wmtm_worked_example/mettadinc_wmtm_worked_example.tex",
+  "url": "https://drive.google.com/file/d/1YWz3V5k3aQ_KqeEhiVwpG2gn6P1jZHxP/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1tB0gx3Ou16NKrCPgEgoHX4AhYkJF8BNS",
+  "path": ".DS_Store",
+  "url": "https://drive.google.com/file/d/1tB0gx3Ou16NKrCPgEgoHX4AhYkJF8BNS/view?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "gdoc",
+  "id": "1k1fSnYzVvctOBdhHKepiG_3q-L1ivs4_lf3ZdgkWoeg",
+  "path": "MeTTaDinC_executive_summary.md",
+  "url": "https://docs.google.com/document/d/1k1fSnYzVvctOBdhHKepiG_3q-L1ivs4_lf3ZdgkWoeg/edit?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "gdoc",
+  "id": "1k1fSnYzVvctOBdhHKepiG_3q-L1ivs4_lf3ZdgkWoeg",
+  "path": "MeTTaDinC_executive_summary.txt",
+  "url": "https://docs.google.com/document/d/1k1fSnYzVvctOBdhHKepiG_3q-L1ivs4_lf3ZdgkWoeg/edit?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "gdoc",
+  "id": "1k1fSnYzVvctOBdhHKepiG_3q-L1ivs4_lf3ZdgkWoeg",
+  "path": "MeTTaDinC_executive_summary.pdf",
+  "url": "https://docs.google.com/document/d/1k1fSnYzVvctOBdhHKepiG_3q-L1ivs4_lf3ZdgkWoeg/edit?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "gdoc",
+  "id": "1tA5WStuRqKE0c8W3N8UNxh4BYhncSM70u3SA8nLf8qA",
+  "path": "MeTTaDinC_explainer.md",
+  "url": "https://docs.google.com/document/d/1tA5WStuRqKE0c8W3N8UNxh4BYhncSM70u3SA8nLf8qA/edit?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "gdoc",
+  "id": "1tA5WStuRqKE0c8W3N8UNxh4BYhncSM70u3SA8nLf8qA",
+  "path": "MeTTaDinC_explainer.txt",
+  "url": "https://docs.google.com/document/d/1tA5WStuRqKE0c8W3N8UNxh4BYhncSM70u3SA8nLf8qA/edit?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "gdoc",
+  "id": "1tA5WStuRqKE0c8W3N8UNxh4BYhncSM70u3SA8nLf8qA",
+  "path": "MeTTaDinC_explainer.pdf",
+  "url": "https://docs.google.com/document/d/1tA5WStuRqKE0c8W3N8UNxh4BYhncSM70u3SA8nLf8qA/edit?usp=drive_web",
+  "http": "200"
+ },
+ {
+  "kind": "file",
+  "id": "1ZAt3lXPavihf-dT1nmXqsQnK4Ox28GCE",
+  "path": "README.txt",
+  "url": "https://drive.google.com/file/d/1ZAt3lXPavihf-dT1nmXqsQnK4Ox28GCE/view?usp=drive_web",
+  "http": "200"
+ }
+]

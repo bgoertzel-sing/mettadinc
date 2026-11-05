@@ -1,0 +1,6 @@
+== ./cetta --list-profiles ==
+he	Formal/spec-faithful HE base for OSLF/NTT/DTT work.
+he-compat	Rust Hyperon Experimental HE 0.2.10 compatibility lane.
+he-extended	HE-compatible surface plus labeled CeTTa extensions.
+he-prime	HE typing with explicit dependent binders, checked type-level computation, and typed inhabitation search.
+EXIT=0 SECS=0

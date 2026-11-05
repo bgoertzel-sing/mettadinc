@@ -1,0 +1,89 @@
+ok   CalmDesk: module kernels and reward laws equal the model on all 15 cells
+ok   ToxicDesk: module kernels and reward laws equal the model on all 15 cells
+ok   BuyersDesk: module kernels and reward laws equal the model on all 15 cells
+ok   SellersDesk: module kernels and reward laws equal the model on all 15 cells
+ok   Split: module kernels and expected rewards equal the model on all 30 cells
+ok   calm: Risk current and update witnesses (none)
+ok   calm: quotient rows, one lot (bucket -> action -> (reward, row))
+ok   calm: quotient rows, flat and two lots under tight
+ok   calm: CalmMirror is a quotient arrow (an automorphism)
+ok   calm: optimal policy (ties to the first action) and policy-iteration rounds
+ok   calm: the declared calm-policy is that optimum
+ok   calm: optimal values (-2, -1, 0)
+ok   calm: OptimizePolicy Through Risk equals the full optimum
+ok   calm: lean equals tight when flat and at the limits
+ok   toxic: Risk stays exact
+ok   toxic: CheckOptimal calm-policy
+ok   toxic: values of the calm policy (-2, -1, 0)
+ok   toxic: value lost at flat
+ok   toxic at theta 3/4 instead of 1/2: the optimum changes only when flat, to wide
+ok   toxic: fill laws equal calm's at every cell
+ok   buyers: InduceExact RiskBuyers refuted on current adequacy (pair, query, two rewards)
+ok   buyers: CheckUpdates RiskBuyers witness (pair, action, bucket, two masses)
+ok   buyers: total-variation lumpability defect and where
+ok   buyers: behavioral distances of the merged pairs at 9/10 (-2,2), (-1,1)
+ok   buyers: MeasureBehavioral RiskBuyers interval and the pair attaining it
+ok   buyers: immediate part d0 of the two pairs
+ok   buyers: binding action and optimal coupling for (-2, 2)
+ok   buyers: Kantorovich potential for (-2, 2) under tight
+ok   buyers: certificate size (couplings, potentials, pairs bound by d0)
+ok   buyers: CheckOptimal calm-policy refuted (state, its action, Q, better action, Q)
+ok   buyers: optimal policy
+ok   buyers: optimal value at flat
+ok   buyers: calm policy value at flat and at one lot long
+ok   buyers: OptimizePolicy Through RiskBuyers (best bucket policy is the calm one)
+ok   buyers: regret of the calm policy at flat and at one lot long (decimals)
+ok   buyers -> sellers: Flip is a quotient arrow
+ok   identity calm -> buyers is not a homomorphism (state, action, rewards)
+ok   sellers: the declared sellers-policy is the sellers' optimum
+ok   PullbackPolicy Flip sellers-policy: policy, and values equal the sellers' values at -q
+ok   split: the flow is fresh
+ok   split: averaged kernels equal ToxicDesk's
+ok   split: averaged expected rewards equal ToxicDesk's (CheckEqual ... (Compare Means))
+ok   split: CheckEqual on reward laws refuted (state, action, P&L value, two masses)
+ok   split: InduceExact Coarse refuted on current adequacy
+ok   split: Coarse is update-compatible (the flow is fresh)
+ok   Proposition 6.2: the visible states and actions of the first three steps have the same law in Split and in the averaged model (a memoryless and a history-dependent policy)
+ok   Proposition 6.2: given every visible history, the conditional mean of the reward is the averaged reward
+ok   Proposition 6.2: expected discounted return of the calm policy from flat (Split, averaged model)
+ok   Proposition 6.2: the expected reward of tight at -2 as a function of the hidden flow (noise, informed) and in the averaged model; its law in Split and in the averaged model
+ok   split: OptimizePolicy Through Coarse (243 code policies)
+ok   split: refined optimum differs from the calm policy only at flat with informed flow
+ok   split: refined optimal value from flat
+ok   split: the signal policy differs from the calm policy only at flat with says-informed
+ok   split: EvaluatePolicy With Signal, net of cost (reduced and on hidden states)
+ok   split: the wrong evaluation (reading taken for the flow) and that policy's true value
+ok   split: the wrong evaluation is the refined optimum minus the discounted cost
+ok   split: gross value of the signal and break-even cost per step
+ok   split: decimals (coarse, refined, signal net, wrong)
+ok   tape: module rows and reports equal the model's
+ok   tape: WideSeen is the wide-only reachable scope from leak and embargo
+ok   tape: bisimulation classes (Desk, WideSeen)
+ok   tape: MinimalLinear dimensions (WideSeen, Desk)
+ok   tape: TracePartition WideSeen
+ok   tape: CheckTrace MergeLeakWide (no separating word up to length 6)
+ok   tape: CheckTrace MergeLeak on Desk refuted (word, event, leak, embargo)
+ok   tape: behavioral d(leak, embargo) at discount 1 (Desk, WideSeen)
+ok   tape: behavioral d(leak, embargo) at discount 9/10 (Desk, WideSeen)
+ok   tape: the modal test phi at discount 1 and 9/10 (leak, embargo)
+ok   monitors: module markout laws (calm, toxic, buyers)
+ok   monitors: module fill laws equal the model's
+ok   monitors: validity (null expectation of every factor)
+ok   monitors: blind (Markouts, Fills, FillsToxic, MarkoutsBuyers)
+ok   monitors: markout factors and chi-square
+ok   monitors: fill factors at flat with a tight quote and chi-square
+ok   monitors: KL per observation, nats (decimals; markout, fills at flat tight)
+ok   monitors: Wald's approximation of markouts needed to reach 200 (decimal)
+ok   stream toxic: digest declared in the module
+ok   stream buyers: digest declared in the module
+ok   stream calm: digest declared in the module
+ok   streams: rows and fills (toxic, buyers, calm)
+ok   Detect on ToxicTape: first monitor and step
+ok   Detect on ToxicTape: markouts used and the exact e-value at the crossing
+ok   Detect on ToxicTape: the fill monitor never fires (blind to toxicity)
+ok   Detect on BuyersTape: first monitor and step
+ok   Detect on BuyersTape: the markout monitor never fires
+ok   Detect on CalmTape: no monitor fires in 4000 steps
+ok   Detect on CalmTape: largest e-values reached (decimals)
+
+87 checks, 0 failures, 2.1 s

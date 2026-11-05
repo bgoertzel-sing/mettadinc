@@ -1,0 +1,37 @@
+{
+ "package": "MeTTaDinC validation package",
+ "date": "2026-11-04",
+ "tools_in_this_package": {
+  "oracle/verify_mettadinc.py": {"python": "3.13.18 (tested); 3.8 or later expected to work",
+                                "modules": ["fractions", "itertools", "collections", "json", "random", "sys"],
+                                "note": "standard library only; every value is computed in exact arithmetic, and the parity-triangle optimum is proved by exact primal and dual solutions of its linear program"},
+  "check_fixtures.py": {"python": "3.8 or later", "modules": ["json", "os", "re", "sys"]}
+ },
+ "implementation_host": {
+  "CeTTa": {"repository": "https://github.com/zariuq/CeTTa", "commit": "12da03b4b055bfecff2add505e7e1ad4125bb352",
+            "recorded": "2026-08-14", "head_of_main_on": "2026-11-03"}
+ },
+ "proof_pipeline": {
+  "role": "symbolic obligations are emitted as CNF by the trusted obligation generator; only cake_lpr and the generator are trusted",
+  "solver": {"name": "CaDiCaL", "repository": "https://github.com/arminbiere/cadical", "tag": "rel-3.0.1",
+             "commit": "c60730422e758ef1cebe7aeddf2dda31c996bf04", "date": "2026-07-19",
+             "invocation": "cadical --no-binary obligation.cnf obligation.drat"},
+  "converter": {"name": "drat-trim", "repository": "https://github.com/marijnheule/drat-trim",
+                "commit": "2e3b2dc0ecf938addbd779d42877b6ed69d9a985", "date": "2024-11-25",
+                "invocation": "drat-trim obligation.cnf obligation.drat -L obligation.lrat",
+                "note": "the -L option writes LRAT; it is read from the source and is not listed in the README"},
+  "checker": {"name": "cake_lpr", "repository": "https://github.com/tanyongkiam/cake_lpr",
+              "commit": "033aad53d1733bd4b8ca41cf6f1b5fb5d84f8de2", "date": "2026-11-01",
+              "built_from": {"HOL4": "9783a49979c94c401ff8c0e51b2eefae7ea95ae3", "CakeML": "665f9b21712ad093e10a404ccc2f78e64a34aeef"},
+              "invocation": "cake_lpr obligation.cnf obligation.lrat",
+              "accepts": "LPR, a superset of LRAT, in text or binary form",
+              "expected_output": "s VERIFIED UNSAT",
+              "note": "announced as the final cake_lpr release; a successor checker is planned in the same repository and needs its own pin"}
+ },
+ "integration_dependencies_not_yet_pinned": {
+  "rule": "a milestone that depends on one of these cannot start until an entry with repository, commit, interface version and compatibility test is added here",
+  "entries": ["finite OmegaPLN reference interpreter", "MeTTaProN shared kernel IR", "CettaPacks guarded supercompilation",
+              "MORK and PathMap snapshot interfaces beyond the bridges present in the pinned CeTTa commit",
+              "omegaPLN evidence adapter target", "Hyperseed proof-plan registry"]
+ }
+}

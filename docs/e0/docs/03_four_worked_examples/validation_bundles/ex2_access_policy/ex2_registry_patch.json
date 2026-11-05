@@ -1,0 +1,36 @@
+{
+  "patch": "Proposed registry additions used by Example 2 (access-policy audit)",
+  "date": "2026-11-04",
+  "libraries": {
+    "Families": {
+      "primitives": ["Switch", "Exists", "ForAll", "For"],
+      "constants": ["Any"],
+      "binders": ["Exists", "ForAll"],
+      "doc": "indexed families elaborated before checking: a Map with (Parameters ($p Carrier) ...) is a family of unary maps, applied as (f p1 ... x); (For $v Carrier) on an Observe or Action entry declares one entry per element, labelled by the instantiated label term, in the order of the For clauses and of each carrier's enumeration; (Switch $p (element expr)+) selects on a parameter and must be total and exclusive over its carrier; (Exists $v C e) and (ForAll $v C e) range over an enumerated carrier; Any in a Successor entry stands for every action label"
+    }
+  },
+  "add_primitives": {
+    "BitVectors": ["Gather"]
+  },
+  "declaration_fields": {
+    "Map": {
+      "Parameters": {"type": "expr", "required": false,
+                     "doc": "elaboration-time parameters, each ($p Carrier) over an enumerated carrier"}
+    },
+    "Machine": {
+      "ActionsOf": {"type": "ref:Machine", "required": false,
+                    "doc": "the action entries of another machine on a carrier of the same element type"},
+      "Like": {"type": "ref:Machine", "required": false,
+               "doc": "the observe and action entries of another machine; States may differ (a scope)"}
+    },
+    "BlockPartition": {
+      "Invariant": {"type": "ref:Map", "required": false,
+                    "doc": "a candidate inductive invariant for a reachability scope: checked to contain the initial states and to be closed under every action, then used to discharge the universal obligations"}
+    }
+  },
+  "budget_units": ["Unrollings"],
+  "notes": {
+    "Unrollings": "bounded search depth for reachable counterexamples when an inductive argument fails; a work limit, never a semantic horizon",
+    "Gather": "(Gather x i1 ... ik) is the k-bit word whose bit j is bit i_j of x"
+  }
+}

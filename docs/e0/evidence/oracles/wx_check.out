@@ -1,0 +1,413 @@
+3 file(s), 19 modules, 575 declarations, 162 run requests
+All forms conform to the registry with the proposed patch.
+410 diagnostic(s) against the current registry (forms that need the patch):
+  live_memory.metta: LiveArbitration: compound label (deadline $l) needs the Families library
+  live_memory.metta: LiveArbitration: compound label (evidence $l) needs the Families library
+  live_memory.metta: LiveEvidence: compound label (minus $s) needs the Families library
+  live_memory.metta: LiveEvidence: compound label (plus $s) needs the Families library
+  live_memory.metta: LiveGoals: compound label (wait $d) needs the Families library
+  live_memory.metta: LiveMotivation: compound label (stimulus $n $r) needs the Families library
+  live_memory.metta: LiveOpenItems: compound label (wait $d) needs the Families library
+  live_memory.metta: module LiveArbitration: unknown library Families
+  live_memory.metta: module LiveArbitration: unknown library RationalArith
+  live_memory.metta: module LiveEvidence: unknown declaration head Statistic
+  live_memory.metta: module LiveEvidence: unknown library BoundedSets
+  live_memory.metta: module LiveEvidence: unknown library Families
+  live_memory.metta: module LiveEvidence: unknown library NatArith
+  live_memory.metta: module LiveEvidence: unknown library Statistics
+  live_memory.metta: module LiveGoals: unknown declaration head Statistic
+  live_memory.metta: module LiveGoals: unknown library Families
+  live_memory.metta: module LiveGoals: unknown library RationalArith
+  live_memory.metta: module LiveGoals: unknown library Statistics
+  live_memory.metta: module LiveMotivation: unknown library Families
+  live_memory.metta: module LiveMotivation: unknown library NatArith
+  live_memory.metta: module LiveMotivation: unknown library RationalArith
+  live_memory.metta: module LiveOpenItems: unknown declaration head Keyed
+  live_memory.metta: module LiveOpenItems: unknown declaration head Statistic
+  live_memory.metta: module LiveOpenItems: unknown declaration head Store
+  live_memory.metta: module LiveOpenItems: unknown library Families
+  live_memory.metta: module LiveOpenItems: unknown library RationalArith
+  live_memory.metta: module LiveOpenItems: unknown library Statistics
+  live_memory.metta: module LiveReceipts: unknown declaration head Monitor
+  live_memory.metta: module LiveReceipts: unknown declaration head Stream
+  live_memory.metta: module LiveReceipts: unknown library Estimates
+  live_memory.metta: module LiveReceipts: unknown library Families
+  live_memory.metta: module LiveReceipts: unknown library Laws
+  live_memory.metta: module LiveReceipts: unknown library Monitors
+  live_memory.metta:LiveArbitration.RealNormFirst: Action needs a label and a map
+  live_memory.metta:LiveArbitration.RealNormFirst: unknown head For in (For $l Unit)
+  live_memory.metta:LiveArbitration.RealWeighted: Action needs a label and a map
+  live_memory.metta:LiveArbitration.RealWeighted: unknown head For in (For $l Unit)
+  live_memory.metta:LiveArbitration.StutterNormFirst: unknown field (Matching Stutter) for Simulation
+  live_memory.metta:LiveArbitration.StutterWeighted: unknown field (Matching Stutter) for Simulation
+  live_memory.metta:LiveArbitration.confident: unknown head Le in (Le (Rat 4 5) $c)
+  live_memory.metta:LiveArbitration.evidence: expected a map-body, found (Parameters ($l Unit))
+  live_memory.metta:LiveArbitration.evidence: unknown field (Cases ((Tuple $c $k $d $p) (Tuple (Add $c (Mul $l for Map
+  live_memory.metta:LiveArbitration.pressing: unknown head Le in (Le (Rat 1 2) $p)
+  live_memory.metta:LiveArbitration.pressure: expected a map-body, found (Parameters ($l Unit))
+  live_memory.metta:LiveArbitration.pressure: unknown field (Cases ((Tuple $c $k $d $p) (Tuple $c $k $d (Min 1 for Map
+  live_memory.metta:LiveArbitration.unit: unknown head Le in (Le $x 1)
+  live_memory.metta:LiveArbitration.unit: unknown head Le in (Le 0 $x)
+  live_memory.metta:LiveEvidence.Evidence: unknown head FiniteSet in (FiniteSet Symbol)
+  live_memory.metta:LiveEvidence.EvidenceStream: Action needs a label and a map
+  live_memory.metta:LiveEvidence.EvidenceStream: unknown head For in (For $s Source)
+  live_memory.metta:LiveEvidence.Seen: unknown head FiniteSet in (FiniteSet Symbol)
+  live_memory.metta:LiveEvidence.contra: unknown head Le in (Le 1 (Size $m))
+  live_memory.metta:LiveEvidence.contra: unknown head Size in (Size $m)
+  live_memory.metta:LiveEvidence.d2-contra: unknown head CapSize in (CapSize 2 $m)
+  live_memory.metta:LiveEvidence.d2-contra: unknown head Capped in (Capped Symbol)
+  live_memory.metta:LiveEvidence.d2-contra: unknown head Le in (Le 1 (CapSize 2 $m))
+  live_memory.metta:LiveEvidence.d2-eff: unknown head CapSize in (CapSize 2 $p)
+  live_memory.metta:LiveEvidence.d2-eff: unknown head Capped in (Capped Symbol)
+  live_memory.metta:LiveEvidence.d2-join: unknown head CapUnion in (CapUnion 2 $m $n)
+  live_memory.metta:LiveEvidence.d2-join: unknown head CapUnion in (CapUnion 2 $p $q)
+  live_memory.metta:LiveEvidence.d2-join: unknown head Capped in (Capped Symbol)
+  live_memory.metta:LiveEvidence.d2-minus: expected a map-body, found (Parameters ($s Source))
+  live_memory.metta:LiveEvidence.d2-minus: unknown field (Cases ((Tuple $p $m) (Tuple $p (CapInsert 2 $s $m for Map
+  live_memory.metta:LiveEvidence.d2-minus: unknown head Capped in (Capped Symbol)
+  live_memory.metta:LiveEvidence.d2-plus: expected a map-body, found (Parameters ($s Source))
+  live_memory.metta:LiveEvidence.d2-plus: unknown field (Cases ((Tuple $p $m) (Tuple (CapInsert 2 $s $p) $ for Map
+  live_memory.metta:LiveEvidence.d2-plus: unknown head Capped in (Capped Symbol)
+  live_memory.metta:LiveEvidence.d2-regen: unknown head CapSize in (CapSize 2 $m)
+  live_memory.metta:LiveEvidence.d2-regen: unknown head Capped in (Capped Symbol)
+  live_memory.metta:LiveEvidence.d2-regen: unknown head Le in (Le 2 (CapSize 2 $m))
+  live_memory.metta:LiveEvidence.d2-stat: unknown head Cap in (Cap 2 $m)
+  live_memory.metta:LiveEvidence.d2-stat: unknown head Cap in (Cap 2 $p)
+  live_memory.metta:LiveEvidence.d2-stat: unknown head Capped in (Capped Symbol)
+  live_memory.metta:LiveEvidence.eff: unknown head Min in (Min 2 (Size $p))
+  live_memory.metta:LiveEvidence.eff: unknown head Size in (Size $p)
+  live_memory.metta:LiveEvidence.join: unknown head FiniteSet in (FiniteSet Symbol)
+  live_memory.metta:LiveEvidence.join: unknown head Union in (Union $m $n)
+  live_memory.metta:LiveEvidence.join: unknown head Union in (Union $p $q)
+  live_memory.metta:LiveEvidence.minus: expected a map-body, found (Parameters ($s Source))
+  live_memory.metta:LiveEvidence.minus: unknown field (Cases ((Tuple $p $m) (Tuple $p (Insert $s $m)))) for Map
+  live_memory.metta:LiveEvidence.plus: expected a map-body, found (Parameters ($s Source))
+  live_memory.metta:LiveEvidence.plus: unknown field (Cases ((Tuple $p $m) (Tuple (Insert $s $p) $m))) for Map
+  live_memory.metta:LiveEvidence.regen: unknown head Le in (Le 2 (Size $m))
+  live_memory.metta:LiveEvidence.regen: unknown head Size in (Size $m)
+  live_memory.metta:LiveGoals.BenFirstGoal: unknown field (ActionsOf Nag) for Machine
+  live_memory.metta:LiveGoals.BothNags: unknown field (ActionsOf Nag) for Machine
+  live_memory.metta:LiveGoals.Cap3Goal: unknown field (ActionsOf Nag) for Machine
+  live_memory.metta:LiveGoals.DaysGoal: unknown field (ActionsOf Nag) for Machine
+  live_memory.metta:LiveGoals.Nag: Action needs a label and a map
+  live_memory.metta:LiveGoals.Nag: unknown head For in (For $d Days)
+  live_memory.metta:LiveGoals.deadline-wait: expected a map-body, found (Parameters ($d Days))
+  live_memory.metta:LiveGoals.deadline-wait: unknown field (Cases ((Tuple $o $x $l) (Tuple $o (Or $x (Lt (Sub for Map
+  live_memory.metta:LiveGoals.nag-ben-first: unknown head Le in (Le $a 2)
+  live_memory.metta:LiveGoals.nag-cap3: unknown head Le in (Le $a 3)
+  live_memory.metta:LiveGoals.nag-days-left: unknown head Le in (Le $a 2)
+  live_memory.metta:LiveGoals.nag-days-left: unknown head Max in (Max 0 (Sub 2 $a))
+  live_memory.metta:LiveGoals.nag: unknown head Le in (Le $a 2)
+  live_memory.metta:LiveGoals.nonnegative: unknown head Le in (Le 0 $x)
+  live_memory.metta:LiveGoals.sat2-wait: expected a map-body, found (Parameters ($d Days))
+  live_memory.metta:LiveGoals.sat2-wait: unknown field (Cases ((Tuple $o $t $v) (Tuple $o (And $o (Or $t  for Map
+  live_memory.metta:LiveGoals.sat2: unknown head Le in (Le $a 2)
+  live_memory.metta:LiveGoals.sat2: unknown head Lt in (Lt 2 $a)
+  live_memory.metta:LiveGoals.sat3-nag: unknown head Le in (Le $v 2)
+  live_memory.metta:LiveGoals.sat3-wait: expected a map-body, found (Parameters ($d Days))
+  live_memory.metta:LiveGoals.sat3-wait: unknown field (Cases ((Tuple $o $t $v) (Tuple $o (And $o (Or $t  for Map
+  live_memory.metta:LiveGoals.sat3: unknown head Le in (Le $a 3)
+  live_memory.metta:LiveGoals.sat3: unknown head Lt in (Lt 3 $a)
+  live_memory.metta:LiveGoals.to-deadline: unknown head Lt in (Lt 2 $a)
+  live_memory.metta:LiveGoals.wait: expected a map-body, found (Parameters ($d Days))
+  live_memory.metta:LiveGoals.wait: unknown field (Cases ((Tuple $o $a $w) (Tuple $o (Add $a $d) $w) for Map
+  live_memory.metta:LiveMotivation.FloorMotive: Action needs a label and a map
+  live_memory.metta:LiveMotivation.FloorMotive: unknown head For in (For $n Bit)
+  live_memory.metta:LiveMotivation.FloorMotive: unknown head For in (For $r Bit)
+  live_memory.metta:LiveMotivation.FloorMotive: unknown head stimulus in (stimulus $n $r)
+  live_memory.metta:LiveMotivation.FloorWatch: unknown field (Like FloorMotive) for Machine
+  live_memory.metta:LiveMotivation.GoalSup: expected a tolerance-body, found (Meet (Pullback gi-real Dist01) (Pullback g1-real 
+  live_memory.metta:LiveMotivation.OrderSwapGoals: unknown field (Pairs same-state) for Implementation
+  live_memory.metta:LiveMotivation.OrderSwapSettled: unknown field (Pairs same-state) for Implementation
+  live_memory.metta:LiveMotivation.PlainMotive: Action needs a label and a map
+  live_memory.metta:LiveMotivation.PlainMotive: unknown head For in (For $n Bit)
+  live_memory.metta:LiveMotivation.PlainMotive: unknown head For in (For $r Bit)
+  live_memory.metta:LiveMotivation.PlainMotive: unknown head stimulus in (stimulus $n $r)
+  live_memory.metta:LiveMotivation.PlainWatch: unknown field (Like PlainMotive) for Machine
+  live_memory.metta:LiveMotivation.SafeFloor: undeclared name Any
+  live_memory.metta:LiveMotivation.SafeFloor: unknown field (Invariant safe-region) for BlockPartition
+  live_memory.metta:LiveMotivation.SafePlain: undeclared name Any
+  live_memory.metta:LiveMotivation.SafePlain: unknown field (Invariant safe-region) for BlockPartition
+  live_memory.metta:LiveMotivation.Sup: expected a tolerance-body, found (Meet (Pullback gi-real Dist01) (Pullback g1-real 
+  live_memory.metta:LiveMotivation.below: unknown head Lt in (Lt (gi-of $x) (Rat 1 2))
+  live_memory.metta:LiveMotivation.clip: unknown head Max in (Max 0 (Min 1 $v))
+  live_memory.metta:LiveMotivation.clip: unknown head Min in (Min 1 $v)
+  live_memory.metta:LiveMotivation.decide: expected a map-body, found (Parameters ($v Variant))
+  live_memory.metta:LiveMotivation.decide: unknown field (Cases ((Tuple $gi $g1 $a $c $nu $rho) (Tuple (If  for Map
+  live_memory.metta:LiveMotivation.safe-region: unknown head Le in (Le (Rat 1 2) (gi-of $x))
+  live_memory.metta:LiveMotivation.set-stimulus: expected a map-body, found (Parameters ($n Bit) ($r Bit))
+  live_memory.metta:LiveMotivation.set-stimulus: unknown field (Cases ((Tuple $gi $g1 $a $c $nu $rho) (Tuple $gi  for Map
+  live_memory.metta:LiveMotivation.unit: unknown head Le in (Le $x 1)
+  live_memory.metta:LiveMotivation.unit: unknown head Le in (Le 0 $x)
+  live_memory.metta:LiveMotivation.weight: unknown head Le in (Le $x 1)
+  live_memory.metta:LiveMotivation.weight: unknown head Le in (Le (Rat 1 4) $x)
+  live_memory.metta:LiveOpenItems.EngineTime: unknown field (ActionsOf ItemTime) for Machine
+  live_memory.metta:LiveOpenItems.ItemTime: Action needs a label and a map
+  live_memory.metta:LiveOpenItems.ItemTime: unknown head For in (For $d Days)
+  live_memory.metta:LiveOpenItems.engine-stat: unknown head Lt in (Lt 7 $a)
+  live_memory.metta:LiveOpenItems.engine-wait: expected a map-body, found (Parameters ($d Days))
+  live_memory.metta:LiveOpenItems.engine-wait: unknown field (Cases ((Tuple $x $v) (Tuple (Or $x (Lt 7 (Add $v  for Map
+  live_memory.metta:LiveOpenItems.event-suggest: unknown head Le in (Le $a 7)
+  live_memory.metta:LiveOpenItems.event-wait: expected a map-body, found (Parameters ($d Days))
+  live_memory.metta:LiveOpenItems.event-wait: unknown field (Cases ((Tuple $a $c) (Tuple (Add $a $d) $c))) for Map
+  live_memory.metta:LiveOpenItems.joint-stat: unknown head Le in (Le $a 7)
+  live_memory.metta:LiveOpenItems.joint-stat: unknown head Lt in (Lt 7 $a)
+  live_memory.metta:LiveOpenItems.joint-wait: expected a map-body, found (Parameters ($d Days))
+  live_memory.metta:LiveOpenItems.joint-wait: unknown field (Cases ((Tuple $c $t $v) (Tuple $c (And (Not $c) ( for Map
+  live_memory.metta:LiveOpenItems.nonnegative: unknown head Le in (Le 0 $x)
+  live_memory.metta:LiveOpenItems.suggest: unknown head Le in (Le $a 7)
+  live_memory.metta:LiveOpenItems.wait: expected a map-body, found (Parameters ($d Days))
+  live_memory.metta:LiveOpenItems.wait: unknown field (Cases ((Tuple $a $c $e) (Tuple (Add $a $d) $c (Ad for Map
+  live_memory.metta:LiveOpenItems.well-formed: unknown head Le in (Le $e $a)
+  live_memory.metta:LiveOpenItems.window-view: unknown head Le in (Le $e 2)
+  live_memory.metta:LiveReceipts.stale: expected a map-body, found (Parameters ($r Rate))
+  live_memory.metta:LiveReceipts.stale: unknown field (Body ($u) (Coin (stale-rate $r))) for Map
+  live_memory.metta:run (CheckMonitor StaleFifth): unregistered request CheckMonitor
+  live_memory.metta:run (CheckStatistic Deadline (Method Symboli: unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic EngineAsItems (Method Li: unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic EngineIndex (Method Lift: unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic EngineStat (Method Symbo: unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic EventIndex (Method Lift): unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic EventStat (Method Symbol: unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic FirstOrMore (Method Symb: unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic JointIndex (Method Lift): unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic JointStat (Method Symbol: unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic SaturateAtThree (Method : unregistered request CheckStatistic
+  live_memory.metta:run (CheckStatistic SaturateAtTwo (Method Sy: unregistered request CheckStatistic
+  live_memory.metta:run (CompareRates (On ContextReceipts) (Firs: unregistered request CompareRates
+  live_memory.metta:run (Detect StaleFifth (On TenPercent) (Leve: unregistered request Detect
+  live_memory.metta:run (Detect StaleTenth StaleFifth StaleTwoFi: unregistered request Detect
+  live_memory.metta:run (EstimateRate (On ContextReceipts) (Colu: unregistered request EstimateRate
+  live_memory.metta:run (EstimateRate (On LiveSuggestions) (Colu: unregistered request EstimateRate
+  memory_goals.metta: EvidenceMemory: compound label (minus $s) needs the Families library
+  memory_goals.metta: EvidenceMemory: compound label (plus $s) needs the Families library
+  memory_goals.metta: module ClaimArbitration: unknown library Families
+  memory_goals.metta: module ContextBlock: unknown declaration head Consumer
+  memory_goals.metta: module ContextBlock: unknown library Families
+  memory_goals.metta: module ContextBlock: unknown library NatArith
+  memory_goals.metta: module EvidenceMemory: unknown declaration head Consumer
+  memory_goals.metta: module EvidenceMemory: unknown library Families
+  memory_goals.metta: module EvidenceMemory: unknown library NatArith
+  memory_goals.metta: module ItemGoals: unknown declaration head Consumer
+  memory_goals.metta: module ItemGoals: unknown library Families
+  memory_goals.metta: module ItemGoals: unknown library NatArith
+  memory_goals.metta: module MotivationGrid: unknown library Families
+  memory_goals.metta: module MotivationGrid: unknown library NatArith
+  memory_goals.metta: module OpenItems: unknown declaration head Consumer
+  memory_goals.metta: module OpenItems: unknown library Families
+  memory_goals.metta: module OpenItems: unknown library NatArith
+  memory_goals.metta: module StaleMonitor: unknown declaration head Monitor
+  memory_goals.metta: module StaleMonitor: unknown declaration head Stream
+  memory_goals.metta: module StaleMonitor: unknown library Families
+  memory_goals.metta: module StaleMonitor: unknown library Laws
+  memory_goals.metta: module StaleMonitor: unknown library Monitors
+  memory_goals.metta: module SuggestionDedupe: unknown library Families
+  memory_goals.metta: module SuggestionDedupe: unknown library NatArith
+  memory_goals.metta:ClaimArbitration.Agreement: undeclared name Any
+  memory_goals.metta:ClaimArbitration.ConflictWatch: unknown field (ActionsOf NormFirst) for Machine
+  memory_goals.metta:ClaimArbitration.LawfulNormFirst: undeclared name Any
+  memory_goals.metta:ClaimArbitration.LawfulWeighted: undeclared name Any
+  memory_goals.metta:ClaimArbitration.NormFirstLaw: unknown field (Like NormFirst) for Machine
+  memory_goals.metta:ClaimArbitration.WeightedLaw: unknown field (Like Weighted) for Machine
+  memory_goals.metta:ContextBlock.ForAnchor: expected a reference to Map, found (latest A)
+  memory_goals.metta:ContextBlock.ForFresh: expected a reference to Map, found (latest F)
+  memory_goals.metta:ContextBlock.ForOpen: expected a reference to Map, found (latest O)
+  memory_goals.metta:ContextBlock.block: expected a map-body, found (Parameters ($pol Policy))
+  memory_goals.metta:ContextBlock.block: unknown field (Body ($m) (mask (Tuple $m (hidden-slot $pol $m))) for Map
+  memory_goals.metta:ContextBlock.hidden-slot: expected a map-body, found (Parameters ($pol Policy))
+  memory_goals.metta:ContextBlock.hidden-slot: unknown field (Body ($m) (If (And (Le (key $pol (Tuple $m 1)) (k for Map
+  memory_goals.metta:ContextBlock.key: expected a map-body, found (Parameters ($pol Policy))
+  memory_goals.metta:ContextBlock.key: unknown field (Body ($mi) (Add (Mul 4 (rank $pol $mi)) (GetTuple for Map
+  memory_goals.metta:ContextBlock.latest: expected a map-body, found (Parameters ($k Kind))
+  memory_goals.metta:ContextBlock.latest: unknown field (Body ($m) (latest-of (Tuple $k $m))) for Map
+  memory_goals.metta:ContextBlock.rank: expected a map-body, found (Parameters ($pol Policy))
+  memory_goals.metta:ContextBlock.rank: unknown field (Cases ((Tuple $m $i) (Switch $pol (recency 0) (re for Map
+  memory_goals.metta:EvidenceMemory.AllThree: unknown field (ActionsOf Contra) for Machine
+  memory_goals.metta:EvidenceMemory.Contra: Action needs a label and a map
+  memory_goals.metta:EvidenceMemory.Contra: unknown head For in (For $s Source)
+  memory_goals.metta:EvidenceMemory.ContraRegen: unknown field (ActionsOf Contra) for Machine
+  memory_goals.metta:EvidenceMemory.Eff: unknown field (ActionsOf Contra) for Machine
+  memory_goals.metta:EvidenceMemory.Regen: unknown field (ActionsOf Contra) for Machine
+  memory_goals.metta:EvidenceMemory.contra: unknown head Le in (Le 1 (Add $ma (Add $mb $mc)))
+  memory_goals.metta:EvidenceMemory.counts: unknown head Min in (Min 2 (Add $ma (Add $mb $mc)))
+  memory_goals.metta:EvidenceMemory.counts: unknown head Min in (Min 2 (Add $pa (Add $pb $pc)))
+  memory_goals.metta:EvidenceMemory.eff: unknown head Min in (Min 2 (Add (seen $pa) (Add (seen $pb) (seen $pc))))
+  memory_goals.metta:EvidenceMemory.first-or-more: unknown head Le in (Le 1 $x)
+  memory_goals.metta:EvidenceMemory.first-or-more: unknown head Le in (Le 1 $y)
+  memory_goals.metta:EvidenceMemory.first-or-more: unknown head Le in (Le 1 $z)
+  memory_goals.metta:EvidenceMemory.first-or-more: unknown head Le in (Le 2 (Add (seen $x) (Add (seen $y) (seen $z))))
+  memory_goals.metta:EvidenceMemory.majority: unknown head Lt in (Lt (Add $ma (Add $mb $mc)) (Add $pa (Add $pb $pc)))
+  memory_goals.metta:EvidenceMemory.majority: unknown head Lt in (Lt (Add $pa (Add $pb $pc)) (Add $ma (Add $mb $mc)))
+  memory_goals.metta:EvidenceMemory.minus: expected a map-body, found (Parameters ($s Source))
+  memory_goals.metta:EvidenceMemory.minus: unknown field (Cases ((Tuple $pa $pb $pc $ma $mb $mc) (Switch $s for Map
+  memory_goals.metta:EvidenceMemory.plus: expected a map-body, found (Parameters ($s Source))
+  memory_goals.metta:EvidenceMemory.plus: unknown field (Cases ((Tuple $pa $pb $pc $ma $mb $mc) (Switch $s for Map
+  memory_goals.metta:EvidenceMemory.protected: unknown head Min in (Min 2 (Add $ma (Add $mb $mc)))
+  memory_goals.metta:EvidenceMemory.protected: unknown head Min in (Min 2 (Add $pa (Add $pb $pc)))
+  memory_goals.metta:EvidenceMemory.regen: unknown head Le in (Le 2 (Add (seen $ma) (Add (seen $mb) (seen $mc))))
+  memory_goals.metta:ItemGoals.AllGoals: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.AntiNagGoal: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.BenFirstGoal: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.Cap3Goal: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.DaysGoal: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.Nag: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.ReplyNag: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.ReplyTriage: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.Triage: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.days-left: unknown head Le in (Le $a 2)
+  memory_goals.metta:ItemGoals.days-left: unknown head Max in (Max 0 (Sub 3 $a))
+  memory_goals.metta:ItemGoals.nag-cap3: unknown head Le in (Le $a 3)
+  memory_goals.metta:ItemGoals.nag-left: unknown head Lt in (Lt 0 $d)
+  memory_goals.metta:ItemGoals.nag: unknown head Le in (Le $a 2)
+  memory_goals.metta:ItemGoals.tick-left: unknown head Max in (Max 0 (Sub $d 1))
+  memory_goals.metta:ItemGoals.tick: unknown head Min in (Min 4 (Add $a 1))
+  memory_goals.metta:ItemGoals.to-deadline: unknown head Max in (Max 0 (Sub 3 $a))
+  memory_goals.metta:MotivationGrid.FloorWatch: unknown field (Like FloorMotive) for Machine
+  memory_goals.metta:MotivationGrid.NearBoundaryDamped: unknown field (Pairs near-boundary) for Implementation
+  memory_goals.metta:MotivationGrid.NearBoundaryFloor: unknown field (Pairs near-boundary) for Implementation
+  memory_goals.metta:MotivationGrid.OrderSwapDamped: unknown field (Pairs same-stimulus) for Implementation
+  memory_goals.metta:MotivationGrid.OrderSwapFloor: unknown field (Pairs same-stimulus) for Implementation
+  memory_goals.metta:MotivationGrid.OrderSwapSettled: unknown field (Pairs same-stimulus) for Implementation
+  memory_goals.metta:MotivationGrid.PlainWatch: unknown field (Like PlainMotive) for Machine
+  memory_goals.metta:MotivationGrid.SafeFloor: undeclared name Any
+  memory_goals.metta:MotivationGrid.SafeFloor: unknown head Le in (Le 2 (gi-of $x))
+  memory_goals.metta:MotivationGrid.SafePlain: undeclared name Any
+  memory_goals.metta:MotivationGrid.SafePlain: unknown head Le in (Le 2 (gi-of $x))
+  memory_goals.metta:MotivationGrid.Sup: expected a tolerance-body, found (Meet (Pullback gi-real Dist01) (Pullback g1-real 
+  memory_goals.metta:MotivationGrid.appraise: unknown head Quot in (Quot (Add (Mul 4 $nu) $g1) 4)
+  memory_goals.metta:MotivationGrid.appraise: unknown head Quot in (Quot (Add (Mul 4 $rho) $gi) 4)
+  memory_goals.metta:MotivationGrid.below: unknown head Lt in (Lt (gi-of $x) 2)
+  memory_goals.metta:MotivationGrid.decide: expected a map-body, found (Parameters ($v Variant))
+  memory_goals.metta:MotivationGrid.decide: unknown field (Cases ((Tuple $gi $g1 $a $c $nu $rho) (Tuple (If  for Map
+  memory_goals.metta:MotivationGrid.sign: unknown head Lt in (Lt $d 0)
+  memory_goals.metta:MotivationGrid.sign: unknown head Lt in (Lt 0 $d)
+  memory_goals.metta:OpenItems.Both: unknown field (ActionsOf ItemLife) for Machine
+  memory_goals.metta:OpenItems.Commitments: unknown field (ActionsOf ItemLife) for Machine
+  memory_goals.metta:OpenItems.GoalEngine: unknown field (Like ItemLife) for Machine
+  memory_goals.metta:OpenItems.suggest: unknown head Le in (Le $a 7)
+  memory_goals.metta:OpenItems.tick: unknown head Min in (Min (Add $a 1) 8)
+  memory_goals.metta:StaleMonitor.stale: expected a map-body, found (Parameters ($r Rate))
+  memory_goals.metta:StaleMonitor.stale: unknown field (Body ($u) (Coin (stale-rate $r))) for Map
+  memory_goals.metta:SuggestionDedupe.OnceByQuestion: undeclared name Any
+  memory_goals.metta:SuggestionDedupe.OnceByQuestion: unknown head Le in (Le (count-of $x) 1)
+  memory_goals.metta:SuggestionDedupe.OnceByTopic: undeclared name Any
+  memory_goals.metta:SuggestionDedupe.OnceByTopic: unknown head Le in (Le (count-of $x) 1)
+  memory_goals.metta:SuggestionDedupe.QuestionWatch: unknown field (Like ByQuestion) for Machine
+  memory_goals.metta:SuggestionDedupe.TopicWatch: unknown field (Like ByTopic) for Machine
+  memory_goals.metta:SuggestionDedupe.repeated: unknown head Le in (Le 2 (count-of $x))
+  memory_goals.metta:SuggestionDedupe.run-by-question: unknown head Min in (Min 2 (Add $c (If (And (Or $r1 $r2) (Not $s1)) 1 0)))
+  memory_goals.metta:SuggestionDedupe.run-by-topic: unknown head Min in (Min 2 (Add $c (Add (If (And $r1 (Not $s1)) 1 0) (If (And $r
+  memory_goals.metta:TaskResume.Resume: unknown field (Like Restart) for Machine
+  memory_goals.metta:run (CheckInterpretation DaysFollowUps Deadl: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps AntiNa: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps BenFir: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps Cap3Fo: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps DaysFo: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps Deadli: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckMonitor Stale): unregistered request CheckMonitor
+  memory_goals.metta:run (Detect Stale (On LiveSuggestions) (Leve: unregistered request Detect
+  memory_goals.metta:run (Detect Stale (On QuietSuggestions) (Lev: unregistered request Detect
+  wmtm_example.metta: Import: LiveOpenItems has no declaration EventStat
+  wmtm_example.metta: Import: LiveOpenItems has no declaration JointStat
+  wmtm_example.metta: WMTMRelease: compound label (snooze $s) needs the Families library
+  wmtm_example.metta: WMTMRelease: compound label (wait $d) needs the Families library
+  wmtm_example.metta: WMTMStore: compound label (wait $d) needs the Families library
+  wmtm_example.metta: module WMTMReceipts: unknown declaration head Monitor
+  wmtm_example.metta: module WMTMReceipts: unknown declaration head Stream
+  wmtm_example.metta: module WMTMReceipts: unknown library Estimates
+  wmtm_example.metta: module WMTMReceipts: unknown library Families
+  wmtm_example.metta: module WMTMReceipts: unknown library Laws
+  wmtm_example.metta: module WMTMReceipts: unknown library Monitors
+  wmtm_example.metta: module WMTMRelease: unknown declaration head Keyed
+  wmtm_example.metta: module WMTMRelease: unknown declaration head Statistic
+  wmtm_example.metta: module WMTMRelease: unknown declaration head Store
+  wmtm_example.metta: module WMTMRelease: unknown library Families
+  wmtm_example.metta: module WMTMRelease: unknown library RationalArith
+  wmtm_example.metta: module WMTMRelease: unknown library Statistics
+  wmtm_example.metta: module WMTMStore: unknown declaration head Keyed
+  wmtm_example.metta: module WMTMStore: unknown declaration head Statistic
+  wmtm_example.metta: module WMTMStore: unknown declaration head Store
+  wmtm_example.metta: module WMTMStore: unknown library Families
+  wmtm_example.metta: module WMTMStore: unknown library RationalArith
+  wmtm_example.metta: module WMTMStore: unknown library Statistics
+  wmtm_example.metta:WMTMReceipts.stale: expected a map-body, found (Parameters ($r Rate))
+  wmtm_example.metta:WMTMReceipts.stale: unknown field (Body ($u) (Coin (miss-rate $r))) for Map
+  wmtm_example.metta:WMTMRelease.EngineIndexView: unknown field (ActionsOf ItemSnooze) for Machine
+  wmtm_example.metta:WMTMRelease.ItemSnooze: Action needs a label and a map
+  wmtm_example.metta:WMTMRelease.ItemSnooze: unknown head For in (For $d Days)
+  wmtm_example.metta:WMTMRelease.ItemSnooze: unknown head For in (For $s Days)
+  wmtm_example.metta:WMTMRelease.NagThree: unknown field (ActionsOf ItemSnooze) for Machine
+  wmtm_example.metta:WMTMRelease.NagTwo: unknown field (ActionsOf ItemSnooze) for Machine
+  wmtm_example.metta:WMTMRelease.NewIndexView: unknown field (ActionsOf ItemSnooze) for Machine
+  wmtm_example.metta:WMTMRelease.joint-carried: unknown head Le in (Le $a 7)
+  wmtm_example.metta:WMTMRelease.joint-carried: unknown head Lt in (Lt 7 $a)
+  wmtm_example.metta:WMTMRelease.joint-s-snooze: expected a map-body, found (Parameters ($s Days))
+  wmtm_example.metta:WMTMRelease.joint-s-snooze: unknown field (Cases ((Tuple $c $t $v $u) (Tuple $c (And (Not $c for Map
+  wmtm_example.metta:WMTMRelease.joint-s-suggest: unknown head Le in (Le $u 0)
+  wmtm_example.metta:WMTMRelease.joint-s-wait: expected a map-body, found (Parameters ($d Days))
+  wmtm_example.metta:WMTMRelease.joint-s-wait: unknown field (Cases ((Tuple $c $t $v $u) (Tuple $c (And (Not $c for Map
+  wmtm_example.metta:WMTMRelease.joint: unknown head Le in (Le (Add $a $r) 7)
+  wmtm_example.metta:WMTMRelease.joint: unknown head Lt in (Lt 7 (Add $a $r))
+  wmtm_example.metta:WMTMRelease.nag-three: unknown head Le in (Le $a 3)
+  wmtm_example.metta:WMTMRelease.nag-two: unknown head Le in (Le $a 2)
+  wmtm_example.metta:WMTMRelease.rebuild-joint: unknown head Le in (Le (Add $a $r) 7)
+  wmtm_example.metta:WMTMRelease.rebuild-joint: unknown head Lt in (Lt 7 (Add $a $r))
+  wmtm_example.metta:WMTMRelease.rebuild-three: unknown head Le in (Le $a 3)
+  wmtm_example.metta:WMTMRelease.rebuild-three: unknown head Lt in (Lt 3 $a)
+  wmtm_example.metta:WMTMRelease.rec-snooze: expected a map-body, found (Parameters ($s Days))
+  wmtm_example.metta:WMTMRelease.rec-snooze: unknown field (Cases ((Tuple $a $c $r) (Tuple $a $c (Max $r $s)) for Map
+  wmtm_example.metta:WMTMRelease.rec-suggest: unknown head Le in (Le $a 7)
+  wmtm_example.metta:WMTMRelease.rec-suggest: unknown head Le in (Le $r 0)
+  wmtm_example.metta:WMTMRelease.rec-wait: expected a map-body, found (Parameters ($d Days))
+  wmtm_example.metta:WMTMRelease.rec-wait: unknown field (Cases ((Tuple $a $c $r) (Tuple (Add $a $d) $c (Ma for Map
+  wmtm_example.metta:WMTMRelease.sat-keep: expected a map-body, found (Parameters ($s Days))
+  wmtm_example.metta:WMTMRelease.sat-keep: unknown field (Cases ((Tuple $o $t $v) (Tuple $o $t $v))) for Map
+  wmtm_example.metta:WMTMRelease.sat-three-wait: expected a map-body, found (Parameters ($d Days))
+  wmtm_example.metta:WMTMRelease.sat-three-wait: unknown field (Cases ((Tuple $o $t $v) (Tuple $o (And $o (Or $t  for Map
+  wmtm_example.metta:WMTMRelease.sat-three: unknown head Le in (Le $a 3)
+  wmtm_example.metta:WMTMRelease.sat-three: unknown head Lt in (Lt 3 $a)
+  wmtm_example.metta:WMTMRelease.sat-two-wait: expected a map-body, found (Parameters ($d Days))
+  wmtm_example.metta:WMTMRelease.sat-two-wait: unknown field (Cases ((Tuple $o $t $v) (Tuple $o (And $o (Or $t  for Map
+  wmtm_example.metta:WMTMRelease.sat-two: unknown head Le in (Le $a 2)
+  wmtm_example.metta:WMTMRelease.sat-two: unknown head Lt in (Lt 2 $a)
+  wmtm_example.metta:WMTMRelease.snooze: expected a map-body, found (Parameters ($s Days))
+  wmtm_example.metta:WMTMRelease.snooze: unknown field (Cases ((Tuple $a $c $e $r) (Tuple $a $c $e (Max $ for Map
+  wmtm_example.metta:WMTMRelease.suggest: unknown head Le in (Le $a 7)
+  wmtm_example.metta:WMTMRelease.suggest: unknown head Le in (Le $r 0)
+  wmtm_example.metta:WMTMRelease.wait: expected a map-body, found (Parameters ($d Days))
+  wmtm_example.metta:WMTMRelease.wait: unknown field (Cases ((Tuple $a $c $e $r) (Tuple (Add $a $d) $c  for Map
+  wmtm_example.metta:WMTMRelease.well-formed: unknown head Le in (Le $e $a)
+  wmtm_example.metta:WMTMStore.NagTime: unknown field (ActionsOf ItemTime) for Machine
+  wmtm_example.metta:WMTMStore.nag: unknown head Le in (Le $a 2)
+  wmtm_example.metta:WMTMStore.sat-two-wait: expected a map-body, found (Parameters ($d Days))
+  wmtm_example.metta:WMTMStore.sat-two-wait: unknown field (Cases ((Tuple $o $t $v) (Tuple $o (And $o (Or $t  for Map
+  wmtm_example.metta:WMTMStore.sat-two: unknown head Le in (Le $a 2)
+  wmtm_example.metta:WMTMStore.sat-two: unknown head Lt in (Lt 2 $a)
+  wmtm_example.metta:run (CheckMonitor MissFifth): unregistered request CheckMonitor
+  wmtm_example.metta:run (CheckMonitor MissTenth): unregistered request CheckMonitor
+  wmtm_example.metta:run (CheckMonitor MissTwoFifths): unregistered request CheckMonitor
+  wmtm_example.metta:run (CheckStatistic EngineIndex (Method Lift: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic EngineIndexS (Method Lif: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic EventStat (Method Symbol: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic JointCarried (Method Sym: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic JointS (Method Symbolic): unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic JointStat (Method Symbol: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic NagIndex (Method Symboli: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic NagIndexByKey (Method Li: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic NagIndexS (Method Lift)): unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic NagThreeIndex (Method Sy: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic NagTwoIndex (Method Symb: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic RebuildEngineIndex (Meth: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic RebuildFromRecords (Meth: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic RecordS (Method Symbolic: unregistered request CheckStatistic
+  wmtm_example.metta:run (CheckStatistic Records (Method Lift)): unregistered request CheckStatistic
+  wmtm_example.metta:run (CompareRates (On LivesGate) (First "win: unregistered request CompareRates
+  wmtm_example.metta:run (Detect MissTenth MissFifth MissTwoFifth: unregistered request Detect
+  wmtm_example.metta:run (EstimateRate (On AuditAfterAlarm) (Colu: unregistered request EstimateRate
+  wmtm_example.metta:run (EstimateRate (On AuditOpenGate) (Column: unregistered request EstimateRate
+  wmtm_example.metta:run (EstimateRate (On AuditRepliesGate) (Col: unregistered request EstimateRate
+  wmtm_example.metta:run (EstimateRate (On AuditV2) (Column "miss: unregistered request EstimateRate
+  wmtm_example.metta:run (EstimateRate (On ClosuresGate) (Column : unregistered request EstimateRate
+  wmtm_example.metta:run (EstimateRate (On KeysGate) (Column "dup: unregistered request EstimateRate
+  wmtm_example.metta:run (EstimateRate (On RepliesBefore) (Column: unregistered request EstimateRate
+  wmtm_example.metta:run (EstimateRate (On RepliesGate) (Column ": unregistered request EstimateRate
