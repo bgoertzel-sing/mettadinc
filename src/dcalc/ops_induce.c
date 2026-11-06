@@ -47,7 +47,9 @@ Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int slot) {
     const DcRepr *rp = &m->rep[ri];
     Sx *subject = dc_form("Subject", dc_form("Representation", dc_sym(rp->name), NULL),
                           dc_form("Machine", dc_sym(m->mach[rp->machine].name), NULL), NULL);
-    DcOblKind ks[3]; size_t nk = dc_obligations_for_induce(ks);
+    /* Boundary 3: obligations come from the admitted IR and carry its digest. */
+    DcObligationRec ob[3]; size_t nk = dc_obligations_emit(m, ri, ob);
+    DcOblKind ks[3]; for (size_t i = 0; i < nk; i++) ks[i] = ob[i].kind;
     Sx *checked = dc_form("Obligations", NULL);
     for (size_t i = 0; i < nk; i++) {
         Sx *w = NULL;
@@ -56,9 +58,9 @@ Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int slot) {
             sx_free(checked);
             return dc_envelope(m, VERDICT_FAILS, rep, dc_claim_of(q, "Literal"), subject,
                 dc_form("Value", dc_form("Refutation", dc_form("Obligation", dc_sym(dc_obl_name(ks[i])), NULL), NULL), NULL),
-                dc_form("Evidence", dc_form("Obligation", dc_sym(dc_obl_name(ks[i])), NULL), dc_form("Witness", w, NULL), NULL), NULL);
+                dc_form("Evidence", dc_obligation_form(m, &ob[i]), dc_form("Witness", w, NULL), NULL), NULL);
         }
-        sx_push(checked, dc_sym(dc_obl_name(ks[i])));
+        sx_push(checked, dc_obligation_form(m, &ob[i]));
     }
     /* All obligations hold: the quotient exists.  Certificate = the code
      * classes (literal), replayed independently of the search above. */

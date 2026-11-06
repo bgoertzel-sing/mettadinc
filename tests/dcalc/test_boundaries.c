@@ -163,6 +163,18 @@ static void boundary3_obligations(void) {
         CHECK(!dc_obligation_replay(&m, 0, OBL_UPDATE, forged), "B3 replay refuses a forged witness (pair not sharing a code)");
         sx_free(forged); sx_free(w);
     }
+    /* emitted obligations record the digest of the admitted source */
+    DcObligationRec ob[3]; size_t no = dc_obligations_emit(&m, 0, ob);
+    CHECK(no == 3 && ob[0].kind == OBL_CURRENT && !strcmp(ob[0].source_digest, m.digest) && strlen(ob[2].source_digest) == 64,
+          "B3 emitted obligations carry the admitted source digest");
+    CHECK(dc_obligation_bound_to(&m, &ob[1]), "B3 obligation is bound to the source it was generated from");
+    {
+        char *fs = NULL; Sx *of = dc_obligation_form(&m, &ob[1]); fs = sx_print(of);
+        CHECK(strstr(fs, "(Obligation Update") && strstr(fs, "SourceDigest"), "B3 obligation form records Kind, Repr and SourceDigest");
+        free(fs); sx_free(of);
+    }
+    DcObligationRec stale = ob[0]; stale.source_digest[0] = stale.source_digest[0] == 'a' ? 'b' : 'a';
+    CHECK(!dc_obligation_bound_to(&m, &stale), "B3 obligation from an edited source is not bound to this one");
     dc_module_free(&m); sx_free(tiny);
 }
 

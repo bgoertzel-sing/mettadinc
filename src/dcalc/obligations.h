@@ -24,4 +24,19 @@ int dc_obligation(const DcModule *m, int ri, DcOblKind k, Sx **wit);
 /* Replay a witness against the module directly (no search): 1 if the
  * witness exhibits a real failure of obligation k for representation ri. */
 int dc_obligation_replay(const DcModule *m, int ri, DcOblKind k, const Sx *wit);
+/* Boundary 3: an emitted obligation.  The generator's only input is the
+ * admitted IR (DcModule); every obligation records the digest of that source
+ * (m->digest), so no separately written model stands between the source and
+ * its proof obligations. */
+typedef struct {
+    DcOblKind kind;
+    int repr;                 /* representation index in the admitted module */
+    char source_digest[65];   /* sha256 of the admitted module source */
+} DcObligationRec;
+/* Emit the InduceExact obligations for representation ri; returns the count. */
+size_t dc_obligations_emit(const DcModule *m, int ri, DcObligationRec out[3]);
+/* (Obligation Kind (Repr name) (SourceDigest "hex")) */
+Sx *dc_obligation_form(const DcModule *m, const DcObligationRec *o);
+/* 1 when the obligation was generated from exactly this admitted source. */
+int dc_obligation_bound_to(const DcModule *m, const DcObligationRec *o);
 #endif

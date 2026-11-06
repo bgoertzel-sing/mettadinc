@@ -95,3 +95,22 @@ int dc_obligation_replay(const DcModule *m, int ri, DcOblKind k, const Sx *wit) 
     }
     return 0;
 }
+
+/* ---- boundary 3: emitted obligations carry the source digest ---- */
+#include <stdio.h>
+size_t dc_obligations_emit(const DcModule *m, int ri, DcObligationRec out[3]) {
+    DcOblKind ks[3]; size_t n = dc_obligations_for_induce(ks);
+    for (size_t i = 0; i < n; i++) {
+        out[i].kind = ks[i]; out[i].repr = ri;
+        snprintf(out[i].source_digest, sizeof out[i].source_digest, "%s", m ? m->digest : "");
+    }
+    return n;
+}
+Sx *dc_obligation_form(const DcModule *m, const DcObligationRec *o) {
+    const char *rn = m && o->repr >= 0 && (size_t)o->repr < m->nrep ? m->rep[o->repr].name : "?";
+    return dc_form("Obligation", dc_sym(dc_obl_name(o->kind)), dc_form("Repr", dc_sym(rn), NULL),
+                   dc_form("SourceDigest", sx_str(o->source_digest), NULL), NULL);
+}
+int dc_obligation_bound_to(const DcModule *m, const DcObligationRec *o) {
+    return m && o->source_digest[0] && !strcmp(m->digest, o->source_digest);
+}
