@@ -4,8 +4,9 @@ MeTTaDinC sublanguage on Cetta
 ## The MeTTaDinC epic
 
 This repository is where MeTTaDinC is to be built on Cetta, following Ben Goertzel's MeTTaDinC documents and the
-milestones M0–M7 of the Cetta work plan. It holds no implementation code yet, and no Cetta: milestone M0 adds Cetta as a
-pinned submodule.
+milestones M0–M7 of the Cetta work plan. It holds no MeTTaDinC implementation code yet. Cetta is the git submodule
+`cetta/`, pinned to the plan's commit and unmodified (see "M0 prerequisites" below); fetch it with
+`git submodule update --init`.
 
 `docs/e0/` holds the reviewed delivery of hive task t-2026-11-05-mettadinc-e0 (E0: ingest, milestones, Cetta pin),
 byte for byte. To verify it:
@@ -37,6 +38,17 @@ cd docs/e0 && sha256sum -c SHA256SUMS
 | [docs/e0/OPEN_QUESTIONS.md](docs/e0/OPEN_QUESTIONS.md) | Questions E0 raised for Ben |
 | [docs/e0/tools/](docs/e0/tools/) | E0's scripts (crawl, assembly, milestone generation, Cetta baseline, oracle runs) |
 | [docs/e0/evidence/](docs/e0/evidence/) | Cetta build and test logs, oracle outputs, the Drive crawl manifest |
+
+### M0 prerequisites (hive task t-2026-11-05-mettadinc-m0-prep)
+
+| Path | What |
+|---|---|
+| [registry/mettadinc_registry.json](registry/mettadinc_registry.json) | The one registry M0–M3 build against: the package registry with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted (decision 1). Its sha256, the registry digest, is in [registry/DIGEST](registry/DIGEST); inputs, copies, revisions, resolutions and the coordinated-change table are in [registry/SOURCES.md](registry/SOURCES.md). Rebuild or verify with `python3 tools/adopt_registry.py [--check]` and the --supersede options recorded in SOURCES.md |
+| [validation/check_fixtures.py](validation/check_fixtures.py) | Working copy of the package checker, reading the adopted registry; `cd validation && python3 check_fixtures.py` |
+| [tools/check_bundles.py](tools/check_bundles.py) | Each bundle's own ex_check.py check against the adopted registry alone, no patch; must report 0 diagnostics |
+| [tools/run-oracles.sh](tools/run-oracles.sh) | The reference oracles, on a copy: 157 / 305 / 195 / 94 / 99 |
+| [cetta/](cetta/) | Submodule: zariuq/CeTTa pinned to 12da03b4 ([docs/CETTA-PIN.md](docs/CETTA-PIN.md)); `tools/check-vendored-cetta.sh` checks the gitlink equals the pin and the checkout is at it and clean |
+| [tools/cetta-baseline.sh](tools/cetta-baseline.sh) | Decision 2's "green": builds the cetta/ submodule checkout (core, then python), runs the three gates and compares with [tools/cetta-baseline.expected](tools/cetta-baseline.expected), which is derived from E0's frozen logs. Exit 0 green, 1 regression, 2 build/setup failure. Set `MDINC_GMP_PREFIX` if the system has no GMP headers (see the script's header) |
 
 ### Ben's decisions
 

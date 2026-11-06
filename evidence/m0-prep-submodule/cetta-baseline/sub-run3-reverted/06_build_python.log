@@ -1,0 +1,4 @@
+== make -j8 BUILD=python ==
+Built ./cetta [BUILD=python, runtime-stats=0]
+Tip: ./cetta -v prints the active version and build mode
+EXIT=0 SECS=0

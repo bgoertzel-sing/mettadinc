@@ -1,0 +1,97 @@
+== Part A: models
+ok   A1 confidence sequence at level 0.05: the true rate leaves it in at most 5% of 2,000 runs of 2,000 events (p = 0.01, 0.05, 0.2, 0.5)
+ok   A1 zero-failure upper bounds at level 0.01, anytime and fixed-n (n = 100, 1e3, 1e4, 1e5)
+ok   A1 the zero-failure bound is the upper end of the mixture sequence at S = 0 (n = 1000)
+ok   A1 events from which on the upper end stays below a target, and the first event at which it dips below, counts rounded half up (0.01->0.02, 0.05->0.10, 0.05->0.075, 0.2->0.25)
+ok   A1 drift of the log e-value per observation, fixed alternative 1/5 against 1/20, at rates 1/10, 1/5, 3/10
+ok   A1 detection within 2,000 observations at rate 1/10: fixed, finite mixture, uniform mixture
+ok   A1 median detection time at rate 1/10 (finite and uniform mixture) and at rate 1/5 (fixed, finite, uniform)
+ok   A1 false alarms at the null rate 1/20 in 2,000 runs, all three at most 0.01
+ok   A1 Proposition 5.1's bound for the claim 'rate below 1/20' at level 0.01: 0.05/(99 + 0.05)
+ok   A1 Proposition 5.1 at level 0.05, 2,000 runs of 2,000 rows whose conditional rates are all at least 1/20 (common rate, rates spread over [1/20, 3/20], labels in runs): the upper end falls below 1/20 in no more runs than the bound 0.0026 allows
+ok   A1 Proposition 5.1 simulation: the largest of the three error fractions (0.15 percent)
+ok   A2 stream digests
+ok   A2 stale_ten_seed1: stale suggestions among 2,000
+ok   A2 stale_ten_seed1: confidence-sequence interval at level 0.01
+ok   A2 stale_ten_seed1: first crossing of 100 (fixed 1/5, finite mixture, uniform mixture)
+ok   A2 stale_ten_seed1: fixed alternative, largest e-value and e-value after 2,000 observations
+ok   A2 Part I streams: stale counts and intervals at level 0.01 (alternative stream, null stream)
+ok   A3 open items, 120 days: items, replies, query times
+ok   A3 the keyed event statistic answers every suggestion query and every count exactly
+ok   A3 the window view: stale suggestions among its suggestions
+ok   A3 creation-day histogram: two-sided bounds hold; total width against total count
+ok   A3 with 10% of replies missed (seed 2): items, replies, missed replies, stale suggestions, all stale ones are missed replies
+ok   A3 Z3: event, joint and engine statistics, every obligation unsat
+ok   A3 Z3: the window view, now and updates (sat) and the designed witnesses
+ok   A4 consumer-aware blocks serve every consumer whenever the required items fit (20,000 random snapshots of 1 to 80 items, four budgets)
+ok   A4 snapshots in which the required items fit but another policy misses a consumer
+ok   A4 receipt log, 2,000 snapshots: misses of the fresh, open and anchor consumers per policy
+ok   A4 receipt log: the largest token cost of the required items (budget 1,500)
+ok   A4 relevance policy, anchor consumer: interval at level 0.01
+ok   A4 consumer-aware policy, anchor consumer: upper end after 2,000 snapshots without a miss
+ok   A4 paired comparison, relevance against consumer-aware on the anchor: discordant snapshots and the lower end of the share
+ok   A5 D_2 against brute force, every incident sequence of length at most 6 over 4 sources
+ok   A5 D_2 is minimal: distinct reachable values separated (3 sources K = 2; 4 sources K = 3)
+ok   A5 D_K on 100,000 incidents over 10,000 sources (K = 1, 2, 3, 5)
+ok   A5 merges of forks with a shared history: D_2 exact; summed totals wrong in trials
+ok   A5 D_2 is not maintainable under withdrawals: {a, b} and {a, b, c} share the value Many and differ after withdrawing a and b
+ok   A5 Z3: D_2 on an unbounded sort of sources (initial, step, reads, merge)
+ok   A6 inverted index exact; Bloom filters miss no stale result
+ok   A6 Bloom filters, 10 bits per item, 7 hashes: unaffected results flagged at least once (of all unaffected), stale results, results flagged in total, false positives per result-withdrawal pair, observed and predicted false-positive rates
+ok   A7 Z3: classification of the three changes (days-left, ben-first, three days): new determines old, old determines new
+ok   A7 Z3: certificates for saturation at two and at three days and for the deadline migration
+ok   A7 Z3: the two-day statistic also answers the days-left goal (a refinement at no cost in memory)
+ok   A7 Z3: among statistics that keep the open flag, saturating at the threshold is the coarsest (two and three days): open ages up to the threshold are separated by a wait
+ok   A7 Z3: the two-day statistic cannot serve the three-day goal; ages 5/2 and 7/2 witness it
+ok   A8 Z3: stuttering simulation of both rules onto Part I's model (every obligation unsat)
+ok   A8 Z3: the two evidence obligations become linear when lambda (1 - c) is replaced by t with 0 <= t <= 1 - c: matching and closure unsat, the forms linear, the original nonlinear, the range lemma unsat
+ok   A8 Z3: the norm-first rule never picks a forbidden move; the weighted rule can
+ok   A8 live runs of the weighted rule from the start: (evidence 4/5) and (deadline 1/2) each reach an unlawful state
+ok   A8 20,000 random real runs of 8 steps per rule: every step a stutter or the matching step; abstract states visited, Part I reachable states
+ok   A8 random runs in which the rule consolidates an unchecked claim (weighted, norm-first)
+ok   A9 Z3: the floor keeps the safe region (unsat); the plain rule leaves it (sat), to 1/4 from the designed witness
+ok   A9 Z3: on settled states the two orders give equal goal weights
+ok   A9 Z3 optimization: the largest goal-weight difference between the two orders, and a maximizer
+ok   A9 exact run from the start after (stimulus 1 0): individuation after four cycles, plain and floor
+ok   A10 attention decaying by 1/2 with rounding after every update: largest error over 5,000 updates within the contraction bound 1
+ok   A10 running totals of 100,000 weights rounded half up: largest and final error without recomputation, largest error with exact recomputation from the records every 100 updates (bound 50.5)
+== Part B: module text, cvc5
+ok   B number of run requests in live_memory.metta
+ok   B LiveOpenItems: CheckStatistic EventStat: every obligation unsat, Conditional on cvc5, as Z3 (A3)
+ok   B LiveOpenItems: CheckStatistic JointStat: every obligation unsat, Conditional on cvc5, as Z3 (A3)
+ok   B LiveOpenItems: CheckStatistic EngineStat: every obligation unsat, Conditional on cvc5, as Z3 (A3)
+ok   B LiveOpenItems: CheckStatistic EventIndex by lifting, bound to ItemTime's queries, Conditional as its premise
+ok   B LiveOpenItems: CheckStatistic JointIndex by lifting, bound to ItemTime's queries, Conditional as its premise
+ok   B LiveOpenItems: the engine statistic lifted to a declared view is bound to that view's one query
+ok   B LiveOpenItems: negative fixture: a statistic of EngineTime lifted as an index of the store's item machine is InvalidInput
+ok   B LiveOpenItems: why the wrong lift is refused: (8, false, 0) and (8, true, 0) have the same engine code and different open answers
+ok   B LiveOpenItems: WindowView refuted now and under updates, as Z3 (A3)
+ok   B LiveOpenItems: the CheckNow witness replays (equal codes, different suggest answers)
+ok   B LiveOpenItems: the CheckUpdates witness replays (equal codes, different codes after the wait)
+ok   B LiveEvidence: CheckStatistic FirstOrMore Conditional on cvc5, merge included, as Z3 (A5)
+ok   B LiveEvidence: the module's maps against the brute-force answers on 3,000 random incident logs
+ok   B LiveGoals: CheckNow verdicts, as Z3 (A7)
+ok   B LiveGoals: CheckStatistic SaturateAtTwo Conditional on cvc5, as Z3 (A7)
+ok   B LiveGoals: CheckStatistic SaturateAtThree Conditional on cvc5, as Z3 (A7)
+ok   B LiveGoals: CheckStatistic Deadline Conditional on cvc5, as Z3 (A7)
+ok   B LiveGoals: every CheckNow witness replays
+ok   B LiveArbitration: CheckSimulation StutterWeighted Conditional on cvc5, with stuttering, as Z3 (A8)
+ok   B LiveArbitration: CheckSimulation StutterNormFirst Conditional on cvc5, with stuttering, as Z3 (A8)
+ok   B LiveArbitration: CheckSafety NormFirst, Conditional as its simulation; Part I's reachable states; the result is about RealNormFirst
+ok   B LiveArbitration: negative fixture: safety of NormFirst along StutterWeighted, whose target is Weighted, is InvalidInput
+ok   B LiveArbitration: CheckSafety Weighted refuted by a concrete live run, as A8
+ok   B LiveArbitration: the module's rules against Part I's rules through the class map, 5,000 random real states
+ok   B LiveMotivation: SafePlain refuted: the invariant is not inductive, and a reachable run leaves the safe region, as A9
+ok   B LiveMotivation: the non-inductiveness witness replays
+ok   B LiveMotivation: SafeFloor established by the inductive invariant, Conditional on cvc5, as A9
+ok   B LiveMotivation: order swap within 9/10 (Conditional on cvc5), refuted at 4/5, exact on settled states (Conditional on cvc5), as A9
+ok   B LiveMotivation: the 4/5 witness replays (difference above 4/5, at most 9/10)
+ok   B LiveMotivation: the module's appraisal against the model's on 3,000 grid states
+ok   B LiveReceipts: each estimate is bound to its stream, digest, population, selection rule and policy
+ok   B LiveReceipts: EstimateRate and CompareRates from the frozen stream equal A4 recomputed from the generator
+ok   B LiveReceipts: EstimateRate on Part I's alternative stream equals A2
+ok   B LiveReceipts: CheckMonitor StaleFifth: null expectation of the factor exactly one, Checked by exact arithmetic
+ok   B LiveReceipts: Detect in exact arithmetic: first crossings equal A2 (fixed 27, mixture 132)
+ok   B LiveReceipts: negative fixture: every stale label of LiveSuggestions set to 0 under the declared digest; EstimateRate is InvalidInput and computes no count
+ok   B every Conditional verdict records the agreement of Z3 under agreed_by (lifts through their premises, the safety transfer through its simulation)
+94 checks passed, 0 failed, 13.9 s

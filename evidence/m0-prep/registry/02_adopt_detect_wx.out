@@ -1,0 +1,17 @@
+$ python3 tools/adopt_registry.py --supersede requests.Detect=wx   (hive answer 1: option (a))
+ex1: 6 copies, byte-identical (b8a609764ef1)
+ex2: 5 copies, byte-identical (72e937936d19)
+ex3: 1 copies, byte-identical (61c08c4e95c3)
+ex4: 4 copies, byte-identical (3deef740c511)
+mg: 3 copies, byte-identical (2cf3248cb51f)
+ls: 2 copies, byte-identical (ef4eb8ff1bb2)
+wx: 1 copies, byte-identical (35d940acf974)
+resolved: wx supersedes ex4 on requests.Detect: args added: MeanTimeToFalseAlarm, Scheme; args.Level changed (doc, required); claim changed; wx also adds result_fields.Detection: {"Largest": "Rational?", "LargestAt": "Nat?", "MeanTimeToFalseAlarm": "Nat?", "Scheme": "enum:Ville|ShiryaevRoberts"}
+revision of base: requests.Refine.args.Until by ex1: doc added; type changed: "enum:Stable" -> "stable-or-horizon"
+revision of base: requests.WeakestWithin.args.Kind by ex1: doc added; type changed: "enum:Behavioral|Trace|Now|Updates" -> "enum:Behavioral|Trace|Now|Updates|Radius"
+revision of base: requests.AverageModel by ex4: args added: Through; claim changed; positional changed
+revision of base: requests.CheckEqual by ex4: args added: Compare; claim changed
+revision of base: requests.OptimizePolicy by ex4: claim changed; positional changed
+revision of base: requests.EvaluatePolicy by ex4: args added: Policy, Through; args.With changed (required); claim changed; positional changed
+wrote registry/mettadinc_registry.json sha256 fc046d14efaccb9bf9a3aefa1edbc06b4b110a54d316f2e954e6d339b69f3f61
+exit 0

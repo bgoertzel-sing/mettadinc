@@ -1,0 +1,16 @@
+$ python3 tools/check_bundles.py --registry build/registry_detect_ex4.json --request Detect wx   (canary: ex4 Detect kept)
+== wx (06_wmtm_worked_example/validation_bundle) exit 1
+checker: validation/check_fixtures.py registry: build/registry_detect_ex4.json
+3 file(s), 19 modules, 575 declarations, 162 run requests
+3 diagnostic(s) against build/registry_detect_ex4.json, no patch
+  wmtm_example.metta:run (Detect MissTenth MissFifth MissTwoFifth: Detect: unknown argument (Scheme ShiryaevRoberts) (registered: Combine, Level, On)
+  wmtm_example.metta:run (Detect MissTenth MissFifth MissTwoFifth: Detect: unknown argument (MeanTimeToFalseAlarm 100000) (registered: Combine, Level, On)
+  wmtm_example.metta:run (Detect MissTenth MissFifth MissTwoFifth: Detect: missing required argument Level
+  Detect run memory_goals.metta: !(dc.run StaleMonitor (Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))): admitted
+  Detect run memory_goals.metta: !(dc.run StaleMonitor (Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))): admitted
+  Detect run live_memory.metta: !(dc.run LiveReceipts (Detect StaleFifth (On TenPercent) (Level (Rat 1 100)))): admitted
+  Detect run live_memory.metta: !(dc.run LiveReceipts (Detect StaleTenth StaleFifth StaleTwoFifths (On TenPercent) (Level (Rat 1 100)) (Combine Mixture))): admitted
+  Detect run wmtm_example.metta: !(dc.run WMTMReceipts (Detect MissTenth MissFifth MissTwoFifths (On Replies) (Level (Rat 1 100)) (Combine Mixture))): admitted
+  Detect run wmtm_example.metta: !(dc.run WMTMReceipts (Detect MissTenth MissFifth MissTwoFifths (On Replies) (Combine Mixture) (Scheme ShiryaevRoberts) (MeanTimeToFalseAlarm 100000))): wmtm_example.metta:run (Detect MissTenth MissFifth MissTwoFifth: Detect: unknown argument (Scheme ShiryaevRoberts) (registered: Combine, Level, On); wmtm_example.metta:run (Detect MissTenth MissFifth MissTwoFifth: Detect: unknown argument (MeanTimeToFalseAlarm 100000) (registered: Combine, Level, On); wmtm_example.metta:run (Detect MissTenth MissFifth MissTwoFifth: Detect: missing required argument Level
+6 Detect request(s), 5 admitted, 1 with diagnostics
+exit 1

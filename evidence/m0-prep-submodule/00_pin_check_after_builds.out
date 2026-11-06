@@ -1,0 +1,8 @@
+$ tools/check-vendored-cetta.sh
+pin (docs/CETTA-PIN.md):  12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink HEAD:cetta:       12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink: equals the pin
+checkout cetta/ HEAD:     12da03b4b055bfecff2add505e7e1ad4125bb352
+checkout: at the pin
+checkout: clean (no tracked changes, no untracked files outside upstream's .gitignore)
+exit 0

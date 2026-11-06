@@ -1,0 +1,7 @@
+$ git submodule status; git ls-tree HEAD cetta; cat .gitmodules
+ 12da03b4b055bfecff2add505e7e1ad4125bb352 cetta (remotes/origin/cetta-petta-typecheck-v2-integrated-20260807-13-g12da03b4)
+160000 commit 12da03b4b055bfecff2add505e7e1ad4125bb352	cetta
+[submodule "cetta"]
+	path = cetta
+	url = https://github.com/zariuq/CeTTa
+exit 0

@@ -1,0 +1,30 @@
+$ python3 tools/check_bundles.py --registry <base package registry>   (canary)
+== ex1 (03_four_worked_examples/validation_bundles/ex1_belief_memory) exit 1
+checker: validation/check_fixtures.py registry: docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json
+1 file(s), 4 modules, 102 declarations, 61 run requests
+62 diagnostic(s) against docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json, no patch
+== ex2 (03_four_worked_examples/validation_bundles/ex2_access_policy) exit 1
+checker: validation/check_fixtures.py registry: docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json
+1 file(s), 2 modules, 57 declarations, 15 run requests
+109 diagnostic(s) against docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json, no patch
+== ex3 (03_four_worked_examples/validation_bundles/ex3_skill_share) exit 1
+checker: validation/check_fixtures.py registry: docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json
+1 file(s), 3 modules, 97 declarations, 32 run requests
+11 diagnostic(s) against docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json, no patch
+== ex4 (03_four_worked_examples/validation_bundles/ex4_market_maker) exit 1
+checker: validation/check_fixtures.py registry: docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json
+1 file(s), 4 modules, 63 declarations, 36 run requests
+84 diagnostic(s) against docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json, no patch
+== mg (04_omega_memory_goals_part1/validation_bundle) exit 1
+checker: validation/check_fixtures.py registry: docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json
+1 file(s), 10 modules, 300 declarations, 92 run requests
+139 diagnostic(s) against docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json, no patch
+== ls (05_live_memory_part2/validation_bundle) exit 1
+checker: validation/check_fixtures.py registry: docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json
+2 file(s), 16 modules, 454 declarations, 129 run requests
+348 diagnostic(s) against docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json, no patch
+== wx (06_wmtm_worked_example/validation_bundle) exit 1
+checker: validation/check_fixtures.py registry: docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json
+3 file(s), 19 modules, 510 declarations, 162 run requests
+474 diagnostic(s) against docs/e0/docs/01_language_specification/validation_package/registry/mettadinc_registry.json, no patch
+exit 1

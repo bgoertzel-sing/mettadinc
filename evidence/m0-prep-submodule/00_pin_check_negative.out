@@ -1,0 +1,40 @@
+# negative checks of tools/check-vendored-cetta.sh, all reverted afterwards
+## 1. pin line changed in the working tree (sed 12da03b4b0... -> 0000...)
+pin (docs/CETTA-PIN.md):  0000000000000000000000000000000000000000
+gitlink HEAD:cetta:       12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink: DIFFERS from the pin (or cetta/ is not a submodule)
+checkout cetta/ HEAD:     12da03b4b055bfecff2add505e7e1ad4125bb352
+checkout: NOT at the pin
+checkout: clean (no tracked changes, no untracked files outside upstream's .gitignore)
+exit 1
+## 2. submodule checkout moved to 12da03b4^ (git -C cetta checkout -q 12da03b4^)
+pin (docs/CETTA-PIN.md):  12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink HEAD:cetta:       12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink: equals the pin
+checkout cetta/ HEAD:     65d64d5f3515e5d5187e5318dbfa931930318799
+checkout: NOT at the pin
+checkout: clean (no tracked changes, no untracked files outside upstream's .gitignore)
+exit 1
+## 3. untracked file in the checkout (touch cetta/NEWFILE)
+pin (docs/CETTA-PIN.md):  12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink HEAD:cetta:       12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink: equals the pin
+checkout cetta/ HEAD:     12da03b4b055bfecff2add505e7e1ad4125bb352
+checkout: at the pin
+checkout: NOT clean:
+?? NEWFILE
+exit 1
+## 4. submodule not initialised (git submodule deinit -f cetta)
+pin (docs/CETTA-PIN.md):  12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink HEAD:cetta:       12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink: equals the pin
+checkout cetta/: not initialised (run: git submodule update --init)
+exit 1
+## after reverting all four
+pin (docs/CETTA-PIN.md):  12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink HEAD:cetta:       12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink: equals the pin
+checkout cetta/ HEAD:     12da03b4b055bfecff2add505e7e1ad4125bb352
+checkout: at the pin
+checkout: clean (no tracked changes, no untracked files outside upstream's .gitignore)
+exit 0

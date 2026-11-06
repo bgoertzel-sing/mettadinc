@@ -1,0 +1,70 @@
+ok   initial word
+ok   source: 80 actions in declaration order (kind, user, role) and 20 observers, in both modules
+ok   source: every action is a guarded update whose guard reads none of the bits it writes (admission)
+ok   translation validation: interpreter, IR and CNF agree on every word of the two-user instance (actions, queries, gate structure)
+ok   translation validation: closure obligations of the two-user instance from the source (pointwise, solver = enumeration, total)
+ok   differential: independent model against the source on every word of the two-user instance (agree, total, first disagreement)
+ok   differential: interpreter, IR and independent model agree on a 40-bit sample (words, actions agreeing)
+ok   translation validation: closure obligations at 20 bits (enumeration = CNF)
+ok   translation validation: two-copy obligations at 10 bits (enumeration = CNF)
+ok   written: shortest breach of separation of duty
+ok   written: the breach replayed on the source ends at 34684433, where sod-breach holds
+ok   written: shortest approval without clerk
+ok   written: shortest ill-formed configuration
+ok   fixed: no approval without clerk within 6 steps (states explored)
+ok   fixed: configurations explored by the six-step search
+ok   differential: the independent model finds the same three witnesses
+ok   requests: the module's CheckBlockPartition requests
+ok   requests: statuses (written NoBreach, ClerksOnly, WellFormed; fixed NoBreach, ClerksOnly, ClerksOnlyProved)
+ok   requests: witnesses of the refuted requests (word, end state, replayed by the interpreter)
+ok   fixed: consistent is closed under all 80 actions
+ok   fixed: no breach is closed under all 80 actions (1-inductive)
+ok   fixed: clerks-only alone fails induction at the four approver activations
+ok   written: consistent fails induction exactly at the two buggy rules
+ok   written: no breach fails induction at the approver assignments
+ok   fixed: the closure obligations agree with the source on a 40-bit sample (NoBreach, ClerksOnlyProved)
+ok   source: largest closure obligation, NoBreach and ClerksOnlyProved (variables, clauses)
+ok   fixed: ClerksOnly under (Unrollings 6): least counterexample to induction from minimized solver models, search
+ok   written: NoBreach, least counterexample to induction from minimized solver models (word, action)
+ok   fixed: least counterexample to induction for clerks-only
+ok   consistent implies no breach and clerks only
+ok   fixed: proofs behind ClerksOnlyProved and NoBreach (closure and implication obligations)
+ok   fixed: every closure proof checked by drat-trim and cake_lpr
+ok   fixed: largest closure obligation (variables, clauses)
+ok   differential: the independent encoder's closure obligations are all unsatisfiable too (consistent, no breach)
+ok   fixed: reachable configurations
+ok   fixed: reachable = consistent and some admin assigned
+ok   fixed: 79^4 - 27^4
+ok   written: reachable configurations
+ok   written: reachable but ill-formed
+ok   differential: the reachable sets from the source equal those of the independent model (fixed, written)
+ok   fixed: decision-diagram nodes and image rounds of the reachable set
+ok   forty (word, query) tests read off the forty bits (both policies)
+ok   WholeInterface and LiveInterface: status of the forty read-off proofs
+ok   CheckNow AssignmentsOnly refuted: least pair and query
+ok   cone of approve(bob)
+ok   cone of approve(bob), policy as written
+ok   source: the declared encoding bob-cone gathers exactly the cone
+ok   differential: the independent model's cone is the same (both policies)
+ok   cone projection: all 80 two-copy obligations unsatisfiable
+ok   cone projection: largest two-copy obligation (variables, clauses)
+ok   bob's ten bits: the obligations fail for bob's assignments and revocations
+ok   BobSlice: status from the support computation; the two-copy proofs as a second certificate
+ok   bob's ten bits: canonical update witness
+ok   bob's ten bits: behavioral witness (revoke bob staff) from 131072 and 131584
+ok   slice: actions that act on the 17 cone bits
+ok   approve(bob) quotient on all words (classes by round)
+ok   reachable cone configurations
+ok   reachable cone configurations are closed under the slice
+ok   approve(bob) quotient on the reachable configurations (classes by round)
+ok   bob's abstraction, fixed policy: configurations, breaches, clerkless, ill-formed
+ok   bob's abstraction, policy as written
+ok   mutation M1 (approver rule reads the auditor session): NoBreach of the corrected module is Refuted, with the breach and its end state, replayed on the mutated source
+ok   mutation M1: the invariant consistent of ClerksOnlyProved fails at the approver assignments, and the same breach is its least reachable violation
+ok   mutation M2 (revoking clerk keeps approver): ClerksOnlyProved is Refuted, with its witness, replayed on the mutated source
+ok   mutation M2: NoBreach keeps its status (the mutation does not touch separation of duty)
+ok   mutations: the differential check against the independent model also fails (first disagreement)
+ok   mutations: new module digests, and the closure obligations that change are exactly those of the mutated rule
+ok   proofs: unsatisfiable obligations of the audit that carry a DRAT proof
+ok   proofs: every one of them converted to LRAT by drat-trim and checked by cake_lpr
+69 checks passed, 0 failed, 139.2 s, proofs checked: True (619 of 619 proofs replayed)

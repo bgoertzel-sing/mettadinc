@@ -1,0 +1,30 @@
+$ python3 tools/check_bundles.py
+== ex1 (03_four_worked_examples/validation_bundles/ex1_belief_memory) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 4 modules, 107 declarations, 61 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+== ex2 (03_four_worked_examples/validation_bundles/ex2_access_policy) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 2 modules, 57 declarations, 15 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+== ex3 (03_four_worked_examples/validation_bundles/ex3_skill_share) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 3 modules, 97 declarations, 32 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+== ex4 (03_four_worked_examples/validation_bundles/ex4_market_maker) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 4 modules, 75 declarations, 36 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+== mg (04_omega_memory_goals_part1/validation_bundle) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+1 file(s), 10 modules, 318 declarations, 92 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+== ls (05_live_memory_part2/validation_bundle) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+2 file(s), 16 modules, 490 declarations, 129 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+== wx (06_wmtm_worked_example/validation_bundle) exit 0
+checker: validation/check_fixtures.py registry: registry/mettadinc_registry.json
+3 file(s), 19 modules, 575 declarations, 162 run requests
+0 diagnostic(s) against registry/mettadinc_registry.json, no patch
+exit 0
