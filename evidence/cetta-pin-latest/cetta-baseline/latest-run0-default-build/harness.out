@@ -1,0 +1,13 @@
+cetta-baseline: repo /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc
+cetta-baseline: repo commit 2989924ec6da5a991c15269ae029f1923f3e798d
+cetta-baseline: pin 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c (2026-11-05 20:26:01 +0100, "WIP: make pre-main shareable and preserve benchmark evidence", 486 commits)
+cetta-baseline: gitlink HEAD:cetta 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+cetta-baseline: submodule checkout cetta/ at 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+cetta-baseline: submodule checkout has no changes to tracked files
+cetta-baseline: gcc 11.4.0, GNU Make 4.3, Python 3.10.12
+cetta-baseline: logs in /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/build/cetta-baseline/latest-run0-old-expected
+01_doctor_gmp: exit 0 (1 s)
+02_build_core: exit 2 (55 s)
+SETUP/BUILD FAILURE: core build failed (see /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/build/cetta-baseline/latest-run0-old-expected/02_build_core.log)
+RESULT: NOT GREEN (exit 2)
+HARNESS_EXIT=2

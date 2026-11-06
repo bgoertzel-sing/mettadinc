@@ -1,0 +1,7 @@
+$ git ls-remote https://github.com/zariuq/CeTTa refs/heads/main (2026-11-06T05:09:49Z)
+4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c	refs/heads/main
+ 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c cetta (heads/main)
+160000 commit 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c	cetta
+[submodule "cetta"]
+	path = cetta
+	url = https://github.com/zariuq/CeTTa

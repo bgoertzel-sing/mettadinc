@@ -10,8 +10,11 @@ Cetta is a git submodule at `cetta/`, pinned to zariuq/CeTTa `main` as Zar asked
 - Previous pin: 12da03b4b055bfecff2add505e7e1ad4125bb352 (2026-08-14, "purging surface slop", tree 0051faec), pinned by
   hive task t-2026-11-06-mettadinc-m0-prep-submodule. 4c285a97 descends from it: 271 commits later, 6682 files changed.
 - Why this commit: Zar asked us to use his latest main. Ben's decision 2 defined "green" against E0's baseline at 12da03b4;
-  with this pin the baseline is re-frozen from the runs at 4c285a97 (`evidence/cetta-pin-latest/`), and every test that
-  was green at 12da03b4 and is not green now is named in [CETTA-LATEST.md](CETTA-LATEST.md).
+  the plan is to re-freeze the baseline from runs at this pin and name every test that was green at 12da03b4 and is not
+  green now in [CETTA-LATEST.md](CETTA-LATEST.md).
+- **Status 2026-11-06: 4c285a97 does not build with gcc on pop-os** (DT_RELR link probe; gcc 11 `-Werror` errors), see
+  [CETTA-LATEST.md](CETTA-LATEST.md). `tools/cetta-baseline.expected` is still the 12da03b4 baseline, so the harness is
+  NOT GREEN at this pin until that is resolved.
 
 ## Fetching it
 

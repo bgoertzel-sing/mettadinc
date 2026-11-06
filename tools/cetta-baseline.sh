@@ -28,11 +28,11 @@
 #                     With sudo, "apt-get install libgmp-dev" makes this unnecessary.
 #   MDINC_JOBS        parallel build jobs (default 8); tests always run serially, as in E0's baseline
 #   MDINC_MAKE_ARGS   extra make command-line arguments, word-split and passed to every make below (recorded in
-#                     summary.txt).  On Ubuntu 22.04 (binutils 2.38, glibc 2.35) Cetta 4c285a97 needs
-#                     MDINC_MAKE_ARGS="PACK_RELATIVE_RELOCS=": its Makefile adds -Wl,-z,pack-relative-relocs whenever
-#                     the linker accepts it, and the binaries then need GLIBC_ABI_DT_RELR, which glibc 2.35 lacks, so
-#                     the first generated tool fails to start (docs/CETTA-LATEST.md).  This overrides a make variable on
-#                     the command line; it does not change Cetta's files.
+#                     summary.txt).  Example: on Ubuntu 22.04 (binutils 2.38, glibc 2.35) Cetta 4c285a97's Makefile adds
+#                     -Wl,-z,pack-relative-relocs because the linker accepts it, and the binaries then need
+#                     GLIBC_ABI_DT_RELR, which glibc 2.35 lacks; MDINC_MAKE_ARGS="PACK_RELATIVE_RELOCS=" turns that off
+#                     from the command line without changing Cetta's files.  It is not enough on its own for 4c285a97:
+#                     see docs/CETTA-LATEST.md.
 #   MDINC_BASELINE_LOGDIR  where logs go (default build/cetta-baseline/<UTC timestamp>, ignored by git)
 #
 # System packages used: bash, GNU make, gcc, python3 (with python3-config --embed for the python lane),
