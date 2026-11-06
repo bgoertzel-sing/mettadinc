@@ -33,6 +33,13 @@
 #                     produced WITH build overrides on Ubuntu 22.04 (gcc 11.4, ld 2.38, glibc 2.35); the exact string
 #                     is in docs/CETTA-LATEST.md ("Build overrides") and in the expected file's header.  Note that a
 #                     CFLAGS=... make argument replaces the Makefile's CFLAGS, so it must repeat the Makefile's flags.
+#   MDINC_SWIPL_DIR   the install prefix of a SWI-Prolog (its swipl program is <prefix>/bin/swipl), e.g. one built
+#                     from source without sudo.  When set, <prefix>/bin is put first on PATH for every command
+#                     below, and the swipl path and version are recorded in summary.txt, at the top of every lane
+#                     log and on every lane's summary line.  Unset (the default): nothing changes.  Since
+#                     d9b3f42d, test-rhocalc runs the swipl program (a SWI-Prolog 9.x; Ubuntu 22.04's 8.4.2
+#                     crashes, see docs/CETTA-LATEST.md).  Only PATH is changed: Cetta's ENABLE_LIB_PROLOG=auto
+#                     probe uses pkg-config, which does not see <prefix>, so the build does not link libswipl.
 #   MDINC_BASELINE_LOGDIR  where logs go (default build/cetta-baseline/<UTC timestamp>, ignored by git)
 #
 # System packages used: bash, GNU make, gcc, python3 (with python3-config --embed for the python lane),
@@ -66,6 +73,14 @@ if [ -n "${MDINC_GMP_PREFIX:-}" ]; then
   export CPATH="$P/include:$P/include/x86_64-linux-gnu${CPATH:+:$CPATH}"
   export LIBRARY_PATH="$P/lib/x86_64-linux-gnu:$P/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
 fi
+SWIPL_NOTE=""
+if [ -n "${MDINC_SWIPL_DIR:-}" ]; then
+  [ -x "$MDINC_SWIPL_DIR/bin/swipl" ] || die "MDINC_SWIPL_DIR=$MDINC_SWIPL_DIR has no executable bin/swipl"
+  export PATH="$MDINC_SWIPL_DIR/bin:$PATH"
+  SWIPL_VERSION=$(swipl --dump-runtime-variables 2>/dev/null | sed -n 's/^PLVERSION="\(.*\)";$/\1/p')
+  [ -n "$SWIPL_VERSION" ] || die "swipl in MDINC_SWIPL_DIR=$MDINC_SWIPL_DIR does not run (swipl --dump-runtime-variables)"
+  SWIPL_NOTE=" [swipl $(command -v swipl), PLVERSION $SWIPL_VERSION]"
+fi
 export METTAPEDIA_ROOT="$REPO/build/no-mettapedia-here"
 [ -e "$METTAPEDIA_ROOT" ] && die "$METTAPEDIA_ROOT exists; the frozen baseline is defined without Mettapedia"
 unset RHOLANG_CLI
@@ -81,6 +96,7 @@ if git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1; then
 fi
 say "cetta-baseline: gcc $(gcc -dumpfullversion 2>/dev/null), $(make --version | head -1), $(python3 --version 2>&1)"
 say "cetta-baseline: logs in $LOG"
+[ -n "$SWIPL_NOTE" ] && say "cetta-baseline: MDINC_SWIPL_DIR=$MDINC_SWIPL_DIR, on PATH:$SWIPL_NOTE"
 say "cetta-baseline: extra make arguments (MDINC_MAKE_ARGS): ${MDINC_MAKE_ARGS:-none}"
 for w in "${MK[@]}"; do say "cetta-baseline:   make argument: [$w]"; done
 EXP_ARGS=$(sed -n 's/^# Build overrides (MDINC_MAKE_ARGS): //p' "$EXPECTED" | head -1)
@@ -88,13 +104,18 @@ if [ -n "$EXP_ARGS" ] && [ "$EXP_ARGS" != "${MDINC_MAKE_ARGS:-}" ]; then
   say "cetta-baseline: NOTE: tools/cetta-baseline.expected was produced with build overrides MDINC_MAKE_ARGS=$EXP_ARGS"
   say "cetta-baseline: NOTE: this run uses MDINC_MAKE_ARGS=${MDINC_MAKE_ARGS:-none}; see docs/CETTA-LATEST.md"
 fi
+EXP_SWIPL=$(sed -n 's/^# SWI-Prolog (MDINC_SWIPL_DIR): //p' "$EXPECTED" | head -1)
+if [ -n "$EXP_SWIPL" ] && [ -z "$SWIPL_NOTE" ]; then
+  say "cetta-baseline: NOTE: tools/cetta-baseline.expected was produced with SWI-Prolog on PATH ($EXP_SWIPL);"
+  say "cetta-baseline: NOTE: this run has no MDINC_SWIPL_DIR, so the rhocalc lane is expected to fail; see docs/CETTA-LATEST.md"
+fi
 
 run(){ # run <name> <cmd...>: log the command, its output and EXIT=<status>
   local n=$1; shift
   local s; s=$(date +%s)
-  { echo "== $* =="; (cd "$CETTA" && "$@"); echo "EXIT=$? SECS=$(( $(date +%s) - s ))"; } > "$LOG/$n.log" 2>&1
+  { [ -n "$SWIPL_NOTE" ] && echo "== MDINC_SWIPL_DIR=$MDINC_SWIPL_DIR on PATH:$SWIPL_NOTE =="; echo "== $* =="; (cd "$CETTA" && "$@"); echo "EXIT=$? SECS=$(( $(date +%s) - s ))"; } > "$LOG/$n.log" 2>&1
   local e; e=$(sed -n 's/^EXIT=\([0-9]*\).*/\1/p' "$LOG/$n.log" | tail -1)
-  say "$n: exit $e ($(( $(date +%s) - s )) s)"
+  say "$n: exit $e ($(( $(date +%s) - s )) s)$SWIPL_NOTE"
   return "$e"
 }
 
