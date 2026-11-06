@@ -42,9 +42,21 @@ Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subj
     sx_push(r, claim ? claim : dc_form("Claim", NULL));
     sx_push(r, dc_form("Binding", dc_form("Module", dc_sym(m ? m->name : "?"), NULL),
                        dc_form("Digest", sx_str(m ? m->digest : ""), NULL),
-                       subject ? subject : dc_form("Subject", NULL), NULL));
+                       subject ? subject : dc_form("Subject", NULL),
+                       /* boundary 1: model identities and the checked interface;
+                        * operations that know them fill them in (dc_result_bind_models) */
+                       dc_form("Source", dc_sym("None"), NULL), dc_form("Target", dc_sym("None"), NULL),
+                       dc_form("Interface", dc_form("Tolerance", dc_sym("Exact"), NULL), NULL), NULL));
+    /* boundary 1: the scope of the claim.  M0 checks enumerated deterministic
+     * machines from every declared state, unbounded horizon, no discount,
+     * no policy quantifier. */
     sx_push(r, dc_form("Scope", dc_form("Profile", dc_sym(m && m->profile[0] ? m->profile : "Crisp"), NULL),
-                       dc_form("Fragment", dc_sym("M0-EnumeratedDeterministic"), NULL), NULL));
+                       dc_form("Fragment", dc_sym("M0-EnumeratedDeterministic"), NULL),
+                       dc_form("InitialStates", dc_sym("AllDeclared"), NULL),
+                       dc_form("ReachableStates", dc_sym("AllDeclared"), NULL),
+                       dc_form("Horizon", dc_sym("Unbounded"), NULL),
+                       dc_form("Discount", dc_sym("1"), NULL),
+                       dc_form("PolicyClass", dc_sym("None"), NULL), NULL));
     sx_push(r, value ? value : dc_form("Value", NULL));
     sx_push(r, evidence ? evidence : dc_form("Evidence", NULL));
     sx_push(r, dc_form("Assumptions", NULL));
@@ -53,6 +65,15 @@ Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subj
                        dc_form("Ground", dc_sym(dc_ground_name(!replays || v > VERDICT_FAILS ? GROUND_NONE : (v == VERDICT_FAILS ? GROUND_WITNESS : GROUND_REPLAYED))), NULL), NULL));
     if (reason) sx_push(r, dc_form("Reason", sx_str(reason), NULL));
     return r;
+}
+
+/* Boundary 1: record source/target model identities in a result's binding. */
+void dc_result_bind_models(Sx *res, const char *src_id, const char *tgt_id) {
+    Sx *b = sx_find(res, "Binding", 1);
+    if (!b) return;
+    Sx *s = sx_find(b, "Source", 1), *t = sx_find(b, "Target", 1);
+    if (s && s->n == 2 && src_id) { sx_free(s->items[1]); s->items[1] = sx_str(src_id); }
+    if (t && t->n == 2 && tgt_id) { sx_free(t->items[1]); t->items[1] = sx_str(tgt_id); }
 }
 
 /* Boundary 2: a derived result takes the union of its premises' assumptions.

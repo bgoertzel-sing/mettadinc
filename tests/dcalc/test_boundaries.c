@@ -61,6 +61,31 @@ static void boundary1_binding(void) {
     sx_free(rq); rq = parse1("(CheckSafety B (Never x) (Via Sim))");
     CHECK(!dc_binding_request(sm, NULL, 0, rq, why, sizeof why), "B1 binding: CheckSafety Via a matching simulation is accepted");
     sx_free(rq); sx_free(sm);
+    /* the one premise validation routine */
+    {
+        char w[256];
+        DcBindingRef e = { "dA", "M1", NULL, 3, -1, NULL };
+        DcBindingRef ok = { "dA", "M1", "M2", 3, 4, NULL };
+        DcBindingRef wrongsrc = { "dA", "M9", "M2", 3, 4, NULL };
+        DcBindingRef wrongmod = { "dB", "M1", "M2", 3, 4, NULL };
+        DcBindingRef wrongtol = { "dA", "M1", "M2", 3, 4, "Coarse" };
+        CHECK(dc_binding_validate("Then", "Second", &e, &ok, w, sizeof w) == 0, "B1 validate: matching premise accepted");
+        CHECK(dc_binding_validate("Then", "Second", &e, &wrongsrc, w, sizeof w) == -1 && strstr(w, "field Second") && strstr(w, "interface mismatch"), "B1 validate: wrong source interface -> names the field");
+        CHECK(dc_binding_validate("Lift", "Store", &e, &wrongmod, w, sizeof w) == -1 && strstr(w, "Lift: field Store") && strstr(w, "module digest"), "B1 validate: wrong module digest -> names the field");
+        CHECK(dc_binding_validate("Then", "Second", &e, &wrongtol, w, sizeof w) == -1 && strstr(w, "tolerance"), "B1 validate: premise under another tolerance refused");
+    }
+    /* envelope carries model identities, interface tolerance and the scope fields */
+    {
+        Sx *env = dc_envelope(NULL, VERDICT_HOLDS, 1, NULL, NULL, NULL, NULL, NULL);
+        dc_result_bind_models(env, "M1", "M2");
+        Sx *b = sx_find(env, "Binding", 1), *s = sx_find(env, "Scope", 1);
+        CHECK(b && sx_find(b, "Source", 1) && sx_find(b, "Target", 1) && sx_find(b, "Interface", 1), "B1 envelope binding has Source, Target and Interface (tolerance)");
+        CHECK(s && sx_find(s, "InitialStates", 1) && sx_find(s, "ReachableStates", 1) && sx_find(s, "Horizon", 1)
+              && sx_find(s, "Discount", 1) && sx_find(s, "PolicyClass", 1), "B1 envelope scope has initial/reachable states, horizon, discount, policy class");
+        Sx *src = b ? sx_find(b, "Source", 1) : NULL;
+        CHECK(src && src->n == 2 && src->items[1]->kind == SX_STR && !strcmp(src->items[1]->text, "M1"), "B1 dc_result_bind_models records the source identity");
+        sx_free(env);
+    }
 }
 
 static void boundary2_assurance(void) {

@@ -23,4 +23,19 @@ int dc_binding_scan(const Sx *module, const char *basedir, DcBad *out, int max);
 /* 1 if req (after resolving a Derive name) breaks a binding rule; reason set. */
 int dc_binding_request(const Sx *module, const DcBad *bad, int nbad, const Sx *req,
                        char *reason, size_t rn);
+/* Boundary 1: the ONE validation routine every consuming operation runs on a
+ * premise before using it (Then and transfer composition, safety transfer,
+ * lift, rebuild, stream/snapshot reads, gates).  expect is what the operation
+ * names; have is the premise's binding.  NULL/negative fields are not checked.
+ * Returns 0 when they agree; else -1 with why naming the field
+ * ("<op>: field <field>: ..."), which the caller reports as InvalidInput. */
+typedef struct {
+    const char *module_digest;   /* module the premise was admitted under */
+    const char *source_id;       /* source model identity */
+    const char *target_id;       /* target model identity */
+    int source_carrier, target_carrier;   /* state carriers, -1 unchecked */
+    const char *tolerance;       /* checked interface tolerance, NULL = Exact */
+} DcBindingRef;
+int dc_binding_validate(const char *op, const char *field, const DcBindingRef *expect,
+                        const DcBindingRef *have, char *why, size_t wn);
 #endif

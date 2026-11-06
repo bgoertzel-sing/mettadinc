@@ -1,6 +1,7 @@
 /* M0 requests, part 3: CheckAbstractionMap and Then (composition). */
 #include "ops_internal.h"
 #include "ops_run.h"
+#include "binding.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -130,6 +131,7 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
                           dc_form("Value", dc_form("CheckedAbstractionMap", dc_form("Kind", dc_sym(A.surjective ? "Quotient" : "Homomorphism"), NULL),
                                   dc_form("Surjective", dc_sym(A.surjective ? "True" : "False"), NULL), NULL), NULL),
                           dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("rule"), NULL), dc_form("Rule", dc_sym("Commutation"), NULL), table, NULL), NULL), NULL);
+        dc_result_bind_models(res, A.src_id, A.tgt_id);
         if (slot >= 0) { r->arrow[slot] = A; r->arrow_kind[slot] = 2; } else free(A.table);
     }
     dc_view_free(&sv); dc_view_free(&tv);
@@ -148,8 +150,12 @@ Sx *dc_req_then(DcRun *r, const Sx *q, int slot) {
         if (!r->arrow_kind[d[k]]) return dc_invalid(m, "Then: field %s: Derive %s produced no arrow", k ? "Second" : "First", m->der[d[k]].name);
     }
     const DcArrow *f = &r->arrow[d[0]], *g = &r->arrow[d[1]];
-    if (strcmp(f->tgt_id, g->src_id) || f->tgt_car != g->src_car)
-        return dc_invalid(m, "Then: field Second: interface mismatch, first ends at %s but second starts at %s", f->tgt_id, g->src_id);
+    /* Boundary 1: the one validation routine (binding.c) checks the second
+     * premise against the interface the first one ends at. */
+    DcBindingRef want = { m->digest, f->tgt_id, NULL, f->tgt_car, -1, NULL };
+    DcBindingRef have = { m->digest, g->src_id, g->tgt_id, g->src_car, g->tgt_car, NULL };
+    if (dc_binding_validate("Then", "Second", &want, &have, why, sizeof why))
+        return dc_invalid(m, "%s", why);
     const DcCarrier *S = &m->car[f->src_car], *T = &m->car[g->tgt_car];
     DcArrow A; memset(&A, 0, sizeof A);
     A.src = f->src; A.tgt = g->tgt; A.src_car = f->src_car; A.tgt_car = g->tgt_car;
@@ -173,6 +179,7 @@ Sx *dc_req_then(DcRun *r, const Sx *q, int slot) {
         dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("rule"), NULL), dc_form("Rule", dc_sym("Composition"), NULL), table, NULL), NULL), NULL);
     /* Boundary 2: the composed result carries the union of both premises' assumptions. */
     for (int k = 0; k < 2; k++) dc_result_add_premise(res, r->memo[d[k]], m->der[d[k]].name);
+    dc_result_bind_models(res, A.src_id, A.tgt_id);
     if (slot >= 0) { r->arrow[slot] = A; r->arrow_kind[slot] = 3; } else free(A.table);
     return res;
 }

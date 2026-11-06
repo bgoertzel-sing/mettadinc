@@ -116,3 +116,19 @@ int dc_binding_request(const Sx *mod, const DcBad *bad, int nbad, const Sx *req,
     if (r) { snprintf(reason, rn, "%s", r); return 1; }
     return 0;
 }
+
+/* ---- the one premise validation routine (see binding.h) ---- */
+static int differ(const char *a, const char *b) { return a && b && strcmp(a, b); }
+int dc_binding_validate(const char *op, const char *field, const DcBindingRef *e,
+                        const DcBindingRef *h, char *why, size_t wn) {
+    if (differ(e->module_digest, h->module_digest)) {
+        snprintf(why, wn, "%s: field %s: premise bound to module digest %.12s, not %.12s", op, field, h->module_digest, e->module_digest); return -1; }
+    if (differ(e->source_id, h->source_id) || (e->source_carrier >= 0 && h->source_carrier >= 0 && e->source_carrier != h->source_carrier)) {
+        snprintf(why, wn, "%s: field %s: interface mismatch, premise starts at %s but the operation needs %s", op, field, h->source_id ? h->source_id : "?", e->source_id ? e->source_id : "?"); return -1; }
+    if (differ(e->target_id, h->target_id) || (e->target_carrier >= 0 && h->target_carrier >= 0 && e->target_carrier != h->target_carrier)) {
+        snprintf(why, wn, "%s: field %s: interface mismatch, premise ends at %s but the operation needs %s", op, field, h->target_id ? h->target_id : "?", e->target_id ? e->target_id : "?"); return -1; }
+    const char *et = e->tolerance ? e->tolerance : "Exact", *ht = h->tolerance ? h->tolerance : "Exact";
+    if (strcmp(et, ht)) {
+        snprintf(why, wn, "%s: field %s: premise checked under tolerance %s, not %s", op, field, ht, et); return -1; }
+    return 0;
+}

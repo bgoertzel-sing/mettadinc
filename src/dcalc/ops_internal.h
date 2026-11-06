@@ -38,4 +38,6 @@ Sx *dc_invalid(const DcModule *m, const char *fmt, ...);
 Sx *dc_unsupported(const DcModule *m, const char *fmt, ...);
 /* Boundary 2: union a premise's assumptions into a derived result (ops_core.c). */
 void dc_result_add_premise(Sx *res, const Sx *premise, const char *premise_name);
+/* Boundary 1: fill (Source ..) (Target ..) of a result binding (ops_core.c). */
+void dc_result_bind_models(Sx *res, const char *src_id, const char *tgt_id);
 #endif
