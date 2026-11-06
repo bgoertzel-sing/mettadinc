@@ -1,0 +1,196 @@
+ok   P1 reachable item states
+ok   P1 window view, CheckNow: witness pair and answers
+ok   P1 window view, CheckUpdates: witness pair and action
+ok   P1 event view: now, updates and behavioral all Checked
+ok   P1 quotient sizes: engine, commitments, both
+ok   P1 engine quotient: closed items share a class with the open item older than seven days
+ok   P1 event view codes on reachable items
+ok   P1 seven-day cap: adequate for the engine, refuted for commitments
+ok   P1 dedupe: reachable engine states (topic key, question key)
+ok   P1 dedupe by person+topic: least violating word and state
+ok   P1 dedupe by question: at most one suggestion on every reachable state
+ok   P2 three slots, block of two: verdicts
+ok   P2 witnesses (pair, left, right)
+ok   P2 consumer-aware with 4 slots and a block of 2
+ok   P2 consumer-aware with 5 slots and a block of 3
+ok   P2 four slots, block of three: consumer-aware Checked for all three, others not
+ok   P2 share of the 64 patterns in which the block holds the answer (F, O, A)
+ok   P3 policy table (now, behavioral, updates) per consumer
+ok   P3 majority hides a contradiction: witness pair
+ok   P3 counts confuse two reports from one source with two sources: eff witness
+ok   P3 counts and the anchor: regen witness
+ok   P3 distinct sources: right today, wrong tomorrow (regen word witness)
+ok   P3 distinct sources cannot be maintained on their own: update witness
+ok   P3 coarsest memories (classes): contra, eff, regen, contra+regen, all three
+ok   P3 codes per policy on the 729 states
+ok   P3 the minimal code (first source or two-plus, per polarity) is the 25-class quotient
+ok   P3 naive migration: transform and repair do not commute
+ok   P3 migration cell: Checked
+ok   P4 reachable task states
+ok   P4 checkpoint without read sets: Checked now
+ok   P4 checkpoint without read sets: update witness
+ok   P4 checkpoint without read sets: behavioral witness
+ok   P4 checkpoint with read sets: Checked
+ok   P4 restart memory: 11 classes; the only merge
+ok   P4 codes of the checkpoint without read sets
+ok   P5 goal-sufficient memories (classes)
+ok   P5 adding triage: resumed refinement versus scratch (class counts per round)
+ok   P5 retiring nag: old memory still adequate, coarsest 5 classes, largest merge 4
+ok   P5 a distinction reply needs and nag does not
+ok   P5 a distinction nag needs and reply does not
+ok   P5 days-left: determines the old answers, is strictly finer, costs no memory
+ok   P5 nag-ben-first: determines the old answers; memory grows from 4 to 7 classes
+ok   P5 cap3: changes goal content in both directions
+ok   P5 migration to a deadline schema: Checked
+ok   P5 a negated nag goal: both informational checks Checked, the same 4-class memory
+ok   P5 interpretation obligation with the declared decoders: least witness record or None
+ok   P5 interpretation witnesses (record, answers, decisions); the negated goal disagrees on all 40 records
+ok   P5 classification of the six proposed changes
+ok   P5 a coarsening: dropping the days left from the refined goal again; the old answers are not recoverable (ages 0 and 1), the converse holds, the decisions agree
+ok   P5 a failed migration: a new schema whose tick forgets to count the days left down; every record is translated correctly, and the map fails to commute at the first tick from age 0 (3 days left against 2)
+ok   P6 reachable claim states (weighted, norm-first)
+ok   P6 weighted arbitration: least unlawful word and state
+ok   P6 weighted arbitration: consolidation without a check after two steps
+ok   P6 norm-first arbitration: lawful and never consolidates unchecked
+ok   P6 conflict under norm-first: least word
+ok   P6 conflict states reachable under norm-first
+ok   P6 the arbitrated move in each conflict state (norm-first)
+ok   P7 states and settled states
+ok   P7 plain design leaves the safe region: least word and state
+ok   P7 floor design stays in the safe region from the start state
+ok   P7 reachable states from the start (plain, floor)
+ok   P7 states in the safe region
+ok   P7 whole safe region closed under the floor design, not under the plain one
+ok   P7 order swap, least eta at L = 1 (floor, damped)
+ok   P7 order swap, floor design: witness at eta = 1/2
+ok   P7 order swap on settled states: least eta 1/2, goal weights agree, witness at 1/4
+ok   P7 order swap on all states, goal weights only (floor, damped)
+ok   P7 contraction near the boundary at c = 1/2: least eta (floor, damped)
+ok   P7 contraction witness at eta = 1/4 (floor)
+ok   P7 contraction at (1/2, 1/2), floor: witness
+ok   P8 null expectation of the factor
+ok   P8 factors
+ok   P8 alternative stream: fires at suggestion 21 after 6 stale, e-value 2^72/19^15
+ok   P8 null stream: no detection in 400 suggestions
+ok   P8 stale counts in the two streams
+ok   P8 digests
+ok   P8 e-value at detection, decimal
+ok   P8 floating summaries: KL rate (nats), Wald steps, largest null e-value
+ok   P1 the large class of the engine's memory holds ten event-view codes
+ok   P2 four slots, block of two: every policy's verdicts equal those with three slots
+ok   P2 patterns that contain an item of each kind (F, O, A)
+ok   P2 of those, patterns in which the block holds the most recent item of the kind (F, O, A)
+ok   P2 the receipt example FOA under the consumer-aware policy: block and consumers served
+ok   P5 retiring nag: the old classes merged with (open, 0, ben, normal) are its four age classes
+ok   P6 the two goals' preferences in each conflict state (throughput, verification)
+ok   P6 the conflict record of the appendix: forbidden moves and the move taken
+ok   P7 plain design along the least word: exploration and individuation after each cycle
+ok   P7 order swap on settled states: the modulators differ by at most one step of the grid
+ok   P8 suggestions in each stream
+ok   P3 the bundle example: totals with contradiction provenance against the evaluator
+ok   B OpenItems: Live has 39 states
+ok   B OpenItems: WindowView CheckNow witness as in Part A
+ok   B OpenItems: WindowView CheckUpdates witness and codes
+ok   B OpenItems: EventView Checked (behavioral, updates)
+ok   B OpenItems: MinimizeForQueries GoalEngine equals Part A
+ok   B OpenItems: MinimizeForQueries Commitments equals Part A
+ok   B OpenItems: MinimizeForQueries Both equals Part A
+ok   B OpenItems: CapForEngine Checked
+ok   B OpenItems: CapForCommitments witness
+ok   B SuggestionDedupe: OnceByTopic
+ok   B SuggestionDedupe: OnceByQuestion
+ok   B ContextBlock: RecencyF as in Part A
+ok   B ContextBlock: RecencyO as in Part A
+ok   B ContextBlock: RecencyA as in Part A
+ok   B ContextBlock: RelevanceF as in Part A
+ok   B ContextBlock: RelevanceO as in Part A
+ok   B ContextBlock: RelevanceA as in Part A
+ok   B ContextBlock: ProtectedF as in Part A
+ok   B ContextBlock: ProtectedO as in Part A
+ok   B ContextBlock: ProtectedA as in Part A
+ok   B ContextBlock: ConsumerF as in Part A
+ok   B ContextBlock: ConsumerO as in Part A
+ok   B ContextBlock: ConsumerA as in Part A
+ok   B EvidenceMemory: MajorityC verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: MajorityE verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: MajorityR verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: CountsC verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: CountsE verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: CountsR verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: DistinctC verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: DistinctE verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: DistinctR verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: ProtectedC verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: ProtectedE verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: ProtectedR verdicts and witness pairs as in Part A
+ok   B EvidenceMemory: ProvenanceAll Checked (updates, behavioral)
+ok   B EvidenceMemory: MinimalAll Checked (updates, behavioral)
+ok   B EvidenceMemory: MinimizeForQueries Contra
+ok   B EvidenceMemory: MinimizeForQueries Eff
+ok   B EvidenceMemory: MinimizeForQueries Regen
+ok   B EvidenceMemory: MinimizeForQueries ContraRegen
+ok   B EvidenceMemory: MinimizeForQueries AllThree
+ok   B AnchorMigration: NaiveMigration
+ok   B AnchorMigration: CellMigration
+ok   B TaskResume: NoReadSets now / updates pair / behavioral word
+ok   B TaskResume: ReadSets Checked
+ok   B TaskResume: ResumeMemory equals Part A
+ok   B ItemGoals: MinimizeForQueries Reply equals Part A
+ok   B ItemGoals: MinimizeForQueries Nag equals Part A
+ok   B ItemGoals: MinimizeForQueries Triage equals Part A
+ok   B ItemGoals: MinimizeForQueries ReplyNag equals Part A
+ok   B ItemGoals: MinimizeForQueries AllGoals equals Part A
+ok   B ItemGoals: MinimizeForQueries ReplyTriage equals Part A
+ok   B ItemGoals: CheckNow DaysLeft as in Part A
+ok   B ItemGoals: CheckNow BenFirst as in Part A
+ok   B ItemGoals: CheckNow Cap3 as in Part A
+ok   B ItemGoals: CheckNow NagForDays as in Part A
+ok   B ItemGoals: CheckNow NagForBenFirst as in Part A
+ok   B ItemGoals: CheckNow NagForCap3 as in Part A
+ok   B ItemGoals: MinimizeForQueries DaysGoal
+ok   B ItemGoals: MinimizeForQueries BenFirstGoal
+ok   B ItemGoals: MinimizeForQueries Cap3Goal
+ok   B ItemGoals: ToDeadline Checked
+ok   B ItemGoals: MinimizeForQueries NagByDeadline (the migrated goal keeps 4 classes)
+ok   B ItemGoals: CheckNow AntiAsNag and CheckNow NagForAntiNag both Checked (informational equivalence)
+ok   B ItemGoals: AntiNagMemory is the 4-class partition of NagMemory
+ok   B ItemGoals: CheckInterpretation NagFollowUps DaysFollowUps as in Part A
+ok   B ItemGoals: CheckInterpretation NagFollowUps BenFirstFollowUps as in Part A
+ok   B ItemGoals: CheckInterpretation NagFollowUps Cap3FollowUps as in Part A
+ok   B ItemGoals: CheckInterpretation NagFollowUps DeadlineFollowUps (Via ToDeadline) as in Part A
+ok   B ItemGoals: CheckInterpretation NagFollowUps AntiNagFollowUps as in Part A
+ok   B ItemGoals: CheckInterpretation NagFollowUps AntiNagWaits as in Part A
+ok   B ItemGoals: CheckInterpretation across schemas without Via is InvalidInput naming both carriers
+ok   B ItemGoals: CheckInterpretation along a map from another machine is InvalidInput naming the mismatch
+ok   B ItemGoals: an interpretation result is bound to both consumers, machines, queries and decoders with their custody, and to the 40 records
+ok   B ItemGoals: interpretation results carry no assumptions; Checked by enumeration, Refuted by a replayed witness
+ok   B ItemGoals: the module's CheckInterpretation requests and their statuses
+ok   B ItemGoals: the classification from the module's results equals Part A
+ok   B ClaimArbitration: LawfulWeighted
+ok   B ClaimArbitration: LawfulNormFirst
+ok   B ClaimArbitration: Agreement
+ok   B ClaimArbitration: reachable states (weighted, norm-first)
+ok   B MotivationGrid: SafePlain
+ok   B MotivationGrid: SafeFloor
+ok   B MotivationGrid: Settled has 80 states
+ok   B MotivationGrid: CheckImplementation OrderSwapFloor (Grade 1 1/2)
+ok   B MotivationGrid: CheckImplementation OrderSwapDamped (Grade 1 1/2)
+ok   B MotivationGrid: CheckImplementation OrderSwapSettled (Grade 1 1/2)
+ok   B MotivationGrid: CheckImplementation OrderSwapSettled (Grade 1 1/4)
+ok   B MotivationGrid: CheckImplementation NearBoundaryFloor (Grade 1/2 3/4)
+ok   B MotivationGrid: CheckImplementation NearBoundaryFloor (Grade 1/2 1/2)
+ok   B MotivationGrid: CheckImplementation NearBoundaryDamped (Grade 1/2 5/8)
+ok   B StaleMonitor: null and alternative laws
+ok   B StaleMonitor: CheckMonitor validity
+ok   B StaleMonitor: LiveSuggestions digest matches the stored file
+ok   B StaleMonitor: QuietSuggestions digest matches the stored file
+ok   B Consumers: every Accepts declaration parses; frame consumers accept only Checked results
+ok   B Consumers: what EngineQueries and CommitmentQueries accept (Checked; Conditional on cvc5, on z3, on both; Estimated; Unknown)
+ok   B Consumers: the specification's combined form (Accepts Checked Estimated (Conditional (TrustedBackend cvc5) (Assumption StepModel))) against (Accepts Checked (Conditional (TrustedBackend cvc5))), on results Conditional on cvc5, on StepModel, on another assumption, on an estimate, on cvc5 and StepModel, on StepModel and z3
+ok   B Gate: the binding of (CheckUpdates MinimalAll) as printed in Appendix C.6
+ok   B Gate: the binding of (CheckUpdates WindowView) as printed in Appendix C.2
+ok   B Gate: the bundle of Appendix C.6 covers its three consumers through the joint machine AllThree
+ok   B Gate: a result bound to Contra covers ContraProbe and is InvalidInput for EffectiveSupport
+ok   B Gate: the Refuted (CheckNow ProtectedE) blocks EffectiveSupport and does not count for the other two
+ok   B Gate: results Conditional on cvc5 cover EngineQueries and are inadequate coverage for CommitmentQueries
+195 checks passed, 0 failed, 81.7 s

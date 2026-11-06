@@ -1,0 +1,41 @@
+# swipl 8.4.2 (user-local, Ubuntu jammy debs) running the parser-pack exporter that test-rhocalc's prerequisite needs:
+# make ... BUILD=core ENABLE_LIB_PROLOG=0 langdef/metamath/generated/syntax_parser_pack_v1.abi, swipl wrapped to log args and stderr
+ARGS: -q -f /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/cetta/experiments/gslt2parse_foundation/prolog/parser_pack_abi_export_v1.pl -- /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/cetta/experiments/gslt2parse_foundation/presentations database closed core/syntax_core_v1.metta shared/lookahead_core_v1.metta ../../../langdef/metamath/syntax_v1.metta
+CWD: /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/cetta/experiments/gslt2parse_foundation/prolog
+
+SWI-Prolog [thread 1 (main) at Thu Nov  5 23:04:21 2026]: received fatal signal 11 (segv)
+C-stack trace labeled "crash":
+  [0] PL_advance_hash_table_enum() at ??:? [0x723b03d18b6a]
+  [1] Sdprintf() at ??:? [0x723b03d1da4d]
+  [2] PL_changed_cwd() at ??:? [0x723b03d23cd7]
+  [3] __sigaction() at ??:? [0x723b03a42520]
+  [4] EVP_MAC_up_ref() at ??:? [0x723b02399e04]
+  [5] ??() at ??:0 [0x723b0379c6c4]
+  [6] PL_malloc_atomic() at ??:? [0x723b03d2e96d]
+  [7] PL_unify_blob() at ??:? [0x723b03d636c8]
+  [8] PL_unify_blob() at ??:? [0x723b03d6356c]
+  [9] /home/openclaw/scratch/mettadinc-e0/deps-swipl/root/usr/lib/swi-prolog/bin/x86_64-linux/swipl(+0x119c) [0x64fc592ea19c]
+  [10] __libc_init_first() at ??:? [0x723b03a29d90]
+  [11] __libc_start_main() at ??:? [0x723b03a29e40]
+  [12] /home/openclaw/scratch/mettadinc-e0/deps-swipl/root/usr/lib/swi-prolog/bin/x86_64-linux/swipl(+0x10c5) [0x64fc592ea0c5]
+Prolog stack:
+  [20] crypto:_crypto_hash_context_copy/2 [PC=1 in supervisor]
+  [19] crypto:crypto_data_context/3 [PC=5 in clause 1]
+  [18] crypto:crypto_data_hash/3 [PC=13 in clause 1]
+  [16] finite_horn_gslt_v1:reflect_presentations/2 [PC=19 in clause 1]
+  [15] parser_pack_reference_compile:parser_pack_reference_program/4 [PC=46 in clause 1]
+  [14] parser_pack_reference_compile:parser_pack_reference_compile_/4 [PC=9 in clause 1]
+  [13] system:catch/3 [PC=2 in clause 1]
+  [11] parser_pack_abi_export_v1:write_parser_pack_abi_v1/5 [PC=12 in clause 1]
+  [9] system:catch/3 [PC=2 in clause 1]
+  [8] parser_pack_abi_export_v1:main/0 [PC=21 in clause 1]
+  [7] system:catch/3 [PC=2 in clause 1]
+  [6] system:catch_with_backtrace/3 [PC=6 in clause 1]
+  [5] $toplevel:run_init_goal/2 [PC=17 in clause 1]
+  [2] system:catch/3 [PC=2 in clause 1]
+  [1] $toplevel:$initialise/0 [PC=12 in clause 1]
+  [0] system:$c_call_prolog/0 [PC=0 in top query clause]
+Running on_halt hooks with status 139
+Killing 3049864 with default signal handlers
+Segmentation fault (core dumped)
+EXIT 139

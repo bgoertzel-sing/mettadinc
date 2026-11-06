@@ -12,9 +12,13 @@ Cetta is a git submodule at `cetta/`, pinned to zariuq/CeTTa `main` as Zar asked
 - Why this commit: Zar asked us to use his latest main. Ben's decision 2 defined "green" against E0's baseline at 12da03b4;
   the plan is to re-freeze the baseline from runs at this pin and name every test that was green at 12da03b4 and is not
   green now in [CETTA-LATEST.md](CETTA-LATEST.md).
-- **Status 2026-11-06: 4c285a97 does not build with gcc on pop-os** (DT_RELR link probe; gcc 11 `-Werror` errors), see
-  [CETTA-LATEST.md](CETTA-LATEST.md). `tools/cetta-baseline.expected` is still the 12da03b4 baseline, so the harness is
-  NOT GREEN at this pin until that is resolved.
+- **Status 2026-11-06: 4c285a97 does not build unmodified with gcc on pop-os** (DT_RELR link probe; gcc 11 `-Werror`
+  errors). By the hive decision it is built with make command-line **build overrides** only (no Cetta file changed):
+  `MDINC_MAKE_ARGS="PACK_RELATIVE_RELOCS= 'CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized'"`.
+  With them it builds and all lanes run, but it is **not green**: the rhocalc lane needs SWI-Prolog 9.x and
+  `test-test-target-scope` fails with "Argument list too long". Details, counts, the by-name list and the upstream
+  issues for Zar: [CETTA-LATEST.md](CETTA-LATEST.md). `tools/cetta-baseline.expected` is still the 12da03b4 baseline
+  pending a decision on what to freeze; the harness's default (no MDINC_MAKE_ARGS) remains the unmodified build.
 
 ## Fetching it
 

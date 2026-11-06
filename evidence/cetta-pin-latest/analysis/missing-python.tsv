@@ -1,0 +1,373 @@
+python	PASS: ABT default declarations have one MeTTa source; drift mutant killed	unlocated	text 'ABT default declarations have one MeTTa source; drift mutant killed' in scripts/check_abt_default_signatures.py	x1
+python	PASS: ABT mutation gate (N/N)	not-reached:test-abt-mutations	Makefile; files Makefile	x1
+python	PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-N	unlocated	text 'ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-' found in neither tree by git grep	x23
+python	PASS: GC adversarial audit	unlocated	text 'GC adversarial audit' in scripts/gc_adversarial_audit.sh	x1
+python	PASS: HE profile he-extended unchanged by Prime Need	unlocated	text 'HE profile he-extended unchanged by Prime' found in neither tree by git grep	x1
+python	PASS: HE return-contract correlation (GC relocation)	not-reached:test-he-return-contract-correlation	Makefile; files Makefile	x1
+python	PASS: HE return-contract correlation (he)	unlocated	text 'HE return-contract correlation (he)' found in neither tree by git grep	x1
+python	PASS: HE return-contract correlation (he-compat)	unlocated	text 'HE return-contract correlation (he-compat)' found in neither tree by git grep	x1
+python	PASS: HE return-contract correlation (he-extended)	unlocated	text 'HE return-contract correlation (he-extended)' found in neither tree by git grep	x1
+python	PASS: HE return-contract correlation (he-prime)	unlocated	text 'HE return-contract correlation (he-prime)' found in neither tree by git grep	x1
+python	PASS: PeTTa MAM contender mutations are killed	not-reached:test-petta-mam-contender-mutations	Makefile; files Makefile	x1
+python	PASS: PeTTa extended query/space algebra is executable and profile-local	not-reached:test-petta-extended-query-algebra	Makefile; files Makefile	x1
+python	PASS: PeTTa ground exact existence fusion and decline boundaries	not-reached:test-petta-match-existence-fusion	Makefile; files Makefile	x1
+python	PASS: PeTTa opt-in memoization policy and effect boundaries	not-reached:test-petta-memoization	Makefile; files Makefile	x1
+python	PASS: PeTTa ordered files preserve per-file scope and working directories; other dialect argv is unchanged	not-reached:test-petta-multifile	Makefile; files Makefile	x1
+python	PASS: PeTTa prepared register loop preserves aliasing, ambiguity, table, and count boundaries	not-reached:test-petta-prepared-register-loop	Makefile; files Makefile	x1
+python	PASS: PeTTa relational control, stream bags, list length, parse-as-data, implicit spaces, shared sequencing, named state, alpha uniqueness, metatype and typed-failure policy, library descriptors, and stable term order	gone-upstream	text 'PeTTa relational control, stream bags, list length, parse-as-data, implicit spaces, shared sequencing, named state, alpha uniqueness, metatype and typed-failure policy, library descriptors, and stable term order' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: PeTTa specialized recursion preserves opaque values and evaluates active constructor fields	not-reached:test-petta-specialized-pure-call	Makefile; files Makefile	x1
+python	PASS: PeTTa specializer boundary and route cache preserve exact answers	not-reached:test-petta-specializer-relevance-filter	Makefile; files Makefile	x1
+python	PASS: all N PeTTa capability clusters have positive and negative executable contracts	unlocated	text 'PeTTa capability clusters have positive and negative executable contracts' found in neither tree by git grep	x1
+python	PASS: checked-in PeTTa direct reader regenerates byte-for-byte	gone-upstream	text 'checked-in PeTTa direct reader regenerates byte-for-byte' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: cli help flags	not-reached:test-help-flags	Makefile; files Makefile	x1
+python	PASS: closed ABT/MMN/MORK boundary	not-reached:test-abt-mm2-boundary	Makefile; files Makefile,tests/test_abt_mm2_boundary.c	x1
+python	PASS: cost-rho parallel stress independent-surfaces	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: cost-rho parallel stress large-cover-laziness	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: cost-rho parallel stress one-purse-serialization	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: cost-rho parallel stress randomized-independent-receipts	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: cost-rho parallel stress same-surface-disjoint-occurrences	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: cost-rho parallel stress search-budget-monotonicity	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: examples/rho/cost/budget_meter.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: examples/rho/cost/notary_chain.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: examples/rho/cost/parallel_settlement.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: examples/rho/cost/parallel_settlement.mrho (threaded matches sequential)	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: examples/rho/cost/vending_machine.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: examples/rho/pure/eval_at_comm.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: explicit PeTTa search machine	unlocated	text 'explicit PeTTa search machine' in tests/support/test_petta_search_machine.c	x1
+python	PASS: formal he documentation surface	gone-upstream	text 'formal he documentation surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: formal he eval surface	gone-upstream	text 'formal he eval surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: formal he get-doc surface	gone-upstream	text 'formal he get-doc surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: formal he no-return surface	gone-upstream	text 'formal he no-return surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: formal he numeric surface	gone-upstream	text 'formal he numeric surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat collect Rust-inert surface	gone-upstream	text 'he-compat collect Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat core-surface extensions are hidden	gone-upstream	text 'he-compat core-surface extensions are hidden' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat count-atoms Rust-inert surface	gone-upstream	text 'he-compat count-atoms Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat fold Rust-inert surface	gone-upstream	text 'he-compat fold Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat fold-by-key Rust-inert surface	gone-upstream	text 'he-compat fold-by-key Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat foldl-atom Rust core surface	gone-upstream	text 'he-compat foldl-atom Rust core surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat foldl-atom-in-space Rust-inert surface	gone-upstream	text 'he-compat foldl-atom-in-space Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat get-doc Rust surface	gone-upstream	text 'he-compat get-doc Rust surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat git-module! surface	gone-upstream	text 'he-compat git-module! surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat include Rust result surface	gone-upstream	text 'he-compat include Rust result surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat module-inventory Rust-inert surface	gone-upstream	text 'he-compat module-inventory Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat once Rust-inert surface	gone-upstream	text 'he-compat once Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat parse Rust surface	gone-upstream	text 'he-compat parse Rust surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat reduce Rust-inert surface	gone-upstream	text 'he-compat reduce Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat runtime-stats Rust-inert surface	gone-upstream	text 'he-compat runtime-stats Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat search-policy Rust-inert surface	gone-upstream	text 'he-compat search-policy Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat select Rust-inert surface	gone-upstream	text 'he-compat select Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat size Rust-inert surface	gone-upstream	text 'he-compat size Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-compat space-set-match-backend! Rust-inert surface	gone-upstream	text 'he-compat space-set-match-backend! Rust-inert surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended collect extension	gone-upstream	text 'he-extended collect extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile collect	gone-upstream	text 'he-extended compile collect' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile extension	gone-upstream	text 'he-extended compile extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile fold	gone-upstream	text 'he-extended compile fold' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile fold-by-key	gone-upstream	text 'he-extended compile fold-by-key' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile fs capability	unlocated	text 'he-extended compile fs capability' found in neither tree by git grep	x1
+python	PASS: he-extended compile hyperpose	gone-upstream	text 'he-extended compile hyperpose' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile module-inventory	gone-upstream	text 'he-extended compile module-inventory' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile reduce	gone-upstream	text 'he-extended compile reduce' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile runtime-stats	gone-upstream	text 'he-extended compile runtime-stats' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile search-policy	gone-upstream	text 'he-extended compile search-policy' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile select	gone-upstream	text 'he-extended compile select' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile space-set-match-backend!	gone-upstream	text 'he-extended compile space-set-match-backend!' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended compile str capability	unlocated	text 'he-extended compile str capability' found in neither tree by git grep	x1
+python	PASS: he-extended compile system capability	unlocated	text 'he-extended compile system capability' found in neither tree by git grep	x1
+python	PASS: he-extended count-atoms extension	gone-upstream	text 'he-extended count-atoms extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended fold extension	gone-upstream	text 'he-extended fold extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended fold-by-key extension	gone-upstream	text 'he-extended fold-by-key extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended foldl-atom-in-space extension	gone-upstream	text 'he-extended foldl-atom-in-space extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended fs capability	unlocated	text 'he-extended fs capability' found in neither tree by git grep	x1
+python	PASS: he-extended get-doc surface	gone-upstream	text 'he-extended get-doc surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended hyperpose CLI threads	gone-upstream	text 'he-extended hyperpose CLI threads' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended hyperpose extension	gone-upstream	text 'he-extended hyperpose extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended import modules	unlocated	text 'he-extended import modules' found in neither tree by git grep	x1
+python	PASS: he-extended keeps literal binder-domain behavior	gone-upstream	text 'he-extended keeps literal binder-domain behavior' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended leaves he-prime extensions inert	unlocated	text 'he-extended leaves he-prime extensions inert' found in neither tree by git grep	x1
+python	PASS: he-extended leaves he-prime typed search inert	unlocated	text 'he-extended leaves he-prime typed search inert' found in neither tree by git grep	x1
+python	PASS: he-extended leaves type-level user computation residual	unlocated	text 'he-extended leaves type-level user computation residual' found in neither tree by git grep	x1
+python	PASS: he-extended lts:he surface	gone-upstream	text 'he-extended lts:he surface' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended module-inventory extension	gone-upstream	text 'he-extended module-inventory extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended new-space kind overload is visible	gone-upstream	text 'he-extended new-space kind overload is visible' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended once alias	gone-upstream	text 'he-extended once alias' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended reduce extension	gone-upstream	text 'he-extended reduce extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended runtime-stats extension	gone-upstream	text 'he-extended runtime-stats extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended search-policy capability	gone-upstream	text 'he-extended search-policy capability' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended select extension	gone-upstream	text 'he-extended select extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended shared HE typing conformance	unlocated	text 'he-extended shared HE typing conformance' found in neither tree by git grep	x1
+python	PASS: he-extended size compile	gone-upstream	text 'he-extended size compile' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended size extension	gone-upstream	text 'he-extended size extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended space-set-match-backend! extension	gone-upstream	text 'he-extended space-set-match-backend! extension' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: he-extended str capability	unlocated	text 'he-extended str capability' found in neither tree by git grep	x1
+python	PASS: he-extended system capability	unlocated	text 'he-extended system capability' found in neither tree by git grep	x1
+python	PASS: iterative capture-avoiding ABT core	not-reached:test-abt	Makefile; files Makefile,tests/test_abt.c	x1
+python	PASS: lib_parse ABT bridge (N admitted, N rejected, N preserved)	not-reached:test-lib-parse-abt-bridge	Makefile; files Makefile	x1
+python	PASS: mmN has no named profiles	reached:test-prime-compiled-reader-v1	Makefile; files Makefile,src/main.c	x1
+python	PASS: nameful rho substitution agrees with canonical ABT substitution	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: native PeTTa machine evaluator integration	not-reached:test-petta-search-machine	Makefile; files Makefile	x1
+python	PASS: native PeTTa process_metta_string	not-reached:test-petta-process-text	Makefile; files Makefile	x1
+python	PASS: optional PeTTa/libpl boundary invariants	not-reached:test-petta-libpl	Makefile; files Makefile	x1
+python	PASS: parse depth guard	unlocated	text 'parse depth guard' in scripts/test_parse_depth_guard.sh	x1
+python	PASS: pure-rho canonical selector agrees with exhaustive frontier (N named + N generated; seed=N)	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: revision-pinned ordered MatchDecision oracle	unlocated	text 'revision-pinned ordered MatchDecision oracle' in tests/support/test_match_decision.c	x1
+python	PASS: rhocalc MN may/must frontier comm-contention-two-outputs	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier fanout-empty	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-certificate-quorum	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-comm-contention	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-computed-payload	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-conditional-route	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-demand-index	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-fanout	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-finite-replication	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-fresh-extrusion	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-indexed-demand	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-iterated-workload	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-job-queue-collector	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-pipeline-forward	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-private-channel	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-private-no-leak	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-private-session	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-reflection-loader	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-registry-lookup	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-route-policy	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-route-synthesis	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-space-registry	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier metta-threshold-quorum	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier paper-input-guarded-replication	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier paper-reflection-name-generation	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN may/must frontier pipeline-forward-empty	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN overlap basic-comm	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN overlap input-guarded-unfold	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN overlap reflection-name-generation	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc MN rholang-cli parser/oracle selftest	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation core-comm-vs-alpha-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation core-comm-vs-par-assoc-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation core-comm-vs-par-comm-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation core-comm-vs-par-zero-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation core-comm-vs-quote-drop-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation diamond-path-a-vs-path-b	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation pure-surface-vs-core-comm	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation scheduler-persistent-limitN-canonical-vs-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x2
+python	PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limitN-canonical-vs-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x2
+python	PASS: rhocalc bounded bisimulation surface-input-guarded-vs-core-input-guarded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation surface-primed-diamond-vs-core-primed-diamond	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation surface-reflection-vs-core-reflection	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded bisimulation surface-rotating-witness-vs-core-rotating-witness	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence core-comm-vs-par-assoc-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence core-comm-vs-par-comm-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence core-comm-vs-par-zero-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence core-comm-vs-quote-drop-name-equivalence	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence diamond-path-a-vs-path-b	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence pure-surface-vs-core-comm	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence surface-input-guarded-vs-core-input-guarded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence surface-primed-diamond-vs-core-primed-diamond	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence surface-reflection-vs-core-reflection	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation equivalence surface-rotating-witness-vs-core-rotating-witness	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc bounded relation inequivalence literal-static-drop	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical scheduler witness	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/branching_relation.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_avoidance_alpha_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_free_var_rejected_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_shadow_ok_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_discrimination_survives_after_comm.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_alpha_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_assoc_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_comm_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_zero_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_var_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/comm_par_chain_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/core_comm.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/literal_drop_quote_static_after_comm.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_free_name_same_spelling_binder.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_inner_binder_restores_scope.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_seals_outer_binder.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_shadow_same_spelling.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_path_a.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_path_b.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_setup.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_pass_basic_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_quote_drop.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/nested_drop_quote_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_divergence_self_recreates_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_input_guarded_replication_unfold_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_reflection_name_generation_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_drop_comm_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_substitution_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_substitution_opaque_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/recv_under_binder_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/rotating_scheduler_persistent_branch.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_alpha_dedup_display.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_hot_successors.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc cost dequotation tests/rhocalc_cost/reject_dequote.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc cost threaded execution (N workers)	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x2
+python	PASS: rhocalc de-step allow-list surface	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho hygiene	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_causal_trace.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_parallel_branches.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_search_budget.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_surface.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_lts_rho_surface.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_lts_surface.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_rho_lib_hygiene_surface.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_rho_lib_surface.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_rhometta_demo_dedfarm.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_rhometta_demo_ecan.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_rhometta_demo_mayset.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_rhometta_demo_revision.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_rhometta_isolation_oracle.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc lib/rho surface tests/test_rhometta_lib_surface.metta	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc old step surface purged	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc quiescent/open-name contract tests/rhocalc/free_drop_is_stuck_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc quiescent/open-name contract tests/rhocalc/no_reduction_under_recv_puritanical.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_name_variable_roundtrip_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_quoted_name_roundtrip_hN.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc quiescent/open-name contract tests/rhocalc/quoted_process_not_reduced_in_name_eq.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc quiescent/open-name contract tests/rhocalc/surface_open_name_variable.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc rejects scheduler with threaded execution	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc rotating scheduler witness	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc run reduction-limit exhaustion	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability branching-relation-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability branching-relation-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability branching-relation-one-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability capture-shadow-recv-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability capture-shadow-recv-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-discrimination-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-discrimination-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-var-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability channel-var-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability comm-par-chain-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability comm-par-chain-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability comm-par-chain-one-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability core-comm-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability core-comm-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability literal-drop-static-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability literal-drop-static-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability multistep-diamond-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability multistep-diamond-two-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability multistep-diamond-two-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability name-pass-basic-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability name-pass-basic-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability name-quote-drop-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability name-quote-drop-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability nested-drop-quote-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability nested-drop-quote-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability paper-divergence-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability paper-divergence-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability pure-surface-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability pure-surface-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability recv-under-binder-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability recv-under-binder-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-persistent-canonical-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-persistent-rotating-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-persistent-two-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-three-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-three-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-primed-diamond-three-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability rotating-primed-diamond-two-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-name-output-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-name-output-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-three-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-three-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-primed-diamond-three-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-primed-diamond-two-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step-rotating	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-rotating-persistent-canonical-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-rotating-persistent-rotating-two-step	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc scheduler reachability surface-rotating-persistent-two-step-threaded	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc strict-boundary reject tests/rhocalc/reject_fresh.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc strict-boundary reject tests/rhocalc/reject_join.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc strict-boundary reject tests/rhocalc/reject_quoted_payload.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc strict-boundary reject tests/rhocalc/reject_send_continuation.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc thread-budget plumbing	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc threaded stress alpha-capture-stress	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc threaded stress dequote-spawn	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc threaded stress hot-channel-linear-consumption	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc threaded stress independent-many-comms	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc threaded stress limit-batch-exact	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc threaded stress payload-race	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc threaded stress randomized-threaded-loop	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle branching-relation	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle core-comm	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle free-drop-is-stuck	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle multistep-diamond-path-a	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle multistep-diamond-path-b	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle multistep-diamond-setup	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle no-reduction-inside-quote	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle no-reduction-under-recv	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle open-name-variable	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle open-quoted-name	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle quiescent-nil	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle self-recreation	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle stuck-pending-receive	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc tiny oracle stuck-pending-send	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc translate alpha mrho -> mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc translate alpha mrho -> rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc translate mrho -> rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc translate rho -> mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc translate shadow rho -> mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhocalc zero thread budget uses sequential path	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: rhometta macro differential audit	not-reached:test-rhometta-macro-audit	Makefile; files Makefile	x1
+python	PASS: rhometta payload map capacity C test	unlocated	text 'rhometta payload map capacity C test' in tests/support/test_rhometta_payload_map_capacity.c	x1
+python	PASS: shared lib_prolog surface in HE, Prime, and PeTTa	gone-upstream	text 'shared lib_prolog surface in HE, Prime, and PeTTa' in Makefile at 12da03b4, nowhere at 4c285a97	x1
+python	PASS: source-AtomId memo rejects stale entries after arena reset	not-reached:test-petta-source-memo-reset-mutation	Makefile; files Makefile	x1
+python	PASS: space term universe membership	unlocated	text 'space term universe membership' in tests/test_space_term_universe_membership.c	x1
+python	PASS: specializer prepare boundary (N checks)	unlocated	text 'specializer prepare boundary (' in tests/test_petta_specializer_prepare.c	x1
+python	PASS: staged Subzero candidate	not-reached:test-subzero	Makefile; files Makefile	x1
+python	PASS: staged query-first MeTTa Zero candidate	not-reached:test-mettazero	Makefile; files Makefile	x1
+python	PASS: stdlib growth memory regression rss_kb=N	unlocated	text 'stdlib growth memory regression rss_kb=' in tests/test_stdlib_growth_memory_regression.sh	x1
+python	PASS: test_closed_stream_fastpath	not-reached:test-closed-stream-fastpath,test-mork-shared-bridge	Makefile; files Makefile,scripts/build_he_compat_catalog.py	x1
+python	PASS: tests/gc/test_eval_gc_adversarial.metta budget-invariance	not-reached:test-mork-shared-bridge	Makefile; files Makefile,scripts/gc_asan_selected_audit.sh	x1
+python	PASS: tests/gc/test_eval_gc_adversarial.metta eval-hashcons guard	not-reached:test-mork-shared-bridge	Makefile; files Makefile,scripts/gc_asan_selected_audit.sh	x1
+python	PASS: tests/gc/test_eval_gc_indirect_state_stream.metta budget-invariance	not-reached:test-mork-shared-bridge	Makefile; files Makefile,scripts/gc_asan_selected_audit.sh	x1
+python	PASS: tests/gc/test_eval_gc_indirect_state_stream.metta eval-hashcons guard	not-reached:test-mork-shared-bridge	Makefile; files Makefile,scripts/gc_asan_selected_audit.sh	x1
+python	PASS: tests/gc/test_eval_gc_nested_outcome_roots.metta budget-invariance	unlocated	text 'tests/gc/test_eval_gc_nested_outcome_roots.metta' in tests/generated/he_compat/he_compat_broad_corpus_2026-06-25.json,tests/generated/he_compat/he_compat_cases_2026-06-25.json,tests/test_manifest.tsv	x1
+python	PASS: tests/gc/test_eval_gc_nested_outcome_roots.metta eval-hashcons guard	unlocated	text 'tests/gc/test_eval_gc_nested_outcome_roots.metta' in tests/generated/he_compat/he_compat_broad_corpus_2026-06-25.json,tests/generated/he_compat/he_compat_cases_2026-06-25.json,tests/test_manifest.tsv	x1
+python	PASS: tests/rhocalc_cost_run/compound_sig_missing_partial_token_quiescent.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/internal_split_tokens_basic.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/missing_token_quiescent.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/name_equivalence_alpha.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/name_equivalence_quote_drop.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/name_equivalence_wrong_purse.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/parallel_claim_rollback_competition.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/split_tokens_basic.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/split_tokens_compound_sig_combined_token.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/substitution_quote_term.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_combined_token.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_split_tokens.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_cost_run/whole_redex_single_sig.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/branching_deterministic_choice.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/core_comm_run.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/literal_drop_quote_static_after_comm.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/pipeline_two_forwarders.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/pipeline_two_forwarders_surface.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/quiescent_nil_core.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/quiescent_nil_surface.rho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/stuck_pending_receive.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/stuck_pending_send.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: tests/rhocalc_run/substituted_drop_reveals_static_inner_drop.mrho	rhocalc-suite	also printed by test-rhocalc at 12da03b4	x1
+python	PASS: variant shape roundtrip	unlocated	text 'variant shape roundtrip' in tests/test_variant_shape_roundtrip.c	x1

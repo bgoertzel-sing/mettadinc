@@ -1,0 +1,5 @@
+$ cd validation && python3 check_fixtures.py
+21 fixture files, 32 modules, 357 declarations, 125 run requests
+123 manifest claims; first release must answer 45 and return Unsupported for 78
+All fixtures conform to the registry; the manifest agrees with the oracle.
+exit 0

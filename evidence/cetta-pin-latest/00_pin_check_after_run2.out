@@ -1,0 +1,9 @@
+$ tools/check-vendored-cetta.sh   (after latest-run2-overrides, before restoring)
+pin (docs/CETTA-PIN.md):  4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+gitlink HEAD:cetta:       4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+gitlink: equals the pin
+checkout cetta/ HEAD:     4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+checkout: at the pin
+checkout: NOT clean:
+ D langdef/metamath/generated/syntax_lock_v1.metta
+exit 1

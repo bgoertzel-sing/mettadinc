@@ -1,0 +1,81 @@
+lane	new SKIP line (normalised)	reason	was-PASS-at-12da03b4
+python	SKIP: tests/test_add_atom_nodup_pathmap_alpha_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_bigint_bridge_roundtrip_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_bio_bc_let_hidden_env_regression.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_checkpoint_disease_route_probe.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_checkpoint_group_extract_cross_form_regression.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_effect_append_batch_fastpath.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_gparse_native_forest_digest.metta (reads the metamath-test checkout beside this repository, which is absent)	reads the metamath-test checkout beside this repository, which is absent	no
+python	SKIP: tests/test_gparse_native_metamath_corpus.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_gparse_native_metamath_frontier.metta (reads the metamath-test checkout beside this repository, which is absent)	reads the metamath-test checkout beside this repository, which is absent	no
+python	SKIP: tests/test_import_act_module_syntax.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_include_mmN_space_target.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_io_json_bridge.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_io_json_bridge_compat.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_io_no_http.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_io_rho_bridge.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_io_syntax.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_json_direct_reference.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_json_gslt_byte_lengths.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_json_gslt_hostile_constructors.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_json_gslt_invalid_number.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_json_gslt_legacy_nul.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_json_gslt_library.metta (covered by isolated opt-in feature gates)	covered by isolated opt-in feature gates	no
+python	SKIP: tests/test_lib_parse_metamath_aN_block_pair_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_aN_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_anatomy_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_axioms_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_block_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_defs_aN_block_pair_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_defs_aN_block_triplet_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_defs_block_pair_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_defs_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_dv_multivar_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_dv_scope_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_grammar_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_local_var_good_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_mini_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_mini_thm_compressed_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_mini_thm_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_mmtest_compressed_z_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_mmtest_d_before_float_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_mmtest_min_found_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_mmtest_toplevel_e_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_nested_scope_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_prefix_frontier_native.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_raw_stmt_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_repeat_vars_db_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_stmt_prefix_frontier_native.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_theorem_compressed_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_theorem_length_ladder_native.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lib_parse_metamath_theorem_normal_vN.metta (covered by test-heavy)	covered by test-heavy	no
+python	SKIP: tests/test_lts_mi_syntax.metta (imports a Mettapedia checkout; covered by test-lean)	imports a Mettapedia checkout; covered by test-lean	no
+python	SKIP: tests/test_match_chain_cross_space_pathmap_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_mmN_match_order_fragile.metta (covered by probe-pathmap-lane)	covered by probe-pathmap-lane	no
+python	SKIP: tests/test_module_inventory_act_registered_root.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_mork_act_roundtrip.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_mork_fc_depthN_witness_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_mork_nil_parity_regression.metta (covered by probe-pathmap-lane)	covered by probe-pathmap-lane	no
+python	SKIP: tests/test_mork_recursive_bc_micro_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_mork_recursive_bc_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_backend_primary_destructive_regression.metta (covered by probe-pathmap-lane)	covered by probe-pathmap-lane	no
+python	SKIP: tests/test_pathmap_backend_primary_growth_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_contextual_var_projection_remove.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_counted_space_syntax.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_fc_depthN_count_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_indexed_opening_identity_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_indexed_query_work.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_match_copy_var_identity_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_program_shadow_sync_work.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_pull_consumers_work.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_scientific_float_roundtrip_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_scoped_queries.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_stored_variable_exact_query_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_pathmap_typed_query_syntax.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_print_nondet_probe.metta (covered by probe-core-lane)	covered by probe-core-lane	no
+python	SKIP: tests/test_rational_bridge_roundtrip_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_size_atom_collapse_cross_engine_regression.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_space_batch_copy_optimizer_guards.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_space_batch_copy_syntax.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_space_engine_backend.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no
+python	SKIP: tests/test_space_type.metta (covered by test-pathmap-lane)	covered by test-pathmap-lane	no

@@ -1,0 +1,150 @@
+== swipl: /home/openclaw/scratch/mettadinc-e0/deps-swipl/bin/swipl ==
+80402
+== make PACK_RELATIVE_RELOCS= 'CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized' BUILD=core test-rhocalc ==
+runtime/rule-machine-program-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--core experiments/gslt2parse_foundation/presentations/core/rule_machine_core_v1.metta \
+	--program-gslt experiments/gslt2parse_foundation/presentations/specializations/rule_machine_hilbert_bfc_program_v1.metta \
+	--out src/generated/rule_machine_program_v1.generated.h
+(RhoMettaCliArgumentsV1Summary 2 2 2 0)
+(FiniteHornGSLTV1NativeCanarySummary 30 30 0)
+(GSLT2ParseLanguagePackageV1 rhometta-persistent-receive PASS)
+(RhoMettaCliProfileV1Summary 1 1 1 1 1 1 0)
+(GSLTDirectSourceIdentityV1Summary 2 2 1 0)
+(GSLTDirectRhoMettaGroundRelationsV1Summary 2 3 3 1 0)
+(GSLTDirectRhoMettaConstructorRecursionV1Summary 2 1 3 1)
+(GSLTDirectRhoMettaV1Summary 5 2 3 1 1)
+(GSLTDirectRhoMettaRhoCalcProfileV1Summary 3 1 1 0)
+(MetamathRequireDepthRhoMettaV1Summary 10 4 1 1 1)
+(MetamathRequireDepthRhoCalcProfileV1Summary 2 1 1 1 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt state-transition-bindings \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.answers --out langdef/metamath/generated/state_transition_bindings_direct_v1.answers
+(AnswerStreamV1Summary 142 502005ba17be21672f83f808b006524b067c7f4a593b2b6f036eabec106d0935)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.answers --out langdef/metamath/generated/state_transition_bindings_direct_v1.metta
+(AnswerFactsPresentationV1Summary 142 502005ba17be21672f83f808b006524b067c7f4a593b2b6f036eabec106d0935)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--source experiments/gslt2parse_foundation/presentations/compiler/relational_state_transition_compiler_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/compiler/relational_state_transition_input_interface_v1.metta \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.metta \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.metta \
+	--out langdef/petta/generated/metamath_state_transition_lowering_direct_v1.metta
+(GSLTDirectPeTTaV1Summary 308 d5fb020569f00575698d1ff1313f37b2cffe956b34c4beb8f026379a2025ffe2 16607ff80bf1a95ef3482a93ee09b5b6ba87150e23264b3dfcc5b9aff587065e)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/state_transition_exec_ir_direct_v1.answers --out langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta
+(AnswerFactsPresentationV1Summary 31 c0c6dcac4ade3d7f99a7395a8efd8629cf1b7d3e7029d6fade5ba04329c3d776)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--source langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta \
+	--entry-rule state-step-push-scope-v1 \
+	--entry-rule state-step-pop-scope-v1 \
+	--entry-rule state-step-pop-scope-underflow-v1 \
+	--entry-rule state-step-noop-v1 \
+	--out langdef/rhometta/generated/metamath_scope_control_v1.metta
+(GSLTDirectRhoMettaV1Summary 39 9 ed28cc8de729d4935f27366b2c139b54dcba2537b7db05e1924c9e4d738a67b6 a69f356509c54032cd1dbdabac99bebc358ba05e9d7f30509a51910bd3eef626)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--source langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta \
+	--entry-rule state-step-push-scope-v1 \
+	--entry-rule state-step-pop-scope-v1 \
+	--entry-rule state-step-pop-scope-underflow-v1 \
+	--entry-rule state-step-noop-v1 \
+	--epilogue tests/rhometta/metamath_scope_control_query_v1.metta \
+	--out runtime/metamath_scope_control_rhometta_run_v1.metta
+(GSLTDirectRhoMettaV1Summary 39 9 ed28cc8de729d4935f27366b2c139b54dcba2537b7db05e1924c9e4d738a67b6 c08913dfde360bdc8e955719d44aeef209b159dcdc329e941d0e94d98a855a43)
+(MetamathScopeControlRhoMettaV1Summary 4 3 1 1 0)
+(MetamathScopeControlRhoCalcProfileV1Summary 4 3 1 1 0)
+(MetamathRowActionsRhoMettaCompileV1Summary 93 40 3 1 1 0)
+(MetamathRowConditionsCoreRhoCalcProfileV1Summary 29 15 4 2 300 0)
+(MetamathRequireEachKeyAbsentCoreRhoCalcProfileV1Summary 63 23 3 1 450 0)
+(MetamathInsertEachCoreRhoCalcProfileV1Summary 76 30 3 1 650 0)
+(MetamathInsertEachMatchingCoreRhoMettaCompileV1Summary 85 35 2 1 0)
+(MetamathCopyActionsCoreRhoMettaCompileV1Summary 89 37 4 1 0)
+(MetamathInsertEachStateStepRhoMettaCompileV1Summary 81 37 1 0)
+(MetamathRequireRowStateStepRhoCalcProfileV1Summary 55 23 2 400 0)
+(MetamathRequireRowKeyAbsentStateStepRhoCalcProfileV1Summary 57 24 2 400 0)
+(MetamathInsertRowCoreRhoCalcProfileV1Summary 35 18 2 400 0)
+(MetamathInsertRowStateStepRhoCalcProfileV1Summary 81 34 2 400 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt select-answers \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.answers \
+	--head StateDenseIdentityV1 \
+	--out langdef/metamath/generated/state_runtime_identities_direct_v1.answers
+(SelectedAnswerStreamV1Summary 19 c9dcbc7857b21e7f2e1b7bf3b8d1e92b75a696d7a02fb997dc8e08e250c4177b)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack answer-facts \
+	--source langdef/metamath/generated/state_runtime_identities_direct_v1.answers --out langdef/metamath/generated/state_runtime_identities_direct_v1.metta
+(AnswerFactsPresentationV1Summary 19 c9dcbc7857b21e7f2e1b7bf3b8d1e92b75a696d7a02fb997dc8e08e250c4177b)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt select-answers \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.answers \
+	--head state-proof-machine-v1 \
+	--out langdef/metamath/generated/state_runtime_proof_machines_direct_v1.answers
+(SelectedAnswerStreamV1Summary 1 ba364b5b59f1d8536e5e5e5fefc4af5b54fe9b41a83c3339178186a5a57f0b57)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack answer-facts \
+	--source langdef/metamath/generated/state_runtime_proof_machines_direct_v1.answers --out langdef/metamath/generated/state_runtime_proof_machines_direct_v1.metta
+(AnswerFactsPresentationV1Summary 1 ba364b5b59f1d8536e5e5e5fefc4af5b54fe9b41a83c3339178186a5a57f0b57)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt semantic-gslt \
+	--source langdef/metamath/generated/proof_reflection_direct_v1.answers --out langdef/metamath/generated/proof_semantic_exec_direct_v1.metta
+(SemanticGSLTV1Summary 33 24 a03a6857d4760a2095c506ddd5d1e774446d947c83934a7f4fe2f9d8cc979dd2)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_runtime_occurrence_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_execution_link_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_stream_v1.metta --source langdef/metamath/generated/state_runtime_identities_direct_v1.metta --source langdef/metamath/generated/state_runtime_proof_machines_direct_v1.metta --source langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta --source langdef/metamath/generated/proof_semantic_exec_direct_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_semantics_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_input_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_input_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_projected_input_interface_v1.metta --source langdef/metamath/proof_trace_policy_v1.metta --source langdef/metamath/proof_trace_codec_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_proof_bridge_v1.metta \
+	--entry-rule state-step-check-proof-normal-v1 \
+	--entry-rule state-step-check-proof-compressed-v1 \
+	--out langdef/rhometta/generated/metamath_state_proof_bridge_direct_v1.metta
+(GSLTDirectRhoMettaV1Summary 392 164 f5ff356a42f9afda0f8a2c9d104238bc361c6d53395f32967c6e0aefe3babad5 b8288fbebcd2c064b567afefc2e2bf4dc12986bec24675e0f102678eb6273227)
+(MetamathStateProofBridgeRhoMettaCompileV1Summary 392 164 2 2 0)
+runtime/rule-machine-program-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--core experiments/gslt2parse_foundation/presentations/core/rule_machine_core_v1.metta \
+	--program-gslt experiments/gslt2parse_foundation/presentations/specializations/rule_machine_hilbert_bfc_program_v1.metta \
+	--out src/generated/rule_machine_program_v1.generated.h
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_runtime_occurrence_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_execution_link_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_stream_v1.metta --source langdef/metamath/generated/state_runtime_identities_direct_v1.metta --source langdef/metamath/generated/state_runtime_proof_machines_direct_v1.metta --source langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta --source langdef/metamath/generated/proof_semantic_exec_direct_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_semantics_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_input_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_input_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_projected_input_interface_v1.metta --source langdef/metamath/proof_trace_policy_v1.metta --source langdef/metamath/proof_trace_codec_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_proof_bridge_v1.metta \
+	--entry-rule state-start-occurrence-stream-v1 \
+	--out langdef/rhometta/generated/metamath_state_proof_runtime_v1.metta
+(GSLTDirectRhoMettaV1Summary 578 236 f5ff356a42f9afda0f8a2c9d104238bc361c6d53395f32967c6e0aefe3babad5 88f024e5cf8c865cbe0a792e747d64032e40dca80ebb38672153ad479f91a6fe)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt parser-pack \
+	--manifest langdef/metamath/syntax_pack_v1.metta \
+	--compiler-root "/home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/cetta/experiments/gslt2parse_foundation/prolog" \
+	--presentation-root \
+	"/home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/cetta/experiments/gslt2parse_foundation/presentations" \
+	--pack-out langdef/metamath/generated/syntax_parser_pack_v1.abi \
+	--lock-out langdef/metamath/generated/syntax_lock_v1.metta
+LangDefCompileFailed: 
+SWI-Prolog [thread 1 (main) at Thu Nov  5 23:04:07 2026]: received fatal signal 11 (segv)
+C-stack trace labeled "crash":
+  [0] PL_advance_hash_table_enum() at ??:? [0x7655b61b5b6a]
+  [1] Sdprintf() at ??:? [0x7655b61baa4d]
+  [2] PL_changed_cwd() at ??:? [0x7655b61c0cd7]
+  [3] __sigaction() at ??:? [0x7655b5e42520]
+  [4] EVP_MAC_up_ref() at ??:? [0x7655b4799e04]
+  [5] ??() at ??:0 [0x7655b5c346c4]
+  [6] PL_malloc_atomic() at ??:? [0x7655b61cb96d]
+  [7] PL_unify_blob() at ??:? [0x7655b62006c8]
+  [8] PL_unify_blob() at ??:? [0x7655b620056c]
+  [9] /home/openclaw/scratch/mettadinc-e0/deps-swipl/root/usr/lib/swi-prolog/bin/x86_64-linux/swipl(+0x119c) [0x55c6c4ca419c]
+  [10] __libc_init_first() at ??:? [0x7655b5e29d90]
+  [11] __libc_start_main() at ??:? [0x7655b5e29e40]
+  [12] /home/openclaw/scratch/mettadinc-e0/deps-swipl/root/usr/lib/swi-prolog/bin/x86_64-linux/swipl(+0x10c5) [0x55c6c4ca40c5]
+Prolog stack:
+  [20] crypto:_crypto_hash_context_copy/2 [PC=1 in supervisor]
+  [19] crypto:crypto_data_context/3 [PC=5 in clause 1]
+  [18] crypto:crypto_data_hash/3 [PC=13 in clause 1]
+  [16] finite_horn_gslt_v1:reflect_presentations/2 [PC=19 in clause 1]
+  [15] parser_pack_reference_compile:parser_pack_reference_program/4 [PC=46 in clause 1]
+  [14] parser_pack_reference_compile:parser_pack_reference_compile_/4 [PC=9 in clause 1]
+  [13] system:catch/3 [PC=2 in clause 1]
+  [11] parser_pack_abi_export_v1:write_parser_pack_abi_v1/5 [PC=12 in clause 1]
+  [9] system:catch/3 [PC=2 in clause 1]
+  [8] parser_pack_abi_export_v1:main/0 [PC=21 in clause 1]
+  [7] system:catch/3 [PC=2 in clause 1]
+  [6] system:catch_with_backtrace/3 [PC=6 in clause 1]
+  [5] $toplevel:run_init_goal/2 [PC=17 in clause 1]
+  [2] system:catch/3 [PC=2 in clause 1]
+  [1] $toplevel:$initialise/0 [PC=12 in clause 1]
+  [0] system:$c_call_prolog/0 [PC=0 in top query clause]
+Running on_halt hooks with status 139
+Killing 3049682 with default signal handlers
+
+make[1]: *** [Makefile:9229: langdef/metamath/generated/syntax_parser_pack_v1.abi] Error 1
+make[1]: *** [langdef/metamath/generated/syntax_parser_pack_v1.abi] Deleting file 'langdef/metamath/generated/syntax_lock_v1.metta'
+make: *** [Makefile:14825: test-metamath-state-proof-runtime-rhometta-v1] Error 2
+EXIT=2 SECS=7
