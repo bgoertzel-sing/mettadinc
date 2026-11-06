@@ -1,0 +1,1282 @@
+{
+ "initial word": [
+  34672145,
+  "alice: assigned {staff,admin} active {admin}; bob: assigned {staff,clerk} active {clerk}; carol: assigned {staff} active {staff}"
+ ],
+ "source: 80 actions in declaration order (kind, user, role) and 20 observers, in both modules": [
+  true,
+  true,
+  20,
+  20
+ ],
+ "source: every action is a guarded update whose guard reads none of the bits it writes (admission)": true,
+ "source": {
+  "file": "access_policy.metta",
+  "digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+  "modules": [
+   "AccessPolicy",
+   "AccessPolicyFixed"
+  ],
+  "ir_nodes": 250,
+  "run_requests": 15
+ },
+ "translation validation: interpreter, IR and CNF agree on every word of the two-user instance (actions, queries, gate structure)": {
+  "words": 1048576,
+  "actions": [
+   80,
+   80
+  ],
+  "queries": [
+   26,
+   26
+  ],
+  "structure": [
+   106,
+   106
+  ]
+ },
+ "translation validation: closure obligations of the two-user instance from the source (pointwise, solver = enumeration, total)": [
+  240,
+  240,
+  240
+ ],
+ "differential: independent model against the source on every word of the two-user instance (agree, total, first disagreement)": [
+  80,
+  80,
+  null
+ ],
+ "differential: interpreter, IR and independent model agree on a 40-bit sample (words, actions agreeing)": [
+  50119,
+  160
+ ],
+ "translation validation: closure obligations at 20 bits (enumeration = CNF)": [
+  240,
+  240
+ ],
+ "translation validation: two-copy obligations at 10 bits (enumeration = CNF)": [
+  2400,
+  2400
+ ],
+ "written: shortest breach of separation of duty": [
+  "(assign bob auditor)",
+  "(assign bob approver)"
+ ],
+ "written: the breach replayed on the source ends at 34684433, where sod-breach holds": [
+  [
+   34684433,
+   34684433
+  ],
+  true
+ ],
+ "written: shortest approval without clerk": [
+  "(assign bob approver)",
+  "(revoke bob clerk)",
+  "(activate bob approver)"
+ ],
+ "written: shortest ill-formed configuration": [
+  "(assign bob approver)",
+  "(revoke bob clerk)"
+ ],
+ "fixed: no approval without clerk within 6 steps (states explored)": true,
+ "fixed: configurations explored by the six-step search": 26410,
+ "fixed: states within 6 steps of the start word": 26410,
+ "differential: the independent model finds the same three witnesses": [
+  [
+   "(assign bob auditor)",
+   "(assign bob approver)"
+  ],
+  [
+   "(assign bob approver)",
+   "(revoke bob clerk)",
+   "(activate bob approver)"
+  ],
+  [
+   "(assign bob approver)",
+   "(revoke bob clerk)"
+  ]
+ ],
+ "requests: the module's CheckBlockPartition requests": [
+  [
+   "AccessPolicy",
+   "NoBreach",
+   "SoDWatch",
+   null
+  ],
+  [
+   "AccessPolicy",
+   "ClerksOnly",
+   "ClerkWatch",
+   null
+  ],
+  [
+   "AccessPolicy",
+   "WellFormed",
+   "Hygiene",
+   null
+  ],
+  [
+   "AccessPolicyFixed",
+   "NoBreach",
+   "SoDWatch",
+   null
+  ],
+  [
+   "AccessPolicyFixed",
+   "ClerksOnly",
+   "ClerkWatch",
+   6
+  ],
+  [
+   "AccessPolicyFixed",
+   "ClerksOnlyProved",
+   "ClerkWatch",
+   null
+  ]
+ ],
+ "request: AccessPolicy (CheckBlockPartition NoBreach (Of SoDWatch))": {
+  "partition": "NoBreach",
+  "of": "SoDWatch",
+  "module": "AccessPolicy",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "sample_pointwise": 80,
+  "closure_unsat": 76,
+  "closure_sat": [
+   "(assign alice approver)",
+   "(assign bob approver)",
+   "(assign carol approver)",
+   "(assign dave approver)"
+  ],
+  "largest": [
+   59,
+   62
+  ],
+  "raw_model_first_cti": 1090913296123,
+  "cti": [
+   10752,
+   "(assign bob approver)"
+  ],
+  "status": "Refuted",
+  "witness": [
+   "(assign bob auditor)",
+   "(assign bob approver)"
+  ],
+  "state": 34684433,
+  "replayed": true
+ },
+ "request: AccessPolicy (CheckBlockPartition ClerksOnly (Of ClerkWatch))": {
+  "partition": "ClerksOnly",
+  "of": "ClerkWatch",
+  "module": "AccessPolicy",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "sample_pointwise": 80,
+  "closure_unsat": 72,
+  "closure_sat": [
+   "(revoke alice clerk)",
+   "(revoke bob clerk)",
+   "(revoke carol clerk)",
+   "(revoke dave clerk)",
+   "(activate alice approver)",
+   "(activate bob approver)",
+   "(activate carol approver)",
+   "(activate dave approver)"
+  ],
+  "largest": [
+   59,
+   62
+  ],
+  "raw_model_first_cti": 1099511627775,
+  "cti": [
+   4,
+   "(activate alice approver)"
+  ],
+  "status": "Refuted",
+  "witness": [
+   "(assign bob approver)",
+   "(revoke bob clerk)",
+   "(activate bob approver)"
+  ],
+  "state": 34739729,
+  "replayed": true
+ },
+ "request: AccessPolicy (CheckBlockPartition WellFormed (Of Hygiene))": {
+  "partition": "WellFormed",
+  "of": "Hygiene",
+  "module": "AccessPolicy",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "sample_pointwise": 80,
+  "closure_unsat": 72,
+  "closure_sat": [
+   "(assign alice approver)",
+   "(assign bob approver)",
+   "(assign carol approver)",
+   "(assign dave approver)",
+   "(revoke alice clerk)",
+   "(revoke bob clerk)",
+   "(revoke carol clerk)",
+   "(revoke dave clerk)"
+  ],
+  "largest": [
+   104,
+   269
+  ],
+  "raw_model_first_cti": 957639159419,
+  "cti": [
+   7697,
+   "(revoke bob clerk)"
+  ],
+  "status": "Refuted",
+  "witness": [
+   "(assign bob approver)",
+   "(revoke bob clerk)"
+  ],
+  "state": 34608657,
+  "replayed": true
+ },
+ "request: AccessPolicyFixed (CheckBlockPartition NoBreach (Of SoDWatch))": {
+  "partition": "NoBreach",
+  "of": "SoDWatch",
+  "module": "AccessPolicyFixed",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "sample_pointwise": 80,
+  "closure_unsat": 80,
+  "closure_sat": [],
+  "largest": [
+   59,
+   62
+  ],
+  "status": "Checked",
+  "assumptions": [],
+  "proofs": 80,
+  "proofs_replayed": 80
+ },
+ "request: AccessPolicyFixed (CheckBlockPartition ClerksOnly (Of ClerkWatch) (Budget (Unrollings 6)))": {
+  "partition": "ClerksOnly",
+  "of": "ClerkWatch",
+  "module": "AccessPolicyFixed",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "sample_pointwise": 80,
+  "closure_unsat": 76,
+  "closure_sat": [
+   "(activate alice approver)",
+   "(activate bob approver)",
+   "(activate carol approver)",
+   "(activate dave approver)"
+  ],
+  "largest": [
+   59,
+   62
+  ],
+  "raw_model_first_cti": 4,
+  "cti": [
+   4,
+   "(activate alice approver)"
+  ],
+  "status": "Unknown",
+  "search": {
+   "unrollings": 6,
+   "configurations": 26410
+  }
+ },
+ "request: AccessPolicyFixed (CheckBlockPartition ClerksOnlyProved (Of ClerkWatch))": {
+  "partition": "ClerksOnlyProved",
+  "of": "ClerkWatch",
+  "module": "AccessPolicyFixed",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "sample_pointwise": 80,
+  "closure_unsat": 80,
+  "closure_sat": [],
+  "largest": [
+   104,
+   269
+  ],
+  "invariant_implies_block": true,
+  "status": "Checked",
+  "assumptions": [],
+  "proofs": 81,
+  "proofs_replayed": 81
+ },
+ "requests: statuses (written NoBreach, ClerksOnly, WellFormed; fixed NoBreach, ClerksOnly, ClerksOnlyProved)": [
+  "Refuted",
+  "Refuted",
+  "Refuted",
+  "Checked",
+  "Unknown",
+  "Checked"
+ ],
+ "requests: witnesses of the refuted requests (word, end state, replayed by the interpreter)": [
+  [
+   [
+    "(assign bob auditor)",
+    "(assign bob approver)"
+   ],
+   34684433,
+   true
+  ],
+  [
+   [
+    "(assign bob approver)",
+    "(revoke bob clerk)",
+    "(activate bob approver)"
+   ],
+   34739729,
+   true
+  ],
+  [
+   [
+    "(assign bob approver)",
+    "(revoke bob clerk)"
+   ],
+   34608657,
+   true
+  ]
+ ],
+ "fixed: consistent is closed under all 80 actions": 80,
+ "fixed: no breach is closed under all 80 actions (1-inductive)": 80,
+ "fixed: clerks-only alone fails induction at the four approver activations": [
+  "(activate alice approver)",
+  "(activate bob approver)",
+  "(activate carol approver)",
+  "(activate dave approver)"
+ ],
+ "written: consistent fails induction exactly at the two buggy rules": [
+  "(assign alice approver)",
+  "(assign bob approver)",
+  "(assign carol approver)",
+  "(assign dave approver)",
+  "(revoke alice clerk)",
+  "(revoke bob clerk)",
+  "(revoke carol clerk)",
+  "(revoke dave clerk)"
+ ],
+ "written: no breach fails induction at the approver assignments": [
+  "(assign alice approver)",
+  "(assign bob approver)",
+  "(assign carol approver)",
+  "(assign dave approver)"
+ ],
+ "fixed: the closure obligations agree with the source on a 40-bit sample (NoBreach, ClerksOnlyProved)": [
+  80,
+  80
+ ],
+ "source: largest closure obligation, NoBreach and ClerksOnlyProved (variables, clauses)": [
+  [
+   59,
+   62
+  ],
+  [
+   104,
+   269
+  ]
+ ],
+ "fixed: ClerksOnly under (Unrollings 6): least counterexample to induction from minimized solver models, search": [
+  [
+   4,
+   "(activate alice approver)"
+  ],
+  {
+   "unrollings": 6,
+   "configurations": 26410
+  }
+ ],
+ "raw solver model of the first counterexample to induction (written NoBreach)": 1090913296123,
+ "written: NoBreach, least counterexample to induction from minimized solver models (word, action)": [
+  10752,
+  "(assign bob approver)"
+ ],
+ "fixed: least counterexample to induction for clerks-only": [
+  4,
+  "(activate alice approver)"
+ ],
+ "consistent implies no breach and clerks only": [
+  true,
+  true
+ ],
+ "fixed: proofs behind ClerksOnlyProved and NoBreach (closure and implication obligations)": [
+  81,
+  80
+ ],
+ "fixed: every closure proof checked by drat-trim and cake_lpr": [
+  true,
+  true
+ ],
+ "fixed: largest closure obligation (variables, clauses)": [
+  104,
+  269
+ ],
+ "differential: the independent encoder's closure obligations are all unsatisfiable too (consistent, no breach)": [
+  80,
+  80
+ ],
+ "fixed: reachable configurations": 38418640,
+ "fixed: reachable = consistent and some admin assigned": true,
+ "fixed: 79^4 - 27^4": 38418640,
+ "fixed: decision-diagram nodes, rounds": [
+  171,
+  3
+ ],
+ "written: reachable configurations": 436285824,
+ "written: reachable but ill-formed": 397867184,
+ "written: decision-diagram nodes, rounds": [
+  229,
+  4
+ ],
+ "differential: the reachable sets from the source equal those of the independent model (fixed, written)": [
+  true,
+  true
+ ],
+ "fixed: decision-diagram nodes and image rounds of the reachable set": [
+  171,
+  3
+ ],
+ "forty (word, query) tests read off the forty bits (both policies)": true,
+ "WholeInterface and LiveInterface: status of the forty read-off proofs": "Checked",
+ "CheckNow AssignmentsOnly refuted: least pair and query": [
+  0,
+  32,
+  "(read alice)"
+ ],
+ "cone of approve(bob)": [
+  0,
+  4,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  17,
+  18,
+  19,
+  20,
+  24,
+  29,
+  30,
+  34,
+  39
+ ],
+ "cone of approve(bob), policy as written": [
+  0,
+  4,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  17,
+  18,
+  19,
+  20,
+  24,
+  29,
+  30,
+  34,
+  39
+ ],
+ "source: the declared encoding bob-cone gathers exactly the cone": true,
+ "differential: the independent model's cone is the same (both policies)": [
+  [
+   0,
+   4,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   17,
+   18,
+   19,
+   20,
+   24,
+   29,
+   30,
+   34,
+   39
+  ],
+  [
+   0,
+   4,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   17,
+   18,
+   19,
+   20,
+   24,
+   29,
+   30,
+   34,
+   39
+  ]
+ ],
+ "cone projection: all 80 two-copy obligations unsatisfiable": [],
+ "cone projection: largest two-copy obligation (variables, clauses)": [
+  178,
+  312
+ ],
+ "bob's ten bits: the obligations fail for bob's assignments and revocations": [
+  "(assign bob staff)",
+  "(assign bob clerk)",
+  "(assign bob approver)",
+  "(assign bob auditor)",
+  "(assign bob admin)",
+  "(revoke bob staff)",
+  "(revoke bob clerk)",
+  "(revoke bob approver)",
+  "(revoke bob auditor)",
+  "(revoke bob admin)"
+ ],
+ "BobSlice: status from the support computation; the two-copy proofs as a second certificate": [
+  "Checked",
+  "Checked"
+ ],
+ "bob's ten bits: canonical update witness": [
+  0,
+  512,
+  "(assign bob staff)",
+  0,
+  1
+ ],
+ "bob's ten bits: behavioral witness (revoke bob staff) from 131072 and 131584": [
+  131072,
+  131584,
+  1,
+  0
+ ],
+ "slice: actions that act on the 17 cone bits": 34,
+ "approve(bob) quotient on all words (classes by round)": [
+  2,
+  4,
+  38,
+  702,
+  8737,
+  46487,
+  85180,
+  102159,
+  109243,
+  113073,
+  114226,
+  114250
+ ],
+ "reachable cone configurations": 1528,
+ "reachable cone configurations are closed under the slice": true,
+ "approve(bob) quotient on the reachable configurations (classes by round)": [
+  2,
+  4,
+  19,
+  109,
+  346,
+  685,
+  974,
+  1123,
+  1160
+ ],
+ "bob's abstraction, fixed policy: configurations, breaches, clerkless, ill-formed": [
+  79,
+  0,
+  0,
+  0
+ ],
+ "bob's abstraction, policy as written": [
+  145,
+  54,
+  12,
+  66
+ ],
+ "mutation M1 (approver rule reads the auditor session): NoBreach of the corrected module is Refuted, with the breach and its end state, replayed on the mutated source": [
+  "Refuted",
+  [
+   "(assign alice approver)",
+   "(assign bob approver)",
+   "(assign carol approver)",
+   "(assign dave approver)"
+  ],
+  [
+   "(assign bob auditor)",
+   "(assign bob approver)"
+  ],
+  34684433,
+  true
+ ],
+ "mutation M1: the invariant consistent of ClerksOnlyProved fails at the approver assignments, and the same breach is its least reachable violation": [
+  [
+   "(assign alice approver)",
+   "(assign bob approver)",
+   "(assign carol approver)",
+   "(assign dave approver)"
+  ],
+  "Unknown",
+  [
+   "(assign bob auditor)",
+   "(assign bob approver)"
+  ]
+ ],
+ "mutation M2 (revoking clerk keeps approver): ClerksOnlyProved is Refuted, with its witness, replayed on the mutated source": [
+  "Refuted",
+  [
+   "(revoke alice clerk)",
+   "(revoke bob clerk)",
+   "(revoke carol clerk)",
+   "(revoke dave clerk)"
+  ],
+  [
+   "(assign bob approver)",
+   "(revoke bob clerk)",
+   "(activate bob approver)"
+  ],
+  true
+ ],
+ "mutation M2: NoBreach keeps its status (the mutation does not touch separation of duty)": "Checked",
+ "mutations: the differential check against the independent model also fails (first disagreement)": [
+  [
+   "AccessPolicyFixed",
+   "(assign alice approver)",
+   524298
+  ],
+  [
+   "AccessPolicyFixed",
+   "(revoke alice clerk)",
+   524292
+  ]
+ ],
+ "mutations: new module digests, and the closure obligations that change are exactly those of the mutated rule": [
+  true,
+  true,
+  [
+   "(assign alice approver)",
+   "(assign bob approver)",
+   "(assign carol approver)",
+   "(assign dave approver)"
+  ],
+  [
+   "(revoke alice clerk)",
+   "(revoke bob clerk)",
+   "(revoke carol clerk)",
+   "(revoke dave clerk)"
+  ]
+ ],
+ "mutation M1: NoBreach": {
+  "partition": "NoBreach",
+  "of": "SoDWatch",
+  "module": "AccessPolicyFixed",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "closure_unsat": 76,
+  "closure_sat": [
+   "(assign alice approver)",
+   "(assign bob approver)",
+   "(assign carol approver)",
+   "(assign dave approver)"
+  ],
+  "largest": [
+   59,
+   62
+  ],
+  "raw_model_first_cti": 1090913296123,
+  "cti": [
+   10752,
+   "(assign bob approver)"
+  ],
+  "status": "Refuted",
+  "witness": [
+   "(assign bob auditor)",
+   "(assign bob approver)"
+  ],
+  "state": 34684433,
+  "replayed": true
+ },
+ "mutation M1: ClerksOnlyProved": {
+  "partition": "ClerksOnlyProved",
+  "of": "ClerkWatch",
+  "module": "AccessPolicyFixed",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "closure_unsat": 76,
+  "closure_sat": [
+   "(assign alice approver)",
+   "(assign bob approver)",
+   "(assign carol approver)",
+   "(assign dave approver)"
+  ],
+  "largest": [
+   104,
+   269
+  ],
+  "raw_model_first_cti": 957639159419,
+  "cti": [
+   11793,
+   "(assign bob approver)"
+  ],
+  "status": "Unknown",
+  "search": {
+   "unrollings": 6,
+   "configurations": 29007
+  }
+ },
+ "mutation M2: NoBreach": {
+  "partition": "NoBreach",
+  "of": "SoDWatch",
+  "module": "AccessPolicyFixed",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "closure_unsat": 80,
+  "closure_sat": [],
+  "largest": [
+   59,
+   62
+  ],
+  "status": "Checked",
+  "assumptions": [],
+  "proofs": 80,
+  "proofs_replayed": 80
+ },
+ "mutation M2: ClerksOnlyProved": {
+  "partition": "ClerksOnlyProved",
+  "of": "ClerkWatch",
+  "module": "AccessPolicyFixed",
+  "scope": "(Reach Policy (From start))",
+  "start_in_block": true,
+  "start_in_invariant": true,
+  "closure_unsat": 76,
+  "closure_sat": [
+   "(revoke alice clerk)",
+   "(revoke bob clerk)",
+   "(revoke carol clerk)",
+   "(revoke dave clerk)"
+  ],
+  "largest": [
+   104,
+   269
+  ],
+  "raw_model_first_cti": 815766691575,
+  "cti": [
+   7697,
+   "(revoke bob clerk)"
+  ],
+  "status": "Refuted",
+  "witness": [
+   "(assign bob approver)",
+   "(revoke bob clerk)",
+   "(activate bob approver)"
+  ],
+  "state": 34739729,
+  "replayed": true
+ },
+ "proofs: unsatisfiable obligations of the audit that carry a DRAT proof": 619,
+ "proofs: every one of them converted to LRAT by drat-trim and checked by cake_lpr": 619,
+ "seconds": 112.3,
+ "proofs_checked": true,
+ "proofs": {
+  "unsat_obligations": 689,
+  "with_drat_proof": 619,
+  "replayed": 619
+ },
+ "claims": [
+  {
+   "request": "CheckBlockPartition NoBreach (Of SoDWatch)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "values": {
+    "witness": [
+     "(assign bob auditor)",
+     "(assign bob approver)"
+    ],
+    "state": 34684433
+   },
+   "method": "breadth-first search from start; witness replayed by evaluating the source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicy",
+    "declarations": [
+     "NoBreach",
+     "SoDWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "scope": "(Reach Policy (From start))",
+   "resources": {
+    "counterexample_to_induction": [
+     10752,
+     "(assign bob approver)"
+    ]
+   }
+  },
+  {
+   "request": "CheckBlockPartition ClerksOnly (Of ClerkWatch)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "values": {
+    "witness": [
+     "(assign bob approver)",
+     "(revoke bob clerk)",
+     "(activate bob approver)"
+    ],
+    "state": 34739729
+   },
+   "method": "breadth-first search from start; witness replayed by evaluating the source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicy",
+    "declarations": [
+     "ClerksOnly",
+     "ClerkWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "scope": "(Reach Policy (From start))",
+   "resources": {
+    "counterexample_to_induction": [
+     4,
+     "(activate alice approver)"
+    ]
+   }
+  },
+  {
+   "request": "CheckBlockPartition WellFormed (Of Hygiene)",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "values": {
+    "witness": [
+     "(assign bob approver)",
+     "(revoke bob clerk)"
+    ],
+    "state": 34608657
+   },
+   "method": "breadth-first search from start; witness replayed by evaluating the source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicy",
+    "declarations": [
+     "WellFormed",
+     "Hygiene",
+     "Policy",
+     "start"
+    ]
+   },
+   "scope": "(Reach Policy (From start))",
+   "resources": {
+    "counterexample_to_induction": [
+     7697,
+     "(revoke bob clerk)"
+    ]
+   }
+  },
+  {
+   "request": "CheckBlockPartition NoBreach (Of SoDWatch)",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "closure_proofs": 80,
+    "implication": null
+   },
+   "method": "inductive invariant; closure obligations from the source, DRAT proofs replayed (drat-trim, cake_lpr)",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "NoBreach",
+     "SoDWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "scope": "(Reach Policy (From start))"
+  },
+  {
+   "request": "CheckBlockPartition ClerksOnly (Of ClerkWatch) (Budget (Unrollings 6))",
+   "status": "Unknown",
+   "assurance": null,
+   "values": {},
+   "method": "induction failed; bounded search",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "ClerksOnly",
+     "ClerkWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "scope": "(Reach Policy (From start))",
+   "resources": {
+    "counterexample_to_induction": [
+     4,
+     "(activate alice approver)"
+    ],
+    "search": {
+     "unrollings": 6,
+     "configurations": 26410
+    }
+   }
+  },
+  {
+   "request": "CheckBlockPartition ClerksOnlyProved (Of ClerkWatch)",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "closure_proofs": 80,
+    "implication": true
+   },
+   "method": "inductive invariant; closure obligations from the source, DRAT proofs replayed (drat-trim, cake_lpr)",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "ClerksOnlyProved",
+     "ClerkWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "scope": "(Reach Policy (From start))"
+  },
+  {
+   "request": "WholeInterface (MinimizeForQueries Policy)",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "classes": "2^40 (discrete)",
+    "tests": 40
+   },
+   "method": "forty read-off tests, one obligation each",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "WholeInterface",
+     "Policy"
+    ]
+   }
+  },
+  {
+   "request": "LiveInterface (MinimizeForQueries LivePolicy)",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {
+    "classes": 38418640
+   },
+   "method": "the forty read-off tests on the reachable scope; scope size from the decision diagrams",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "LiveInterface",
+     "LivePolicy",
+     "Live"
+    ]
+   }
+  },
+  {
+   "request": "CheckNow AssignmentsOnly",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "values": {
+    "pair": [
+     0,
+     32
+    ],
+    "query": "(read alice)"
+   },
+   "method": "witness replayed by evaluating the source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "AssignmentsOnly",
+     "assignments",
+     "Policy"
+    ]
+   }
+  },
+  {
+   "request": "BobSlice (InduceExact BobCone)",
+   "status": "Checked",
+   "assurance": "Exact",
+   "values": {
+    "states": 131072,
+    "acting_actions": 34
+   },
+   "method": "support of every update term of the 17 cone bits lies in the cone (an exact computation on the IR); second certificate: 80 two-copy obligations, Checked",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "BobSlice",
+     "BobCone",
+     "bob-cone",
+     "BobApproves"
+    ]
+   },
+   "second_certificate": {
+    "status": "Checked",
+    "assumptions": []
+   }
+  },
+  {
+   "request": "InduceExact BobOnly",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "values": {
+    "pair": [
+     0,
+     512
+    ],
+    "action": "(assign bob staff)",
+    "codes": [
+     0,
+     1
+    ]
+   },
+   "method": "witness replayed by evaluating the source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "BobOnly",
+     "bob-bits",
+     "BobApproves"
+    ]
+   }
+  },
+  {
+   "request": "CheckBehavioral BobOnly",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "values": {
+    "pair": [
+     131072,
+     131584
+    ],
+    "word": [
+     "(revoke bob staff)"
+    ],
+    "query": "(approve bob)"
+   },
+   "method": "witness replayed by evaluating the source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "BobOnly",
+     "bob-bits",
+     "BobApproves"
+    ]
+   }
+  },
+  {
+   "request": "BobQuotient (MinimizeForQueries BobApproves)",
+   "status": "Checked",
+   "assurance": "Exact",
+   "values": {
+    "classes": 114250,
+    "rounds": 11
+   },
+   "method": "partition refinement on the enumerated 2^17-state slice",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "BobQuotient",
+     "BobApproves"
+    ]
+   }
+  },
+  {
+   "request": "BobLiveQuotient (MinimizeForQueries BobApprovesLive)",
+   "status": "Checked",
+   "assurance": "Exact",
+   "values": {
+    "classes": 1160,
+    "cone_configurations": 1528
+   },
+   "method": "partition refinement on the reachable cone configurations (decision diagrams)",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "BobLiveQuotient",
+     "BobApprovesLive",
+     "Live"
+    ]
+   }
+  },
+  {
+   "request": "Defects BobOnly",
+   "status": "Checked",
+   "assurance": "Exact",
+   "values": {
+    "now": 0,
+    "update": 1,
+    "behavioral": 1
+   },
+   "method": "current defect by the support of approve(bob); update and behavioral defects attained by replayed witnesses",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:78379ad6c1396df59aa1744fe08899892812f3326c5a35f7c02ee3d559bd3e2c",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "BobOnly",
+     "bob-bits",
+     "BobApproves"
+    ]
+   }
+  },
+  {
+   "request": "CheckBlockPartition NoBreach (Of SoDWatch) [mutation M1]",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "values": {
+    "witness": [
+     "(assign bob auditor)",
+     "(assign bob approver)"
+    ],
+    "state": 34684433
+   },
+   "method": "the same pipeline on the mutated source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:955ddd93e4dc1b5093f8274af81c1ab304cc4c952ddc5e9286dd5794d5a206b6",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "NoBreach",
+     "SoDWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "mutation": "the corrected approver rule reads the auditor session again",
+   "scope": "(Reach Policy (From start))"
+  },
+  {
+   "request": "CheckBlockPartition ClerksOnlyProved (Of ClerkWatch) [mutation M1]",
+   "status": "Unknown",
+   "assurance": null,
+   "values": {},
+   "method": "the same pipeline on the mutated source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:955ddd93e4dc1b5093f8274af81c1ab304cc4c952ddc5e9286dd5794d5a206b6",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "ClerksOnlyProved",
+     "ClerkWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "mutation": "the corrected approver rule reads the auditor session again",
+   "scope": "(Reach Policy (From start))"
+  },
+  {
+   "request": "CheckBlockPartition NoBreach (Of SoDWatch) [mutation M2]",
+   "status": "Checked",
+   "assurance": "Replayed",
+   "values": {},
+   "method": "the same pipeline on the mutated source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:d11ac094b65050ad8f5c03fe3482f7a4fc7f98639cd4df2bc84a390eb61b1d42",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "NoBreach",
+     "SoDWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "mutation": "revoking clerk keeps approver again",
+   "scope": "(Reach Policy (From start))"
+  },
+  {
+   "request": "CheckBlockPartition ClerksOnlyProved (Of ClerkWatch) [mutation M2]",
+   "status": "Refuted",
+   "assurance": "Witness",
+   "values": {
+    "witness": [
+     "(assign bob approver)",
+     "(revoke bob clerk)",
+     "(activate bob approver)"
+    ],
+    "state": 34739729
+   },
+   "method": "the same pipeline on the mutated source",
+   "assumptions": [],
+   "binding": {
+    "module_digest": "sha256:d11ac094b65050ad8f5c03fe3482f7a4fc7f98639cd4df2bc84a390eb61b1d42",
+    "file": "access_policy.metta",
+    "module": "AccessPolicyFixed",
+    "declarations": [
+     "ClerksOnlyProved",
+     "ClerkWatch",
+     "Policy",
+     "start"
+    ]
+   },
+   "mutation": "revoking clerk keeps approver again",
+   "scope": "(Reach Policy (From start))"
+  }
+ ],
+ "_assurance": {
+  "policy": "Checked: exact computation on the elaborated source, or an unsatisfiability proof replayed by drat-trim (DRAT to LRAT) and cake_lpr on an obligation built from the source; Conditional: a solver answer whose proof was not replayed, with a TrustedBackend assumption; Refuted: a witness replayed by evaluating the source",
+  "tools": {
+   "drat-trim": "2e3b2dc0ecf938addbd779d42877b6ed69d9a985",
+   "cake_lpr": "033aad53d1733bd4b8ca41cf6f1b5fb5d84f8de2"
+  },
+  "conditional": []
+ }
+}

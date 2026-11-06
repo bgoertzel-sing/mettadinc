@@ -1,0 +1,153 @@
+{
+  "patch": "Proposed registry additions used by Example 1 (belief-memory compaction)",
+  "date": "2026-11-04",
+  "libraries": {
+    "NatArith": {
+      "primitives": [
+        "Le",
+        "Lt",
+        "Min",
+        "Max",
+        "Quot",
+        "Rem"
+      ],
+      "constants": [],
+      "doc": "order and integer division on Nat and Int; Quot and Rem need a positive divisor and return a tagged failure value otherwise; If evaluates only the branch it selects"
+    },
+    "Parallel": {
+      "primitives": [],
+      "constants": [],
+      "doc": "parallel composition of machines with synchronized and interleaved actions, and product representations; claims about products are answered by the product rule from component certificates"
+    }
+  },
+  "add_primitives": {
+    "BitVectors": [
+      "BitOr",
+      "BitAnd",
+      "BitXor",
+      "PopCount"
+    ],
+    "Core": [
+      "IntervalProduct",
+      "Tied",
+      "RoundedGrid",
+      "Meet"
+    ]
+  },
+  "add_tolerance_bodies": [
+    "Meet"
+  ],
+  "declarations": {
+    "EncodingFamily": {
+      "library": "Core",
+      "positional": [
+        [
+          "name",
+          "name"
+        ]
+      ],
+      "fields": {
+        "Of": {
+          "type": "ref:Machine",
+          "required": true
+        },
+        "Generator": {
+          "type": "expr",
+          "required": true,
+          "doc": "(IntervalProduct c1 c2 [(Tied True)]) | (RoundedGrid (map lo hi)+)"
+        }
+      },
+      "body": null,
+      "declares": "EncodingFamily",
+      "doc": "a finite declared family of representations of one machine; frontier optimality may be Checked relative to it"
+    },
+    "ParallelMachine": {
+      "library": "Parallel",
+      "positional": [
+        [
+          "name",
+          "name"
+        ]
+      ],
+      "fields": {
+        "Component": {
+          "type": "ref:Machine",
+          "required": true
+        },
+        "Copies": {
+          "type": "nat",
+          "required": true
+        },
+        "Synchronize": {
+          "type": "names",
+          "required": false,
+          "doc": "action labels applied to every copy at once; the other labels become one action per copy, label.i"
+        }
+      },
+      "body": null,
+      "declares": "Machine",
+      "doc": "states are tuples of component states; observers are label.i for each copy"
+    },
+    "ProductRepresentation": {
+      "library": "Parallel",
+      "positional": [
+        [
+          "name",
+          "name"
+        ]
+      ],
+      "fields": {
+        "Of": {
+          "type": "ref:Machine",
+          "required": true
+        },
+        "Component": {
+          "type": "ref:Representation",
+          "required": true
+        },
+        "Copies": {
+          "type": "nat",
+          "required": true
+        }
+      },
+      "body": null,
+      "declares": "Representation",
+      "doc": "the componentwise encoding of a parallel machine"
+    }
+  },
+  "request_args": {
+    "Refine": {
+      "Until": {
+        "type": "stable-or-horizon",
+        "required": false,
+        "default": "Stable",
+        "doc": "Stable, or (Steps k) for the staged partition P_k, which need not be update-compatible"
+      }
+    },
+    "WeakestWithin": {
+      "Objective": {
+        "type": "enum:Weakness|Codes",
+        "required": false,
+        "default": "Weakness"
+      },
+      "Family": {
+        "type": "ref:EncodingFamily",
+        "required": false,
+        "doc": "search only the declared family; Optimality is then relative to it"
+      },
+      "Kind": {
+        "type": "enum:Behavioral|Trace|Now|Updates|Radius",
+        "required": false,
+        "default": "Behavioral",
+        "doc": "Radius: the largest behavioral distance from a state to the representative of its class; the representatives are part of the answer"
+      }
+    }
+  },
+  "result_fields": {
+    "Frontier": {
+      "Codes": "Nat",
+      "LowerBound": "Certificate?",
+      "Representatives": "Map?"
+    }
+  }
+}

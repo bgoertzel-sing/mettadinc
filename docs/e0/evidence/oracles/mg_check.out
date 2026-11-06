@@ -1,0 +1,131 @@
+1 file(s), 10 modules, 318 declarations, 92 run requests
+All forms conform to the registry with the proposed patch.
+128 diagnostic(s) against the current registry (forms that need the patch):
+  memory_goals.metta: EvidenceMemory: compound label (minus $s) needs the Families library
+  memory_goals.metta: EvidenceMemory: compound label (plus $s) needs the Families library
+  memory_goals.metta: module ClaimArbitration: unknown library Families
+  memory_goals.metta: module ContextBlock: unknown declaration head Consumer
+  memory_goals.metta: module ContextBlock: unknown library Families
+  memory_goals.metta: module ContextBlock: unknown library NatArith
+  memory_goals.metta: module EvidenceMemory: unknown declaration head Consumer
+  memory_goals.metta: module EvidenceMemory: unknown library Families
+  memory_goals.metta: module EvidenceMemory: unknown library NatArith
+  memory_goals.metta: module ItemGoals: unknown declaration head Consumer
+  memory_goals.metta: module ItemGoals: unknown library Families
+  memory_goals.metta: module ItemGoals: unknown library NatArith
+  memory_goals.metta: module MotivationGrid: unknown library Families
+  memory_goals.metta: module MotivationGrid: unknown library NatArith
+  memory_goals.metta: module OpenItems: unknown declaration head Consumer
+  memory_goals.metta: module OpenItems: unknown library Families
+  memory_goals.metta: module OpenItems: unknown library NatArith
+  memory_goals.metta: module StaleMonitor: unknown declaration head Monitor
+  memory_goals.metta: module StaleMonitor: unknown declaration head Stream
+  memory_goals.metta: module StaleMonitor: unknown library Families
+  memory_goals.metta: module StaleMonitor: unknown library Laws
+  memory_goals.metta: module StaleMonitor: unknown library Monitors
+  memory_goals.metta: module SuggestionDedupe: unknown library Families
+  memory_goals.metta: module SuggestionDedupe: unknown library NatArith
+  memory_goals.metta:ClaimArbitration.Agreement: undeclared name Any
+  memory_goals.metta:ClaimArbitration.ConflictWatch: unknown field (ActionsOf NormFirst) for Machine
+  memory_goals.metta:ClaimArbitration.LawfulNormFirst: undeclared name Any
+  memory_goals.metta:ClaimArbitration.LawfulWeighted: undeclared name Any
+  memory_goals.metta:ClaimArbitration.NormFirstLaw: unknown field (Like NormFirst) for Machine
+  memory_goals.metta:ClaimArbitration.WeightedLaw: unknown field (Like Weighted) for Machine
+  memory_goals.metta:ContextBlock.ForAnchor: expected a reference to Map, found (latest A)
+  memory_goals.metta:ContextBlock.ForFresh: expected a reference to Map, found (latest F)
+  memory_goals.metta:ContextBlock.ForOpen: expected a reference to Map, found (latest O)
+  memory_goals.metta:ContextBlock.block: expected a map-body, found (Parameters ($pol Policy))
+  memory_goals.metta:ContextBlock.block: unknown field (Body ($m) (mask (Tuple $m (hidden-slot $pol $m))) for Map
+  memory_goals.metta:ContextBlock.hidden-slot: expected a map-body, found (Parameters ($pol Policy))
+  memory_goals.metta:ContextBlock.hidden-slot: unknown field (Body ($m) (If (And (Le (key $pol (Tuple $m 1)) (k for Map
+  memory_goals.metta:ContextBlock.key: expected a map-body, found (Parameters ($pol Policy))
+  memory_goals.metta:ContextBlock.key: unknown field (Body ($mi) (Add (Mul 4 (rank $pol $mi)) (GetTuple for Map
+  memory_goals.metta:ContextBlock.latest: expected a map-body, found (Parameters ($k Kind))
+  memory_goals.metta:ContextBlock.latest: unknown field (Body ($m) (latest-of (Tuple $k $m))) for Map
+  memory_goals.metta:ContextBlock.rank: expected a map-body, found (Parameters ($pol Policy))
+  memory_goals.metta:ContextBlock.rank: unknown field (Cases ((Tuple $m $i) (Switch $pol (recency 0) (re for Map
+  memory_goals.metta:EvidenceMemory.AllThree: unknown field (ActionsOf Contra) for Machine
+  memory_goals.metta:EvidenceMemory.Contra: Action needs a label and a map
+  memory_goals.metta:EvidenceMemory.Contra: unknown head For in (For $s Source)
+  memory_goals.metta:EvidenceMemory.ContraRegen: unknown field (ActionsOf Contra) for Machine
+  memory_goals.metta:EvidenceMemory.Eff: unknown field (ActionsOf Contra) for Machine
+  memory_goals.metta:EvidenceMemory.Regen: unknown field (ActionsOf Contra) for Machine
+  memory_goals.metta:EvidenceMemory.contra: unknown head Le in (Le 1 (Add $ma (Add $mb $mc)))
+  memory_goals.metta:EvidenceMemory.counts: unknown head Min in (Min 2 (Add $ma (Add $mb $mc)))
+  memory_goals.metta:EvidenceMemory.counts: unknown head Min in (Min 2 (Add $pa (Add $pb $pc)))
+  memory_goals.metta:EvidenceMemory.eff: unknown head Min in (Min 2 (Add (seen $pa) (Add (seen $pb) (seen $pc))))
+  memory_goals.metta:EvidenceMemory.first-or-more: unknown head Le in (Le 1 $x)
+  memory_goals.metta:EvidenceMemory.first-or-more: unknown head Le in (Le 1 $y)
+  memory_goals.metta:EvidenceMemory.first-or-more: unknown head Le in (Le 1 $z)
+  memory_goals.metta:EvidenceMemory.first-or-more: unknown head Le in (Le 2 (Add (seen $x) (Add (seen $y) (seen $z))))
+  memory_goals.metta:EvidenceMemory.majority: unknown head Lt in (Lt (Add $ma (Add $mb $mc)) (Add $pa (Add $pb $pc)))
+  memory_goals.metta:EvidenceMemory.majority: unknown head Lt in (Lt (Add $pa (Add $pb $pc)) (Add $ma (Add $mb $mc)))
+  memory_goals.metta:EvidenceMemory.minus: expected a map-body, found (Parameters ($s Source))
+  memory_goals.metta:EvidenceMemory.minus: unknown field (Cases ((Tuple $pa $pb $pc $ma $mb $mc) (Switch $s for Map
+  memory_goals.metta:EvidenceMemory.plus: expected a map-body, found (Parameters ($s Source))
+  memory_goals.metta:EvidenceMemory.plus: unknown field (Cases ((Tuple $pa $pb $pc $ma $mb $mc) (Switch $s for Map
+  memory_goals.metta:EvidenceMemory.protected: unknown head Min in (Min 2 (Add $ma (Add $mb $mc)))
+  memory_goals.metta:EvidenceMemory.protected: unknown head Min in (Min 2 (Add $pa (Add $pb $pc)))
+  memory_goals.metta:EvidenceMemory.regen: unknown head Le in (Le 2 (Add (seen $ma) (Add (seen $mb) (seen $mc))))
+  memory_goals.metta:ItemGoals.AllGoals: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.AntiNagGoal: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.BenFirstGoal: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.Cap3Goal: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.DaysGoal: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.Nag: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.ReplyNag: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.ReplyTriage: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.Triage: unknown field (ActionsOf Reply) for Machine
+  memory_goals.metta:ItemGoals.days-left: unknown head Le in (Le $a 2)
+  memory_goals.metta:ItemGoals.days-left: unknown head Max in (Max 0 (Sub 3 $a))
+  memory_goals.metta:ItemGoals.nag-cap3: unknown head Le in (Le $a 3)
+  memory_goals.metta:ItemGoals.nag-left: unknown head Lt in (Lt 0 $d)
+  memory_goals.metta:ItemGoals.nag: unknown head Le in (Le $a 2)
+  memory_goals.metta:ItemGoals.tick-left: unknown head Max in (Max 0 (Sub $d 1))
+  memory_goals.metta:ItemGoals.tick: unknown head Min in (Min 4 (Add $a 1))
+  memory_goals.metta:ItemGoals.to-deadline: unknown head Max in (Max 0 (Sub 3 $a))
+  memory_goals.metta:MotivationGrid.FloorWatch: unknown field (Like FloorMotive) for Machine
+  memory_goals.metta:MotivationGrid.NearBoundaryDamped: unknown field (Pairs near-boundary) for Implementation
+  memory_goals.metta:MotivationGrid.NearBoundaryFloor: unknown field (Pairs near-boundary) for Implementation
+  memory_goals.metta:MotivationGrid.OrderSwapDamped: unknown field (Pairs same-stimulus) for Implementation
+  memory_goals.metta:MotivationGrid.OrderSwapFloor: unknown field (Pairs same-stimulus) for Implementation
+  memory_goals.metta:MotivationGrid.OrderSwapSettled: unknown field (Pairs same-stimulus) for Implementation
+  memory_goals.metta:MotivationGrid.PlainWatch: unknown field (Like PlainMotive) for Machine
+  memory_goals.metta:MotivationGrid.SafeFloor: undeclared name Any
+  memory_goals.metta:MotivationGrid.SafeFloor: unknown head Le in (Le 2 (gi-of $x))
+  memory_goals.metta:MotivationGrid.SafePlain: undeclared name Any
+  memory_goals.metta:MotivationGrid.SafePlain: unknown head Le in (Le 2 (gi-of $x))
+  memory_goals.metta:MotivationGrid.Sup: expected a tolerance-body, found (Meet (Pullback gi-real Dist01) (Pullback g1-real 
+  memory_goals.metta:MotivationGrid.appraise: unknown head Quot in (Quot (Add (Mul 4 $nu) $g1) 4)
+  memory_goals.metta:MotivationGrid.appraise: unknown head Quot in (Quot (Add (Mul 4 $rho) $gi) 4)
+  memory_goals.metta:MotivationGrid.below: unknown head Lt in (Lt (gi-of $x) 2)
+  memory_goals.metta:MotivationGrid.decide: expected a map-body, found (Parameters ($v Variant))
+  memory_goals.metta:MotivationGrid.decide: unknown field (Cases ((Tuple $gi $g1 $a $c $nu $rho) (Tuple (If  for Map
+  memory_goals.metta:MotivationGrid.sign: unknown head Lt in (Lt $d 0)
+  memory_goals.metta:MotivationGrid.sign: unknown head Lt in (Lt 0 $d)
+  memory_goals.metta:OpenItems.Both: unknown field (ActionsOf ItemLife) for Machine
+  memory_goals.metta:OpenItems.Commitments: unknown field (ActionsOf ItemLife) for Machine
+  memory_goals.metta:OpenItems.GoalEngine: unknown field (Like ItemLife) for Machine
+  memory_goals.metta:OpenItems.suggest: unknown head Le in (Le $a 7)
+  memory_goals.metta:OpenItems.tick: unknown head Min in (Min (Add $a 1) 8)
+  memory_goals.metta:StaleMonitor.stale: expected a map-body, found (Parameters ($r Rate))
+  memory_goals.metta:StaleMonitor.stale: unknown field (Body ($u) (Coin (stale-rate $r))) for Map
+  memory_goals.metta:SuggestionDedupe.OnceByQuestion: undeclared name Any
+  memory_goals.metta:SuggestionDedupe.OnceByQuestion: unknown head Le in (Le (count-of $x) 1)
+  memory_goals.metta:SuggestionDedupe.OnceByTopic: undeclared name Any
+  memory_goals.metta:SuggestionDedupe.OnceByTopic: unknown head Le in (Le (count-of $x) 1)
+  memory_goals.metta:SuggestionDedupe.QuestionWatch: unknown field (Like ByQuestion) for Machine
+  memory_goals.metta:SuggestionDedupe.TopicWatch: unknown field (Like ByTopic) for Machine
+  memory_goals.metta:SuggestionDedupe.repeated: unknown head Le in (Le 2 (count-of $x))
+  memory_goals.metta:SuggestionDedupe.run-by-question: unknown head Min in (Min 2 (Add $c (If (And (Or $r1 $r2) (Not $s1)) 1 0)))
+  memory_goals.metta:SuggestionDedupe.run-by-topic: unknown head Min in (Min 2 (Add $c (Add (If (And $r1 (Not $s1)) 1 0) (If (And $r
+  memory_goals.metta:TaskResume.Resume: unknown field (Like Restart) for Machine
+  memory_goals.metta:run (CheckInterpretation DaysFollowUps Deadl: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps AntiNa: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps BenFir: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps Cap3Fo: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps DaysFo: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckInterpretation NagFollowUps Deadli: unregistered request CheckInterpretation
+  memory_goals.metta:run (CheckMonitor Stale): unregistered request CheckMonitor
+  memory_goals.metta:run (Detect Stale (On LiveSuggestions) (Leve: unregistered request Detect
+  memory_goals.metta:run (Detect Stale (On QuietSuggestions) (Lev: unregistered request Detect

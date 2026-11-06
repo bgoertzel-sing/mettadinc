@@ -1,0 +1,13 @@
+Package    Version
+---------- ---------
+astutils   0.0.6
+cvc5       1.4.2
+dd         0.6.0
+networkx   3.7
+numpy      2.5.3
+ply        3.10
+python-sat 1.9.dev21
+scipy      1.18.1
+setuptools 84.2.1
+six        1.17.0
+z3-solver  5.3.3.0

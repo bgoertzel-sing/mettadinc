@@ -1,0 +1,4 @@
+Built ./cetta [BUILD=python, runtime-stats=0]
+Tip: ./cetta -v prints the active version and build mode
+EXIT=0
+cetta 1.4.0-dev (python)

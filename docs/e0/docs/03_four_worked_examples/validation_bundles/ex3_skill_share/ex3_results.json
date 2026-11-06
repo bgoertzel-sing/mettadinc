@@ -1,0 +1,421 @@
+{
+ "free cells per robot": [
+  21,
+  21,
+  21
+ ],
+ "symmetries of the progress responses (A, B, C)": [
+  [
+   "id",
+   "r180",
+   "mv",
+   "mh"
+  ],
+  [
+   "id",
+   "r180",
+   "mv",
+   "mh"
+  ],
+  [
+   "id",
+   "r180",
+   "mv",
+   "mh"
+  ]
+ ],
+ "cells with identical response rows": [
+  [
+   [
+    0,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    4,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    4
+   ],
+   [
+    2,
+    4
+   ],
+   [
+    4,
+    4
+   ]
+  ]
+ ],
+ "calibrated pullbacks AB, BC, CA": [
+  "r270",
+  "mv",
+  "md"
+ ],
+ "learned CA (first exact candidate in element order)": "r90",
+ "FindTransfers C A: the exact candidates among the eight frame changes": [
+  "r90",
+  "r270",
+  "md",
+  "ma"
+ ],
+ "learned CA = calibrated CA after A's up-down mirror": "r90",
+ "AB, BC, CA, CAcal are exact": [
+  "0",
+  "0",
+  "0",
+  "0"
+ ],
+ "NaiveAB: defect (reward-law TV, expected reward)": [
+  "1",
+  "1"
+ ],
+ "NaiveAB: canonical witness (B cell, A command, B command, A response, B response)": [
+  [
+   0,
+   0
+  ],
+  "right",
+  "right",
+  "1",
+  "1/2"
+ ],
+ "NaiveAB: optimal values still agree": true,
+ "round-trip holonomy at A (state part, method part)": [
+  "mh",
+  "mh"
+ ],
+ "round trip with the calibrated CA": [
+  "id",
+  "id"
+ ],
+ "gauge {id, mh} at A transported: to B, to C, back to A": [
+  "mv",
+  "mv",
+  "mh"
+ ],
+ "Strict: refuted by the holonomy (element, least moved cell and its image)": [
+  "Refuted",
+  [
+   "holonomy",
+   "mh",
+   "mh",
+   [
+    0,
+    0
+   ],
+   [
+    4,
+    0
+   ]
+  ]
+ ],
+ "FullGauge: coherent": "Checked",
+ "Copied: refuted on intertwining at AB (B's mh corresponds to A's mv)": [
+  "Refuted",
+  [
+   "intertwining",
+   "AB",
+   "mh"
+  ],
+  true
+ ],
+ "Transported (and GaugeFrom A): coherent": "Checked",
+ "unsaturated derived hive: coherent?, least transitivity witness": [
+  false,
+  [
+   [
+    "A",
+    [
+     0,
+     1
+    ]
+   ],
+   [
+    "B",
+    [
+     1,
+     4
+    ]
+   ],
+   [
+    "C",
+    [
+     1,
+     0
+    ]
+   ]
+  ]
+ ],
+ "unsaturated derived hive: consensus cost of closure": "4/147",
+ "holonomy kernel above A's tolerance: pairs, least pair": [
+  12,
+  [
+   [
+    0,
+    1
+   ],
+   [
+    4,
+    1
+   ]
+  ]
+ ],
+ "saturated derived hive, gauges FullGauge: coherent?, witness": [
+  true,
+  null
+ ],
+ "saturated derived hive, gauges Copied: coherent?, witness": [
+  false,
+  [
+   [
+    "A",
+    [
+     0,
+     0
+    ]
+   ],
+   [
+    "B",
+    [
+     0,
+     0
+    ]
+   ],
+   [
+    "A",
+    [
+     0,
+     4
+    ]
+   ]
+  ]
+ ],
+ "saturated derived hive, gauges Transported: coherent?, witness": [
+  true,
+  null
+ ],
+ "round-trip skill: cells where it changed": [
+  [
+   0,
+   1
+  ],
+  [
+   1,
+   1
+  ],
+  [
+   2,
+   2
+  ],
+  [
+   3,
+   1
+  ],
+  [
+   4,
+   1
+  ]
+ ],
+ "round-trip skill: same response at every cell": true,
+ "transported skills earn the source responses at B and C": [
+  true,
+  true
+ ],
+ "TransportSkill contract: a round-trip skill earns at each cell what the original earns at the mirrored cell (greedy, always-up)": [
+  true,
+  true
+ ],
+ "always-up sent around the loop comes back as always-down": [
+  "down"
+ ],
+ "always-up: rewards at the same cell before and after the round trip, cells (3,2) and (1,2)": [
+  "1",
+  "0",
+  "0",
+  "1"
+ ],
+ "always-up: cells where the same-cell reward changes (count, least)": [
+  12,
+  [
+   0,
+   1
+  ]
+ ],
+ "reward profile invariant under the holonomy (greedy, always-up)": [
+  true,
+  false
+ ],
+ "always-up: mean reward under the uniform law on A's cells (invariant under the mirror), before and after; and from the cell (3,2) alone": [
+  "1/2",
+  "1/2",
+  "1",
+  "0"
+ ],
+ "symmetries of the docking responses (A, B, C)": [
+  [
+   "id",
+   "mv"
+  ],
+  [
+   "id",
+   "mh"
+  ],
+  [
+   "id",
+   "mh"
+  ]
+ ],
+ "docking: AB and BC still exact": [
+  "0",
+  "0"
+ ],
+ "docking: old CA defect (TV, expected reward)": [
+  "1",
+  "1/2"
+ ],
+ "docking: old CA canonical witness": [
+  [
+   1,
+   2
+  ],
+  "left",
+  "down",
+  "1/2",
+  "1"
+ ],
+ "docking: re-learned CA": "r270",
+ "docking: the exact C-to-A candidates": [
+  "r270",
+  "md"
+ ],
+ "re-learned CA = calibrated CA after A's left-right mirror": "r270",
+ "docking: holonomy with the re-learned CA": [
+  "mv",
+  "mv"
+ ],
+ "docking gauge {id, mv} at A transported to B and C": [
+  "mh",
+  "mh"
+ ],
+ "StaleGauge: refuted on a gauge symmetry at A": "Refuted",
+ "StaleGauge: FlipUD-A is not a docking symmetry (least cell, command, response, mirrored response)": [
+  [
+   1,
+   2
+  ],
+  "down",
+  "1",
+  "1/2"
+ ],
+ "OldLibrary: refuted on the CA edge": [
+  "edge",
+  "CA"
+ ],
+ "Docking: coherent": "Checked",
+ "docking: saturated derived hive coherent": true,
+ "docking: unsaturated derived hive incoherent, closure cost": [
+  false,
+  "4/63"
+ ],
+ "pallet: states of Cp": 20,
+ "pallet: A to Cp defect (TV, expected reward)": [
+  "1",
+  "1/2"
+ ],
+ "pallet: canonical witness above 1/4 (Cp cell, A command, Cp command, responses)": [
+  [
+   1,
+   0
+  ],
+  "right",
+  "down",
+  "1",
+  "1/2"
+ ],
+ "pallet: composite A->B->Cp defect equals the bound 0 + 1/2, and equals A->Cp": [
+  "1/2",
+  true
+ ],
+ "pallet: the reverse pullback Cp->A leaves Cp's carrier at A's cell": [
+  [
+   [
+    0,
+    2
+   ],
+   [
+    2,
+    0
+   ]
+  ]
+ ],
+ "pallet: state-command pairs where A's response differs from Cp's under ACp": [
+  [
+   [
+    1,
+    0
+   ],
+   "right"
+  ],
+  [
+   [
+    2,
+    1
+   ],
+   "up"
+  ],
+  [
+   [
+    3,
+    0
+   ],
+   "left"
+  ]
+ ],
+ "module: the method systems of skill_share.metta (free cells and responses) are the model's robots (progress, docking, pallet bay)": [
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true
+ ],
+ "module: the transfers of the three modules are the model's (pullback on target cells, pushforward on commands)": [
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true
+ ],
+ "module: the declared symmetries and the two skills are the model's": [
+  [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  true,
+  true
+ ],
+ "_assurance": {
+  "policy": "every Checked or Refuted result of this example is an exact computation on the machines of skill_share.metta (enumeration and exact rational arithmetic), with each witness replayed by evaluation; no result rests on a solver, so none is Conditional",
+  "conditional": []
+ },
+ "seconds": 5.6
+}

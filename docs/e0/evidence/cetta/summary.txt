@@ -1,0 +1,8 @@
+01_doctor_gmp EXIT=0
+02_make_core EXIT=0
+03_version EXIT=0
+04_langs EXIT=0
+05_profiles EXIT=0
+06_test_correctness_profiles EXIT=2
+07_test_rhocalc EXIT=0
+DONE

@@ -1,0 +1,14 @@
+1 file(s), 3 modules, 97 declarations, 32 run requests
+All forms conform to the registry with the proposed patch.
+11 diagnostic(s) against the current registry (forms that need the patch):
+  skill_share.metta: module PalletBay: unknown library NatArith
+  skill_share.metta: module SkillShare: unknown library NatArith
+  skill_share.metta: module SkillShareDock: unknown library NatArith
+  skill_share.metta:PalletBay.progress-p: unknown head Lt in (Lt (dist (step-p $xm)) (dist (GetTuple $xm 0)))
+  skill_share.metta:SkillShare.CandidatesCA: unregistered request FindTransfers
+  skill_share.metta:SkillShare.FromBase: unknown field (GaugeFrom A FlipUD-A) for TransferHive
+  skill_share.metta:SkillShare.SkillRoundTrip: unregistered request TransportSkill
+  skill_share.metta:SkillShare.UpRoundTrip: unregistered request TransportSkill
+  skill_share.metta:SkillShare.dist: unknown head Le in (Le $c 2)
+  skill_share.metta:SkillShare.dist: unknown head Le in (Le $r 2)
+  skill_share.metta:SkillShare.progress: unknown head Lt in (Lt (dist (step $xm)) (dist (GetTuple $xm 0)))

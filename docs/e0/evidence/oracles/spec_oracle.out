@@ -1,0 +1,223 @@
+
+1. Eight-state calibration
+  [ok ] KeepA current adequacy holds
+  [ok ] KeepA update compatibility fails
+  [ok ] shortest behavioral witness has length one  ((((0, 0, 0), (0, 1, 0)), ['swap'], 'a', 0, 1))
+  [ok ] stable repair has four classes {ab}  ([[(0, 0, 0), (0, 0, 1)], [(0, 1, 0), (0, 1, 1)], [(1, 0, 0), (1, 0, 1)], [(1, 1, 0), (1, 1, 1)]])
+  [ok ] composite (a,b,c) -> 2a+b preserves query and intertwines swap
+
+2. Witness length bound
+  [ok ] n=2: merged pair separated by empty word
+  [ok ] chain n=3: shortest witness length = n-2  (len=1)
+  [ok ] chain n=4: shortest witness length = n-2  (len=2)
+  [ok ] chain n=5: shortest witness length = n-2  (len=3)
+  [ok ] chain n=6: shortest witness length = n-2  (len=4)
+  [ok ] chain n=7: shortest witness length = n-2  (len=5)
+  [ok ] chain n=8: shortest witness length = n-2  (len=6)
+
+3. Receipt packets
+  [ok ] posterior-only behavioral witness: (U,V), add-u, 3/4 vs 9/10  ((('U', 'V'), ['add-u'], 'posterior', Fraction(9, 10), Fraction(3, 4)))
+  [ok ] stable refinement has four singletons
+  [ok ] undiscounted d(U,V) = 3/20  (3/20)
+  [ok ] discounted (9/10) d(U,V) = 27/200  (27/200)
+  [ok ] PosteriorOnly defects: now 0, update 3/20, behavioral 3/20 (27/200 discounted)
+    frontier (diameter bound, best weakness, partition):
+      ('0', '1/4', [['E'], ['U'], ['V'], ['B']])
+      ('3/20', '5/8', [['E'], ['U', 'V', 'B']])
+      ('1/4', '5/8', [['E'], ['U', 'V', 'B']])
+      ('2/5', '1', [['E', 'U', 'V', 'B']])
+  [ok ] frontier: eps=0 -> W=1/4; eps=3/20 -> W=5/8 {E}{U,V,B}; eps=2/5 -> W=1
+  [ok ] induced two-class machine has exact defect 3/20  (3/20)
+  [ok ] posterior summary is not a congruence for merge  ((('U', 'U'), ('U', 'V'), 'U', 'B'))
+  [ok ] double-counting merge: {u,v} with {u} gives 27/28 instead of 9/10
+  [ok ] worst double-counting error 3/20 at ({u},{u})  ((Fraction(3, 20), 'V', 'V'))
+
+4. Graded closure
+  [ok ] closure raises (A,C) to 4/5
+  [ok ] brackets 34/45 -> 41/45, increase 7/45
+  [ok ] threshold 9/10 of closed kernel is not transitive
+
+5. Affine contracts
+  [ok ] F grade (2,1/10), G grade (3,1/5), composite (6,1/2) hold
+  [ok ] composite grade (6,3/10) refuted at input 0
+
+6. Neural report audit
+  [ok ] masses 1/2,1/2; creation 1/4; erasure 1/4; turnover 1/2
+  [ok ] distinct-pair convention gives masses 2/3 and turnover 2/3
+  [ok ] SetReport 0 accuracies 1/2 (old) and 1 (new)
+  [ok ] n=4: plug-in mean 3/8 = (1-1/n)/2, U-statistic mean 1/2  (3/8, 1/2)
+
+7. Evolutionary archive
+  [ok ] random mutation quotient: {G00},{G01,G10},{G11}  ([['G00'], ['G01', 'G10'], ['G11']])
+  [ok ] controllable flips need four classes
+  [ok ] expected discovery time 5 proposals
+
+8. Skill transfer (Poly composition), regime repair, tick library
+  [ok ] BadCA defect 1, GoodCA defect 0
+  [ok ] round trip flips state and method; reward invariant
+  [ok ] coarse 1/2, refined 1, sensor net 17/20, gain 7/20
+  [ok ] hidden-state substitution error gives 19/20
+  [ok ] source rewards 3/4,3/4; target 0,3/4,1,3/4; gap 1/4
+  [ok ] blind copy expected-reward discrepancy 3/4
+
+9. Trace equivalence, minimal linear representation, positive realization
+  [ok ] minimal linear (weighted-automaton) dimension is 5  (5)
+  [ok ] trace partition has 6 classes, merging x and y  ([['p'], ['q'], ['u'], ['v'], ['w'], ['x', 'y']])
+  [ok ] probabilistic bisimulation quotient is the identity (7 classes)
+  [ok ] every inequivalent pair has a separating test of length <= 7-3+1 symbols  (longest 2 symbols)
+  [ok ] intertwining M;L = L;Mbar and observation preservation
+
+10. Parity fixture (brute force on small widths)
+  [ok ] width 5: coarsest stable refinement has 8 classes = (x0, x1, parity)  (rounds [2, 4, 8, 8])
+  [ok ] width 5: every single-bit flip is behaviorally visible; tail double flips are not
+  [ok ] width 6: coarsest stable refinement has 8 classes = (x0, x1, parity)  (rounds [2, 4, 8, 8])
+  [ok ] width 6: every single-bit flip is behaviorally visible; tail double flips are not
+  [ok ] width 8: coarsest stable refinement has 8 classes = (x0, x1, parity)  (rounds [2, 4, 8, 8])
+  [ok ] width 8: every single-bit flip is behaviorally visible; tail double flips are not
+  [ok ] width 10: coarsest stable refinement has 8 classes = (x0, x1, parity)  (rounds [2, 4, 8, 8])
+  [ok ] width 10: every single-bit flip is behaviorally visible; tail double flips are not
+  [ok ] all 8 classes separated by words of length <= 2  (2)
+
+11. Simulation arrow for a lockout protocol
+  [ok ] exact stage quotient is refuted  (('S0', 'S2', 'fail', 'Start', 'Locked'))
+  [ok ] stage map is a simulation into the nondeterministic abstraction
+  [ok ] safety holds on abstraction and therefore on the concrete system
+
+12. Arithmetic probes over F7
+  [ok ] probe table matches (first separator b=1)  ({0: (1, 1), 1: (0, 1), 2: (1, 1), 3: (1, 1), 4: (1, 1), 5: (1, 1), 6: (1, 0)})
+  [ok ] centered T3 ranks (1,0,0) and T5 ranks (2,1,0) for both
+    dim End(KA)=6, dim Hom(KA,KB)=5, dim End(KB)=6
+  [ok ] Hom-dimension certificate separates KA and KB  (6 vs 5)
+
+13. Shared and fresh reads of one nondeterministic choice
+  [ok ] first-read observer cannot separate shared from fresh
+  [ok ] agreement observer separates them ({True} vs {True, False})
+  [ok ] under a declared fair scheduler: P(agree) = 1 vs 1/2
+
+14. All-zero detector fixture and linear observability
+  [ok ] width 5: 8 classes (x0, x1, tail==0); tail-bit clock rate 1/4 = 2^-(n-3)
+  [ok ] width 6: 8 classes (x0, x1, tail==0); tail-bit clock rate 1/8 = 2^-(n-3)
+  [ok ] width 8: 8 classes (x0, x1, tail==0); tail-bit clock rate 1/32 = 2^-(n-3)
+  [ok ] width 10: 8 classes (x0, x1, tail==0); tail-bit clock rate 1/128 = 2^-(n-3)
+  [ok ] sampled screen at width 40: P(some tail-bit estimate nonzero) <= 38*10^6*2^-37 < 3*10^-4  (296875/1073741824)
+  [ok ] GF(2) parity system, width 5: observable space has dimension 3
+  [ok ] GF(2) parity system, width 8: observable space has dimension 3
+  [ok ] GF(2) parity system, width 12: observable space has dimension 3
+  [ok ] GF(2) parity system, width 40: observable space has dimension 3
+
+15. Parity-triangle hive
+  [ok ] hive logical entropy h(w,H) = 1/2 = closure consensus cost (closure is all ones)
+  [ok ] the six identification edges form one cycle through all six nodes
+  [ok ] primal certificate: a perfect matching of the cycle keeps mass 3 and satisfies all 120 transitivity constraints and 15 bounds exactly
+  [ok ] dual certificate: weights 1/2 on six path constraints, feasible, dual value 3 = primal value
+  [ok ] least coherent refinement costs exactly 1/6 (kept mass 3 of 6, proved optimal by duality)
+
+16. Randomized checks of graded descent, induced-machine bounds, transport
+  [ok ] graded descent: delta_upd = 0 implies delta_beh <= delta_now (300 machines, two discounts)  (violations 0)
+  [ok ] induced representative machine: exact defect <= eps/(1-gamma)  (violations 0)
+  [ok ] undiscounted horizon bound E_h <= (h+1) eps  (violations 0)
+  [ok ] adding a query: resumed refinement equals refinement from scratch  (violations 0)
+
+17. Seven-state chain: behavioral defect, trace equality, modal witness, realizations
+  [ok ] gamma=1: d(u,w)=d(v,w)=gamma/2, d(u,v)=gamma, d(x,y)=gamma^2/2 (stable after 3 rounds)
+  [ok ] gamma=9/10: d(u,w)=d(v,w)=gamma/2, d(u,v)=gamma, d(x,y)=gamma^2/2 (stable after 3 rounds)
+  [ok ] trace laws of x and y agree through horizon 8 (TV = 0 at every horizon)
+  [ok ] gamma=1: modal test phi(x)=1/2, phi(y)=0; gap equals d(x,y)
+  [ok ] undiscounted witness values phi(x)=1/2, phi(y)=0
+  [ok ] gamma=9/10: modal test phi(x)=81/200, phi(y)=0; gap equals d(x,y)
+  [ok ] signed realization of dimension 5: M L = L A, E_y L = L Pi_y, L eta = 1, reproduces all traces up to 4 symbols
+  [ok ] signed minimum 5 equals the replayed positive candidate, so the positive dimension is exactly 5 here
+
+18. Randomized checks: trace TV through horizon h <= (h+1)-th behavioral iterate; induced trace bound
+  [ok ] TV of trace laws through h transitions <= Phi^(h+1)(0) at gamma=1 (120 chains, h<=3, all words)  (violations 0)
+  [ok ] induced abstraction with o = obar.q: trace TV <= 1-(1-eps)^H for every start and word  (violations 0)
+  [ok ] without current adequacy: pushed rows agree (eps=0) yet the initial observation differs with probability 1
+
+19. Signed linear arrows: residual law R_LK = R_L K + L R_K
+  [ok ] both arrows preserve the all-ones vector
+  [ok ] residual norms 0, 1/5 and composite 3/5; ||L|| = 3
+  [ok ] identity R_LK = R_L K + L R_K holds exactly
+  [ok ] graded bound rho_L lambda_K + lambda_L rho_K = 3/5 is attained; plain addition gives 1/5
+  [ok ] positive arrow from a realization with final vector (2,2): ||L|| = 2, residual 0; composite with K has residual 2/5 = lambda_L rho_K, while adding residuals gives 1/5
+  [ok ] random signed arrows obey ||R_LK|| <= ||R_L|| ||K|| + ||L|| ||R_K|| (200 trials)  (violations 0)
+  [ok ] random row-stochastic arrows: residuals add (200 trials)  (violations 0)
+
+20. Counterexamples: separated values, restriction, horizon index, surjectivity, simulation scope
+  [ok ] trivial value tolerance: current defect 0, no literal decoder, one class in Y/~0
+  [ok ] restriction: defect 1 on the two-state carrier, 0 on each singleton; the refutation does not restrict
+  [ok ] universal upper bounds restrict to forward-closed subsets (300 random machines)  (violations 0)
+  [ok ] staged pair (0,1): horizon-h defect via Phi^(h+1) is 0,0,1,1 for h=0..3; Phi^h would report 0,0,0,1
+  [ok ] Phi^0 checks nothing: the wrong index at h=0 accepts the constant encoding of states with different reports
+  [ok ] zero-defect homomorphism s -> z0 into a reduced two-state target is not surjective
+  [ok ] empty simulation relation: abstract scope from images is empty; initial coverage fails as required
+
+21. Beacon systems: transfer-hive coherence up to gauge; derived kernel hive
+  [ok ] edge transfers AB, BC, GoodCA are exact (defect 0)
+  [ok ] holonomy is (flip, flip), a declared symmetry of the reward response
+  [ok ] derived correspondences: c_AB = I, c_BC = I, c_CA = S (graph kernels)
+  [ok ] unsaturated derived kernel hive: holonomy S is not below the member tolerance I (incoherent)
+  [ok ] its metric closure is all ones and the closure consensus cost is 1/2, as for the parity triangle
+  [ok ] saturating every member by its gauge (transported along the transfers) gives a coherent kernel hive
+  [ok ] saturating only the base member does not: the block kernel is then not transitive
+  [ok ] with an absolute-orientation observer the flip is no longer a symmetry
+
+22. Symbolic admission obligations on scaled zero-tail machines
+  [ok ] width 5: four zero-tail blocks pass local checks but coverage fails at word 4
+  [ok ] width 5: Reach(0) = the four zero-tail words, forward closed, each with a witnessing word
+  [ok ] width 5: the full carrier is a sound but inexact reachability over-approximation
+  [ok ] width 8: four zero-tail blocks pass local checks but coverage fails at word 4
+  [ok ] width 8: Reach(0) = the four zero-tail words, forward closed, each with a witnessing word
+  [ok ] width 8: the full carrier is a sound but inexact reachability over-approximation
+  [ok ] width 12: four zero-tail blocks pass local checks but coverage fails at word 4
+  [ok ] width 12: Reach(0) = the four zero-tail words, forward closed, each with a witnessing word
+  [ok ] width 12: the full carrier is a sound but inexact reachability over-approximation
+
+23. Ledgers, descent converse, chain bound, lockout refinement, reports, patterns
+  [ok ] eight-state ledger: weakness 1/2 before, 1/4 after
+  [ok ] packet ledger: 3/8 before, 1/4 after; two-class frontier weakness 5/8
+  [ok ] descent converse: behavioral defect 0, update defect 1
+  [ok ] chain of six: witness for merging 0 and 1 has length n-2 = 4  (((0, 1), ['next', 'next', 'next', 'next'], 'marked', 0, 1))
+  [ok ] lockout: abstraction reaches Locked in one step, the protocol from S0 needs 3 (spurious within 2)
+  [ok ] default-zero merges only Absent/Neither; bias also merges Neither/Both and Absent/Both
+  [ok ] description costs 6 and 4, gain 2 (1/3 normalized); execution 6 for both
+  [ok ] regime with prior 3/4: new averages 3/4 and 1/4
+  [ok ] tick blind copy: reward-law TV 1 (point masses at 3/4 and 0)
+  [ok ] evolution witness: pair (G00,G01), event score=1, probabilities 0 and 1/2
+
+24. Gauge intertwining, adaptive versus open-loop trace discrepancy, merge-only refinement
+  [ok ] gauges swapping 0,1 at A and C but 2,3 at B: holonomy trivial, saturated hive not transitive
+  [ok ] the same gauge at every member, intertwined by identity transfers: saturated hive transitive
+  [ok ] open-loop words separate by at most 1/2, the adaptive policy by 1, both within d^(1,2) = 1
+  [ok ] merge alone: translations split U from V (witness via U), refinement gives four singletons
+
+25. Literal congruence: zero graded defects under an indiscrete code tolerance
+  [ok ] indiscrete code tolerance on {0,1}: current defect 0 and update defect 0
+  [ok ] literal congruence fails: 0 and 1 share code 0, hop sends them to codes 0 and 1  ((0, 1, 'hop', 0, 1))
+  [ok ] no update on the codes commutes with hop: code 0 has successor codes {0,1}
+  [ok ] with the discrete code tolerance the same encoding has update defect 1 (claim H10)
+
+26. Observation-based trace claims need policy-tree witnesses
+  [ok ] horizon 2: fixed words separate x from x2 by at most 1/2; the best of 15 deterministic policy trees separates them by 1
+  [ok ] canonical policy tree: a at the root, then b after report 1 and c after report 2  ({(0,): 'a', (0, 'a', 1): 'b', (0, 'a', 2): 'c'})
+  [ok ] its event 'last report is 3' has probabilities 1 and 0, so the discrepancy is 1
+  [ok ] the bound 3/4 holds over words (1/2) and is refuted over observation-based policies (1)
+  [ok ] the word (a b) replayed as a policy tree gives its word discrepancy 1/2
+
+27. Behavioral distance as a supremum that no finite test attains
+  [ok ] gamma=1: horizon distances d_h(x,y) = 1-2^-h < 1 for h=0..10, attained by depth-h tests; the closed form obeys the recurrence
+  [ok ] gamma=1/2: horizon distances d_h(x,y) = (1-4^-h)/3 < 1/3 for h=0..10, attained by depth-h tests; the closed form obeys the recurrence
+  [ok ] discount 1: D(x,y) = 1 is a prefixpoint, so d(x,y) = 1 = sup_h d_h, attained at no finite horizon
+  [ok ] discount 1/2: D(x,y) = 1/3 is a coupling prefixpoint and a dual post-fixpoint (potentials 1/3, 1; 0), so d(x,y) = 1/3 exactly although every test gives less
+  [ok ] horizon 3: layered prefixpoint D_0..D_3 with D_3(x,y) = 7/8 meets the depth-3 test
+  [ok ] a bound below the supremum is refuted by a finite test: depth 7 gives 127/128 > 99/100, depth 6 gives 63/64
+  [ok ] the undiscounted one-step event test separates x from y by 1/2: within d^1 = 1, above d^(1/2) = 1/3, so trace-event and policy-tree tests certify lower bounds at discount one only
+  [ok ] two self-looping states with equal reports: d = 0, yet D(s,t) = 1/2 is a fixed point at discount 1 and not a post-fixpoint at discount 1/2
+
+28. Clock-rate screen per action
+  [ok ] per-action screen: pointwise bound, sup bound 2 max_x d(x,T_a x), pair-mass bound 2 r_a, and the maximum over actions (300 machines, two actions)  (violations 0)
+  [ok ] an identity action has clock 0 while the update defect over both actions is 1; the moving action's clock 1 gives the correct bound 2
+
+29. A rate over selected units need not survive removing units
+  [ok ] removing proposals raises the duplicate rate among proposed keys from 1/10 to 1; over the fixed population of ten keys the rate cannot rise (1/10 to 1/10)
+
+All checks passed.

@@ -1,0 +1,337 @@
+{
+ "patch": "Proposed registry additions used by Part II of the guide to Omega memory and goals in MeTTaDinC (live memory through summary statistics)",
+ "date": "2026-11-04",
+ "libraries": {
+  "RationalArith": {
+   "primitives": [
+    "Le",
+    "Lt",
+    "Min",
+    "Max"
+   ],
+   "constants": [],
+   "doc": "order on Rational and Int, Min and Max.  Symbolic obligations over Rational carriers are decided over the real numbers: by linear real arithmetic when every product has a constant factor, and by nonlinear real arithmetic otherwise (decidable, at a higher cost).  An obligation proved over the reals holds over the rationals.  A refutation is reported only with a rational witness, which the replay checker evaluates by substitution; a real model with no rational witness gives Unknown."
+  },
+  "BoundedSets": {
+   "primitives": [
+    "Insert",
+    "Union",
+    "Size",
+    "Cap",
+    "CapInsert",
+    "CapUnion",
+    "CapSize"
+   ],
+   "type_constructors": [
+    "FiniteSet",
+    "Capped"
+   ],
+   "constants": [
+    "Many"
+   ],
+   "doc": "(FiniteSet T) is the type of finite sets of T, with (Insert x S), (Union S S') and (Size S).  (Capped T) is the type of identity-bounded sets: a set of fewer than K elements, or the marker Many.  (Cap K S) is S when (Size S) < K and Many otherwise; (CapInsert K x c) and (CapUnion K c d) insert and unite and then cap, with Many absorbing; (CapSize K c) is (Size S) for a set S and K for Many, that is min(K, number of distinct elements).  K is a positive integer literal.  Symbolic obligations are decided in the theory of finite sets with cardinality over an uninterpreted element sort, so they hold for every set of identifiers, however large."
+  },
+  "Statistics": {
+   "primitives": [],
+   "constants": [
+    "Symbolic",
+    "Exhaustive",
+    "Lift"
+   ],
+   "doc": "summary statistics as certificates.  A Statistic declares an encoding of a machine's states with an abstract update for every action entry, a read map for every declared query and an abstract merge for every merge entry; CheckStatistic checks the obligations that make the encoding behaviorally sufficient for the queries.  Store and Keyed lift item machines and item statistics to finite maps from identifiers to items."
+  },
+  "Estimates": {
+   "primitives": [],
+   "constants": [],
+   "doc": "anytime-valid estimates of rates read from frozen Streams.  EstimateRate reports the confidence sequence of the uniform-prior binomial mixture at the requested level: the set of rates p with B(S+1, n-S+1) / (p^S (1-p)^(n-S)) < 1/Level after S events in n rows.  It contains the true rate at every n simultaneously with probability at least 1 - Level when the rows are conditionally Bernoulli with one common rate given the past (Ville's inequality).  CompareRates applies the same sequence to the share of discordant rows in which the first column shows the event and the second does not.  Results are Estimated: claims about the data source, with the stream digest, the protocol and the assumptions."
+  }
+ },
+ "declarations": {
+  "Statistic": {
+   "library": "Statistics",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Machine",
+     "required": true,
+     "doc": "the machine whose queries the statistic must answer"
+    },
+    "Encode": {
+     "type": "ref:Map",
+     "required": true,
+     "doc": "the map s from states to statistic values"
+    },
+    "Step": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(Step label map [(For $v Carrier)]...): the abstract update for the machine's action entries with this label; a family label (f $v) takes a map instance (g $v)"
+    },
+    "Read": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(Read query map): the map that reads the query's answer from the statistic value"
+    },
+    "MergeStep": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(MergeStep merge-label map): the abstract merge for a Merge entry of the machine, on pairs of statistic values; required for every Merge entry of a machine that has one"
+    }
+   },
+   "body": null,
+   "declares": "Representation",
+   "doc": "a summary statistic (T, s, step, read) of a machine: a representation together with the abstract updates and read maps that certify it.  Every action entry of the machine needs a Step entry, every query a Read entry and every merge entry a MergeStep entry, and a Statistic that lacks one is InvalidInput; CheckStatistic checks the obligations.  As a representation it can be passed to CheckNow, CheckUpdates and CheckBehavioral."
+  },
+  "Store": {
+   "library": "Statistics",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Keys": {
+     "type": "ref:Carrier",
+     "required": true,
+     "doc": "the identifiers"
+    },
+    "Of": {
+     "type": "ref:Machine",
+     "required": true,
+     "doc": "the item machine"
+    },
+    "Global": {
+     "type": "names",
+     "required": false,
+     "doc": "action labels, or heads of action families, that apply to every item at once (the passage of time); the other actions address one item"
+    }
+   },
+   "body": null,
+   "declares": "Machine",
+   "doc": "the machine of finite maps from Keys to item states.  (insert k x) adds an item, each item action a gives (a k), each Global action applies to every item, each item query q gives (q k), and each Bool query q gives the aggregate (count q), the number of keys whose item answers true."
+  },
+  "Keyed": {
+   "library": "Statistics",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Store",
+     "required": true
+    },
+    "Item": {
+     "type": "ref:Statistic",
+     "required": true
+    },
+    "View": {
+     "type": "ref:Machine",
+     "required": false,
+     "doc": "a view of the store's item machine (the same state carrier, actions declared as ActionsOf that machine) of which Item is a statistic; without it, Item must be a statistic of the store's item machine itself"
+    }
+   },
+   "body": null,
+   "declares": "Representation",
+   "doc": "the keyed statistic: the finite map from keys to the item statistic's values, updated pointwise.  CheckStatistic with (Method Lift) first checks the premise of the lifting proposition: Item must be a statistic of the store's item machine, or, when View names a view of that machine, of the view; otherwise the result is InvalidInput naming the mismatch.  It then checks the item statistic and derives the keyed one, which answers every item query of the machine it is bound to, and every count, exactly.  The result is bound to that machine's queries and carries the item statistic's status and assumptions."
+  }
+ },
+ "declaration_fields": {
+  "Simulation": {
+   "Matching": {
+    "type": "enum:Lockstep|Stutter",
+    "required": false,
+    "doc": "Lockstep (the default): each source step is matched by the target step with the same label.  Stutter: each source step is matched by the target step whose label is the head of the source label, or by no step, the relation holding afterwards in both cases.  All three registered safety forms transfer along stuttering simulations: a step matched by no step changes no observation, and a source run is never shorter than its image."
+   }
+  },
+  "Stream": {
+   "Population": {
+    "type": "expr",
+    "required": false,
+    "doc": "the units the stream samples"
+   },
+   "Selection": {
+    "type": "expr",
+    "required": false,
+    "doc": "which units become rows, and when"
+   },
+   "Policy": {
+    "type": "expr",
+    "required": false,
+    "doc": "the policy version under which the rows were produced: in a live system the digest of the deployed code and flags"
+   }
+  }
+ },
+ "requests": {
+  "CheckStatistic": {
+   "library": "Statistics",
+   "positional": [
+    [
+     "statistic",
+     "ref:Statistic|Keyed"
+    ]
+   ],
+   "args": {
+    "Method": {
+     "type": "enum:Symbolic|Exhaustive|Lift",
+     "required": false,
+     "default": "Symbolic",
+     "doc": "Symbolic: every obligation is decided for all states and parameters by a decision procedure of the carriers' theories.  Exhaustive: every state and parameter of an enumerated machine is checked.  Lift: for a Keyed statistic, the item statistic is checked and the keyed one follows by the lifting proposition."
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "StatisticCheck",
+   "statuses": [
+    "Checked",
+    "Refuted",
+    "Conditional"
+   ],
+   "profiles": [
+    "Deterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "for every state x in the machine's carrier and every parameter p: T_a(x, p) lies in the carrier, s(T_a(x, p)) = step_a(s(x), p), q(x) = read_q(s(x)) for every query q, and s(m(x, y)) = mstep(s(x), s(y)) for every merge entry m; then two states with equal statistic values answer every word of actions and queries alike.  Refuted with the failing obligation and a replayable witness state and parameter."
+  },
+  "EstimateRate": {
+   "library": "Estimates",
+   "positional": [],
+   "args": {
+    "On": {
+     "type": "ref:Stream",
+     "required": true
+    },
+    "Column": {
+     "type": "expr",
+     "required": true
+    },
+    "Equals": {
+     "type": "expr",
+     "required": true,
+     "doc": "the value that counts as an event"
+    },
+    "Level": {
+     "type": "rat01",
+     "required": true
+    }
+   },
+   "result": "RateEstimate",
+   "statuses": [
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Estimated: the interval at the stream's last row of the binomial-mixture confidence sequence for the rate at which Column equals Equals. Read as an interval for a common rate, it holds at every row simultaneously with probability at least 1 - Level when every row has that rate given the rows before it. Read as a one-sided claim that the rate is below (or above) a fixed target, it needs no common rate: it holds for the running average of the rows' conditional rates, for rows read in an order fixed before their labels (Part II, Proposition 5.1). The result names the stream, its digest, population, selection rule and policy; a stream whose digest differs from the declared one is InvalidInput, with no count or interval"
+  },
+  "CompareRates": {
+   "library": "Estimates",
+   "positional": [],
+   "args": {
+    "On": {
+     "type": "ref:Stream",
+     "required": true
+    },
+    "First": {
+     "type": "expr",
+     "required": true
+    },
+    "Second": {
+     "type": "expr",
+     "required": true
+    },
+    "Equals": {
+     "type": "expr",
+     "required": true
+    },
+    "Level": {
+     "type": "rat01",
+     "required": true
+    }
+   },
+   "result": "PairedComparison",
+   "statuses": [
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Estimated: on the rows where exactly one of the two columns equals Equals, the confidence sequence for the share of rows in which it is First; an interval above one half says that First shows the event more often than Second, as a one-sided claim about the running average of the discordant rows' conditional shares (Part II, Proposition 5.1). The result names the stream and its digest; a mismatching digest is InvalidInput"
+  }
+ },
+ "result_types": {
+  "StatisticCheck": {
+   "fields": {
+    "Obligations": "Table",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": "the obligations with their verdicts; for a refutation the failing obligation, state and parameter"
+  },
+  "RateEstimate": {
+   "fields": {
+    "Count": "Nat",
+    "Observations": "Nat",
+    "Lower": "Rational",
+    "Upper": "Rational",
+    "Estimand": "Expr",
+    "Procedure": "Expr",
+    "Assumptions": "Expr"
+   },
+   "doc": "an Estimated result: the claim is about the data source, never about the model"
+  },
+  "PairedComparison": {
+   "fields": {
+    "FirstOnly": "Nat",
+    "SecondOnly": "Nat",
+    "Lower": "Rational",
+    "Upper": "Rational",
+    "Estimand": "Expr",
+    "Procedure": "Expr",
+    "Assumptions": "Expr"
+   },
+   "doc": "an Estimated result on paired rows"
+  }
+ },
+ "notes": {
+  "For": "a For clause on a machine entry or a Step entry may range over a carrier that is not enumerated when the module's carriers are Symbolic: the entry is then one parameterized action, and every obligation quantifies over the parameter",
+  "Rational literals": "integer atoms and (Rat p q) are Rational wherever a Rational is expected",
+  "Matching": "a stuttering simulation is checked by three obligations: the relation maps the source carrier into the target carrier, every source step either keeps the image fixed or moves it by the target action with the label's head, and every query the two machines share answers alike on related states",
+  "Conditional": "status rule for symbolic requests: a verdict of unsatisfiability is Checked when a proof of it has been checked by the core's proof checker (for instance an Alethe proof from cvc5 checked by Carcara, available for equality, linear arithmetic and bit-vectors), and otherwise Conditional, with the assumption (TrustedBackend solver version logic obligation-digest); agreement of a second solver on an independent encoding is recorded as agreed_by and discharges nothing.  A result derived from Conditional premises, such as a lift or a safety transfer, is Conditional with the union of their assumptions.  Refutations are Refuted, since their witnesses are replayed by evaluation.  The base statuses Unknown, Unsupported and InvalidInput remain available to every request.",
+  "Binding": "every result records the declarations it is about, the machine and queries it was checked against, and for estimates the stream, its digest, population, selection rule and policy; a stream whose file digest differs from the declared one makes EstimateRate, CompareRates and Detect return InvalidInput before any count is computed, and a safety request along a simulation whose target is not the request's target is InvalidInput"
+ }
+}

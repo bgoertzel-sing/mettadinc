@@ -1,0 +1,67 @@
+{
+ "patch": "Proposed registry additions used by the worked example of Part II (WMTM's open-item store)",
+ "date": "2026-11-04",
+ "requests": {
+  "Detect": {
+   "library": "Monitors",
+   "positional": [
+    [
+     "monitors",
+     "ref:Monitor",
+     "variadic"
+    ]
+   ],
+   "args": {
+    "On": {
+     "type": "ref:Stream",
+     "required": true
+    },
+    "Level": {
+     "type": "rat01",
+     "required": false,
+     "doc": "required with Scheme Ville: the probability bound on any false alarm"
+    },
+    "Combine": {
+     "type": "enum:Union|Mixture",
+     "required": false,
+     "default": "Union"
+    },
+    "Scheme": {
+     "type": "enum:Ville|ShiryaevRoberts",
+     "required": false,
+     "default": "Ville",
+     "doc": "Ville: e-processes started at the first observation, as in the fourth of the four worked examples; ShiryaevRoberts: a changepoint detector that sums e-processes started at every observation"
+    },
+    "MeanTimeToFalseAlarm": {
+     "type": "nat",
+     "required": false,
+     "doc": "required with Scheme ShiryaevRoberts: the alarm threshold, which bounds from below the expected number of observations before a false alarm"
+    }
+   },
+   "result": "Detection",
+   "statuses": [
+    "Estimated"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Estimated.  With Scheme Ville (the default): if the stream follows laws whose likelihood-ratio factors have conditional null expectation at most one, the probability that a listed monitor ever reaches its threshold is at most Level (Ville's inequality; Union gives each of k monitors the threshold k/Level, Mixture thresholds the average of the e-values at 1/Level).  With Scheme ShiryaevRoberts and Combine Mixture: each monitor's Shiryaev-Roberts statistic R_n = (1 + R_{n-1}) L_n is averaged over the monitors and the alarm is raised when the average reaches MeanTimeToFalseAlarm; under the same null condition the average minus n is a supermartingale, so the expected number of observations before a false alarm is at least MeanTimeToFalseAlarm.  The result names the first monitor (or the mixture) and observation to reach the threshold, or reports that none did with the largest value reached, with the stream digest, the protocol and the dependence assumptions"
+  }
+ },
+ "result_fields": {
+  "Detection": {
+   "Scheme": "enum:Ville|ShiryaevRoberts",
+   "MeanTimeToFalseAlarm": "Nat?",
+   "Largest": "Rational?",
+   "LargestAt": "Nat?"
+  }
+ },
+ "notes": {
+  "Detect": "a monitor started at the first observation accumulates evidence for the null while the stream is healthy, and a change that comes late must first overcome it; the Shiryaev-Roberts scheme restarts implicitly at every observation, at the price of a guarantee on the mean time to a false alarm instead of on the probability of any false alarm"
+ }
+}

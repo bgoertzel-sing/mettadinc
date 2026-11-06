@@ -1,0 +1,108 @@
+{
+  "patch": "Proposed registry additions used by Example 3 (skill transfer across camera frames)",
+  "date": "2026-11-04",
+  "libraries": {},
+  "requests": {
+    "TransportSkill": {
+      "library": "Transfers",
+      "positional": [
+        [
+          "transfer",
+          "ref:Transfer|CheckedTransfer"
+        ],
+        [
+          "skill",
+          "ref:Map"
+        ]
+      ],
+      "args": {},
+      "result": "TransportedSkill",
+      "statuses": [
+        "Checked"
+      ],
+      "profiles": [
+        "Deterministic",
+        "Stochastic"
+      ],
+      "carriers": [
+        "Enumerated",
+        "Symbolic",
+        "Snapshot"
+      ],
+      "first_release": [],
+      "claim": "the transported skill y -> iota(skill(phi y)) earns, at every target state, the labelled response the source skill earns at the pulled-back state; the result also lists where it differs from a declared comparison skill"
+    },
+    "FindTransfers": {
+      "library": "Transfers",
+      "positional": [
+        [
+          "source",
+          "ref:MethodSystem"
+        ],
+        [
+          "target",
+          "ref:MethodSystem"
+        ]
+      ],
+      "args": {
+        "Candidates": {
+          "type": "names",
+          "required": true,
+          "doc": "(Candidates (pullback pushforward)+): a sequence of candidate transfers, each a pair of declared maps"
+        },
+        "Within": {
+          "type": "rat01",
+          "required": false,
+          "default": "0"
+        },
+        "Metric": {
+          "type": "enum:RewardLawTV|ExpectedReward",
+          "required": false,
+          "default": "RewardLawTV"
+        }
+      },
+      "result": "TransferCandidates",
+      "statuses": [
+        "Checked"
+      ],
+      "profiles": [
+        "Deterministic",
+        "Stochastic"
+      ],
+      "carriers": [
+        "Enumerated",
+        "Symbolic",
+        "Snapshot"
+      ],
+      "first_release": [],
+      "claim": "the listed candidates are exactly those of the declared family whose defect is at most Within; a learner that keeps one of several reports the others, since the choice among them is a gauge choice"
+    }
+  },
+  "result_types": {
+    "TransportedSkill": {
+      "fields": {
+        "Skill": "Map",
+        "Changed": "Nat",
+        "Certificate": "Certificate"
+      },
+      "doc": "the transported skill table, the number of states where it differs from the skill it was transported from when source and target coincide, and the response-equality certificate"
+    },
+    "TransferCandidates": {
+      "fields": {
+        "Exact": "TransferList",
+        "Count": "Nat",
+        "Certificate": "Certificate"
+      },
+      "doc": "the qualifying candidates in declaration order, with one defect certificate per candidate"
+    }
+  },
+  "declaration_fields": {
+    "TransferHive": {
+      "GaugeFrom": {
+        "type": "expr",
+        "required": false,
+        "doc": "(GaugeFrom member symmetry+): declare the gauge at one member; the checker transports it along the declared edges by conjugation with the method pushforwards, reports the transported gauges, and checks that the transport around each cycle returns the declared gauge"
+      }
+    }
+  }
+}

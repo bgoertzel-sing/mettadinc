@@ -1,0 +1,18 @@
+== ./cetta --list-languages ==
+cetta language inventory (--lang driver/front-end):
+  he               implemented  Current direct MeTTa/HE evaluator
+  prime            implemented  MeTTa-Prime checked semantic package
+  subzero          implemented  Generated free-bag Subzero candidate
+  zero             implemented  Generated query-first MeTTa Zero candidate
+  mm2              implemented  Direct MM2 lowering plus MORK-backed execution for pure program files
+  petta            implemented  WIP compiled PeTTa reader with shared-subset CeTTa execution
+  ambient          planned  Planned port from mettail-rust inventory
+  calculator       planned  Planned port from mettail-rust inventory
+  imp              planned  Planned port from mettail-rust inventory
+  lambda           planned  Planned port from mettail-rust inventory
+  mettafull-legacy planned  Planned port from mettail-rust inventory
+  minskylite       planned  Planned port from mettail-rust inventory
+  mm0lite          planned  Planned port from mettail-rust inventory
+  pyashcore        planned  Planned port from mettail-rust inventory
+  rhocalc          implemented  Strict-core rho-calculus reducer to quiescence
+EXIT=0 SECS=0

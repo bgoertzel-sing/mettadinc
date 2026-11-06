@@ -1,0 +1,580 @@
+{
+ "eight_state": {
+  "witness": [
+   [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     1,
+     0
+    ]
+   ],
+   [
+    "swap"
+   ],
+   "a",
+   0,
+   1
+  ],
+  "repair_blocks": [
+   [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     1
+    ]
+   ],
+   [
+    [
+     0,
+     1,
+     0
+    ],
+    [
+     0,
+     1,
+     1
+    ]
+   ],
+   [
+    [
+     1,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     1
+    ]
+   ],
+   [
+    [
+     1,
+     1,
+     0
+    ],
+    [
+     1,
+     1,
+     1
+    ]
+   ]
+  ],
+  "witness_bound": 6
+ },
+ "witness_bound_tight": "chain with one marked end attains n-2",
+ "packets": {
+  "d_UV": "3/20",
+  "d_UV_disc_9_10": "27/200",
+  "defects_posterior_only": [
+   "0",
+   "3/20",
+   "3/20",
+   "27/200"
+  ],
+  "frontier": [
+   [
+    "0",
+    "1/4",
+    [
+     [
+      "E"
+     ],
+     [
+      "U"
+     ],
+     [
+      "V"
+     ],
+     [
+      "B"
+     ]
+    ]
+   ],
+   [
+    "3/20",
+    "5/8",
+    [
+     [
+      "E"
+     ],
+     [
+      "U",
+      "V",
+      "B"
+     ]
+    ]
+   ],
+   [
+    "1/4",
+    "5/8",
+    [
+     [
+      "E"
+     ],
+     [
+      "U",
+      "V",
+      "B"
+     ]
+    ]
+   ],
+   [
+    "2/5",
+    "1",
+    [
+     [
+      "E",
+      "U",
+      "V",
+      "B"
+     ]
+    ]
+   ]
+  ],
+  "induced_defect_E_UVB": "3/20",
+  "distance_matrix": {
+   "E,U": "1/4",
+   "E,V": "1/4",
+   "U,V": "3/20",
+   "B,E": "2/5",
+   "B,U": "3/20",
+   "B,V": "3/20"
+  }
+ },
+ "merge": {
+  "congruence_witness": [
+   [
+    "U",
+    "U"
+   ],
+   [
+    "U",
+    "V"
+   ],
+   "U",
+   "B"
+  ],
+  "double_count_example": "27/28 vs 9/10",
+  "worst_error": "3/20"
+ },
+ "closure": {
+  "closed_AC": "4/5",
+  "before": "34/45",
+  "after": "41/45",
+  "increase": "7/45"
+ },
+ "affine": {
+  "composite": [
+   "6",
+   "1/2"
+  ],
+  "refuted": [
+   "6",
+   "3/10"
+  ]
+ },
+ "neural": {
+  "masses": "1/2",
+  "creation": "1/4",
+  "erasure": "1/4",
+  "turnover": "1/2",
+  "distinct_pairs": "2/3",
+  "plugin_mean_n4": "3/8",
+  "ustat_mean_n4": "1/2"
+ },
+ "evolution": {
+  "quotient": [
+   [
+    "G00"
+   ],
+   [
+    "G01",
+    "G10"
+   ],
+   [
+    "G11"
+   ]
+  ],
+  "controllable_classes": 4,
+  "discovery": "5"
+ },
+ "transfer": {
+  "bad": 1,
+  "good": 0,
+  "regime": [
+   "1/2",
+   "1",
+   "17/20",
+   "7/20"
+  ],
+  "tick_gap": "1/4"
+ },
+ "trace_example": {
+  "bisim_classes": 7,
+  "trace_classes": 6,
+  "linear_dim": 5,
+  "positive_realization": "5 states, w -> (U'+V')/2"
+ },
+ "parity": {
+  "classes": 8,
+  "max_separating_word": 2
+ },
+ "security": {
+  "exact_refuted": [
+   "S0",
+   "S2",
+   "fail",
+   "Start",
+   "Locked"
+  ],
+  "simulation": true
+ },
+ "arithmetic": {
+  "ranks": {
+   "0": [
+    1,
+    1
+   ],
+   "1": [
+    0,
+    1
+   ],
+   "2": [
+    1,
+    1
+   ],
+   "3": [
+    1,
+    1
+   ],
+   "4": [
+    1,
+    1
+   ],
+   "5": [
+    1,
+    1
+   ],
+   "6": [
+    1,
+    0
+   ]
+  },
+  "hom_dims": [
+   6,
+   5,
+   6
+  ]
+ },
+ "reads": {
+  "agree_shared": "1",
+  "agree_fresh": "1/2"
+ },
+ "zero_fixture": {
+  "classes": 8,
+  "clock_rate_width_40": "2^-37",
+  "sampled_screen_union_bound": "38*10^6*2^-37 < 3*10^-4"
+ },
+ "parity_linear": {
+  "observable_dimension": 3,
+  "unobservable_dimension_width_40": 37
+ },
+ "hive": {
+  "closure_cost": "1/2",
+  "least_refinement_cost": "1/6",
+  "lp_certificate": {
+   "primal_kept_mass": "3",
+   "dual_value": "3",
+   "dual_weights": "1/2 on the six transitivity constraints along the cycle"
+  }
+ },
+ "seven_state": {
+  "d_uw": "gamma/2",
+  "d_xy": "gamma^2/2",
+  "d_xy_gamma_1": "1/2",
+  "d_xy_gamma_9_10": "81/200",
+  "modal_witness": {
+   "phi_x": "1/2",
+   "phi_y": "0"
+  },
+  "merge_xy": {
+   "behavioral_defect": "1/2",
+   "trace_tv": "0"
+  }
+ },
+ "seven_state_linear": {
+  "signed_minimum": 5,
+  "positive_upper": 5,
+  "positive_interval": [
+   5,
+   5
+  ],
+  "basis_signed_entries": true
+ },
+ "trace_bounds": {
+  "horizon_iterate_bound": "TV_h <= Phi^(h+1)(0)",
+  "induced": "1-(1-eps)^H",
+  "counterexample_without_current_adequacy": {
+   "eps": "0",
+   "tv_at_H0": "1"
+  }
+ },
+ "linear_composition": {
+  "rho_L": "0",
+  "rho_K": "1/5",
+  "rho_LK": "3/5",
+  "lambda_L": "3",
+  "grade_law": "(lambda_L*lambda_K, rho_L*lambda_K + lambda_L*rho_K)",
+  "unnormalized_source": {
+   "final_vector": [
+    "2",
+    "2"
+   ],
+   "lambda_L": "2",
+   "rho_LK": "2/5",
+   "residual_sum": "1/5"
+  }
+ },
+ "counterexamples": {
+  "pseudometric_zero": "dnow 0 without literal decoder",
+  "restriction": {
+   "full": 1,
+   "singletons": [
+    0,
+    0
+   ]
+  },
+  "horizon_index": {
+   "correct": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "wrong": [
+    0,
+    0,
+    0,
+    1
+   ]
+  },
+  "non_surjective_homomorphism": true,
+  "empty_simulation": "vacuous"
+ },
+ "beacon_hives": {
+  "edge_defects": {
+   "AB": 0,
+   "BC": 0,
+   "CA": 0
+  },
+  "holonomy": "(flip, flip)",
+  "transfer_hive": "coherent up to declared gauge",
+  "kernel_hive_unsaturated": "incoherent",
+  "kernel_hive_closure_cost": "1/2",
+  "kernel_hive_saturated": "coherent",
+  "saturated_at_base_only": "incoherent"
+ },
+ "symbolic_admission": {
+  "adversarial_candidate": {
+   "status": "Refuted",
+   "obligation": "Coverage",
+   "witness_word": 4
+  },
+  "reach_from_zero": {
+   "size": 4,
+   "words": {
+    "0": [],
+    "1": [
+     "inject",
+     "swap"
+    ],
+    "2": [
+     "inject"
+    ],
+    "3": [
+     "inject",
+     "swap",
+     "inject"
+    ]
+   }
+  }
+ },
+ "small_fixtures": {
+  "eight_state_ledger": [
+   "1/2",
+   "1/4"
+  ],
+  "packet_ledger": [
+   "3/8",
+   "1/4"
+  ],
+  "two_class_weakness": "5/8",
+  "descent_converse": {
+   "behavioral": "0",
+   "update": "1"
+  },
+  "chain_six_witness_length": 4,
+  "lockout_concrete_steps": 3,
+  "availability": {
+   "default_zero": [
+    [
+     "Absent",
+     "Neither"
+    ]
+   ],
+   "bias": [
+    [
+     "Absent",
+     "Both"
+    ],
+    [
+     "Absent",
+     "Neither"
+    ],
+    [
+     "Both",
+     "Neither"
+    ]
+   ]
+  },
+  "pattern_costs": [
+   6,
+   4
+  ],
+  "regime_skewed": [
+   "3/4",
+   "1/4"
+  ],
+  "tick_copy_tv": "1",
+  "evolution_witness": [
+   "G00",
+   "G01",
+   "mutate",
+   "score=1",
+   "0",
+   "1/2"
+  ]
+ },
+ "gauge_policy_merge": {
+  "gauge_not_intertwined": "incoherent",
+  "gauge_intertwined": "coherent",
+  "words_tv": "1/2",
+  "adaptive_tv": "1",
+  "merge_only_classes": 4
+ },
+ "literal_congruence": {
+  "now": "0",
+  "updates": "0",
+  "discrete_updates": "1",
+  "witness": [
+   0,
+   1,
+   "hop",
+   0,
+   1
+  ],
+  "successor_codes_of_code_0": [
+   0,
+   1
+  ]
+ },
+ "adaptive_policy": {
+  "words_tv": "1/2",
+  "policies_tv": "1",
+  "trees": 15,
+  "witness": {
+   "tree": [
+    [
+     "0",
+     "a"
+    ],
+    [
+     "0 a 1",
+     "b"
+    ],
+    [
+     "0 a 2",
+     "c"
+    ]
+   ],
+   "event": "last report 3",
+   "left": "1",
+   "right": "0"
+  },
+  "bound_3_4": {
+   "Words": "Checked",
+   "ObservationBased": "Refuted"
+  }
+ },
+ "unattained": {
+  "undiscounted": {
+   "limit": "1",
+   "horizons": [
+    "0",
+    "1/2",
+    "3/4",
+    "7/8",
+    "15/16",
+    "31/32"
+   ],
+   "horizon_3": "7/8",
+   "within_99_100": [
+    7,
+    "127/128"
+   ]
+  },
+  "discount_1_2": {
+   "limit": "1/3",
+   "horizons": [
+    "0",
+    "1/4",
+    "5/16",
+    "21/64",
+    "85/256",
+    "341/1024"
+   ],
+   "undiscounted_event_test": "1/2",
+   "potentials": {
+    "f": {
+     "x": "1/3",
+     "p": "1"
+    },
+    "g": {
+     "y": "0"
+    }
+   }
+  },
+  "selfloop": {
+   "distance": "0",
+   "fixed_point_at_discount_1": "1/2"
+  }
+ },
+ "clock_screen": {
+  "per_action": "delta_upd^a <= 2 max_x d(x,T_a x)",
+  "counterexample": {
+   "identity_clock": "0",
+   "update_defect": "1"
+  }
+ },
+ "selection_rule": {
+  "selected": [
+   "1/10",
+   "1"
+  ],
+  "fixed_population": [
+   "1/10",
+   "1/10"
+  ]
+ }
+}

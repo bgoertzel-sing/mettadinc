@@ -1,0 +1,127 @@
+{
+ "patch": "Proposed registry additions used by the guide to Omega memory and goals in MeTTaDinC",
+ "date": "2026-11-04",
+ "add_primitives": {
+  "Core": [
+   "Checked",
+   "Estimated",
+   "Conditional",
+   "TrustedBackend",
+   "Assumption",
+   "cvc5",
+   "z3",
+   "cadical"
+  ]
+ },
+ "declarations": {
+  "Consumer": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Machine",
+     "required": true,
+     "doc": "the machine whose observers are the consumer's queries"
+    },
+    "Accepts": {
+     "type": "expr",
+     "required": true,
+     "doc": "the forms of the specification's registry (assurance.accepts): Checked, optionally followed by Estimated, and optionally by one clause (Conditional entry ...) whose entries are (TrustedBackend solver ...) or (Assumption name ...). (Accepts Checked): the consumer acts only on Checked results; (Accepts Checked Estimated): an empirical consumer that also accepts Estimated results under its own signature, and Conditional results whose only undischarged assumptions are (EstimatedPremise result-digest delta) assumptions; a TrustedBackend entry admits Conditional results that rest on an unreplayed answer of a listed solver, and an Assumption entry results that rest on an assumption carried by a listed declaration. A Conditional result is accepted only when every one of its undischarged assumptions is covered. A frame consumer accepts only Checked results unless the external ceremony records otherwise. A gate treats a result whose status and assumptions the consumer does not accept as inadequate coverage, never as Checked"
+    },
+    "Custody": {
+     "type": "enum:Frame|Agent",
+     "required": true,
+     "doc": "Frame: the declaration is held outside the agent's rewrite authority and changes only through an external upgrade; Agent: the agent may propose changes through the ordinary promotion path"
+    },
+    "Decode": {
+     "type": "ref:Map",
+     "required": false,
+     "doc": "the decoder: a map from the consumer's answer (the value of its machine's observer, or the tuple of its observers' values in declaration order) to the decision the answer stands for; it is part of the declaration and has its custody, so a frame consumer's decoder changes only through the external upgrade"
+    }
+   },
+   "body": null,
+   "declares": "Consumer",
+   "doc": "a declared user of a machine's answers; checkers and gates read it to decide which claims a change must preserve and which statuses and assumptions count as coverage"
+  }
+ },
+ "declaration_fields": {
+  "Implementation": {
+   "Pairs": {
+    "type": "ref:Map",
+    "required": false,
+    "doc": "a map from ordered audit pairs (x-hat, x) to Bool; only pairs it accepts are audited, for example pairs with equal stimulus or with one member near a boundary"
+   }
+  }
+ },
+ "requests": {
+  "CheckInterpretation": {
+   "library": "Core",
+   "positional": [
+    [
+     "old",
+     "ref:Consumer"
+    ],
+    [
+     "new",
+     "ref:Consumer"
+    ]
+   ],
+   "args": {
+    "Via": {
+     "type": "ref:AbstractionMap",
+     "required": false,
+     "doc": "for a change of record schema: the map h from the old consumer's machine to the new consumer's machine"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "Verdict",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the interpretation obligation: for every valid record x, that is, every state of the old consumer's machine, d_new(g_new(x)) = d_old(g_old(x)), where g is a consumer's goal answer (its machine's observer, or the tuple of its observers in declaration order) and d the decoder its Decode field declares; with Via h, d_new(g_new(h x)) = d_old(g_old(x)). Refuted with a RecordWitness, the least record in carrier order whose two decisions differ. InvalidInput, naming the mismatch, when a consumer declares no decoder, when the two machines have different state carriers and no Via is given, when the map's Source or Target is not the old or the new consumer's machine, or when h leaves the new machine's states. The result is bound to both consumer declarations, both machines with their observers, both decoders with their custody, and the records it ranges over. Informational refinement and equivalence (CheckNow in each direction) do not imply it"
+  }
+ },
+ "witness_types": {
+  "RecordWitness": {
+   "fields": [
+    "Record",
+    "OldAnswer",
+    "NewAnswer",
+    "OldDecision",
+    "NewDecision"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "doc": "a valid record on which the old and the new goal, each read through its declared decoder, call for different decisions"
+  }
+ },
+ "notes": {
+  "Pairs": "without the field every ordered pair of the audit carrier is audited, as in the base registry",
+  "Accepts": "the atoms of the clause (Checked, Estimated, Conditional, TrustedBackend, Assumption) and the solvers a clause may name (cvc5, z3, cadical) are added to Core, so (Accepts Checked) keeps its meaning",
+  "Decode": "without the field the consumer has no declared meaning for its answers, and CheckInterpretation on it is InvalidInput"
+ }
+}
