@@ -57,7 +57,7 @@ def parse(path, cetta_dir=None):
     return s
 
 
-def write_expected(lanes, out, header=None):
+def write_expected(lanes, out, header=None, cetta_dir=None):
     """lanes: list of (lane, logpath, pin_exit); header: lines for the top of the file (without "# "),
     or None for the original header of the 12da03b4 baseline made from E0's logs."""
     with open(out, "w") as f:
@@ -73,7 +73,7 @@ def write_expected(lanes, out, header=None):
         f.write("# Lines: lane <name>; exit <n>; final <passed> <failed>; npass <n>; and one line per entry of the\n")
         f.write("# multisets: pass|skip|fail <normalised line>, target <failed make target>.\n")
         for lane, path, pin_exit in lanes:
-            s = parse(path)
+            s = parse(path, cetta_dir)
             f.write(f"\nlane {lane}\n")
             if pin_exit:
                 f.write(f"exit {s['exit']}\n")
@@ -138,15 +138,17 @@ def compare(lane, exp, got):
 
 def main(argv):
     if argv[:1] == ["expected-from-logs"]:
-        # expected-from-logs <out> [--header=<line>]... <lane>=<log>[,pin-exit]...
+        # expected-from-logs <out> [--header=<line>]... [--cetta=<dir>] <lane>=<log>[,pin-exit]...
+        # --cetta: the Cetta checkout the logs were made in, normalised to <CETTA> as compare does
         out = argv[1]
         header = [a[len("--header="):] for a in argv[2:] if a.startswith("--header=")] or None
-        specs = [a for a in argv[2:] if not a.startswith("--header=")]
+        cetta_dir = ([a[len("--cetta="):] for a in argv[2:] if a.startswith("--cetta=")] or [None])[-1]
+        specs = [a for a in argv[2:] if not a.startswith("--")]
         lanes = []
         for spec in specs:
             lane, path, pin = spec.split("=", 1)[0], spec.split("=", 1)[1].split(",")[0], spec.endswith(",pin-exit")
             lanes.append((lane, path, pin))
-        write_expected(lanes, out, header)
+        write_expected(lanes, out, header, cetta_dir)
         return 0
     if argv[:1] == ["compare"]:
         expected, cetta_dir, specs = argv[1], argv[2], argv[3:]

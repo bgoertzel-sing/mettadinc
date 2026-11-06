@@ -1,0 +1,160 @@
+12da03b4 (E0): PASS 261 SKIP 5 FAIL 0 failed-targets 0 exit 0; summary lines: ['6 passed, 0 failed', '253 passed, 0 failed']
+4c285a97: PASS 295 SKIP 1 FAIL 0 failed-targets 0 exit 0; summary lines: ['6 passed, 0 failed', '285 passed, 0 failed']
+
+PASS lines renamed only by 'surface' -> 'syntax' (counted in both lists below): 45
+PASS lines gone, not explained by that rename: 5
+PASS lines new, not explained by that rename: 39
+
+## PASS: in 12da03b4 and not in 4c285a97 (50)
+- PASS: cost-rho parallel stress independent-surfaces
+- PASS: cost-rho parallel stress same-surface-disjoint-occurrences   [renamed: surface -> syntax]
+- PASS: rhocalc bounded bisimulation pure-surface-vs-core-comm   [renamed: surface -> syntax]
+- PASS: rhocalc bounded bisimulation surface-input-guarded-vs-core-input-guarded   [renamed: surface -> syntax]
+- PASS: rhocalc bounded bisimulation surface-primed-diamond-vs-core-primed-diamond   [renamed: surface -> syntax]
+- PASS: rhocalc bounded bisimulation surface-reflection-vs-core-reflection   [renamed: surface -> syntax]
+- PASS: rhocalc bounded bisimulation surface-rotating-witness-vs-core-rotating-witness   [renamed: surface -> syntax]
+- PASS: rhocalc bounded relation equivalence pure-surface-vs-core-comm   [renamed: surface -> syntax]
+- PASS: rhocalc bounded relation equivalence surface-input-guarded-vs-core-input-guarded   [renamed: surface -> syntax]
+- PASS: rhocalc bounded relation equivalence surface-primed-diamond-vs-core-primed-diamond   [renamed: surface -> syntax]
+- PASS: rhocalc bounded relation equivalence surface-reflection-vs-core-reflection   [renamed: surface -> syntax]
+- PASS: rhocalc bounded relation equivalence surface-rotating-witness-vs-core-rotating-witness   [renamed: surface -> syntax]
+- PASS: rhocalc de-step allow-list surface   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_causal_trace.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_parallel_branches.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_search_budget.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_surface.metta
+- PASS: rhocalc lib/rho surface tests/test_lts_rho_surface.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_lts_surface.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_rho_lib_hygiene_surface.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_rho_lib_surface.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_rhometta_demo_dedfarm.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_rhometta_demo_ecan.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_rhometta_demo_mayset.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_rhometta_demo_revision.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_rhometta_isolation_oracle.metta   [renamed: surface -> syntax]
+- PASS: rhocalc lib/rho surface tests/test_rhometta_lib_surface.metta   [renamed: surface -> syntax]
+- PASS: rhocalc old step surface purged   [renamed: surface -> syntax]
+- PASS: rhocalc quiescent/open-name contract tests/rhocalc/surface_open_name_variable.rho
+- PASS: rhocalc scheduler reachability pure-surface-one-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability pure-surface-one-step-rotating   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step-rotating   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-name-output-one-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-name-output-one-step-rotating   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-three-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-two-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-three-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-two-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-primed-diamond-three-step-threaded   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-primed-diamond-two-step-threaded   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step-rotating   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step-rotating   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-rotating-persistent-canonical-two-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-rotating-persistent-rotating-two-step   [renamed: surface -> syntax]
+- PASS: rhocalc scheduler reachability surface-rotating-persistent-two-step-threaded   [renamed: surface -> syntax]
+- PASS: tests/rhocalc_run/pipeline_two_forwarders_surface.rho
+- PASS: tests/rhocalc_run/quiescent_nil_surface.rho
+
+## PASS: in 4c285a97 and not in 12da03b4 (84)
++ PASS: cost-rho parallel stress independent-locations
++ PASS: cost-rho parallel stress same-syntax-disjoint-occurrences   [renamed: surface -> syntax]
++ PASS: direct rho payload keys agree with ordinary atom rendering
++ PASS: pure-rho canonical selector agrees with exhaustive frontier (N named + N generated; seed=N)
++ PASS: rhocalc bounded bisimulation pure-syntax-vs-core-comm   [renamed: surface -> syntax]
++ PASS: rhocalc bounded bisimulation syntax-input-guarded-vs-core-input-guarded   [renamed: surface -> syntax]
++ PASS: rhocalc bounded bisimulation syntax-primed-diamond-vs-core-primed-diamond   [renamed: surface -> syntax]
++ PASS: rhocalc bounded bisimulation syntax-reflection-vs-core-reflection   [renamed: surface -> syntax]
++ PASS: rhocalc bounded bisimulation syntax-rotating-witness-vs-core-rotating-witness   [renamed: surface -> syntax]
++ PASS: rhocalc bounded relation equivalence pure-syntax-vs-core-comm   [renamed: surface -> syntax]
++ PASS: rhocalc bounded relation equivalence syntax-input-guarded-vs-core-input-guarded   [renamed: surface -> syntax]
++ PASS: rhocalc bounded relation equivalence syntax-primed-diamond-vs-core-primed-diamond   [renamed: surface -> syntax]
++ PASS: rhocalc bounded relation equivalence syntax-reflection-vs-core-reflection   [renamed: surface -> syntax]
++ PASS: rhocalc bounded relation equivalence syntax-rotating-witness-vs-core-rotating-witness   [renamed: surface -> syntax]
++ PASS: rhocalc de-step allow-list syntax   [renamed: surface -> syntax]
++ PASS: rhocalc generation compaction preserves bounded residual
++ PASS: rhocalc lean trace bridge comm-par-chain-exact-one-step
++ PASS: rhocalc lean trace bridge core-comm-continued-contract-transport
++ PASS: rhocalc lean trace bridge core-comm-semantic-collapse
++ PASS: rhocalc lean trace bridge core-comm-strict-core-body-saturated-typedAt
++ PASS: rhocalc lean trace bridge core-comm-strict-core-body-up-to-subject-equiv
++ PASS: rhocalc lean trace bridge core-comm-transport-to-representative
++ PASS: rhocalc lean trace bridge core-comm-up-to-subject-equiv
++ PASS: rhocalc lean trace bridge free-drop-common-fragment-empty
++ PASS: rhocalc lean trace bridge literal-drop-static-common-fragment-agreement
++ PASS: rhocalc lean trace bridge literal-drop-static-preserved
++ PASS: rhocalc lean trace bridge quiescent-nil-exact-one-step-empty
++ PASS: rhocalc lean trace bridge quote-drop-whole-name-diverges-from-syntactic-open
++ PASS: rhocalc lean trace bridge quote-drop-whole-name-drop-saturated-typedAt
++ PASS: rhocalc lean trace bridge quote-drop-whole-name-normalizes
++ PASS: rhocalc lean trace bridge quote-drop-whole-name-saturated-typedAt
++ PASS: rhocalc lean trace bridge quote-opacity-diverges-from-syntactic-open
++ PASS: rhocalc lean trace bridge quote-opacity-obstruction-survives
++ PASS: rhocalc lean trace bridge quote-opacity-preserved
++ PASS: rhocalc lib/rho syntax tests/test_lts_rho_cost_causal_trace.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_lts_rho_cost_location.metta
++ PASS: rhocalc lib/rho syntax tests/test_lts_rho_cost_parallel_branches.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_lts_rho_cost_search_budget.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_lts_rho_syntax.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_lts_syntax.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rho_lib_hygiene_syntax.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rho_lib_syntax.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rhometta_demo_dedfarm.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rhometta_demo_ecan.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rhometta_demo_mayset.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rhometta_demo_revision.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rhometta_isolation_oracle.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rhometta_lib_syntax.metta   [renamed: surface -> syntax]
++ PASS: rhocalc lib/rho syntax tests/test_rhometta_value_delivery.metta
++ PASS: rhocalc old step syntax purged   [renamed: surface -> syntax]
++ PASS: rhocalc quiescent/open-name contract tests/rhocalc/rho_open_name_variable.rho
++ PASS: rhocalc run lean bridge rhometta-run-chained-two-round
++ PASS: rhocalc run lean bridge rhometta-run-contended-pair
++ PASS: rhocalc run lean bridge rhometta-run-data-single
++ PASS: rhocalc run lean bridge rhometta-run-multi-two-way
++ PASS: rhocalc run lean bridge rhometta-run-owned-space
++ PASS: rhocalc run lean bridge rhometta-run-owned-space-aliased
++ PASS: rhocalc run lean bridge rhometta-run-owned-state
++ PASS: rhocalc run lean bridge rhometta-run-owned-state-aliased
++ PASS: rhocalc run lean bridge rhometta-run-pure-single
++ PASS: rhocalc run lean bridge rhometta-run-sibling-pair
++ PASS: rhocalc run lean bridge rhometta-run-state-local
++ PASS: rhocalc run lean bridge rhometta-run-zero-stuck
++ PASS: rhocalc scheduler reachability pure-syntax-one-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability pure-syntax-one-step-rotating   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-input-guarded-unfold-one-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-input-guarded-unfold-one-step-rotating   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-name-output-one-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-name-output-one-step-rotating   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-primed-diamond-canonical-three-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-primed-diamond-canonical-two-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-primed-diamond-rotating-three-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-primed-diamond-rotating-two-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-primed-diamond-three-step-threaded   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-primed-diamond-two-step-threaded   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-quote-inner-binder-one-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-quote-inner-binder-one-step-rotating   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-reflection-name-generation-one-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-reflection-name-generation-one-step-rotating   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-rotating-persistent-canonical-two-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-rotating-persistent-rotating-two-step   [renamed: surface -> syntax]
++ PASS: rhocalc scheduler reachability syntax-rotating-persistent-two-step-threaded   [renamed: surface -> syntax]
++ PASS: tests/rhocalc_run/pipeline_two_forwarders_rho.rho
++ PASS: tests/rhocalc_run/quiescent_nil_rho.rho
+
+## SKIP: in 12da03b4 and not in 4c285a97 (4)
+- SKIP: cost-rho differential harness (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+- SKIP: rhocalc cost lean bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+- SKIP: rhocalc lean microcheck (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+- SKIP: rhocalc lean trace bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+
+## SKIP: in 4c285a97 and not in 12da03b4 (0)
+
+## FAIL: in 12da03b4 and not in 4c285a97 (0)
+
+## FAIL: in 4c285a97 and not in 12da03b4 (0)
+
+## targets: in 12da03b4 and not in 4c285a97 (0)
+
+## targets: in 4c285a97 and not in 12da03b4 (0)

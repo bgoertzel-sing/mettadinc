@@ -1,0 +1,4 @@
+== MDINC_SWIPL_DIR=/home/openclaw/scratch/mettadinc-e0/swipl9/install on PATH: [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209] ==
+== ./cetta --version ==
+cetta 1.5.0-dev (python)
+EXIT=0 SECS=0
