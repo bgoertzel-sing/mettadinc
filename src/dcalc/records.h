@@ -49,4 +49,32 @@ int dc_policy_tree_admissible(const Sx *w, char *why, size_t wn);
  * and upper certificates (has_lo/has_hi).  Precision 0: Checked iff both exist
  * and meet, else Unknown.  Precision p > 0: Checked iff hi - lo <= p. */
 DcStatus dc_distance_status(int has_lo, double lo, int has_hi, double hi, double precision);
+/* ---- 2b. assumptions, agreed_by evidence and Accepts declarations ---- */
+/* One assumption is (TrustedBackend solver version logic obligation-digest),
+ * (Assumption name digest) or (EstimatedPremise result-digest delta).
+ * Returns 1 when well formed; else 0 with why naming the field. */
+int dc_assumption_wellformed(const Sx *a, char *why, size_t wn);
+/* (Assumptions a...) of a result envelope, or NULL. */
+const Sx *dc_result_assumptions(const Sx *envelope);
+/* Union: append to dst (Assumptions ...) every assumption of src that dst
+ * lacks (structural equality).  Derived results call this once per premise. */
+void dc_assumptions_union(Sx *dst, const Sx *src);
+/* (AgreedBy (Backend solver version)...): evidence only, never a ground. */
+Sx *dc_agreed_by(const char *const *solver, const char *const *version, size_t n);
+/* A consumer's (Accepts Checked [(Conditional (TrustedBackend solver))...]). */
+#define DC_ACCEPTS_MAX 8
+typedef struct {
+    int checked;                          /* lists Checked */
+    size_t nbackend;                      /* Conditional on these solvers */
+    char backend[DC_ACCEPTS_MAX][64];
+} DcAccepts;
+/* 0 ok; else -1 with why naming the field. */
+int dc_accepts_parse(const Sx *x, DcAccepts *a, char *why, size_t wn);
+/* 1 when the consumer accepts a result: Checked iff it lists Checked;
+ * Conditional iff every assumption is a TrustedBackend whose solver it lists
+ * (any version); every other status (including Estimated) is not accepted. */
+int dc_accepts_result(const DcAccepts *a, DcStatus st, const Sx *assumptions);
+/* Gate: number of results the consumer does not accept (inadequate coverage). */
+size_t dc_gate_inadequate(const DcAccepts *a, const DcStatus *st,
+                          const Sx *const *assumptions, size_t n);
 #endif

@@ -74,6 +74,54 @@ static void boundary2_assurance(void) {
     CHECK(dc_assure_grounded(VERDICT_HOLDS, GROUND_REPLAYED, 1) == DC_CONDITIONAL, "B2 assumption (unreplayed backend / premise) -> Conditional");
     CHECK(dc_assure_grounded(VERDICT_HOLDS, GROUND_NONE, 0) == DC_UNKNOWN, "B2 no ground -> Unknown");
     CHECK(dc_assure(VERDICT_HOLDS, 0) == DC_UNKNOWN && dc_assure(VERDICT_HOLDS, 1) == DC_CHECKED, "B2 dc_assure is the M0 case of the same policy");
+    char why[256];
+    /* assumption records */
+    Sx *tb = parse1("(TrustedBackend cvc5 1.1.2 QF_LIA \"d1\")");
+    Sx *tz = parse1("(TrustedBackend z3 4.13 QF_LIA \"d2\")");
+    Sx *badtb = parse1("(TrustedBackend cvc5 1.1.2)");
+    CHECK(dc_assumption_wellformed(tb, why, sizeof why), "B2 TrustedBackend solver version logic digest is well formed");
+    CHECK(!dc_assumption_wellformed(badtb, why, sizeof why) && strstr(why, "TrustedBackend"), "B2 short TrustedBackend refused, naming the field");
+    /* union of premises' assumptions, no duplicates */
+    Sx *a1 = parse1("(Assumptions (TrustedBackend cvc5 1.1.2 QF_LIA \"d1\"))");
+    Sx *a2 = parse1("(Assumptions (TrustedBackend cvc5 1.1.2 QF_LIA \"d1\") (TrustedBackend z3 4.13 QF_LIA \"d2\"))");
+    Sx *u = parse1("(Assumptions)");
+    dc_assumptions_union(u, a1); dc_assumptions_union(u, a2);
+    CHECK(u->n == 3, "B2 derived result takes the union of premise assumptions (2 distinct of 3)");
+    /* agreed_by is evidence, not a ground */
+    const char *sv[] = { "cvc5", "z3" }, *vv[] = { "1.1.2", "4.13" };
+    Sx *ab = dc_agreed_by(sv, vv, 2);
+    CHECK(sx_head_is(ab, "AgreedBy") && ab->n == 3, "B2 agreed_by record lists each agreeing backend");
+    /* Accepts declarations */
+    DcAccepts strict, cvc;
+    Sx *d1 = parse1("(Accepts Checked)");
+    Sx *d2 = parse1("(Accepts Checked (Conditional (TrustedBackend cvc5)))");
+    Sx *d3 = parse1("(Accepts Maybe)");
+    CHECK(dc_accepts_parse(d1, &strict, why, sizeof why) == 0 && strict.checked && strict.nbackend == 0, "B2 (Accepts Checked) parsed");
+    CHECK(dc_accepts_parse(d2, &cvc, why, sizeof why) == 0 && cvc.nbackend == 1, "B2 (Accepts Checked (Conditional (TrustedBackend cvc5))) parsed");
+    DcAccepts junk;
+    CHECK(dc_accepts_parse(d3, &junk, why, sizeof why) == -1 && strstr(why, "Accepts"), "B2 malformed Accepts refused");
+    Sx *none = parse1("(Assumptions)");
+    CHECK(dc_accepts_result(&strict, DC_CHECKED, none), "B2 strict consumer accepts Checked");
+    CHECK(!dc_accepts_result(&strict, DC_CONDITIONAL, a1), "B2 strict consumer refuses Conditional(cvc5)");
+    CHECK(dc_accepts_result(&cvc, DC_CONDITIONAL, a1), "B2 cvc5 consumer accepts Conditional(cvc5)");
+    CHECK(!dc_accepts_result(&cvc, DC_CONDITIONAL, a2), "B2 cvc5 consumer refuses Conditional(cvc5+z3)");
+    CHECK(!dc_accepts_result(&cvc, DC_ESTIMATED, none), "B2 Estimated is never accepted as Checked/Conditional");
+    DcStatus sts[3] = { DC_CHECKED, DC_CONDITIONAL, DC_CONDITIONAL };
+    const Sx *as[3] = { none, a1, a2 };
+    CHECK(dc_gate_inadequate(&strict, sts, as, 3) == 2 && dc_gate_inadequate(&cvc, sts, as, 3) == 1,
+          "B2 gate counts results the consumer does not accept as inadequate coverage");
+    /* a Conditional premise makes a derived Checked result Conditional */
+    Sx *prem = parse1("(Result (Status Conditional) (Assumptions (TrustedBackend cvc5 1.1.2 QF_LIA \"d1\")))");
+    Sx *der = parse1("(Result (Status Checked) (Assumptions))");
+    dc_result_add_premise(der, prem, "P");
+    CHECK(dc_result_status(der) == DC_CONDITIONAL && sx_find(der, "Assumptions", 0)->n == 2,
+          "B2 derived result from a Conditional premise is Conditional and carries its assumption");
+    Sx *est = parse1("(Result (Status Estimated) (Assumptions))");
+    Sx *der2 = parse1("(Result (Status Checked) (Assumptions))");
+    dc_result_add_premise(der2, est, "E");
+    CHECK(dc_result_status(der2) == DC_CONDITIONAL, "B2 derived result from an Estimated premise is Conditional on it");
+    Sx *fr[] = { tb, tz, badtb, a1, a2, u, ab, d1, d2, d3, none, prem, der, est, der2 };
+    for (size_t k = 0; k < sizeof fr / sizeof fr[0]; k++) sx_free(fr[k]);
 }
 
 static void boundary3_obligations(void) {

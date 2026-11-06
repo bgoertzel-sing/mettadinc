@@ -55,6 +55,29 @@ Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subj
     return r;
 }
 
+/* Boundary 2: a derived result takes the union of its premises' assumptions.
+ * A Conditional premise passes its assumptions on; an Estimated premise adds
+ * (EstimatedPremise name delta).  Any assumption turns Checked/Refuted into
+ * Conditional (dc_assure_grounded). */
+void dc_result_add_premise(Sx *res, const Sx *premise, const char *premise_name) {
+    Sx *dst = sx_find(res, "Assumptions", 0);
+    if (!dst || !premise) return;
+    DcStatus ps = dc_result_status(premise);
+    if (ps == DC_CONDITIONAL) dc_assumptions_union(dst, dc_result_assumptions(premise));
+    if (ps == DC_ESTIMATED) {
+        Sx *e = dc_form("EstimatedPremise", dc_sym(premise_name ? premise_name : "?"), dc_sym("delta"), NULL);
+        Sx *one = dc_form("Assumptions", e, NULL);
+        dc_assumptions_union(dst, one); sx_free(one);
+    }
+    if (dst->n > 1 && res->n > 1 && sx_head_is(res->items[1], "Status") && res->items[1]->n == 2) {
+        DcStatus st = dc_result_status(res);
+        if (st == DC_CHECKED || st == DC_REFUTED) {
+            sx_free(res->items[1]->items[1]);
+            res->items[1]->items[1] = dc_sym(dc_status_name(DC_CONDITIONAL));
+        }
+    }
+}
+
 Sx *dc_invalid(const DcModule *m, const char *fmt, ...) {
     char buf[512]; va_list ap; va_start(ap, fmt); vsnprintf(buf, sizeof buf, fmt, ap); va_end(ap);
     return dc_envelope(m, VERDICT_INVALID, 0, NULL, NULL, NULL, NULL, buf);

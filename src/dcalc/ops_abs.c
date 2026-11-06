@@ -17,7 +17,8 @@ static int output_slot(DcRun *r, const Sx *x, const char *what, char *why, size_
     DcStatus st = dc_result_status(res);
     /* A premise outside M0 makes the whole request outside M0 (-2 -> Unsupported). */
     if (st == DC_UNSUPPORTED) { snprintf(why, wn, "premise Derive %s is outside the M0 fragment", x->items[1]->text); return -2; }
-    if (st != DC_CHECKED) { snprintf(why, wn, "Derive %s is not Checked (%s)", x->items[1]->text, dc_status_name(st)); return -1; }
+    /* Checked and Conditional premises compose; Conditional passes its assumptions on. */
+    if (st != DC_CHECKED && st != DC_CONDITIONAL) { snprintf(why, wn, "Derive %s is neither Checked nor Conditional (%s)", x->items[1]->text, dc_status_name(st)); return -1; }
     return d;
 }
 
@@ -170,6 +171,8 @@ Sx *dc_req_then(DcRun *r, const Sx *q, int slot) {
         dc_form("Value", dc_form("ComposedArrow", dc_form("Source", dc_sym(A.src_id), NULL), dc_form("Target", dc_sym(A.tgt_id), NULL),
                 dc_form("Kind", dc_sym(A.surjective ? "Quotient" : "Homomorphism"), NULL), NULL), NULL),
         dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("rule"), NULL), dc_form("Rule", dc_sym("Composition"), NULL), table, NULL), NULL), NULL);
+    /* Boundary 2: the composed result carries the union of both premises' assumptions. */
+    for (int k = 0; k < 2; k++) dc_result_add_premise(res, r->memo[d[k]], m->der[d[k]].name);
     if (slot >= 0) { r->arrow[slot] = A; r->arrow_kind[slot] = 3; } else free(A.table);
     return res;
 }

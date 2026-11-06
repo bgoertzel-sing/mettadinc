@@ -115,3 +115,79 @@ DcStatus dc_distance_status(int has_lo, double lo, int has_hi, double hi, double
     if (precision <= 0) return hi == lo ? DC_CHECKED : DC_UNKNOWN;
     return hi - lo <= precision ? DC_CHECKED : DC_UNKNOWN;
 }
+
+/* ---- 2b. assumptions, agreed_by, Accepts ---- */
+static int all_atoms(const Sx *a, size_t from) {
+    for (size_t k = from; k < a->n; k++) if (a->items[k]->kind == SX_LIST) return 0;
+    return 1;
+}
+int dc_assumption_wellformed(const Sx *a, char *why, size_t wn) {
+    if (!a || a->kind != SX_LIST || a->n == 0) { snprintf(why, wn, "assumption: expected a form"); return 0; }
+    if (sx_head_is(a, "TrustedBackend")) {
+        if (a->n != 5 || !all_atoms(a, 1)) { snprintf(why, wn, "TrustedBackend: expected solver version logic obligation-digest"); return 0; }
+        return 1;
+    }
+    if (sx_head_is(a, "Assumption")) {
+        if (a->n != 3 || !all_atoms(a, 1)) { snprintf(why, wn, "Assumption: expected name digest"); return 0; }
+        return 1;
+    }
+    if (sx_head_is(a, "EstimatedPremise")) {
+        if (a->n != 3 || !all_atoms(a, 1)) { snprintf(why, wn, "EstimatedPremise: expected result-digest delta"); return 0; }
+        return 1;
+    }
+    snprintf(why, wn, "assumption: unknown kind %s", a->items[0]->kind == SX_LIST ? "(list)" : a->items[0]->text);
+    return 0;
+}
+const Sx *dc_result_assumptions(const Sx *env) {
+    return env && env->kind == SX_LIST ? sx_find(env, "Assumptions", 0) : NULL;
+}
+void dc_assumptions_union(Sx *dst, const Sx *src) {
+    if (!dst || !src) return;
+    for (size_t k = 1; k < src->n; k++) {
+        int have = 0;
+        for (size_t j = 1; j < dst->n && !have; j++) have = sx_equal(dst->items[j], src->items[k]);
+        if (!have) sx_push(dst, sx_copy(src->items[k]));
+    }
+}
+Sx *dc_agreed_by(const char *const *solver, const char *const *version, size_t n) {
+    Sx *l = sx_list(); sx_push(l, sx_sym("AgreedBy"));
+    for (size_t k = 0; k < n; k++) {
+        Sx *b = sx_list(); sx_push(b, sx_sym("Backend")); sx_push(b, sx_sym(solver[k])); sx_push(b, sx_sym(version[k]));
+        sx_push(l, b);
+    }
+    return l;
+}
+int dc_accepts_parse(const Sx *x, DcAccepts *a, char *why, size_t wn) {
+    memset(a, 0, sizeof *a);
+    if (!sx_head_is(x, "Accepts") || x->n < 2) { snprintf(why, wn, "Accepts: expected (Accepts status...)"); return -1; }
+    for (size_t k = 1; k < x->n; k++) {
+        const Sx *e = x->items[k];
+        if (sx_is_sym(e, "Checked")) { a->checked = 1; continue; }
+        if (sx_head_is(e, "Conditional") && e->n == 2 && sx_head_is(e->items[1], "TrustedBackend")
+            && e->items[1]->n == 2 && e->items[1]->items[1]->kind == SX_SYM) {
+            if (a->nbackend == DC_ACCEPTS_MAX) { snprintf(why, wn, "Accepts: too many backends"); return -1; }
+            snprintf(a->backend[a->nbackend++], sizeof a->backend[0], "%s", e->items[1]->items[1]->text);
+            continue;
+        }
+        snprintf(why, wn, "Accepts: entry %zu is neither Checked nor (Conditional (TrustedBackend solver))", k);
+        return -1;
+    }
+    return 0;
+}
+int dc_accepts_result(const DcAccepts *a, DcStatus st, const Sx *as) {
+    size_t n = as ? as->n : 0;
+    if (st == DC_CHECKED) return a->checked && n <= 1;
+    if (st != DC_CONDITIONAL || n <= 1) return 0;
+    for (size_t k = 1; k < n; k++) {
+        const Sx *x = as->items[k]; int ok = 0;
+        if (sx_head_is(x, "TrustedBackend") && x->n == 5)
+            for (size_t b = 0; b < a->nbackend && !ok; b++) ok = !strcmp(a->backend[b], x->items[1]->text);
+        if (!ok) return 0;
+    }
+    return 1;
+}
+size_t dc_gate_inadequate(const DcAccepts *a, const DcStatus *st, const Sx *const *as, size_t n) {
+    size_t bad = 0;
+    for (size_t k = 0; k < n; k++) bad += !dc_accepts_result(a, st[k], as ? as[k] : NULL);
+    return bad;
+}

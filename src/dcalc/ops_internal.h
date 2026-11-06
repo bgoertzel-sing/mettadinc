@@ -36,4 +36,6 @@ Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subj
                 Sx *value, Sx *evidence, const char *reason);
 Sx *dc_invalid(const DcModule *m, const char *fmt, ...);
 Sx *dc_unsupported(const DcModule *m, const char *fmt, ...);
+/* Boundary 2: union a premise's assumptions into a derived result (ops_core.c). */
+void dc_result_add_premise(Sx *res, const Sx *premise, const char *premise_name);
 #endif
