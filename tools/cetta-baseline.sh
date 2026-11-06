@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 # Cetta baseline harness: is Cetta, the submodule checkout under cetta/ (pinned in docs/CETTA-PIN.md), still "green" in the sense of Ben's decision 2
-# (README "Decisions", item 2): no regression against E0's frozen baseline at Cetta 12da03b4?
+# (README "Decisions", item 2): no regression against the frozen baseline in tools/cetta-baseline.expected?
+#
+# The frozen baseline: until commit 87ebf79 it was E0's at Cetta 12da03b4 (derived from E0's logs, never from a new run).
+# Since the pin moved to 4c285a97 (hive t-2026-11-06-mettadinc-cetta-pin-latest, answer 2) it is the run
+# evidence/cetta-pin-latest/cetta-baseline/latest-run3-swipl, made WITH build overrides (MDINC_MAKE_ARGS) and SWI-Prolog
+# 9.2.9 on PATH (MDINC_SWIPL_DIR); see docs/CETTA-LATEST.md and the expected file's header.
 #
 # Builds the submodule checkout cetta/ (BUILD=core, then BUILD=python) in place and runs E0's three gates exactly as E0 ran them
 # (docs/e0/CETTA.md, steps 07, 08 and 10):
-#   rhocalc  make BUILD=core test-rhocalc                                  expected: 253 passed, 0 failed, exit 0
-#   core     make -k BUILD=core   test-correctness test-profiles           expected: 502 PASS / 6 SKIP / 1 FAIL (py-call)
-#   python   make -k BUILD=python test-correctness test-profiles           expected: 503 PASS / 6 SKIP / 0 FAIL
-# and compares each log with tools/cetta-baseline.expected (derived from E0's logs, never from a new run) using
-# tools/cetta_baseline_check.py.  Exit status: 0 green; 1 regression (a missing PASS, a new SKIP or FAIL line, a
-# new failed make target, or a changed rhocalc summary); 2 build or setup failure.
+#   rhocalc  make BUILD=core test-rhocalc                                  4c285a97: 285 passed, 0 failed, exit 0 (12da03b4: 253/0)
+#   core     make -k BUILD=core   test-correctness test-profiles           4c285a97: 704 PASS / 84 SKIP / 0 FAIL (12da03b4: 502/6/1)
+#   python   make -k BUILD=python test-correctness test-profiles           4c285a97: 709 PASS / 80 SKIP / 0 FAIL (12da03b4: 503/6/0)
+# and compares each log with tools/cetta-baseline.expected using tools/cetta_baseline_check.py.  Exit status: 0 green;
+# 1 regression (a missing PASS, a new SKIP or FAIL line, a new failed make target, or a changed rhocalc summary);
+# 2 build or setup failure.
 #
 # Mettapedia-dependent targets are excluded: METTAPEDIA_ROOT points at a path that must not exist, so the
-# Mettapedia-dependent checks take their SKIP branch (the six known skips) and test-he-compat-catalog-guards fails
-# at setup as in E0's run; that failure is an expected failed target in both lanes.  Note the consequence of
-# running E0's command unchanged: under make -k the recipes of targets that depend on catalog-guards (the
-# test-he-contract-suite and the aggregate "test" recipe that loops over tests/test_*.metta) do not run, in E0's
-# baseline or here.  Widening the gate is a change to decision 2's baseline, not something this script does.
+# Mettapedia-dependent checks take their SKIP branch.  Expected failed make targets are pinned in the expected file: at
+# 12da03b4 test-he-compat-catalog-guards (which hid the targets depending on it); at 4c285a97 test-test-target-scope
+# ("Argument list too long", upstream issue 6 in docs/CETTA-LATEST.md), which hides no other target.
 #
 # Environment (all optional):
 #   MDINC_GMP_PREFIX  a prefix holding GMP headers and libgmp.so when the system has no libgmp-dev, laid out as
@@ -132,6 +135,6 @@ say "cetta-baseline: comparison with tools/cetta-baseline.expected"
 python3 "$CHECK" compare "$EXPECTED" "$CETTA" rhocalc="$LOG/04_test_rhocalc.log" core="$LOG/05_test_core_k.log" \
   python="$LOG/08_test_python_k.log" | tee -a "$SUMMARY"
 st=${PIPESTATUS[0]}
-if [ "$st" -eq 0 ]; then say "RESULT: GREEN (no regression against E0's frozen baseline)"; exit 0; fi
+if [ "$st" -eq 0 ]; then say "RESULT: GREEN (no regression against the frozen baseline in tools/cetta-baseline.expected)"; exit 0; fi
 say "RESULT: NOT GREEN (regression, exit 1)"
 exit 1
