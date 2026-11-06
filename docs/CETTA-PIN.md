@@ -16,7 +16,10 @@ Cetta is a git submodule at `cetta/`, pinned to zariuq/CeTTa `main` as Zar asked
   errors). By the hive decision it is built with make command-line **build overrides** only (no Cetta file changed):
   `MDINC_MAKE_ARGS="PACK_RELATIVE_RELOCS= 'CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized'"`.
   The baseline is **green at 4c285a97 with build overrides (see [CETTA-LATEST.md](CETTA-LATEST.md))**, with SWI-Prolog
-  9.2.9 on PATH (`MDINC_SWIPL_DIR`) for the rhocalc lane. `tools/cetta-baseline.expected` was re-frozen (hive answer 2)
+  9.2.9 for the rhocalc lane: set `MDINC_SWIPL_DIR` to its install prefix (on pop-os
+  `$HOME/scratch/mettadinc-e0/swipl9/install`, built from source without sudo); `tools/cetta-baseline.sh` puts
+  `$MDINC_SWIPL_DIR/bin` first on PATH and records the swipl path and version in summary.txt and every lane log (unset,
+  it changes nothing, and the rhocalc lane fails unless a 9.x `swipl` is already on PATH). `tools/cetta-baseline.expected` was re-frozen (hive answer 2)
   from the run `evidence/cetta-pin-latest/cetta-baseline/latest-run3-swipl`: rhocalc 285 passed / 0 failed,
   core 704 PASS / 84 SKIP / 0 FAIL, python 709 / 80 / 0, with `test-test-target-scope` ("Argument list too long",
   upstream issue 6) frozen as the one expected failed target in core and python. Against it the harness is GREEN in all
