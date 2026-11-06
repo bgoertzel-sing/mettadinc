@@ -27,6 +27,12 @@
 #                       export MDINC_GMP_PREFIX=$PWD/root/usr
 #                     With sudo, "apt-get install libgmp-dev" makes this unnecessary.
 #   MDINC_JOBS        parallel build jobs (default 8); tests always run serially, as in E0's baseline
+#   MDINC_MAKE_ARGS   extra make command-line arguments, word-split and passed to every make below (recorded in
+#                     summary.txt).  On Ubuntu 22.04 (binutils 2.38, glibc 2.35) Cetta 4c285a97 needs
+#                     MDINC_MAKE_ARGS="PACK_RELATIVE_RELOCS=": its Makefile adds -Wl,-z,pack-relative-relocs whenever
+#                     the linker accepts it, and the binaries then need GLIBC_ABI_DT_RELR, which glibc 2.35 lacks, so
+#                     the first generated tool fails to start (docs/CETTA-LATEST.md).  This overrides a make variable on
+#                     the command line; it does not change Cetta's files.
 #   MDINC_BASELINE_LOGDIR  where logs go (default build/cetta-baseline/<UTC timestamp>, ignored by git)
 #
 # System packages used: bash, GNU make, gcc, python3 (with python3-config --embed for the python lane),
@@ -38,6 +44,7 @@ CETTA="$REPO/cetta"
 EXPECTED="$REPO/tools/cetta-baseline.expected"
 CHECK="$REPO/tools/cetta_baseline_check.py"
 JOBS=${MDINC_JOBS:-8}
+read -r -a MK <<< "${MDINC_MAKE_ARGS:-}"
 LOG=${MDINC_BASELINE_LOGDIR:-$REPO/build/cetta-baseline/$(date -u +%Y%m%dT%H%M%SZ)}
 mkdir -p "$LOG"
 SUMMARY="$LOG/summary.txt"
@@ -69,6 +76,7 @@ if git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1; then
 fi
 say "cetta-baseline: gcc $(gcc -dumpfullversion 2>/dev/null), $(make --version | head -1), $(python3 --version 2>&1)"
 say "cetta-baseline: logs in $LOG"
+say "cetta-baseline: extra make arguments (MDINC_MAKE_ARGS): ${MDINC_MAKE_ARGS:-none}"
 
 run(){ # run <name> <cmd...>: log the command, its output and EXIT=<status>
   local n=$1; shift
@@ -79,14 +87,14 @@ run(){ # run <name> <cmd...>: log the command, its output and EXIT=<status>
   return "$e"
 }
 
-run 01_doctor_gmp make BUILD=core doctor-gmp || die "GMP probe failed (see $LOG/01_doctor_gmp.log; set MDINC_GMP_PREFIX)"
-run 02_build_core make -j"$JOBS" BUILD=core || die "core build failed (see $LOG/02_build_core.log)"
+run 01_doctor_gmp make "${MK[@]}" BUILD=core doctor-gmp || die "GMP probe failed (see $LOG/01_doctor_gmp.log; set MDINC_GMP_PREFIX)"
+run 02_build_core make "${MK[@]}" -j"$JOBS" BUILD=core || die "core build failed (see $LOG/02_build_core.log)"
 run 03_version_core ./cetta --version; grep -q '(core)' "$LOG/03_version_core.log" || die "./cetta is not the core build"
-run 04_test_rhocalc make BUILD=core test-rhocalc
-run 05_test_core_k make -k BUILD=core test-correctness test-profiles
-run 06_build_python make -j"$JOBS" BUILD=python || die "python build failed (see $LOG/06_build_python.log)"
+run 04_test_rhocalc make "${MK[@]}" BUILD=core test-rhocalc
+run 05_test_core_k make "${MK[@]}" -k BUILD=core test-correctness test-profiles
+run 06_build_python make "${MK[@]}" -j"$JOBS" BUILD=python || die "python build failed (see $LOG/06_build_python.log)"
 run 07_version_python ./cetta --version; grep -q '(python)' "$LOG/07_version_python.log" || die "./cetta is not the python build"
-run 08_test_python_k make -k BUILD=python test-correctness test-profiles
+run 08_test_python_k make "${MK[@]}" -k BUILD=python test-correctness test-profiles
 
 say "cetta-baseline: comparison with tools/cetta-baseline.expected"
 python3 "$CHECK" compare "$EXPECTED" "$CETTA" rhocalc="$LOG/04_test_rhocalc.log" core="$LOG/05_test_core_k.log" \
