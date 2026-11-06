@@ -1,7 +1,9 @@
 #!/bin/sh
 # AC7: one command builds the MeTTaDinC M0 core and runs every M0 test.
 #   tools/dcalc-run-all.sh        (CC/AR from PATH; gcc 11+ or zig cc)
-# Exit 0 iff the build and all suites pass.
+# Exit 0 iff the build and all suites pass.  The last step builds a patched
+# scratch CeTTa (tools/dcalc-cetta-smoke.sh) and runs the MeTTa smoke tests;
+# CETTA_CFLAGS passes extra flags (e.g. -Wno-error=... for gcc 11).
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT" || exit 2
@@ -14,5 +16,6 @@ step test_boundaries;  $CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/te
 step check_claims;     python3 tests/dcalc/check_claims.py | tail -4 || rc=1
 step negative_suite;   python3 tests/dcalc/negative/run_negative.py || rc=1
 step mutation;         python3 tests/dcalc/mutate.py || rc=1
+step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_CETTA=1)"; else tools/dcalc-cetta-smoke.sh || rc=1; fi
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc

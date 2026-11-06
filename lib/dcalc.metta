@@ -13,13 +13,13 @@
 ;; where S is one of Checked Refuted Conditional Estimated Unknown
 ;; Unsupported InvalidInput, assigned by the core's single assurance policy.
 ;; The request argument is data: CeTTa hands it to the core unevaluated
-;; (grounded_dispatch_accepts_data_arg exception for __cetta_lib_dcalc_run / __cetta_lib_dcalc_run_file).
+;; (grounded_dispatch_accepts_data_arg exception for dcalc:run / dcalc:run-file).
 
 (: dc.run-file (-> String Symbol Atom Atom))
-(= (dc.run-file $path $module $request) (__cetta_lib_dcalc_run_file $path $module $request))
+(= (dc.run-file $path $module $request) (dcalc:run-file $path $module $request))
 
 (: dc.run-source (-> String Symbol Atom Atom))
-(= (dc.run-source $source $module $request) (__cetta_lib_dcalc_run $source $module $request))
+(= (dc.run-source $source $module $request) (dcalc:run $source $module $request))
 
 ;; Field access on an envelope, by head symbol.
 (: dc.field (-> Atom Symbol Atom))
