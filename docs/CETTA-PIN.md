@@ -15,10 +15,16 @@ Cetta is a git submodule at `cetta/`, pinned to zariuq/CeTTa `main` as Zar asked
 - **Status 2026-11-06: 4c285a97 does not build unmodified with gcc on pop-os** (DT_RELR link probe; gcc 11 `-Werror`
   errors). By the hive decision it is built with make command-line **build overrides** only (no Cetta file changed):
   `MDINC_MAKE_ARGS="PACK_RELATIVE_RELOCS= 'CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized'"`.
-  With them it builds and all lanes run, but it is **not green**: the rhocalc lane needs SWI-Prolog 9.x and
-  `test-test-target-scope` fails with "Argument list too long". Details, counts, the by-name list and the upstream
-  issues for Zar: [CETTA-LATEST.md](CETTA-LATEST.md). `tools/cetta-baseline.expected` is still the 12da03b4 baseline
-  pending a decision on what to freeze; the harness's default (no MDINC_MAKE_ARGS) remains the unmodified build.
+  The baseline is **green at 4c285a97 with build overrides (see [CETTA-LATEST.md](CETTA-LATEST.md))**, with SWI-Prolog
+  9.2.9 on PATH (`MDINC_SWIPL_DIR`) for the rhocalc lane. `tools/cetta-baseline.expected` was re-frozen (hive answer 2)
+  from the run `evidence/cetta-pin-latest/cetta-baseline/latest-run3-swipl`: rhocalc 285 passed / 0 failed,
+  core 704 PASS / 84 SKIP / 0 FAIL, python 709 / 80 / 0, with `test-test-target-scope` ("Argument list too long",
+  upstream issue 6) frozen as the one expected failed target in core and python. Against it the harness is GREEN in all
+  three lanes, and a broken test turns it RED (`evidence/cetta-pin-latest/`, run4/run5). Every test that was green at
+  12da03b4 and is not green now is named in CETTA-LATEST.md and MISSING.md, with the upstream issues for Zar. The
+  harness's default (no MDINC_MAKE_ARGS) remains the unmodified build, which does not build on pop-os at this pin.
+  A green rhocalc run rewrites the tracked file `direct_runtime_lock_v1.metta` (upstream issue 7), so restore it
+  (`git -C cetta checkout -- .`) before the pin check below.
 
 ## Fetching it
 
