@@ -1,0 +1,169 @@
+From 514b554c502351416cd2cf8e69891f3691c81c5e Mon Sep 17 00:00:00 2001
+From: ProtoMegaBot2 <protomega2@hive.local>
+Date: Fri, 6 Nov 2026 12:50:37 +0000
+Subject: [PATCH] dcalc: register MeTTaDinC M0 core as native module (import
+ bit 23, provisional)
+
+Adds src/library_dcalc.{h,c} (CETTA_NATIVE_IMPORT_DCALC defined once),
+a g_native_modules entry, a grounded_dispatch_accepts_data_arg exception
+for the request argument, and a DCALC_DIR Makefile block.
+Against zariuq/CeTTa 4c285a97. Local only; not pushed.
+---
+ Makefile                |  8 ++++++-
+ native/native_modules.c |  2 ++
+ src/eval.c              |  6 +++++
+ src/library_dcalc.c     | 51 +++++++++++++++++++++++++++++++++++++++++
+ src/library_dcalc.h     | 20 ++++++++++++++++
+ 5 files changed, 86 insertions(+), 1 deletion(-)
+ create mode 100644 src/library_dcalc.c
+ create mode 100644 src/library_dcalc.h
+
+diff --git a/Makefile b/Makefile
+index d957a450..46621e5a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -689,7 +689,7 @@ PROC_FORK_SPAWN_CPPFLAGS =
+ ifeq ($(CETTA_PROC_FORK_SPAWN),1)
+ PROC_FORK_SPAWN_CPPFLAGS = -DCETTA_PROC_FORK_SPAWN=1
+ endif
+-CPPFLAGS = -Isrc -I. -Iexperiments/gslt2parse_foundation/native $(BRIDGE_CFLAGS) $(PY_CFLAGS) $(GMP_CFLAGS) $(LIB_PROLOG_CFLAGS) $(HTTP_CFLAGS) $(DURABLE_CFLAGS) $(PROVENANCE_CPPFLAGS) $(PRIME_RECEIPT_INDEX_CPPFLAGS) $(PRIME_NEED_HEAP_INDEX_CPPFLAGS) $(PRIME_NEED_CLOSURE_CAPTURE_CPPFLAGS) $(PRIME_EVAL_STACK_CPPFLAGS) $(PROC_FORK_SPAWN_CPPFLAGS) -include $(BUILD_CONFIG_HEADER)
++CPPFLAGS = -Isrc -I. $(CPPFLAGS_DCALC) -Iexperiments/gslt2parse_foundation/native $(BRIDGE_CFLAGS) $(PY_CFLAGS) $(GMP_CFLAGS) $(LIB_PROLOG_CFLAGS) $(HTTP_CFLAGS) $(DURABLE_CFLAGS) $(PROVENANCE_CPPFLAGS) $(PRIME_RECEIPT_INDEX_CPPFLAGS) $(PRIME_NEED_HEAP_INDEX_CPPFLAGS) $(PRIME_NEED_CLOSURE_CAPTURE_CPPFLAGS) $(PRIME_EVAL_STACK_CPPFLAGS) $(PROC_FORK_SPAWN_CPPFLAGS) -include $(BUILD_CONFIG_HEADER)
+ CFLAGS = -O3 -Wall -Werror -std=c11 -pthread
+ DEPFLAGS = -MMD -MP
+ # Libraries a binary does not use are not recorded as its dependencies, with
+@@ -786,6 +786,12 @@ SRC += src/binary_codec.c src/library_binary.c
+ SRC += src/library_heap.c
+ SRC += src/library_work.c
+ SRC += src/library_dag.c
++# MeTTaDinC M0 core (native module "dcalc").  DCALC_DIR is the mettadinc
++# src/dcalc directory; the default assumes CeTTa is the mettadinc submodule.
++DCALC_DIR ?= ../src/dcalc
++DCALC_CORE_SRC = sexp.c sha256.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c
++SRC += src/library_dcalc.c $(addprefix $(DCALC_DIR)/,$(DCALC_CORE_SRC))
++CPPFLAGS_DCALC = -I$(DCALC_DIR)
+ SRC += src/u64_index.c
+ SRC += src/library_syntax.c
+ SRC += src/str_stream.c
+diff --git a/native/native_modules.c b/native/native_modules.c
+index 73e6a36e..a55ba544 100644
+--- a/native/native_modules.c
++++ b/native/native_modules.c
+@@ -14,6 +14,7 @@
+ #include "library_heap.h"
+ #include "library_work.h"
+ #include "library_dag.h"
++#include "library_dcalc.h"
+ #include "library_syntax.h"
+ #include "lib_parse_inference_native.h"
+ #include "lib_parse_native_grammar.h"
+@@ -1238,6 +1239,7 @@ static const CettaNativeBuiltinModule g_native_modules[] = {
+     {"binary", CETTA_NATIVE_IMPORT_BINARY, NULL, "binary:", cetta_binary_module_call, NULL},
+     {"heap", CETTA_NATIVE_IMPORT_HEAP, NULL, "heap:", cetta_heap_module_call, NULL},
+     {"dag", CETTA_NATIVE_IMPORT_DAG, NULL, "dag:", cetta_dag_module_call, NULL},
++    {"dcalc", CETTA_NATIVE_IMPORT_DCALC, NULL, "__cetta_lib_dcalc_", cetta_dcalc_module_call, NULL},
+     {"syntax", CETTA_NATIVE_IMPORT_SYNTAX, NULL, "syntax:", cetta_syntax_module_call, NULL},
+     {"work", CETTA_NATIVE_IMPORT_WORK, NULL, "work:", cetta_work_module_call,
+      "work-new work-take work-budget work-cancel work-record work-route work-count work-exists"},
+diff --git a/src/eval.c b/src/eval.c
+index 92928609..8bd31ba6 100644
+--- a/src/eval.c
++++ b/src/eval.c
+@@ -4260,6 +4260,12 @@ static bool grounded_dispatch_accepts_data_arg(Atom *head, uint32_t arg_index) {
+      * grammar rules, not host operations.  Every argument of a printer is a
+      * value (grammar, reader, rule, term), so the whole contract is data and
+      * the PeTTa machine hands the call to the evaluator unevaluated. */
++    /* MeTTaDinC native module (library_dcalc.c): the request of __cetta_lib_dcalc_run and
++     * __cetta_lib_dcalc_run_file is a calculus term, data for the core, never a MeTTa call. */
++    if (name && arg_index == 2u &&
++        (strcmp(name, "__cetta_lib_dcalc_run") == 0 ||
++         strcmp(name, "__cetta_lib_dcalc_run_file") == 0))
++        return true;
+     if (name && arg_index <= 2u &&
+         strcmp(name, "__cetta_lib_tptp_reader_canonical_print_v1") == 0)
+         return true;
+diff --git a/src/library_dcalc.c b/src/library_dcalc.c
+new file mode 100644
+index 00000000..20408802
+--- /dev/null
++++ b/src/library_dcalc.c
+@@ -0,0 +1,51 @@
++/* Native module "dcalc": thin bridge from CeTTa atoms to the MeTTaDinC core
++ * (mettadinc src/dcalc, api.h).  Arguments are data: the request is printed
++ * as written and handed to the core unevaluated (see the eval.c exception). */
++#include "library_dcalc.h"
++#include "atom.h"
++#include "parser.h"
++/* From mettadinc src/dcalc/api.h.  Declared here so the stage0 rule, which
++ * does not take CPPFLAGS, needs no extra include path. */
++char *dc_eval_text(const char *source, const char *basedir, const char *module, const char *request);
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++static const char *string_arg(Atom *a) {
++    return a && a->kind == ATOM_GROUNDED && a->ground.gkind == GV_STRING ? a->ground.sval : NULL;
++}
++
++static char *slurp(const char *path) {
++    FILE *f = fopen(path, "rb"); if (!f) return NULL;
++    fseek(f, 0, SEEK_END); long n = ftell(f); fseek(f, 0, SEEK_SET);
++    if (n < 0) { fclose(f); return NULL; }
++    char *b = malloc((size_t)n + 1); if (!b) { fclose(f); return NULL; }
++    size_t got = fread(b, 1, (size_t)n, f); b[got] = 0; fclose(f); return b;
++}
++
++bool cetta_dcalc_module_call(struct CettaLibraryContext *context, struct Space *space,
++        Arena *arena, Atom *head, Atom **args, uint32_t count, CettaCallOutcome *out) {
++    (void)context; (void)space;
++    if (!head || head->kind != ATOM_SYMBOL || count != 3u) return false;
++    const char *name = atom_name_cstr(head);
++    bool from_file = !strcmp(name, "__cetta_lib_dcalc_run_file");
++    if (!from_file && strcmp(name, "__cetta_lib_dcalc_run")) return false;
++    const char *s = string_arg(args[0]);
++    if (!s || !args[1] || args[1]->kind != ATOM_SYMBOL) return false;
++    char *owned = NULL, basedir[1024] = ".";
++    if (from_file) {
++        owned = slurp(s); if (!owned) return false;
++        snprintf(basedir, sizeof basedir, "%s", s);
++        char *slash = strrchr(basedir, '/'); if (slash) *slash = 0; else snprintf(basedir, sizeof basedir, ".");
++    }
++    char *request = atom_to_parseable_string(arena, args[2]);
++    char *env = dc_eval_text(owned ? owned : s, basedir, atom_name_cstr(args[1]), request);
++    free(owned);
++    if (!env) return false;
++    size_t pos = 0;
++    Atom *result = parse_sexpr(arena, env, &pos);
++    free(env);
++    if (!result) return false;
++    *out = cetta_call_completed_value(result);
++    return true;
++}
+diff --git a/src/library_dcalc.h b/src/library_dcalc.h
+new file mode 100644
+index 00000000..047e174c
+--- /dev/null
++++ b/src/library_dcalc.h
+@@ -0,0 +1,20 @@
++#ifndef CETTA_LIBRARY_DCALC_H
++#define CETTA_LIBRARY_DCALC_H
++/* MeTTaDinC M0 core as a native CeTTa module (import name "dcalc").
++ * Heads use the __cetta_lib_ prefix so the evaluator classifies them as
++ * library-native operations (grounded.c grounded_op_is_library_native).
++ * The core lives in the mettadinc repository (src/dcalc); this file is the
++ * only CeTTa-side definition of its import bit.  Bit 23 is PROVISIONAL: it
++ * was unused at CeTTa 4c285a97 and must be re-checked when the pin moves. */
++#include "call_outcome.h"
++struct CettaLibraryContext;
++struct Space;
++#define CETTA_NATIVE_IMPORT_DCALC (1u << 23)
++/* __cetta_lib_dcalc_run <source:String> <module:Symbol> <request:Expression|Symbol>
++ *   -> the result envelope (Result (Status S) ...) as an expression.
++ * __cetta_lib_dcalc_run_file <path:String> <module:Symbol> <request>
++ *   -> same, reading the module source from a file (Stream sources resolve
++ *      relative to the file's directory). */
++bool cetta_dcalc_module_call(struct CettaLibraryContext *, struct Space *, Arena *,
++    Atom *, Atom **, uint32_t, CettaCallOutcome *);
++#endif
+-- 
+2.34.1
+

@@ -1,0 +1,46 @@
+/* Request dispatcher and memoised Derive evaluation. */
+#include "ops_internal.h"
+#include "ops_run.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static Sx *dispatch(DcRun *r, const Sx *q, int slot);
+
+const Sx *dc_run_derive(DcRun *r, int slot) {
+    if (r->memo[slot]) return r->memo[slot];
+    if (r->busy[slot]) return NULL;   /* caller turns a cycle into InvalidInput */
+    r->busy[slot] = 1;
+    Sx *res = dispatch(r, r->m->der[slot].request, slot);
+    r->busy[slot] = 0;
+    r->memo[slot] = res;
+    return res;
+}
+
+/* M0 request heads.  Every other head is reported as Unsupported. */
+static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
+    DcModule *m = r->m;
+    if (q->kind == SX_SYM) {
+        int d = dc_find_derive(m, q->text);
+        if (d < 0) return dc_invalid(m, "request: names no declared Derive (%s)", q->text);
+        if (r->busy[d]) return dc_invalid(m, "Derive %s: cyclic reference", q->text);
+        const Sx *res = dc_run_derive(r, d);
+        return res ? sx_copy(res) : dc_invalid(m, "Derive %s: cyclic reference", q->text);
+    }
+    if (q->kind != SX_LIST || q->n == 0 || q->items[0]->kind != SX_SYM)
+        return dc_invalid(m, "request: expected (Head args...) or a Derive name");
+    const char *h = q->items[0]->text;
+    if (m->profile_unsupported[0]) return dc_unsupported(m, "request %s: %s", h, m->profile_unsupported);
+    if (!strcmp(h, "MeasureNow")) return dc_req_measure_now(r, q);
+    if (!strcmp(h, "CheckUpdates")) return dc_req_check_updates(r, q);
+    if (!strcmp(h, "CheckNow")) return dc_req_check_now(r, q);
+    if (!strcmp(h, "InduceExact")) return dc_req_induce_exact(r, q, slot);
+    if (!strcmp(h, "CheckAbstractionMap")) return dc_req_check_abs(r, q, slot);
+    if (!strcmp(h, "Then")) return dc_req_then(r, q, slot);
+    return dc_unsupported(m, "request %s is outside the M0 fragment", h);
+}
+
+Sx *dc_run(DcRun *r, const Sx *q) {
+    if (!q) return dc_invalid(r ? r->m : NULL, "request: missing");
+    return dispatch(r, q, -1);
+}
