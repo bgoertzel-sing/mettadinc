@@ -27,12 +27,12 @@
 #                       export MDINC_GMP_PREFIX=$PWD/root/usr
 #                     With sudo, "apt-get install libgmp-dev" makes this unnecessary.
 #   MDINC_JOBS        parallel build jobs (default 8); tests always run serially, as in E0's baseline
-#   MDINC_MAKE_ARGS   extra make command-line arguments, word-split and passed to every make below (recorded in
-#                     summary.txt).  Example: on Ubuntu 22.04 (binutils 2.38, glibc 2.35) Cetta 4c285a97's Makefile adds
-#                     -Wl,-z,pack-relative-relocs because the linker accepts it, and the binaries then need
-#                     GLIBC_ABI_DT_RELR, which glibc 2.35 lacks; MDINC_MAKE_ARGS="PACK_RELATIVE_RELOCS=" turns that off
-#                     from the command line without changing Cetta's files.  It is not enough on its own for 4c285a97:
-#                     see docs/CETTA-LATEST.md.
+#   MDINC_MAKE_ARGS   extra make command-line arguments, split with shell quoting rules (Python shlex, never eval'd)
+#                     and passed to every make below; recorded in summary.txt.  Unset (the default) means an
+#                     unmodified Cetta build, as before.  The 4c285a97 baseline in tools/cetta-baseline.expected was
+#                     produced WITH build overrides on Ubuntu 22.04 (gcc 11.4, ld 2.38, glibc 2.35); the exact string
+#                     is in docs/CETTA-LATEST.md ("Build overrides") and in the expected file's header.  Note that a
+#                     CFLAGS=... make argument replaces the Makefile's CFLAGS, so it must repeat the Makefile's flags.
 #   MDINC_BASELINE_LOGDIR  where logs go (default build/cetta-baseline/<UTC timestamp>, ignored by git)
 #
 # System packages used: bash, GNU make, gcc, python3 (with python3-config --embed for the python lane),
@@ -44,7 +44,12 @@ CETTA="$REPO/cetta"
 EXPECTED="$REPO/tools/cetta-baseline.expected"
 CHECK="$REPO/tools/cetta_baseline_check.py"
 JOBS=${MDINC_JOBS:-8}
-read -r -a MK <<< "${MDINC_MAKE_ARGS:-}"
+MK=()
+if [ -n "${MDINC_MAKE_ARGS:-}" ]; then
+  MK_WORDS=$(python3 -c 'import os, shlex; [print(w) for w in shlex.split(os.environ["MDINC_MAKE_ARGS"])]') \
+    || { echo "cetta-baseline: MDINC_MAKE_ARGS does not parse with shell quoting rules" >&2; exit 2; }
+  mapfile -t MK <<< "$MK_WORDS"
+fi
 LOG=${MDINC_BASELINE_LOGDIR:-$REPO/build/cetta-baseline/$(date -u +%Y%m%dT%H%M%SZ)}
 mkdir -p "$LOG"
 SUMMARY="$LOG/summary.txt"
@@ -77,6 +82,12 @@ fi
 say "cetta-baseline: gcc $(gcc -dumpfullversion 2>/dev/null), $(make --version | head -1), $(python3 --version 2>&1)"
 say "cetta-baseline: logs in $LOG"
 say "cetta-baseline: extra make arguments (MDINC_MAKE_ARGS): ${MDINC_MAKE_ARGS:-none}"
+for w in "${MK[@]}"; do say "cetta-baseline:   make argument: [$w]"; done
+EXP_ARGS=$(sed -n 's/^# Build overrides (MDINC_MAKE_ARGS): //p' "$EXPECTED" | head -1)
+if [ -n "$EXP_ARGS" ] && [ "$EXP_ARGS" != "${MDINC_MAKE_ARGS:-}" ]; then
+  say "cetta-baseline: NOTE: tools/cetta-baseline.expected was produced with build overrides MDINC_MAKE_ARGS=$EXP_ARGS"
+  say "cetta-baseline: NOTE: this run uses MDINC_MAKE_ARGS=${MDINC_MAKE_ARGS:-none}; see docs/CETTA-LATEST.md"
+fi
 
 run(){ # run <name> <cmd...>: log the command, its output and EXIT=<status>
   local n=$1; shift
