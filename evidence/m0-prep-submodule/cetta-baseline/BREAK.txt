@@ -1,0 +1,1 @@
+echo "deliberately broken by the m0-prep-submodule break-a-test check" >> cetta/tests/rhocalc/translate_rho_to_mrho.expected   (before run2, in the submodule checkout); git -C cetta checkout -- tests/rhocalc/translate_rho_to_mrho.expected   (after run2)

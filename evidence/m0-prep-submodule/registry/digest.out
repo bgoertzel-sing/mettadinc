@@ -1,0 +1,4 @@
+$ cat registry/DIGEST; sha256sum registry/mettadinc_registry.json
+fc046d14efaccb9bf9a3aefa1edbc06b4b110a54d316f2e954e6d339b69f3f61  mettadinc_registry.json
+fc046d14efaccb9bf9a3aefa1edbc06b4b110a54d316f2e954e6d339b69f3f61  registry/mettadinc_registry.json
+exit 0

@@ -1,0 +1,58 @@
+ok   free cells per robot
+ok   symmetries of the progress responses (A, B, C)
+ok   cells with identical response rows
+ok   calibrated pullbacks AB, BC, CA
+ok   learned CA (first exact candidate in element order)
+ok   FindTransfers C A: the exact candidates among the eight frame changes
+ok   learned CA = calibrated CA after A's up-down mirror
+ok   AB, BC, CA, CAcal are exact
+ok   NaiveAB: defect (reward-law TV, expected reward)
+ok   NaiveAB: canonical witness (B cell, A command, B command, A response, B response)
+ok   NaiveAB: optimal values still agree
+ok   round-trip holonomy at A (state part, method part)
+ok   round trip with the calibrated CA
+ok   gauge {id, mh} at A transported: to B, to C, back to A
+ok   Strict: refuted by the holonomy (element, least moved cell and its image)
+ok   FullGauge: coherent
+ok   Copied: refuted on intertwining at AB (B's mh corresponds to A's mv)
+ok   Transported (and GaugeFrom A): coherent
+ok   unsaturated derived hive: coherent?, least transitivity witness
+ok   unsaturated derived hive: consensus cost of closure
+ok   holonomy kernel above A's tolerance: pairs, least pair
+ok   saturated derived hive, gauges FullGauge: coherent?, witness
+ok   saturated derived hive, gauges Copied: coherent?, witness
+ok   saturated derived hive, gauges Transported: coherent?, witness
+ok   round-trip skill: cells where it changed
+ok   round-trip skill: same response at every cell
+ok   transported skills earn the source responses at B and C
+ok   TransportSkill contract: a round-trip skill earns at each cell what the original earns at the mirrored cell (greedy, always-up)
+ok   always-up sent around the loop comes back as always-down
+ok   always-up: rewards at the same cell before and after the round trip, cells (3,2) and (1,2)
+ok   always-up: cells where the same-cell reward changes (count, least)
+ok   reward profile invariant under the holonomy (greedy, always-up)
+ok   always-up: mean reward under the uniform law on A's cells (invariant under the mirror), before and after; and from the cell (3,2) alone
+ok   symmetries of the docking responses (A, B, C)
+ok   docking: AB and BC still exact
+ok   docking: old CA defect (TV, expected reward)
+ok   docking: old CA canonical witness
+ok   docking: re-learned CA
+ok   docking: the exact C-to-A candidates
+ok   re-learned CA = calibrated CA after A's left-right mirror
+ok   docking: holonomy with the re-learned CA
+ok   docking gauge {id, mv} at A transported to B and C
+ok   StaleGauge: refuted on a gauge symmetry at A
+ok   StaleGauge: FlipUD-A is not a docking symmetry (least cell, command, response, mirrored response)
+ok   OldLibrary: refuted on the CA edge
+ok   Docking: coherent
+ok   docking: saturated derived hive coherent
+ok   docking: unsaturated derived hive incoherent, closure cost
+ok   pallet: states of Cp
+ok   pallet: A to Cp defect (TV, expected reward)
+ok   pallet: canonical witness above 1/4 (Cp cell, A command, Cp command, responses)
+ok   pallet: composite A->B->Cp defect equals the bound 0 + 1/2, and equals A->Cp
+ok   pallet: the reverse pullback Cp->A leaves Cp's carrier at A's cell
+ok   pallet: state-command pairs where A's response differs from Cp's under ACp
+ok   module: the method systems of skill_share.metta (free cells and responses) are the model's robots (progress, docking, pallet bay)
+ok   module: the transfers of the three modules are the model's (pullback on target cells, pushforward on commands)
+ok   module: the declared symmetries and the two skills are the model's
+57 checks passed, 0 failed, 7.3 s

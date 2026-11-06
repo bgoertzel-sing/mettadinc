@@ -1,0 +1,8 @@
+pin (docs/CETTA-PIN.md):  12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink HEAD:cetta:       12da03b4b055bfecff2add505e7e1ad4125bb352
+gitlink: equals the pin
+checkout cetta/ HEAD:     12da03b4b055bfecff2add505e7e1ad4125bb352
+checkout: at the pin
+checkout: NOT clean:
+ M tests/rhocalc/translate_rho_to_mrho.expected
+exit 1

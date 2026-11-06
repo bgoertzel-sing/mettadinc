@@ -1,0 +1,103 @@
+== Part A: the simulated deployment, the estimates and the Z3 obligations
+ok   A1 every frozen stream is reproduced byte for byte from the seed
+ok   A1 the module pins the ten streams it reads by their digests
+ok   A4 without the rollback: Part II's monitor would fire at receipt 524 on day 30 and the changepoint monitor at receipt 399 on day 23; stale proposals on days 24-30 without the rollback, in the run, and the difference
+ok   A2 the run: items (weekdays), keys, duplicate keys, replies, spurious closings, paraphrases, audited items
+ok   A2 the journal and the logs: notes of the eight weeks, event-design proposals (per day), window-design proposals
+ok   A2 replies and reply receipts: replies before day 56, receipts, replies to items older than seven days at the next cycle, replies after the last cycle; closure receipts
+ok   A3 the regression: alarm day and receipt, hours from the update, receipts and stale ones since the update
+ok   A3 the confirmation fixed in advance: replies received after the alarm's receipts and audited the next morning, missed, interval at level 0.01, confirmed (lower end above 1/20)
+ok   A3 the targeted audit of all replies since the update: replies, received before the alarm's cycle, among them the replies of the receipts that raised the alarm
+ok   A3 the rollback at day 24 noon: replies during v2, missed by v2, recovered by the re-parse
+ok   A3 only one alarm in eight weeks
+ok   A4 Part II's mixture monitor (Ville scheme) never fires: largest value and where, log value at the update, at the alarm and at the end
+ok   A4 the Shiryaev-Roberts mixture: log value at the update and at the alarm (threshold log 100,000 = 11.51)
+ok   A4 the last receipt for a reply received before the update, and the first after it
+ok   A4 the restarted monitor: first receipt it read, receipts no monitor read, receipts read, largest value and its logarithm
+ok   A4 the days of receipts 399, 400, 404, 405, 419 and 420: the alarm's batch, the batch of day 24, the first batch after the rollback
+ok   A5 reply receipts before the update: stale, receipts, interval at level 0.01
+ok   A5 targeted audit of the replies since the update: missed, audited, interval
+ok   A5 the confirmation stream (replies after the alarm's receipts): missed, audited, interval, as the rule in the loop
+ok   A5 the interval before the update and the audit's interval do not overlap
+ok   A5 gate E1: reply receipts days 28-55: stale, receipts, interval (upper end below 1/20)
+ok   A5 gate E2: keys first proposed days 28-55: duplicates, keys, interval (upper end below 1/20)
+ok   A5 gate E3: lifetime receipts of keys whose decisions all fall in the window: window worse only, event worse only, both, keys, interval for the window's share of the discordant keys
+ok   A5 gate E6: closure receipts days 28-55: spurious, closures, interval (upper end below 1/20)
+ok   A5 gate E4: random audit, items with a reply by age four: missed, audited, interval
+ok   A5 gate E5: random audit, items without a reply by age four: false closings, audited, interval
+ok   A5 the gate's confidence budget: six Estimated claims at level 0.01
+ok   A5 a union bound over all nine estimates of the example (six gate claims, three of the incident)
+ok   A6 the ground truth lies inside every interval: miss rate before the update, under v2 (all audited replies and those after the alarm), at the gate (reply receipts and audit), duplicates among proposed keys, spurious first closings, false closings by age four
+ok   A6 the truths: audited miss rate, share of primary keys proposed, duplicates among proposed keys, spurious first closings, false closings by age four
+ok   A6 the share of spurious closing notes that arrive after the age of the audit (about one in fourteen)
+ok   A7 per-proposal labels in the gate window (descriptions only): event proposals, stale, duplicate; window proposals, stale; distinct stale keys
+ok   A7 with feedback each stale key would be proposed stale once: proposals, stale
+ok   A7 the window design's stale proposals in the gate window: all, shared with the event design, its own; proposals the event design made and the window did not
+ok   A7 the event design's stale proposals in the gate window: from missed replies (keys), from duplicate keys of answered items (keys)
+ok   A7 the event design's stale proposals in the gate window come in runs: stale proposals per key
+ok   A7 the keys of the lifetime receipts: keys, keys the window design erred on, keys the event design erred on (replies lost to v2, replies missed by v1)
+ok   A2 the journal items followed in the text: cycles at which the event design and the window design proposed i0288 (falsely closed on day 11), and its audit at age four
+ok   A2 i0500 (reply missed by v2 on day 22): proposed on days 19-24, stale on days 23 and 24; i1235 and its paraphrased key i1235b, whose key receipt on day 52 carries the duplicate label
+ok   A2 i0500: the one reply receipt of its reply, released at the cycle of day 23 and labeled stale
+ok   A7 E2 does not transport to a policy that withholds first proposals: one that withheld every key that is not a duplicate would propose a subset of the log-only keys, with duplicate share 5 of 5 instead of 5 of 453
+ok   A7 the duplicate labels of the gate window come from the duplicate keys of KeysGate: labels, keys
+ok   A2 i0829: spurious closing note and real reply (times), cycles at which each design proposed it, stale ones; the three spurious first closings and the days of their receipts
+ok   A2 i0829's lifetime receipt (day, window_bad, event_bad): the window design's stale proposals are counted, the omission both designs made at the cycle of day 35 is not
+ok   A2 the random audit over the eight weeks: audited, with a reply by age four, missed, false closings; stale proposals caused by the replies v2 missed, and their first and last day
+ok   A8 planning, plug-in sizes at the simulation's rates (audited replies and audited open items for 1/20, reply receipts for 3/100), and the probability that the claim is established at those sizes
+ok   A8 planning: sizes from which on the claim is established with probability at least 0.9
+ok   A8 with feedback, proposals per reply receipt in the gate window (about four)
+ok   A5 the audit's misses in the gate window all have stale reply receipts (the review found them too)
+ok   A8 cadence: reply receipts per day; audited replies, audited open items and reply receipts per week in the gate window; weeks to the nine-in-ten sizes at those rates
+ok   A8 the changepoint monitor's false alarms: years of receipts before the expected one; bound N/A on the probability of one within the 916 receipts and within a year of receipts
+ok   A9 Z3: the deployed store: closure of the item machine, the event and joint statistics (all unsat); the window view refuted now and on updates (witnesses exist)
+ok   A9 Z3: the deployed two-day nag index (step wait, step reply, read nag)
+ok   A9 Z3: the release's closure, record, engine index and nag indexes, minimality of the engine index, the rebuild (28 obligations unsat)
+ok   A9 Z3: witnesses exist against the carried-over index and against the two-day index for the three-day goal; the designed witness (5/2, 7/2) works
+== Part B: the module text, decided by cvc5 and replayed
+ok   B number of run requests in wmtm_example.metta
+ok   B lines of wmtm_example.metta (the size quoted in the text)
+ok   B WMTMStore: EventStat: 6 obligations unsat, Conditional on cvc5; Z3 agrees
+ok   B WMTMStore: JointStat: 6 obligations unsat, Conditional on cvc5; Z3 agrees
+ok   B WMTMStore: NagIndex: 5 obligations unsat, Conditional on cvc5; Z3 agrees
+ok   B WMTMStore: Records by lifting, bound to ItemTime's queries, Conditional as its premise
+ok   B WMTMStore: EngineIndex by lifting, bound to ItemTime's queries, Conditional as its premise
+ok   B WMTMStore: NagIndexByKey by lifting, bound to NagTime's queries, Conditional as its premise
+ok   B WMTMStore: WindowView refuted now; the witness replays (same view, different suggest), as Z3
+ok   B WMTMStore: WindowView refuted on updates; the witness replays (same view, views differ after the wait), as Z3
+ok   B WMTMRelease: the carried-over engine index is invalid input, missing the snooze step
+ok   B WMTMRelease: the carried-over index refuted now on the new machine; the witness replays (same code, different suggest), as Z3
+ok   B WMTMRelease: RecordS: 8 obligations unsat, Conditional on cvc5; Z3 agrees
+ok   B WMTMRelease: JointS: 8 obligations unsat, Conditional on cvc5; Z3 agrees
+ok   B WMTMRelease: NagTwoIndex: 7 obligations unsat, Conditional on cvc5; Z3 agrees
+ok   B WMTMRelease: NagThreeIndex: 7 obligations unsat, Conditional on cvc5; Z3 agrees
+ok   B WMTMRelease: the three-day index is rebuilt from the durable record by its read map (Conditional on cvc5), as Z3
+ok   B WMTMRelease: the engine index is rebuilt from the durable record by its read map (Conditional on cvc5), as Z3
+ok   B WMTMRelease: the two-day index refuted for the three-day goal; the witness replays, as Z3
+ok   B WMTMRelease: EngineIndexS by lifting, bound to ItemSnooze's queries, Conditional as its premise
+ok   B WMTMRelease: NagIndexS by lifting, bound to NagThree's queries, Conditional as its premise
+ok   B WMTMReceipts: MissTenth is a valid monitor, Checked by exact arithmetic
+ok   B WMTMReceipts: MissFifth is a valid monitor, Checked by exact arithmetic
+ok   B WMTMReceipts: MissTwoFifths is a valid monitor, Checked by exact arithmetic
+ok   B WMTMReceipts: Detect, Ville scheme: no alarm in 916 receipts; largest value and where, as A4
+ok   B WMTMReceipts: Detect, Shiryaev-Roberts scheme: alarm at the same receipt as the monitor in the loop
+ok   B WMTMReceipts: EstimateRate replies_before: counts and interval as A5; bound to its stream, digest, population, selection rule and policy
+ok   B WMTMReceipts: EstimateRate audit_after_alarm: counts and interval as A5; bound to its stream, digest, population, selection rule and policy
+ok   B WMTMReceipts: EstimateRate audit_v2: counts and interval as A5; bound to its stream, digest, population, selection rule and policy
+ok   B WMTMReceipts: EstimateRate replies_gate: counts and interval as A5; bound to its stream, digest, population, selection rule and policy
+ok   B WMTMReceipts: EstimateRate keys_gate: counts and interval as A5; bound to its stream, digest, population, selection rule and policy
+ok   B WMTMReceipts: EstimateRate closures_gate: counts and interval as A5; bound to its stream, digest, population, selection rule and policy
+ok   B WMTMReceipts: EstimateRate audit_replies_gate: counts and interval as A5; bound to its stream, digest, population, selection rule and policy
+ok   B WMTMReceipts: EstimateRate audit_open_gate: counts and interval as A5; bound to its stream, digest, population, selection rule and policy
+ok   B WMTMReceipts: CompareRates on the lifetime receipts: discordant counts and interval as A5
+ok   B WMTMReceipts: negative fixture: RepliesGate with every stale label set to 0 under its declared digest is refused (InvalidInput, no count, no interval)
+ok   B the abstraction function applied to the frozen journal gives the simulation's keys, creation times and first closings known to memory
+   replaying the deployment through the module's maps ...
+ok   B conformance replay from the frozen journal: at every daily cycle of every key, the module's statistics and window view decide as the simulated designs, and the codes equal the encodings of the replayed items
+ok   B conformance replay: number of decisions replayed
+ok   B release: random runs of waits, replies and snoozes; the record and the engine index decide as a direct implementation with absolute times, and the codes equal the encodings
+ok   B release: states met in those runs that are open, younger than seven days, and snoozed past the seventh day (the merged class)
+ok   B rebuild at the end of day 55: for every key, the three-day nag index and the engine index rebuilt from the durable record equal the indexes stepped through the key's history
+ok   B E2 under the snooze release: the frozen journal through the deployed engine index and the release's, with a snooze of one to four days on 30 percent of the release's proposals: every key is first proposed at the same cycle, the release's key receipts are KeysGate's rows and labels, and the snoozes remove proposals of the gate window: keys first proposed alike, KeysGate unchanged, gate-window proposals deployed and under the release, snoozes given
+ok   B every Conditional verdict records the agreement of Z3 under agreed_by (lifts through their premises)
+99 checks passed, 0 failed, 16.5 s

@@ -1,0 +1,274 @@
+== make BUILD=core test-rhocalc ==
+PASS: pure-rho canonical selector agrees with exhaustive frontier (8 named + 96 generated; seed=800634)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native       -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1 -include runtime/bootstrap/build_config.core.prime-need-heap-index.prime-eval-stack.h -O3 -Wall -Werror -std=c11 -pthread -MMD -MP -MF runtime/bootstrap/test_rhocalc_abt_substitution.core.prime-need-heap-index.prime-eval-stack.d -c -o runtime/bootstrap/test_rhocalc_abt_substitution.core.prime-need-heap-index.prime-eval-stack.o tests/support/test_rhocalc_abt_substitution.c
+(RhoABTSubstitutionSummary 1 1 0)
+PASS: nameful rho substitution agrees with canonical ABT substitution
+PASS: examples/rho/pure/eval_at_comm.rho
+PASS: examples/rho/cost/parallel_settlement.mrho
+PASS: examples/rho/cost/vending_machine.rho
+PASS: examples/rho/cost/budget_meter.metta
+PASS: examples/rho/cost/notary_chain.metta
+PASS: examples/rho/cost/parallel_settlement.mrho (threaded matches sequential)
+---
+6 passed, 0 failed
+PASS: tests/rhocalc_run/branching_deterministic_choice.mrho
+PASS: tests/rhocalc_run/core_comm_run.mrho
+PASS: tests/rhocalc_run/literal_drop_quote_static_after_comm.mrho
+PASS: tests/rhocalc_run/pipeline_two_forwarders.mrho
+PASS: tests/rhocalc_run/quiescent_nil_core.mrho
+PASS: tests/rhocalc_run/stuck_pending_receive.mrho
+PASS: tests/rhocalc_run/stuck_pending_send.mrho
+PASS: tests/rhocalc_run/substituted_drop_reveals_static_inner_drop.mrho
+PASS: tests/rhocalc_run/pipeline_two_forwarders_surface.rho
+PASS: tests/rhocalc_run/quiescent_nil_surface.rho
+PASS: tests/rhocalc_cost_run/internal_split_tokens_basic.mrho
+PASS: tests/rhocalc_cost_run/parallel_claim_rollback_competition.mrho
+PASS: tests/rhocalc_cost_run/compound_sig_missing_partial_token_quiescent.rho
+PASS: tests/rhocalc_cost_run/missing_token_quiescent.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_alpha.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_quote_drop.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_wrong_purse.rho
+PASS: tests/rhocalc_cost_run/split_tokens_basic.rho
+PASS: tests/rhocalc_cost_run/split_tokens_compound_sig_combined_token.rho
+PASS: tests/rhocalc_cost_run/substitution_quote_term.rho
+PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_combined_token.rho
+PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_split_tokens.rho
+PASS: tests/rhocalc_cost_run/whole_redex_single_sig.rho
+PASS: rhocalc run reduction-limit exhaustion
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_fresh.mrho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_join.mrho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_quoted_payload.rho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_send_continuation.mrho
+PASS: rhocalc cost dequotation tests/rhocalc_cost/reject_dequote.rho
+PASS: rhocalc cost threaded execution (2 workers)
+PASS: rhocalc cost threaded execution (4 workers)
+PASS: rhocalc zero thread budget uses sequential path
+PASS: rhocalc rejects scheduler with threaded execution
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/no_reduction_under_recv_puritanical.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/quoted_process_not_reduced_in_name_eq.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_name_variable_roundtrip_h7.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_quoted_name_roundtrip_h7.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/free_drop_is_stuck_h4.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/surface_open_name_variable.rho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/branching_relation.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_avoidance_alpha_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_free_var_rejected_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_shadow_ok_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_discrimination_survives_after_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_alpha_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_assoc_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_comm_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_zero_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_var_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/comm_par_chain_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/core_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/literal_drop_quote_static_after_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_free_name_same_spelling_binder.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_inner_binder_restores_scope.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_seals_outer_binder.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_shadow_same_spelling.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_path_a.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_path_b.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_setup.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_pass_basic_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_quote_drop.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/nested_drop_quote_h5.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_divergence_self_recreates_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_input_guarded_replication_unfold_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_reflection_name_generation_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_drop_comm_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_substitution_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_substitution_opaque_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/recv_under_binder_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/rotating_scheduler_persistent_branch.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_alpha_dedup_display.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_hot_successors.mrho
+PASS: rhocalc thread-budget plumbing
+PASS: rhocalc threaded stress independent-many-comms
+PASS: rhocalc threaded stress hot-channel-linear-consumption
+PASS: rhocalc threaded stress payload-race
+PASS: rhocalc threaded stress dequote-spawn
+PASS: rhocalc threaded stress limit-batch-exact
+PASS: rhocalc threaded stress alpha-capture-stress
+PASS: rhocalc threaded stress randomized-threaded-loop
+PASS: cost-rho parallel stress independent-surfaces
+PASS: cost-rho parallel stress same-surface-disjoint-occurrences
+PASS: cost-rho parallel stress one-purse-serialization
+PASS: cost-rho parallel stress search-budget-monotonicity
+PASS: cost-rho parallel stress large-cover-laziness
+PASS: cost-rho parallel stress randomized-independent-receipts
+PASS: rhocalc canonical scheduler witness
+PASS: rhocalc rotating scheduler witness
+PASS: rhocalc scheduler reachability branching-relation-one-step
+PASS: rhocalc scheduler reachability comm-par-chain-one-step
+PASS: rhocalc scheduler reachability capture-shadow-recv-one-step
+PASS: rhocalc scheduler reachability core-comm-one-step
+PASS: rhocalc scheduler reachability name-quote-drop-one-step
+PASS: rhocalc scheduler reachability nested-drop-quote-one-step
+PASS: rhocalc scheduler reachability name-pass-basic-one-step
+PASS: rhocalc scheduler reachability recv-under-binder-one-step
+PASS: rhocalc scheduler reachability channel-var-one-step
+PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step
+PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step
+PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step
+PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step
+PASS: rhocalc scheduler reachability literal-drop-static-one-step
+PASS: rhocalc scheduler reachability channel-discrimination-one-step
+PASS: rhocalc scheduler reachability paper-divergence-one-step
+PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step
+PASS: rhocalc scheduler reachability multistep-diamond-two-step
+PASS: rhocalc scheduler reachability rotating-persistent-canonical-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-three-step
+PASS: rhocalc scheduler reachability pure-surface-one-step
+PASS: rhocalc scheduler reachability surface-name-output-one-step
+PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step
+PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step
+PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step
+PASS: rhocalc scheduler reachability surface-rotating-persistent-canonical-two-step
+PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-two-step
+PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-three-step
+PASS: rhocalc scheduler reachability branching-relation-one-step-rotating
+PASS: rhocalc scheduler reachability comm-par-chain-one-step-rotating
+PASS: rhocalc scheduler reachability capture-shadow-recv-one-step-rotating
+PASS: rhocalc scheduler reachability core-comm-one-step-rotating
+PASS: rhocalc scheduler reachability name-quote-drop-one-step-rotating
+PASS: rhocalc scheduler reachability nested-drop-quote-one-step-rotating
+PASS: rhocalc scheduler reachability name-pass-basic-one-step-rotating
+PASS: rhocalc scheduler reachability recv-under-binder-one-step-rotating
+PASS: rhocalc scheduler reachability channel-var-one-step-rotating
+PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step-rotating
+PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step-rotating
+PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step-rotating
+PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step-rotating
+PASS: rhocalc scheduler reachability literal-drop-static-one-step-rotating
+PASS: rhocalc scheduler reachability channel-discrimination-one-step-rotating
+PASS: rhocalc scheduler reachability paper-divergence-one-step-rotating
+PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step-rotating
+PASS: rhocalc scheduler reachability multistep-diamond-two-step-rotating
+PASS: rhocalc scheduler reachability rotating-persistent-rotating-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-three-step
+PASS: rhocalc scheduler reachability pure-surface-one-step-rotating
+PASS: rhocalc scheduler reachability surface-name-output-one-step-rotating
+PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step-rotating
+PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step-rotating
+PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step-rotating
+PASS: rhocalc scheduler reachability surface-rotating-persistent-rotating-two-step
+PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-two-step
+PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-three-step
+PASS: rhocalc scheduler reachability branching-relation-one-step-threaded
+PASS: rhocalc scheduler reachability comm-par-chain-one-step-threaded
+PASS: rhocalc scheduler reachability multistep-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-persistent-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-primed-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-primed-diamond-three-step-threaded
+PASS: rhocalc scheduler reachability surface-rotating-persistent-two-step-threaded
+PASS: rhocalc scheduler reachability surface-primed-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability surface-primed-diamond-three-step-threaded
+PASS: rhocalc bounded relation equivalence pure-surface-vs-core-comm
+PASS: rhocalc bounded relation equivalence surface-reflection-vs-core-reflection
+PASS: rhocalc bounded relation equivalence surface-input-guarded-vs-core-input-guarded
+PASS: rhocalc bounded relation equivalence surface-rotating-witness-vs-core-rotating-witness
+PASS: rhocalc bounded relation equivalence surface-primed-diamond-vs-core-primed-diamond
+PASS: rhocalc bounded relation equivalence core-comm-vs-quote-drop-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-zero-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-comm-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-assoc-name-equivalence
+PASS: rhocalc bounded relation equivalence diamond-path-a-vs-path-b
+PASS: rhocalc bounded relation inequivalence literal-static-drop
+PASS: rhocalc bounded bisimulation pure-surface-vs-core-comm
+PASS: rhocalc bounded bisimulation surface-reflection-vs-core-reflection
+PASS: rhocalc bounded bisimulation surface-input-guarded-vs-core-input-guarded
+PASS: rhocalc bounded bisimulation surface-rotating-witness-vs-core-rotating-witness
+PASS: rhocalc bounded bisimulation surface-primed-diamond-vs-core-primed-diamond
+PASS: rhocalc bounded bisimulation core-comm-vs-quote-drop-name-equivalence
+PASS: rhocalc bounded bisimulation scheduler-persistent-limit1-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limit3-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation core-comm-vs-alpha-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-zero-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-comm-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-assoc-name-equivalence
+PASS: rhocalc bounded bisimulation diamond-path-a-vs-path-b
+PASS: rhocalc bounded bisimulation scheduler-persistent-limit2-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limit2-canonical-vs-rotating
+PASS: rhocalc M3 overlap basic-comm
+PASS: rhocalc M3 overlap reflection-name-generation
+PASS: rhocalc M3 overlap input-guarded-unfold
+PASS: rhocalc M3 rholang-cli parser/oracle selftest
+PASS: rhocalc M3 may/must frontier pipeline-forward-empty
+PASS: rhocalc M3 may/must frontier fanout-empty
+PASS: rhocalc M3 may/must frontier comm-contention-two-outputs
+PASS: rhocalc M3 may/must frontier metta-certificate-quorum
+PASS: rhocalc M3 may/must frontier metta-demand-index
+PASS: rhocalc M3 may/must frontier metta-fanout
+PASS: rhocalc M3 may/must frontier metta-comm-contention
+PASS: rhocalc M3 may/must frontier metta-indexed-demand
+PASS: rhocalc M3 may/must frontier metta-pipeline-forward
+PASS: rhocalc M3 may/must frontier metta-route-policy
+PASS: rhocalc M3 may/must frontier metta-route-synthesis
+PASS: rhocalc M3 may/must frontier metta-registry-lookup
+PASS: rhocalc M3 may/must frontier metta-conditional-route
+PASS: rhocalc M3 may/must frontier metta-computed-payload
+PASS: rhocalc M3 may/must frontier metta-iterated-workload
+PASS: rhocalc M3 may/must frontier metta-private-channel
+PASS: rhocalc M3 may/must frontier metta-fresh-extrusion
+PASS: rhocalc M3 may/must frontier metta-private-session
+PASS: rhocalc M3 may/must frontier metta-space-registry
+PASS: rhocalc M3 may/must frontier metta-threshold-quorum
+PASS: rhocalc M3 may/must frontier metta-reflection-loader
+PASS: rhocalc M3 may/must frontier metta-finite-replication
+PASS: rhocalc M3 may/must frontier metta-private-no-leak
+PASS: rhocalc M3 may/must frontier metta-job-queue-collector
+PASS: rhocalc M3 may/must frontier paper-reflection-name-generation
+PASS: rhocalc M3 may/must frontier paper-input-guarded-replication
+SKIP: rhocalc M3 rholang-cli overlap (set RHOLANG_CLI or install rholang-cli)
+PASS: rhocalc lib/rho surface tests/test_lts_surface.metta
+PASS: rhocalc lib/rho surface tests/test_rho_lib_surface.metta
+PASS: rhocalc lib/rho surface tests/test_rho_lib_hygiene_surface.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_lib_surface.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_isolation_oracle.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_demo_dedfarm.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_demo_revision.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_demo_mayset.metta
+PASS: rhocalc lib/rho surface tests/test_rhometta_demo_ecan.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_surface.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_surface.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_causal_trace.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_parallel_branches.metta
+PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_search_budget.metta
+PASS: rhocalc tiny oracle core-comm
+PASS: rhocalc tiny oracle branching-relation
+PASS: rhocalc tiny oracle multistep-diamond-setup
+PASS: rhocalc tiny oracle multistep-diamond-path-a
+PASS: rhocalc tiny oracle multistep-diamond-path-b
+PASS: rhocalc tiny oracle self-recreation
+PASS: rhocalc tiny oracle no-reduction-under-recv
+PASS: rhocalc tiny oracle no-reduction-inside-quote
+PASS: rhocalc tiny oracle open-name-variable
+PASS: rhocalc tiny oracle open-quoted-name
+PASS: rhocalc tiny oracle free-drop-is-stuck
+PASS: rhocalc tiny oracle quiescent-nil
+PASS: rhocalc tiny oracle stuck-pending-send
+PASS: rhocalc tiny oracle stuck-pending-receive
+SKIP: rhocalc lean trace bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+SKIP: rhocalc cost lean bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+SKIP: cost-rho differential harness (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+SKIP: rhocalc lean microcheck (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+PASS: rhocalc lib/rho hygiene
+PASS: rhocalc old step surface purged
+PASS: rhocalc de-step allow-list surface
+PASS: rhocalc translate rho -> mrho
+PASS: rhocalc translate mrho -> rho
+PASS: rhocalc translate alpha mrho -> mrho
+PASS: rhocalc translate alpha mrho -> rho
+PASS: rhocalc translate shadow rho -> mrho
+---
+253 passed, 0 failed
+EXIT=0 SECS=8
