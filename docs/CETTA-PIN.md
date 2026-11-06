@@ -1,15 +1,17 @@
 # Cetta pin
 
-Cetta is a git submodule at `cetta/`, pinned to the commit the Cetta work plan names (§2.1; DEPENDENCIES.json).
+Cetta is a git submodule at `cetta/`, pinned to zariuq/CeTTa `main` as Zar asked (work group, 2026-11-06).
 
 - Upstream: https://github.com/zariuq/CeTTa (branch `main`)
-- Commit: 12da03b4b055bfecff2add505e7e1ad4125bb352 (2026-08-14 16:58:16 +0200, "purging surface slop", 215 commits)
-- Upstream tree: 0051faecb9dc21ab8907138155e2c4e606e1ccd3 (`git rev-parse 12da03b4^{tree}`)
-- Pinned: 2026-11-06, hive task t-2026-11-06-mettadinc-m0-prep-submodule. This replaces the copy of the same commit
-  that hive task t-2026-11-05-mettadinc-m0-prep had vendored under `cetta/` (same tree, 0051faec); that copy is not
-  in this branch's history. On 2026-11-06 upstream `main` had moved past the pin (4c285a97); moving to a newer Cetta
-  is a separate task.
-- Why this commit: Ben's decision 2 defines "green" against E0's baseline at this commit (`tools/cetta-baseline.sh`).
+- Commit: 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c (2026-11-05 20:26:01 +0100, "WIP: make pre-main shareable and preserve benchmark evidence", 486 commits)
+- Upstream tree: 8424ec7a3c3fdd9f9b24321f29ce95a50d910a99 (`git rev-parse 4c285a97^{tree}`)
+- Pinned: 2026-11-06, hive task t-2026-11-06-mettadinc-cetta-pin-latest. `git ls-remote https://github.com/zariuq/CeTTa
+  refs/heads/main` returned 4c285a97 at 2026-11-06T05:09:49Z, when the task started (the SHA named when the task was filed).
+- Previous pin: 12da03b4b055bfecff2add505e7e1ad4125bb352 (2026-08-14, "purging surface slop", tree 0051faec), pinned by
+  hive task t-2026-11-06-mettadinc-m0-prep-submodule. 4c285a97 descends from it: 271 commits later, 6682 files changed.
+- Why this commit: Zar asked us to use his latest main. Ben's decision 2 defined "green" against E0's baseline at 12da03b4;
+  with this pin the baseline is re-frozen from the runs at 4c285a97 (`evidence/cetta-pin-latest/`), and every test that
+  was green at 12da03b4 and is not green now is named in [CETTA-LATEST.md](CETTA-LATEST.md).
 
 ## Fetching it
 
