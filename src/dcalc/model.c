@@ -292,7 +292,15 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
             /* (Profile Name) or (Profile (Dynamics D) (Values V) (Carriers C)).
              * M0 admits Deterministic dynamics on Enumerated carriers; any other
              * profile is a well-formed module outside M0: Unsupported, not InvalidInput. */
-            if (d->n == 2 && name_ok(d->items[1])) { snprintf(m->profile, sizeof m->profile, "%s", d->items[1]->text); continue; }
+            if (d->n == 2 && name_ok(d->items[1])) {
+                const char *pn = d->items[1]->text;
+                snprintf(m->profile, sizeof m->profile, "%s", pn);
+                /* review 2 F4: the single-symbol form must gate like (Dynamics ...):
+                 * Nondeterministic and Stochastic modules are outside M0. */
+                if ((!strcmp(pn, "Nondeterministic") || !strcmp(pn, "Stochastic")) && !m->profile_unsupported[0])
+                    snprintf(m->profile_unsupported, sizeof m->profile_unsupported, "Profile %s is outside the M0 fragment", pn);
+                continue;
+            }
             for (size_t k = 1; k < d->n; k++) {
                 const Sx *f = d->items[k];
                 if (f->kind != SX_LIST || f->n != 2 || !name_ok(f->items[0]) || !name_ok(f->items[1]))

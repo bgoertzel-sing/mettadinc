@@ -263,7 +263,26 @@ def replay(M, D, req, env):
             s1, t1, f1 = arrow(M, D, req[1]); s2, t2, g = arrow(M, D, req[2])
             need(t1['id'] == s2['id'], 'interface mismatch'); sv, tv = s1, t2; f = {s: g[f1[s]] for s in s1['states']}
         bad = commute_fail(sv, tv, f)
-        if st == 'Refuted': need(bad is not None, 'refuted map commutes'); return 'ok'
+        if st == 'Refuted':
+            need(bad is not None, 'refuted map commutes')
+            # review 2 F2: the witness itself must replay, not just "some commutation fails"
+            w = find(evd, 'Witness')[1]
+            need(isinstance(w, list) and len(w) == 5 and w[0] == 'CommutationWitness', 'CommutationWitness expected')
+            stf, port, L, R = w[1], w[2], w[3], w[4]
+            need(stf[0] == 'State' and L[0] == 'Left' and R[0] == 'Right' and len(port) == 2, 'malformed CommutationWitness')
+            s = key(stf[1]); lab = port[1]
+            need(s in sv['states'] and f.get(s) in tv['states'], 'witness state not a source state')
+            if port[0] == 'Observe':
+                need(lab in sv['obs'] and lab in tv['obs'], 'witness names no shared observation')
+                left, right = sv['obs'][lab][s], tv['obs'][lab][f[s]]
+            elif port[0] == 'Action':
+                need(lab in sv['act'] and lab in tv['act'], 'witness names no shared action')
+                left, right = f[sv['act'][lab][s]], tv['act'][lab][f[s]]
+            else:
+                raise Fail('witness port must be Observe or Action')
+            need(key(L[1]) == left and key(R[1]) == right, 'witness sides differ from the recomputed sides')
+            need(left != right, 'witness sides agree: no commutation failure')
+            return 'ok'
         need(bad is None, 'checked map does not commute')
         rows = {key(x[1]): key(x[2]) for x in find(find(evd, 'Certificate'), 'Table')[1:]}
         need(rows == f, 'certificate table differs from the recomputed map')

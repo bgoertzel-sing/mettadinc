@@ -14,15 +14,15 @@
 ;; Unsupported InvalidInput, assigned by the core's single assurance policy.
 ;; The request argument is data: CeTTa hands it to the core unevaluated
 ;; (grounded_dispatch_accepts_data_arg exception for dcalc:run / dcalc:run-file).
+;; No (: dc.* ...) type declarations on purpose: with Atom-typed results CeTTa
+;; returns the dcalc:* call unreduced (review 2 finding 1).  Tested by
+;; tests/dcalc/cetta/surface.metta.
 
-(: dc.run-file (-> String Symbol Atom Atom))
 (= (dc.run-file $path $module $request) (dcalc:run-file $path $module $request))
 
-(: dc.run-source (-> String Symbol Atom Atom))
 (= (dc.run-source $source $module $request) (dcalc:run $source $module $request))
 
 ;; Field access on an envelope, by head symbol.
-(: dc.field (-> Atom Symbol Atom))
 (= (dc.field $env $name)
    (case $env
      (((Result (Status $s) $c $b $sc $v $e $a $as) (dc.pick $name $s $c $b $sc $v $e $a $as Empty))
@@ -39,5 +39,4 @@
 (= (dc.pick Assurance $s $c $b $sc $v $e $a $as $r) $as)
 (= (dc.pick Reason $s $c $b $sc $v $e $a $as $r) $r)
 
-(: dc.status (-> Atom Symbol))
 (= (dc.status $env) (dc.field $env Status))

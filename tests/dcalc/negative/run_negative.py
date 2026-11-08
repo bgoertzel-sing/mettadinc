@@ -63,6 +63,9 @@ def run(path):
 
 def main():
     fails = 0; tmp = tempfile.mkdtemp(prefix='dcalc-neg-')
+    # review 2 F8: AC4 table with the expected and the ACTUAL statuses of this run
+    rows = ['| # | Entry | Requests matched | M0 status (allowed) | Actual status (this run) | Result |',
+            '|---|---|---|---|---|---|']
     try:
         for n, title, fx, pats, allowed, why in ENTRIES:
             path = tampered_copy(tmp) if fx.startswith('TAMPERED:') else os.path.join(DOCS, fx)
@@ -77,8 +80,13 @@ def main():
             print('%2d %-4s %-62s %d requests %s' % (n, 'PASS' if ok else 'FAIL', title, len(hits), json.dumps(counts, sort_keys=True)))
             for r in bad[:3]: print('     got %s on %s: %s' % (r[1], r[0][:90], r[2][:120]))
             fails += not ok
+            rows.append('| %d | %s | %d | %s | %s | %s |' % (n, title, len(hits), ' or '.join(sorted(allowed)),
+                        ', '.join('%s %d' % kv for kv in sorted(counts.items())) or 'none', 'PASS' if ok else 'FAIL'))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+    root = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
+    os.makedirs(os.path.join(root, 'build'), exist_ok=True)
+    with open(os.path.join(root, 'build', 'negative-table.md'), 'w') as f: f.write('\n'.join(rows) + '\n')
     print('negative suite: %s' % ('PASS (10/10)' if not fails else 'FAIL (%d)' % fails))
     return 1 if fails else 0
 

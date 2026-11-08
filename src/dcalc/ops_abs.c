@@ -60,6 +60,42 @@ static int replay_commute(const DcModule *m, const Sx *table, const DcView *sv, 
     free(f); (void)rows; return ok;
 }
 
+/* Review 2 F2: replay a CommutationWitness on its own, without trusting the
+ * search that produced it.  Both sides are recomputed from the source view,
+ * the target view and the map table; the witness must name a valid source
+ * state and a port present on both machines, its Left/Right values must equal
+ * the recomputed sides, and the two sides must differ.  Returns 1 only then. */
+static int replay_witness(const DcModule *m, const Sx *wit, const DcView *sv, const DcView *tv, const int *table) {
+    if (!sx_head_is(wit, "CommutationWitness") || wit->n != 5) return 0;
+    const Sx *st = wit->items[1], *port = wit->items[2], *L = wit->items[3], *R = wit->items[4];
+    if (!sx_head_is(st, "State") || st->n != 2 || !sx_head_is(L, "Left") || L->n != 2 || !sx_head_is(R, "Right") || R->n != 2) return 0;
+    if (port->n != 2 || port->items[1]->kind != SX_SYM) return 0;
+    const DcCarrier *S = &m->car[sv->states], *T = &m->car[tv->states];
+    int s = dc_carrier_index(S, st->items[1]);
+    if (s < 0 || (size_t)s >= sv->n || !sv->valid[s]) return 0;
+    int fs = table[s];
+    const char *lab = port->items[1]->text;
+    size_t p, k;
+    if (sx_head_is(port, "Observe")) {
+        for (p = 0; p < sv->nobs && strcmp(sv->obs_label[p], lab); p++) ;
+        for (k = 0; k < tv->nobs && strcmp(tv->obs_label[k], lab); k++) ;
+        if (p == sv->nobs || k == tv->nobs) return 0;
+        int l = dc_carrier_index(&m->car[sv->obs_car[p]], L->items[1]);
+        int rr = dc_carrier_index(&m->car[tv->obs_car[k]], R->items[1]);
+        if (l < 0 || rr < 0 || l != sv->obs[p][s] || rr != tv->obs[k][fs]) return 0;
+        return sv->obs_car[p] != tv->obs_car[k] || l != rr;
+    }
+    if (sx_head_is(port, "Action")) {
+        for (p = 0; p < sv->nact && strcmp(sv->act_label[p], lab); p++) ;
+        for (k = 0; k < tv->nact && strcmp(tv->act_label[k], lab); k++) ;
+        if (p == sv->nact || k == tv->nact) return 0;
+        int l = dc_carrier_index(T, L->items[1]), rr = dc_carrier_index(T, R->items[1]);
+        if (l < 0 || rr < 0 || l != table[sv->act[p][s]] || rr != tv->act[k][fs]) return 0;
+        return l != rr;
+    }
+    return 0;
+}
+
 Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
     DcModule *m = r->m; char why[256];
     if (q->n != 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "CheckAbstractionMap: field AbstractionMap missing or not a name");
@@ -115,8 +151,9 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
     Sx *subject = dc_form("Subject", dc_form("AbstractionMap", dc_sym(nm), NULL), dc_form("Source", dc_sym(sv.id), NULL), dc_form("Target", dc_sym(tv.id), NULL), NULL);
     Sx *res;
     if (wit) {
-        /* replay the witness: a one-row table must fail the commutation check */
-        res = dc_envelope(m, VERDICT_FAILS, 1, dc_claim_of(q, "Literal"), subject,
+        /* replay the witness independently (review 2 F2): Refuted needs a replayed Witness */
+        int rep = replay_witness(m, wit, &sv, &tv, A.table);
+        res = dc_envelope(m, VERDICT_FAILS, rep, dc_claim_of(q, "Literal"), subject,
                           dc_form("Value", dc_form("Refutation", dc_form("Obligation", dc_sym("Commutation"), NULL), NULL), NULL),
                           dc_form("Evidence", dc_form("Witness", wit, NULL), NULL), NULL);
         free(A.table);

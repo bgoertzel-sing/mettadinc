@@ -30,8 +30,10 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
     if (dc_binding_request(raw, bad, nbad, req, why, sizeof why)) res = bare("InvalidInput", mn, why);
     else {
         DcModule *m = calloc(1, sizeof *m); char err[512];
-        if (dc_admit(raw, m, err, sizeof err) != 0)
+        if (dc_admit(raw, m, err, sizeof err) != 0) {
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
+            dc_module_free(m);   /* review 2 F6: release partially admitted carrier tables */
+        }
         else { DcRun *run = dc_run_new(m); res = dc_run(run, req); dc_run_free(run); dc_module_free(m); }
         free(m);
     }

@@ -38,6 +38,26 @@ DcStatus dc_assure(DcVerdict v, int evidence_replays) {
 Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subject,
                 Sx *value, Sx *evidence, const char *reason) {
     DcStatus st = dc_assure(v, replays);
+    /* review 2 F5: fill the binding from the subject instead of placeholders.
+     * Representation subjects bind Source = machine, Target = code carrier and
+     * Interface = the declared code tolerance (Exact when Codes are literal);
+     * subjects that name (Source s) (Target t) bind those. */
+    const char *src_id = "None", *tgt_id = "None", *tol = "Exact";
+    if (m && subject) {
+        const Sx *rp = sx_find(subject, "Representation", 1);
+        if (rp && rp->n == 2 && rp->items[1]->kind == SX_SYM) {
+            int ri = dc_find_repr(m, rp->items[1]->text);
+            if (ri >= 0) {
+                const DcRepr *R = &m->rep[ri];
+                if (R->machine >= 0) src_id = m->mach[R->machine].name;
+                if (R->encode >= 0) tgt_id = m->car[m->map[R->encode].to].name;
+                if (R->codes == DC_CODES_ALL && R->tol >= 0) tol = m->tol[R->tol].name;
+            }
+        }
+        const Sx *ss = sx_find(subject, "Source", 1), *ts = sx_find(subject, "Target", 1);
+        if (ss && ss->n == 2 && ss->items[1]->kind == SX_SYM) src_id = ss->items[1]->text;
+        if (ts && ts->n == 2 && ts->items[1]->kind == SX_SYM) tgt_id = ts->items[1]->text;
+    }
     Sx *r = dc_form("Result", dc_form("Status", dc_sym(dc_status_name(st)), NULL), NULL);
     sx_push(r, claim ? claim : dc_form("Claim", NULL));
     sx_push(r, dc_form("Binding", dc_form("Module", dc_sym(m ? m->name : "?"), NULL),
@@ -45,8 +65,8 @@ Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subj
                        subject ? subject : dc_form("Subject", NULL),
                        /* boundary 1: model identities and the checked interface;
                         * operations that know them fill them in (dc_result_bind_models) */
-                       dc_form("Source", dc_sym("None"), NULL), dc_form("Target", dc_sym("None"), NULL),
-                       dc_form("Interface", dc_form("Tolerance", dc_sym("Exact"), NULL), NULL), NULL));
+                       dc_form("Source", dc_sym(src_id), NULL), dc_form("Target", dc_sym(tgt_id), NULL),
+                       dc_form("Interface", dc_form("Tolerance", dc_sym(tol), NULL), NULL), NULL));
     /* boundary 1: the scope of the claim.  M0 checks enumerated deterministic
      * machines from every declared state, unbounded horizon, no discount,
      * no policy quantifier. */
@@ -86,7 +106,17 @@ void dc_result_add_premise(Sx *res, const Sx *premise, const char *premise_name)
     DcStatus ps = dc_result_status(premise);
     if (ps == DC_CONDITIONAL) dc_assumptions_union(dst, dc_result_assumptions(premise));
     if (ps == DC_ESTIMATED) {
-        Sx *e = dc_form("EstimatedPremise", dc_sym(premise_name ? premise_name : "?"), dc_sym("delta"), NULL);
+        /* review 2 F5: (EstimatedPremise result-digest delta): sha256 of the
+         * premise envelope's canonical print, and the premise's declared
+         * (Delta d) if it carries one, else Unknown.  premise_name is kept
+         * only for diagnostics. */
+        (void)premise_name;
+        char *txt = sx_print(premise); char dg[65];
+        dc_sha256_hex(txt, strlen(txt), dg); free(txt);
+        const Sx *dl = NULL; const Sx *val = sx_find(premise, "Value", 1);
+        for (size_t i = 1; val && i < val->n && !dl; i++)
+            if (val->items[i]->kind == SX_LIST) { const Sx *x = sx_head_is(val->items[i], "Delta") ? val->items[i] : sx_find(val->items[i], "Delta", 1); if (x && x->n == 2 && x->items[1]->kind == SX_SYM) dl = x; }
+        Sx *e = dc_form("EstimatedPremise", sx_str(dg), dc_sym(dl ? dl->items[1]->text : "Unknown"), NULL);
         Sx *one = dc_form("Assumptions", e, NULL);
         dc_assumptions_union(dst, one); sx_free(one);
     }
