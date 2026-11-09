@@ -11,3 +11,6 @@
 !(dc.run Bounds (CheckUpdates R (Within 1e999)))
 !(dc.run Bounds (CheckUpdates R (Within -1)))
 !(dc.run Bounds (CheckUpdates R (Within 0)))
+;; Review-fixes review 1 F3: hex bounds that strtod accepts must replay too.
+!(dc.run Bounds (CheckUpdates R (Within 0x0)))
+!(dc.run Bounds (CheckUpdates R (Within 0x1p-1074)))

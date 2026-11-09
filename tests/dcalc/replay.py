@@ -279,20 +279,41 @@ def envelope_ok(M, D, q, env, st):
     need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M0-ExactReplay'], ['Replayed', 'True'], ['Ground', ground]]),
          'Assurance differs from the recomputed assurance')
 
+# review-fixes review 1 F1: the Value and the Evidence heads are rebuilt from
+# the request and the recomputation and compared whole, so a forged flag,
+# bound, kind, source or target cannot replay.
+def DEF(d): return ['Defect', ['Interval', str(d), str(d)]]
+def value_is(val, exp): need(show(val) == show(exp), 'Value differs from the recomputed value %s' % show(exp))
+def evidence_one(evd, head):
+    need(len(evd) == 2 and isinstance(evd[1], list) and evd[1] and evd[1][0] == head, 'Evidence must be exactly one %s' % head)
+    return evd[1]
+def cert_ok(c, fixed, rest):
+    heads = [x[0] if isinstance(x, list) and x else None for x in c[1:]]
+    need(heads == [f[0] for f in fixed] + rest, 'certificate fields %s' % heads)
+    for f in fixed: need(show(find(c, f[0])) == show(f), 'certificate %s differs from %s' % (f[0], show(f)))
+def parse_bound(t):
+    # review-fixes review 1 F3: accept what dcalc's strtod accepts (hex floats too)
+    need(isinstance(t, str), 'Within bound is not a number')
+    try: return float(t)
+    except ValueError: pass
+    try: return float.fromhex(t)
+    except ValueError: raise Fail('Within bound %s is not a number' % t)
+
 def replay(M, D, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
     need(find(find(env, 'Binding'), 'Digest')[1][1] == M.digest, 'digest mismatch')
-    if isinstance(req, str): need(req in D, 'unknown derive'); req = D[req]
+    dname = None
+    if isinstance(req, str): need(req in D, 'unknown derive'); dname = req; req = D[req]
     envelope_ok(M, D, req, env, st)
     val = find(env, 'Value')[1]; evd = find(env, 'Evidence')
     h = req[0]
     if h in ('MeasureNow', 'CheckUpdates', 'CheckNow'):
         # review 4 F5: CheckNow is the Current obligation against a Within bound
         r = rep_of(M, req[1]); kind = 'Update' if h == 'CheckUpdates' else 'Current'
-        d = defect_of(val); bound = 0.0
+        d = defect_of(val); bound = 0.0; btxt = '0'
         if h != 'MeasureNow':
-            w = find(req, 'Within'); bound = float(w[1]) if w else 0.0
+            w = find(req, 'Within'); btxt = w[1] if w else '0'; bound = parse_bound(btxt)
             need((st == 'Checked') == (d <= bound), 'status disagrees with defect and bound')
         else: need(st == 'Checked', 'MeasureNow reports a measurement')
         c, w = find(evd, 'Certificate'), find(evd, 'Witness')
@@ -301,6 +322,12 @@ def replay(M, D, req, env):
             need(find(c, 'Checks') == ['Checks', kind], 'certificate checks the wrong obligation')
             blocks_ok(M, r, find(c, 'Blocks'), kind == 'Update')
         else: need(w is not None and d == 1, 'defect 1 needs a witness'); witness_fail(M, r, kind, w[1])
+        dd = 0 if obligation_fail(M, r, kind) is None else 1
+        need(d == dd, 'defect differs from the recomputed defect')
+        value_is(val, ['DefectMeasurement', DEF(dd), ['Equality', 'Literal']] if h == 'MeasureNow'
+                 else ['DefectCheck', DEF(dd), ['Bound', btxt], ['Equality', 'Literal']])
+        if dd == 0: cert_ok(evidence_one(evd, 'Certificate'), [['Kind', 'Prefixpoint'], ['Codes', 'Tolerance' if r['all'] else 'Literal'], ['Checks', kind]], ['Blocks'])
+        else: evidence_one(evd, 'Witness')
     elif h == 'InduceExact':
         r = rep_of(M, req[1])
         if st == 'Checked':
@@ -309,10 +336,15 @@ def replay(M, D, req, env):
             for F in fib[1:]:
                 for s in F[2:]: need(e[key(s)] == key(F[1]), 'fiber code wrong'); seen.append(key(s))
             need(sorted(seen) == sorted(key(s) for s in M.car[M.mach[r['machine']]['states']]), 'fibers do not partition')
+            need(len(set(key(F[1]) for F in fib[1:])) == len(fib) - 1, 'two fibers share a code')
+            cert_ok(evidence_one(evd, 'Certificate'), [['Kind', 'Prefixpoint']], ['Checks', 'Fibers'])
+            value_is(val, ['ExactAbstraction', DEF(0), ['Machine', ['Output', dname or '?', 'Machine']],
+                           ['States', str(len(fib) - 1)], ['Encode', r['encode']]])
         else:
             k = find(evd, 'Obligation')[1]; order = ['Current', 'Update', 'Congruence']
             for prev in order[:order.index(k)]: need(obligation_fail(M, r, prev) is None, 'an earlier obligation fails')
             witness_fail(M, r, k, find(evd, 'Witness')[1])
+            value_is(val, ['Refutation', ['Obligation', k]])
     elif h in ('CheckAbstractionMap', 'Then'):
         if h == 'CheckAbstractionMap':
             a = M.abs[req[1]]; sv, tv = src_view(M, D, a['source']), view_machine(M, a['target'])
@@ -324,6 +356,7 @@ def replay(M, D, req, env):
         bad = commute_fail(sv, tv, f)
         if st == 'Refuted':
             need(bad is not None, 'refuted map commutes')
+            value_is(val, ['Refutation', ['Obligation', 'Commutation']])
             # review 2 F2: the witness itself must replay, not just "some commutation fails"
             w = find(evd, 'Witness')[1]
             need(isinstance(w, list) and len(w) == 5 and w[0] == 'CommutationWitness', 'CommutationWitness expected')
@@ -346,7 +379,12 @@ def replay(M, D, req, env):
         rows = {key(x[1]): key(x[2]) for x in find(find(evd, 'Certificate'), 'Table')[1:]}
         need(rows == f, 'certificate table differs from the recomputed map')
         surj = set(f.values()) == set(tv['states'])
-        need(find(val, 'Kind')[1] == ('Quotient' if surj else 'Homomorphism'), 'Kind disagrees with surjectivity')
+        kd = ['Kind', 'Quotient' if surj else 'Homomorphism']
+        if h == 'CheckAbstractionMap':
+            value_is(val, ['CheckedAbstractionMap', kd, ['Surjective', 'True' if surj else 'False']])
+        else:
+            value_is(val, ['ComposedArrow', ['Source', sv['id']], ['Target', tv['id']], kd])
+        cert_ok(evidence_one(evd, 'Certificate'), [['Kind', 'rule'], ['Rule', 'Commutation' if h == 'CheckAbstractionMap' else 'Composition']], ['Table'])
     else: raise Fail('request %s has no M0 replay rule' % h)
     return 'ok'
 

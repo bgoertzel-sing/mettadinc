@@ -16,6 +16,8 @@ OVF = 'integer overflow or out-of-range literal in Add/Mul'
 FIN = 'field Within is not a finite non-negative number'
 EXPECT = {
     'too_many': [('InvalidInput', 'too many representations')],
+    'exactly_full': [('Checked', None), ('Checked', None)],
+    'zero_reprs': [('InvalidInput', 'names no declared representation (R0)')],
     'composite': [('Checked', '(Kind Quotient)'), ('Checked', '(Kind Quotient)'),
                   ('Checked', '(Kind Homomorphism)'), ('Checked', '(Kind Homomorphism)')],
     'interfaces': [('InvalidInput', 'interfaces differ: Source has no observation extra'),
@@ -29,7 +31,8 @@ EXPECT = {
     'overflow_literal': [('InvalidInput', OVF)],
     'bounds': [('InvalidInput', FIN + ' (nan)'), ('InvalidInput', FIN + ' (inf)'),
                ('InvalidInput', FIN + ' (-inf)'), ('InvalidInput', FIN + ' (1e999)'),
-               ('InvalidInput', FIN + ' (-1)'), ('Checked', None)],
+               ('InvalidInput', FIN + ' (-1)'), ('Checked', None),
+               ('Checked', None), ('Checked', None)],
 }
 
 def main():
