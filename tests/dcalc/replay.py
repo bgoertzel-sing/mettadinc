@@ -45,6 +45,7 @@ def key(x): return show(x)
 class Module:
     def __init__(self, form):
         self.name = form[1]; self.digest = hashlib.sha256(show(form).encode()).hexdigest()
+        pf = find(form, 'Profile'); self.profile = pf[1] if pf and len(pf) == 2 else 'Crisp'
         self.car, self.map, self.mach, self.rep, self.tol, self.abs = {}, {}, {}, {}, {}, {}
         for d in form[2:]:
             h = d[0]
@@ -60,7 +61,8 @@ class Module:
                 elif h == 'Representation':
                     co = find(d, 'Codes')
                     self.rep[d[1]] = {'machine': find(d, 'Of')[1], 'encode': find(d, 'Encode')[1],
-                                      'all': bool(co and co[1] in self.tol)}
+                                      'all': bool(co and co[1] in self.tol),
+                                      'tol': co[1] if (co and co[1] in self.tol) else 'Exact'}
                 elif h == 'AbstractionMap':
                     self.abs[d[1]] = {'source': find(d, 'Source')[1], 'target': find(d, 'Target')[1], 'map': find(d, 'Map')[1]}
             except (KeyError, IndexError, TypeError, ValueError, AssertionError):
@@ -226,11 +228,51 @@ def blocks_ok(M, r, blocks, actions):
 def defect_of(val):
     d = find(val, 'Defect'); iv = d[1]; need(iv[0] == 'Interval' and iv[1] == iv[2], 'defect interval not exact'); return int(iv[1])
 
+# review 4 F1: every field of a Checked/Refuted envelope is recomputed and
+# compared, not only Status/Value/Evidence.  A forged Claim, Binding, Scope,
+# Assumptions or Assurance must not replay.
+HEADS = ['Status', 'Claim', 'Binding', 'Scope', 'Value', 'Evidence', 'Assumptions', 'Assurance']
+SCOPE_FIXED = [['Fragment', 'M0-EnumeratedDeterministic'], ['InitialStates', 'AllDeclared'],
+               ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded'], ['Discount', '1'],
+               ['PolicyClass', 'None']]
+REP_REQUESTS = ('MeasureNow', 'CheckUpdates', 'CheckNow', 'InduceExact')
+
+def expected_binding(M, D, q):
+    need(isinstance(q, list) and q, 'request is not a form')
+    h = q[0]
+    if h in REP_REQUESTS:
+        r = rep_of(M, q[1])
+        src, tgt, tol = r['machine'], M.map[r['encode']]['to'], r['tol']
+        subj = ['Subject', ['Representation', q[1]], ['Machine', src]]
+    elif h == 'CheckAbstractionMap':
+        need(q[1] in M.abs, 'unknown abstraction map %s' % q[1]); a = M.abs[q[1]]
+        src, tgt, tol = src_view(M, D, a['source'])['id'], view_machine(M, a['target'])['id'], 'Exact'
+        subj = ['Subject', ['AbstractionMap', q[1]], ['Source', src], ['Target', tgt]]
+    elif h == 'Then':
+        need(len(q) == 3, 'Then needs two arrows')
+        src, tol = arrow(M, D, q[1])[0]['id'], 'Exact'; tgt = arrow(M, D, q[2])[1]['id']
+        subj = ['Subject', ['First', q[1][1]], ['Second', q[2][1]]]
+    else: raise Fail('request %s has no M0 replay rule' % h)
+    return ['Binding', ['Module', M.name], ['Digest', ('str', M.digest)], subj,
+            ['Source', src], ['Target', tgt], ['Interface', ['Tolerance', tol]]]
+
+def envelope_ok(M, D, q, env, st):
+    heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
+    need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s, expected %s' % (heads, HEADS))
+    need(show(find(env, 'Claim')) == show(['Claim', q, ['Equality', 'Literal']]), 'Claim differs from the request')
+    need(show(find(env, 'Binding')) == show(expected_binding(M, D, q)), 'Binding differs from the recomputed binding')
+    need(show(find(env, 'Scope')) == show(['Scope', ['Profile', M.profile]] + SCOPE_FIXED), 'Scope differs from the M0 scope')
+    need(find(env, 'Assumptions') == ['Assumptions'], 'M0 results carry no assumptions')
+    ground = 'Witness' if st == 'Refuted' else 'Replayed'
+    need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M0-ExactReplay'], ['Replayed', 'True'], ['Ground', ground]]),
+         'Assurance differs from the recomputed assurance')
+
 def replay(M, D, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
     need(find(find(env, 'Binding'), 'Digest')[1][1] == M.digest, 'digest mismatch')
     if isinstance(req, str): need(req in D, 'unknown derive'); req = D[req]
+    envelope_ok(M, D, req, env, st)
     val = find(env, 'Value')[1]; evd = find(env, 'Evidence')
     h = req[0]
     if h in ('MeasureNow', 'CheckUpdates'):

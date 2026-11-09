@@ -17,6 +17,7 @@ step test_boundaries;  $R test_boundaries "$CC -std=c11 -Wall -Wextra -O2 -Isrc/
 step check_claims;     $R check_claims "python3 tests/dcalc/check_claims.py > build/check_claims.out; r=\$?; tail -4 build/check_claims.out; exit \$r" || rc=1
 step negative_suite;   $R negative_suite "python3 tests/dcalc/negative/run_negative.py" || rc=1
 step refuted_abs;      $R refuted_abs "sh tests/dcalc/refuted_abs/run_refuted_abs.sh" || rc=1
+step envelope;         $R envelope "python3 tests/dcalc/envelope/run_envelope.py > build/envelope.out; r=\$?; tail -3 build/envelope.out; exit \$r" || rc=1
 step mutation;         $R mutation "python3 tests/dcalc/mutate.py" || rc=1
 step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_CETTA=1)"; else $R cetta_smoke "tools/dcalc-cetta-smoke.sh" || rc=1; fi
 step resources;        cat build/dcalc-resources.tsv

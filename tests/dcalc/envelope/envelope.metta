@@ -1,0 +1,28 @@
+;; Review 4 F1: envelopes whose every field must be recomputed by replay.py.
+;; Kept drops the observed bit (MeasureNow defect 1); Split breaks an update
+;; (CheckUpdates Refuted, Ground Witness); Then composes two derived arrows.
+(DC.Module Envelope
+  (Profile Crisp)
+  (Carrier Bit (Of Nat) (Enum 0 1))
+  (Carrier Unit (Of Nat) (Enum 0))
+  (Map id (From Bit) (To Bit) (Table (0 0) (1 1)))
+  (Map drop (From Bit) (To Unit) (Table (0 0) (1 0)))
+  (Machine M (States Bit) (Observe value id) (Action stay id))
+  (Machine N (States Bit) (Observe value id) (Action stay id))
+  (Representation Full (Of M) (Encode id))
+  (Representation Kept (Of M) (Encode drop))
+  (Carrier Tri (Of Nat) (Enum 0 1 2))
+  (Map code (From Tri) (To Bit) (Table (0 0) (1 0) (2 1)))
+  (Map step (From Tri) (To Tri) (Table (0 0) (1 2) (2 2)))
+  (Machine P (States Tri) (Action a step))
+  (Representation Split (Of P) (Encode code))
+  (AbstractionMap Same (Source M) (Target N) (Map id))
+  (AbstractionMap Back (Source N) (Target M) (Map id))
+  (Derive DS (CheckAbstractionMap Same))
+  (Derive DB (CheckAbstractionMap Back)))
+!(dc.run Envelope (MeasureNow Full))
+!(dc.run Envelope (MeasureNow Kept))
+!(dc.run Envelope (CheckUpdates Full (Within 0)))
+!(dc.run Envelope (CheckAbstractionMap Same))
+!(dc.run Envelope (CheckUpdates Split (Within 0)))
+!(dc.run Envelope (Then (Output DS Value) (Output DB Value)))
