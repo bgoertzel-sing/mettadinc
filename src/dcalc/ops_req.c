@@ -1,4 +1,5 @@
 /* M0 requests, part 1: run context, MeasureNow, CheckUpdates, InduceExact. */
+#include <math.h>
 #include "ops_internal.h"
 #include "obligations.h"
 #include "ops_run.h"
@@ -127,7 +128,7 @@ static Sx *check_bounded(DcRun *r, const Sx *q, const char *req, DcOblKind kind)
         if (!sx_head_is(f, "Within") || f->n != 2 || f->items[1]->kind != SX_SYM)
             return dc_invalid(m, "%s: field %zu is not (Within bound)", req, i - 1);
         within = strtod(f->items[1]->text, &end);
-        if (end == f->items[1]->text || *end || within < 0) return dc_invalid(m, "%s: field Within is not a non-negative number (%s)", req, f->items[1]->text);
+        if (end == f->items[1]->text || *end || !isfinite(within) || within < 0) return dc_invalid(m, "%s: field Within is not a finite non-negative number (%s)", req, f->items[1]->text);
         snprintf(wtxt, sizeof wtxt, "%s", f->items[1]->text);
     }
     Sx *w = NULL; int holds = dc_obligation(m, ri, kind, &w), d = holds ? 0 : 1, rep; Sx *ev;

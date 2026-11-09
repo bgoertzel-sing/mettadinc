@@ -1,5 +1,6 @@
 /* Admission of DC.Module sources into the enumerated deterministic model. */
 #include "model.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,24 +37,34 @@ static int match(const Sx *pat, const Sx *v, Env *e) {
 }
 static int parse_int(const Sx *x, long *out) {
     if (!x || x->kind != SX_SYM) return 0;
-    char *end; long v = strtol(x->text, &end, 10);
+    /* review 4 F3: out-of-range literals are refused, not clamped */
+    char *end; errno = 0; long v = strtol(x->text, &end, 10);
     if (end == x->text || *end) return 0;
+    if (errno == ERANGE) return -1;
     *out = v; return 1;
 }
 static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
     if (b->kind == SX_SYM && b->text[0] == '$') {
         for (int i = 0; i < e->n; i++) if (!strcmp(e->var[i], b->text)) return sx_copy(e->val[i]);
-        *ok = 0; return sx_sym("?");
+        if (*ok == 1) *ok = 0;
+        return sx_sym("?");
     }
     if (b->kind != SX_LIST) return sx_copy(b);
     if ((sx_head_is(b, "Add") || sx_head_is(b, "Mul")) && b->n == 3) {
         Sx *x = eval_body(b->items[1], e, ok), *y = eval_body(b->items[2], e, ok);
         long a, c; char buf[32];
-        if (!parse_int(x, &a) || !parse_int(y, &c)) { *ok = 0; sx_free(x); sx_free(y); return sx_sym("?"); }
-        snprintf(buf, sizeof buf, "%ld", sx_head_is(b, "Add") ? a + c : a * c);
+        int pa = *ok == 1 ? parse_int(x, &a) : 0, pc = *ok == 1 ? parse_int(y, &c) : 0;
+        if (pa < 0 || pc < 0) { *ok = 3; sx_free(x); sx_free(y); return sx_sym("?"); }   /* out-of-range literal */
+        if (*ok != 1 || !pa || !pc) { if (*ok == 1) *ok = 0; sx_free(x); sx_free(y); return sx_sym("?"); }
+        /* review 4 F3: checked arithmetic; overflow is an admission error (ok = 3) */
+        long r;
+        if (sx_head_is(b, "Add") ? __builtin_add_overflow(a, c, &r) : __builtin_mul_overflow(a, c, &r)) {
+            *ok = 3; sx_free(x); sx_free(y); return sx_sym("?");
+        }
+        snprintf(buf, sizeof buf, "%ld", r);
         sx_free(x); sx_free(y); return sx_sym(buf);
     }
-    if (b->n && b->items[0]->kind == SX_SYM && strcmp(b->items[0]->text, "Tuple")) { *ok = 2; return sx_sym("?"); }
+    if (b->n && b->items[0]->kind == SX_SYM && strcmp(b->items[0]->text, "Tuple")) { if (*ok == 1) *ok = 2; return sx_sym("?"); }
     Sx *l = sx_list();
     for (size_t i = 0; i < b->n; i++) sx_push(l, eval_body(b->items[i], e, ok));
     return l;
@@ -136,6 +147,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 if (!match(row->items[0], F->elems[i], &e)) continue;
                 Sx *v = eval_body(row->items[1], &e, &ok);
                 if (ok == 2) { sx_free(v); free(mp->table); return fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1); }
+                if (ok == 3) { sx_free(v); free(mp->table); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, j - 1); }
                 int b = ok ? dc_carrier_index(T, v) : -1; sx_free(v);
                 if (b < 0) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu gives a value outside carrier %s", nm, j - 1, T->name); }
                 mp->table[i] = b; break;
@@ -199,6 +211,8 @@ static int admit_repr(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n < 4 || !name_ok(d->items[1])) return fail(err, es, "Representation: expected (Representation Name (Of M) (Encode map) ...)");
     const char *nm = d->items[1]->text;
     if (dc_find_repr(m, nm) >= 0) return fail(err, es, "Representation %s: duplicate name", nm);
+    /* review 4 F2: capacity is checked before the slot is touched */
+    if (m->nrep >= sizeof m->rep / sizeof m->rep[0]) return fail(err, es, "Representation %s: too many representations", nm);
     DcRepr *r = &m->rep[m->nrep]; memset(r, 0, sizeof *r); snprintf(r->name, sizeof r->name, "%s", nm);
     const Sx *of = sx_find(d, "Of", 2), *en = sx_find(d, "Encode", 2), *co = sx_find(d, "Codes", 2);
     if (of && of->n == 2 && name_ok(of->items[1]) && dc_find_machine(m, of->items[1]->text) < 0
