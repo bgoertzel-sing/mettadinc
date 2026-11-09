@@ -231,7 +231,9 @@ def blocks_ok(M, r, blocks, actions):
         for t in S:
             need((cls[s] == cls[t]) == ceq(r, e[s], e[t], False), 'blocks are not the code classes')
             if cls[s] != cls[t]: continue
-            for l, f in mc['obs']: need(M.map[f]['f'][s] == M.map[f]['f'][t], 'observation varies in a block')
+            # review 4 F5: Current checks observations, Update checks actions
+            if not actions:
+                for l, f in mc['obs']: need(M.map[f]['f'][s] == M.map[f]['f'][t], 'observation varies in a block')
             if actions:
                 for l, f in mc['act']: need(cls[M.map[f]['f'][s]] == cls[M.map[f]['f'][t]], 'action splits a block')
 
@@ -285,15 +287,19 @@ def replay(M, D, req, env):
     envelope_ok(M, D, req, env, st)
     val = find(env, 'Value')[1]; evd = find(env, 'Evidence')
     h = req[0]
-    if h in ('MeasureNow', 'CheckUpdates'):
-        r = rep_of(M, req[1]); kind = 'Current' if h == 'MeasureNow' else 'Update'
+    if h in ('MeasureNow', 'CheckUpdates', 'CheckNow'):
+        # review 4 F5: CheckNow is the Current obligation against a Within bound
+        r = rep_of(M, req[1]); kind = 'Update' if h == 'CheckUpdates' else 'Current'
         d = defect_of(val); bound = 0.0
-        if h == 'CheckUpdates':
+        if h != 'MeasureNow':
             w = find(req, 'Within'); bound = float(w[1]) if w else 0.0
             need((st == 'Checked') == (d <= bound), 'status disagrees with defect and bound')
         else: need(st == 'Checked', 'MeasureNow reports a measurement')
         c, w = find(evd, 'Certificate'), find(evd, 'Witness')
-        if d == 0: need(c is not None, 'defect 0 needs a certificate'); blocks_ok(M, r, find(c, 'Blocks'), h == 'CheckUpdates')
+        if d == 0:
+            need(c is not None, 'defect 0 needs a certificate')
+            need(find(c, 'Checks') == ['Checks', kind], 'certificate checks the wrong obligation')
+            blocks_ok(M, r, find(c, 'Blocks'), kind == 'Update')
         else: need(w is not None and d == 1, 'defect 1 needs a witness'); witness_fail(M, r, kind, w[1])
     elif h == 'InduceExact':
         r = rep_of(M, req[1])

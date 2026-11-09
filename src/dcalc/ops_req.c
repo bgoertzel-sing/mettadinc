@@ -94,7 +94,10 @@ static int replay_partition(const DcModule *m, int ri, const Sx *cert, int liter
             int same = cls[i] == cls[j];
             if (same != same_code(r, enc, i, j, literal)) { ok = 0; break; }
             if (!same) continue;
-            for (size_t p = 0; p < mc->nobs; p++) if (m->map[mc->obs[p].map].table[i] != m->map[mc->obs[p].map].table[j]) ok = 0;
+            /* review 4 F5: a Current certificate checks observations, an Update
+             * certificate checks actions; the Update obligation says nothing
+             * about observations, so it must not be refused for them. */
+            if (!actions) for (size_t p = 0; p < mc->nobs; p++) if (m->map[mc->obs[p].map].table[i] != m->map[mc->obs[p].map].table[j]) ok = 0;
             if (actions) for (size_t p = 0; p < mc->nact; p++) {
                 const int *a = m->map[mc->act[p].map].table;
                 if (cls[a[i]] != cls[a[j]]) ok = 0;

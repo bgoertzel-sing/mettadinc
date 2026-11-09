@@ -1,6 +1,8 @@
 ;; Review 4 F1: envelopes whose every field must be recomputed by replay.py.
 ;; Kept drops the observed bit (MeasureNow defect 1); Split breaks an update
 ;; (CheckUpdates Refuted, Ground Witness); Then composes two derived arrows.
+;; Review 4 F5: Kept keeps every update (CheckUpdates Checked although the
+;; observation is lost) and CheckNow replays (Full Checked, Kept Refuted).
 (DC.Module Envelope
   (Profile Crisp)
   (Carrier Bit (Of Nat) (Enum 0 1))
@@ -26,3 +28,6 @@
 !(dc.run Envelope (CheckAbstractionMap Same))
 !(dc.run Envelope (CheckUpdates Split (Within 0)))
 !(dc.run Envelope (Then (Output DS Value) (Output DB Value)))
+!(dc.run Envelope (CheckUpdates Kept (Within 0)))
+!(dc.run Envelope (CheckNow Full (Within 0)))
+!(dc.run Envelope (CheckNow Kept (Within 0)))
