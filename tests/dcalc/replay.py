@@ -122,7 +122,8 @@ def enc(M, r): return M.map[r['encode']]['f']
 def view_machine(M, name):
     need(name in M.mach, 'unknown machine %s' % name); mc = M.mach[name]
     return {'id': name, 'states': [key(s) for s in M.car[mc['states']]],
-            'obs': {l: M.map[f]['f'] for l, f in mc['obs']}, 'act': {l: M.map[f]['f'] for l, f in mc['act']}}
+            'obs': {l: M.map[f]['f'] for l, f in mc['obs']}, 'act': {l: M.map[f]['f'] for l, f in mc['act']},
+            'ocar': {l: M.map[f]['to'] for l, f in mc['obs']}}
 
 def view_quotient(M, rname, did):
     r = rep_of(M, rname); mc = M.mach[r['machine']]; e = enc(M, r); pre = {}
@@ -137,7 +138,15 @@ def view_quotient(M, rname, did):
         for c, ss in pre.items():
             vals = {e[t[s]] for s in ss}; need(len(vals) == 1, 'quotient action %s not well defined' % l); act[l][c] = vals.pop()
     order = [key(c) for c in M.car[M.map[r['encode']]['to']] if key(c) in pre]
-    return {'id': '(Output %s Machine)' % did, 'states': order, 'obs': obs, 'act': act}
+    return {'id': '(Output %s Machine)' % did, 'states': order, 'obs': obs, 'act': act,
+            'ocar': {l: M.map[f]['to'] for l, f in mc['obs']}}
+
+def same_interface(sv, tv):
+    # review 4 F4 (spec Definition 3.5): both sides carry the same observation
+    # labels (with the same carriers) and the same action labels.
+    need(set(sv['obs']) == set(tv['obs']), 'interfaces differ: observation labels')
+    need(all(sv['ocar'][l] == tv['ocar'][l] for l in sv['obs']), 'interfaces differ: observation carriers')
+    need(set(sv['act']) == set(tv['act']), 'interfaces differ: action labels')
 
 def commute_fail(sv, tv, f):
     for s in sv['states']:
@@ -167,6 +176,7 @@ def arrow(M, D, ref, depth=0):
     if q[0] == 'CheckAbstractionMap':
         a = M.abs[q[1]]; sv, tv = src_view(M, D, a['source']), view_machine(M, a['target'])
         f = {s: M.map[a['map']]['f'][s] for s in sv['states']}
+        same_interface(sv, tv)
         need(commute_fail(sv, tv, f) is None, 'component map does not commute'); return sv, tv, f
     if q[0] == 'Then':
         s1, t1, f = arrow(M, D, q[1], depth + 1); s2, t2, g = arrow(M, D, q[2], depth + 1)
@@ -301,6 +311,7 @@ def replay(M, D, req, env):
         if h == 'CheckAbstractionMap':
             a = M.abs[req[1]]; sv, tv = src_view(M, D, a['source']), view_machine(M, a['target'])
             f = {s: M.map[a['map']]['f'][s] for s in sv['states']}
+            same_interface(sv, tv)
         else:
             s1, t1, f1 = arrow(M, D, req[1]); s2, t2, g = arrow(M, D, req[2])
             need(t1['id'] == s2['id'], 'interface mismatch'); sv, tv = s1, t2; f = {s: g[f1[s]] for s in s1['states']}

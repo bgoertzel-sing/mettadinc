@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Review 4 F2/F3: capacity, checked arithmetic and non-finite bounds.
+"""Review 4 F2/F3/F4: capacity, checked arithmetic, non-finite bounds, interfaces.
 
 Runs dcalc (env DCALC, default build/dcalc/dcalc) on each fixture here and
 requires exit code 0 plus the expected Status/Reason per row.  Run it with a
@@ -13,6 +13,12 @@ OVF = 'integer overflow or out-of-range literal in Add/Mul'
 FIN = 'field Within is not a finite non-negative number'
 EXPECT = {
     'too_many': [('InvalidInput', 'too many representations')],
+    'interfaces': [('InvalidInput', 'interfaces differ: Source has no observation extra'),
+                   ('InvalidInput', 'interfaces differ: Target has no observation value'),
+                   ('InvalidInput', 'interfaces differ: Source and Target differ in the carrier of observation value'),
+                   ('InvalidInput', 'interfaces differ: Source has no action stay'),
+                   ('InvalidInput', 'interfaces differ: Target has no action stay'),
+                   ('Checked', None)],
     'overflow_add': [('InvalidInput', OVF)],
     'overflow_mul': [('InvalidInput', OVF)],
     'overflow_literal': [('InvalidInput', OVF)],
