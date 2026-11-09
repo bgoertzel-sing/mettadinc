@@ -87,13 +87,14 @@ Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subj
     return r;
 }
 
-/* Boundary 1: record source/target model identities in a result's binding. */
+/* Boundary 1: record source/target model identities in a result's binding.
+ * review 3 F3: written as symbols, the same kind dc_envelope and the Subject use. */
 void dc_result_bind_models(Sx *res, const char *src_id, const char *tgt_id) {
     Sx *b = sx_find(res, "Binding", 1);
     if (!b) return;
     Sx *s = sx_find(b, "Source", 1), *t = sx_find(b, "Target", 1);
-    if (s && s->n == 2 && src_id) { sx_free(s->items[1]); s->items[1] = sx_str(src_id); }
-    if (t && t->n == 2 && tgt_id) { sx_free(t->items[1]); t->items[1] = sx_str(tgt_id); }
+    if (s && s->n == 2 && src_id) { sx_free(s->items[1]); s->items[1] = sx_sym(src_id); }
+    if (t && t->n == 2 && tgt_id) { sx_free(t->items[1]); t->items[1] = sx_sym(tgt_id); }
 }
 
 /* Boundary 2: a derived result takes the union of its premises' assumptions.

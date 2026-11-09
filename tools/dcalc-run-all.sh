@@ -3,7 +3,8 @@
 #   tools/dcalc-run-all.sh        (CC/AR from PATH; gcc 11+ or zig cc)
 # Exit 0 iff the build and all suites pass.  The last step builds a patched
 # scratch CeTTa (tools/dcalc-cetta-smoke.sh) and runs the MeTTa smoke tests;
-# CETTA_CFLAGS passes extra flags (e.g. -Wno-error=... for gcc 11).
+# CETTA_CFLAGS overrides the extra CeTTa CFLAGS; the default (-Wno-error=stringop-overflow
+# -Wno-error=maybe-uninitialized) is what gcc 11.4 / Ubuntu 22.04 needs (review 3 F1).
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT" || exit 2

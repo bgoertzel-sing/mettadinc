@@ -83,7 +83,7 @@ static void boundary1_binding(void) {
         CHECK(s && sx_find(s, "InitialStates", 1) && sx_find(s, "ReachableStates", 1) && sx_find(s, "Horizon", 1)
               && sx_find(s, "Discount", 1) && sx_find(s, "PolicyClass", 1), "B1 envelope scope has initial/reachable states, horizon, discount, policy class");
         Sx *src = b ? sx_find(b, "Source", 1) : NULL;
-        CHECK(src && src->n == 2 && src->items[1]->kind == SX_STR && !strcmp(src->items[1]->text, "M1"), "B1 dc_result_bind_models records the source identity");
+        CHECK(src && src->n == 2 && src->items[1]->kind == SX_SYM && !strcmp(src->items[1]->text, "M1"), "B1 dc_result_bind_models records the source identity as a symbol (review 3 F3)");
         sx_free(env);
     }
 }

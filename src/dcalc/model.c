@@ -59,6 +59,13 @@ static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
     return l;
 }
 
+/* review 3 F2: a carrier that fails admission is not counted in m->ncar, so
+   dc_module_free cannot see it; release its partial element table here. */
+static void car_drop(DcCarrier *c) {
+    if (c->elems) { for (size_t j = 0; j < c->n; j++) sx_free(c->elems[j]); free(c->elems); }
+    c->elems = NULL; c->n = 0;
+}
+
 static int admit_carrier(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n < 4 || !name_ok(d->items[1])) return fail(err, es, "[M0] Carrier: expected (Carrier Name (Of T) (Enum ...)|(Product ...))");
     const char *nm = d->items[1]->text;
@@ -70,8 +77,8 @@ static int admit_carrier(DcModule *m, const Sx *d, char *err, size_t es) {
     if (sx_head_is(body, "Enum")) {
         c->n = body->n - 1; c->elems = calloc(c->n ? c->n : 1, sizeof(Sx *));
         for (size_t i = 0; i < c->n; i++) {
-            if (body->items[i + 1]->kind == SX_LIST) return fail(err, es, "[M0] Carrier %s: Enum element %zu is not atomic", nm, i);
-            for (size_t j = 0; j < i; j++) if (sx_equal(c->elems[j], body->items[i + 1])) return fail(err, es, "Carrier %s: duplicate Enum element %s", nm, body->items[i + 1]->text);
+            if (body->items[i + 1]->kind == SX_LIST) { car_drop(c); return fail(err, es, "[M0] Carrier %s: Enum element %zu is not atomic", nm, i); }
+            for (size_t j = 0; j < i; j++) if (sx_equal(c->elems[j], body->items[i + 1])) { int rc = fail(err, es, "Carrier %s: duplicate Enum element %s", nm, body->items[i + 1]->text); car_drop(c); return rc; }
             c->elems[i] = sx_copy(body->items[i + 1]);
         }
     } else if (sx_head_is(body, "Product") && body->n >= 2) {
