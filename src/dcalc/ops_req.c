@@ -1,4 +1,5 @@
 /* M0 requests, part 1: run context, MeasureNow, CheckUpdates, InduceExact. */
+#include <math.h>
 #include "ops_internal.h"
 #include "obligations.h"
 #include "ops_run.h"
@@ -12,7 +13,7 @@ void dc_run_free(DcRun *r) {
     for (int i = 0; i < DC_MAX_DERIVE; i++) {
         sx_free(r->memo[i]);
         if (r->has_view[i]) dc_view_free(&r->view[i]);
-        if (r->arrow_kind[i]) free(r->arrow[i].table);
+        if (r->arrow_kind[i]) { free(r->arrow[i].table); free(r->arrow[i].src_valid); free(r->arrow[i].tgt_valid); }
     }
     free(r);
 }
@@ -93,7 +94,10 @@ static int replay_partition(const DcModule *m, int ri, const Sx *cert, int liter
             int same = cls[i] == cls[j];
             if (same != same_code(r, enc, i, j, literal)) { ok = 0; break; }
             if (!same) continue;
-            for (size_t p = 0; p < mc->nobs; p++) if (m->map[mc->obs[p].map].table[i] != m->map[mc->obs[p].map].table[j]) ok = 0;
+            /* review 4 F5: a Current certificate checks observations, an Update
+             * certificate checks actions; the Update obligation says nothing
+             * about observations, so it must not be refused for them. */
+            if (!actions) for (size_t p = 0; p < mc->nobs; p++) if (m->map[mc->obs[p].map].table[i] != m->map[mc->obs[p].map].table[j]) ok = 0;
             if (actions) for (size_t p = 0; p < mc->nact; p++) {
                 const int *a = m->map[mc->act[p].map].table;
                 if (cls[a[i]] != cls[a[j]]) ok = 0;
@@ -127,7 +131,7 @@ static Sx *check_bounded(DcRun *r, const Sx *q, const char *req, DcOblKind kind)
         if (!sx_head_is(f, "Within") || f->n != 2 || f->items[1]->kind != SX_SYM)
             return dc_invalid(m, "%s: field %zu is not (Within bound)", req, i - 1);
         within = strtod(f->items[1]->text, &end);
-        if (end == f->items[1]->text || *end || within < 0) return dc_invalid(m, "%s: field Within is not a non-negative number (%s)", req, f->items[1]->text);
+        if (end == f->items[1]->text || *end || !isfinite(within) || within < 0) return dc_invalid(m, "%s: field Within is not a finite non-negative number (%s)", req, f->items[1]->text);
         snprintf(wtxt, sizeof wtxt, "%s", f->items[1]->text);
     }
     Sx *w = NULL; int holds = dc_obligation(m, ri, kind, &w), d = holds ? 0 : 1, rep; Sx *ev;

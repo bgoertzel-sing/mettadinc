@@ -1,0 +1,25 @@
+;; Review 4 F6: a composite Then is classified by its own image, not by
+;; "both premises surjective".  Row 1 is the review case (f not surjective,
+;; g . f surjective); rows 2-4 are controls.
+(DC.Module Composite
+  (Profile Crisp)
+  (Carrier One (Of Nat) (Enum 0))
+  (Carrier Two (Of Nat) (Enum 0 1))
+  (Map f (From One) (To Two) (Table (0 0)))
+  (Map g (From Two) (To One) (Table (0 0) (1 0)))
+  (Map h (From Two) (To Two) (Table (0 0) (1 1)))
+  (Machine A (States One))
+  (Machine B (States Two))
+  (Machine C (States One))
+  (AbstractionMap F (Source A) (Target B) (Map f))
+  (AbstractionMap G (Source B) (Target C) (Map g))
+  (AbstractionMap H (Source B) (Target B) (Map h))
+  (AbstractionMap F2 (Source C) (Target B) (Map f))
+  (Derive DF (CheckAbstractionMap F))
+  (Derive DG (CheckAbstractionMap G))
+  (Derive DH (CheckAbstractionMap H))
+  (Derive DF2 (CheckAbstractionMap F2)))
+!(dc.run Composite (Then (Output DF Value) (Output DG Value)))
+!(dc.run Composite (Then (Output DH Value) (Output DG Value)))
+!(dc.run Composite (Then (Output DF Value) (Output DH Value)))
+!(dc.run Composite (Then (Output DG Value) (Output DF2 Value)))

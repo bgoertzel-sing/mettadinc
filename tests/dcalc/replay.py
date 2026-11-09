@@ -45,6 +45,7 @@ def key(x): return show(x)
 class Module:
     def __init__(self, form):
         self.name = form[1]; self.digest = hashlib.sha256(show(form).encode()).hexdigest()
+        pf = find(form, 'Profile'); self.profile = pf[1] if pf and len(pf) == 2 else 'Crisp'
         self.car, self.map, self.mach, self.rep, self.tol, self.abs = {}, {}, {}, {}, {}, {}
         for d in form[2:]:
             h = d[0]
@@ -60,7 +61,8 @@ class Module:
                 elif h == 'Representation':
                     co = find(d, 'Codes')
                     self.rep[d[1]] = {'machine': find(d, 'Of')[1], 'encode': find(d, 'Encode')[1],
-                                      'all': bool(co and co[1] in self.tol)}
+                                      'all': bool(co and co[1] in self.tol),
+                                      'tol': co[1] if (co and co[1] in self.tol) else 'Exact'}
                 elif h == 'AbstractionMap':
                     self.abs[d[1]] = {'source': find(d, 'Source')[1], 'target': find(d, 'Target')[1], 'map': find(d, 'Map')[1]}
             except (KeyError, IndexError, TypeError, ValueError, AssertionError):
@@ -120,7 +122,8 @@ def enc(M, r): return M.map[r['encode']]['f']
 def view_machine(M, name):
     need(name in M.mach, 'unknown machine %s' % name); mc = M.mach[name]
     return {'id': name, 'states': [key(s) for s in M.car[mc['states']]],
-            'obs': {l: M.map[f]['f'] for l, f in mc['obs']}, 'act': {l: M.map[f]['f'] for l, f in mc['act']}}
+            'obs': {l: M.map[f]['f'] for l, f in mc['obs']}, 'act': {l: M.map[f]['f'] for l, f in mc['act']},
+            'ocar': {l: M.map[f]['to'] for l, f in mc['obs']}}
 
 def view_quotient(M, rname, did):
     r = rep_of(M, rname); mc = M.mach[r['machine']]; e = enc(M, r); pre = {}
@@ -135,7 +138,15 @@ def view_quotient(M, rname, did):
         for c, ss in pre.items():
             vals = {e[t[s]] for s in ss}; need(len(vals) == 1, 'quotient action %s not well defined' % l); act[l][c] = vals.pop()
     order = [key(c) for c in M.car[M.map[r['encode']]['to']] if key(c) in pre]
-    return {'id': '(Output %s Machine)' % did, 'states': order, 'obs': obs, 'act': act}
+    return {'id': '(Output %s Machine)' % did, 'states': order, 'obs': obs, 'act': act,
+            'ocar': {l: M.map[f]['to'] for l, f in mc['obs']}}
+
+def same_interface(sv, tv):
+    # review 4 F4 (spec Definition 3.5): both sides carry the same observation
+    # labels (with the same carriers) and the same action labels.
+    need(set(sv['obs']) == set(tv['obs']), 'interfaces differ: observation labels')
+    need(all(sv['ocar'][l] == tv['ocar'][l] for l in sv['obs']), 'interfaces differ: observation carriers')
+    need(set(sv['act']) == set(tv['act']), 'interfaces differ: action labels')
 
 def commute_fail(sv, tv, f):
     for s in sv['states']:
@@ -165,6 +176,7 @@ def arrow(M, D, ref, depth=0):
     if q[0] == 'CheckAbstractionMap':
         a = M.abs[q[1]]; sv, tv = src_view(M, D, a['source']), view_machine(M, a['target'])
         f = {s: M.map[a['map']]['f'][s] for s in sv['states']}
+        same_interface(sv, tv)
         need(commute_fail(sv, tv, f) is None, 'component map does not commute'); return sv, tv, f
     if q[0] == 'Then':
         s1, t1, f = arrow(M, D, q[1], depth + 1); s2, t2, g = arrow(M, D, q[2], depth + 1)
@@ -219,30 +231,103 @@ def blocks_ok(M, r, blocks, actions):
         for t in S:
             need((cls[s] == cls[t]) == ceq(r, e[s], e[t], False), 'blocks are not the code classes')
             if cls[s] != cls[t]: continue
-            for l, f in mc['obs']: need(M.map[f]['f'][s] == M.map[f]['f'][t], 'observation varies in a block')
+            # review 4 F5: Current checks observations, Update checks actions
+            if not actions:
+                for l, f in mc['obs']: need(M.map[f]['f'][s] == M.map[f]['f'][t], 'observation varies in a block')
             if actions:
                 for l, f in mc['act']: need(cls[M.map[f]['f'][s]] == cls[M.map[f]['f'][t]], 'action splits a block')
 
 def defect_of(val):
     d = find(val, 'Defect'); iv = d[1]; need(iv[0] == 'Interval' and iv[1] == iv[2], 'defect interval not exact'); return int(iv[1])
 
+# review 4 F1: every field of a Checked/Refuted envelope is recomputed and
+# compared, not only Status/Value/Evidence.  A forged Claim, Binding, Scope,
+# Assumptions or Assurance must not replay.
+HEADS = ['Status', 'Claim', 'Binding', 'Scope', 'Value', 'Evidence', 'Assumptions', 'Assurance']
+SCOPE_FIXED = [['Fragment', 'M0-EnumeratedDeterministic'], ['InitialStates', 'AllDeclared'],
+               ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded'], ['Discount', '1'],
+               ['PolicyClass', 'None']]
+REP_REQUESTS = ('MeasureNow', 'CheckUpdates', 'CheckNow', 'InduceExact')
+
+def expected_binding(M, D, q):
+    need(isinstance(q, list) and q, 'request is not a form')
+    h = q[0]
+    if h in REP_REQUESTS:
+        r = rep_of(M, q[1])
+        src, tgt, tol = r['machine'], M.map[r['encode']]['to'], r['tol']
+        subj = ['Subject', ['Representation', q[1]], ['Machine', src]]
+    elif h == 'CheckAbstractionMap':
+        need(q[1] in M.abs, 'unknown abstraction map %s' % q[1]); a = M.abs[q[1]]
+        src, tgt, tol = src_view(M, D, a['source'])['id'], view_machine(M, a['target'])['id'], 'Exact'
+        subj = ['Subject', ['AbstractionMap', q[1]], ['Source', src], ['Target', tgt]]
+    elif h == 'Then':
+        need(len(q) == 3, 'Then needs two arrows')
+        src, tol = arrow(M, D, q[1])[0]['id'], 'Exact'; tgt = arrow(M, D, q[2])[1]['id']
+        subj = ['Subject', ['First', q[1][1]], ['Second', q[2][1]]]
+    else: raise Fail('request %s has no M0 replay rule' % h)
+    return ['Binding', ['Module', M.name], ['Digest', ('str', M.digest)], subj,
+            ['Source', src], ['Target', tgt], ['Interface', ['Tolerance', tol]]]
+
+def envelope_ok(M, D, q, env, st):
+    heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
+    need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s, expected %s' % (heads, HEADS))
+    need(show(find(env, 'Claim')) == show(['Claim', q, ['Equality', 'Literal']]), 'Claim differs from the request')
+    need(show(find(env, 'Binding')) == show(expected_binding(M, D, q)), 'Binding differs from the recomputed binding')
+    need(show(find(env, 'Scope')) == show(['Scope', ['Profile', M.profile]] + SCOPE_FIXED), 'Scope differs from the M0 scope')
+    need(find(env, 'Assumptions') == ['Assumptions'], 'M0 results carry no assumptions')
+    ground = 'Witness' if st == 'Refuted' else 'Replayed'
+    need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M0-ExactReplay'], ['Replayed', 'True'], ['Ground', ground]]),
+         'Assurance differs from the recomputed assurance')
+
+# review-fixes review 1 F1: the Value and the Evidence heads are rebuilt from
+# the request and the recomputation and compared whole, so a forged flag,
+# bound, kind, source or target cannot replay.
+def DEF(d): return ['Defect', ['Interval', str(d), str(d)]]
+def value_is(val, exp): need(show(val) == show(exp), 'Value differs from the recomputed value %s' % show(exp))
+def evidence_one(evd, head):
+    need(len(evd) == 2 and isinstance(evd[1], list) and evd[1] and evd[1][0] == head, 'Evidence must be exactly one %s' % head)
+    return evd[1]
+def cert_ok(c, fixed, rest):
+    heads = [x[0] if isinstance(x, list) and x else None for x in c[1:]]
+    need(heads == [f[0] for f in fixed] + rest, 'certificate fields %s' % heads)
+    for f in fixed: need(show(find(c, f[0])) == show(f), 'certificate %s differs from %s' % (f[0], show(f)))
+def parse_bound(t):
+    # review-fixes review 1 F3: accept what dcalc's strtod accepts (hex floats too)
+    need(isinstance(t, str), 'Within bound is not a number')
+    try: return float(t)
+    except ValueError: pass
+    try: return float.fromhex(t)
+    except ValueError: raise Fail('Within bound %s is not a number' % t)
+
 def replay(M, D, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
     need(find(find(env, 'Binding'), 'Digest')[1][1] == M.digest, 'digest mismatch')
-    if isinstance(req, str): need(req in D, 'unknown derive'); req = D[req]
+    dname = None
+    if isinstance(req, str): need(req in D, 'unknown derive'); dname = req; req = D[req]
+    envelope_ok(M, D, req, env, st)
     val = find(env, 'Value')[1]; evd = find(env, 'Evidence')
     h = req[0]
-    if h in ('MeasureNow', 'CheckUpdates'):
-        r = rep_of(M, req[1]); kind = 'Current' if h == 'MeasureNow' else 'Update'
-        d = defect_of(val); bound = 0.0
-        if h == 'CheckUpdates':
-            w = find(req, 'Within'); bound = float(w[1]) if w else 0.0
+    if h in ('MeasureNow', 'CheckUpdates', 'CheckNow'):
+        # review 4 F5: CheckNow is the Current obligation against a Within bound
+        r = rep_of(M, req[1]); kind = 'Update' if h == 'CheckUpdates' else 'Current'
+        d = defect_of(val); bound = 0.0; btxt = '0'
+        if h != 'MeasureNow':
+            w = find(req, 'Within'); btxt = w[1] if w else '0'; bound = parse_bound(btxt)
             need((st == 'Checked') == (d <= bound), 'status disagrees with defect and bound')
         else: need(st == 'Checked', 'MeasureNow reports a measurement')
         c, w = find(evd, 'Certificate'), find(evd, 'Witness')
-        if d == 0: need(c is not None, 'defect 0 needs a certificate'); blocks_ok(M, r, find(c, 'Blocks'), h == 'CheckUpdates')
+        if d == 0:
+            need(c is not None, 'defect 0 needs a certificate')
+            need(find(c, 'Checks') == ['Checks', kind], 'certificate checks the wrong obligation')
+            blocks_ok(M, r, find(c, 'Blocks'), kind == 'Update')
         else: need(w is not None and d == 1, 'defect 1 needs a witness'); witness_fail(M, r, kind, w[1])
+        dd = 0 if obligation_fail(M, r, kind) is None else 1
+        need(d == dd, 'defect differs from the recomputed defect')
+        value_is(val, ['DefectMeasurement', DEF(dd), ['Equality', 'Literal']] if h == 'MeasureNow'
+                 else ['DefectCheck', DEF(dd), ['Bound', btxt], ['Equality', 'Literal']])
+        if dd == 0: cert_ok(evidence_one(evd, 'Certificate'), [['Kind', 'Prefixpoint'], ['Codes', 'Tolerance' if r['all'] else 'Literal'], ['Checks', kind]], ['Blocks'])
+        else: evidence_one(evd, 'Witness')
     elif h == 'InduceExact':
         r = rep_of(M, req[1])
         if st == 'Checked':
@@ -251,20 +336,27 @@ def replay(M, D, req, env):
             for F in fib[1:]:
                 for s in F[2:]: need(e[key(s)] == key(F[1]), 'fiber code wrong'); seen.append(key(s))
             need(sorted(seen) == sorted(key(s) for s in M.car[M.mach[r['machine']]['states']]), 'fibers do not partition')
+            need(len(set(key(F[1]) for F in fib[1:])) == len(fib) - 1, 'two fibers share a code')
+            cert_ok(evidence_one(evd, 'Certificate'), [['Kind', 'Prefixpoint']], ['Checks', 'Fibers'])
+            value_is(val, ['ExactAbstraction', DEF(0), ['Machine', ['Output', dname or '?', 'Machine']],
+                           ['States', str(len(fib) - 1)], ['Encode', r['encode']]])
         else:
             k = find(evd, 'Obligation')[1]; order = ['Current', 'Update', 'Congruence']
             for prev in order[:order.index(k)]: need(obligation_fail(M, r, prev) is None, 'an earlier obligation fails')
             witness_fail(M, r, k, find(evd, 'Witness')[1])
+            value_is(val, ['Refutation', ['Obligation', k]])
     elif h in ('CheckAbstractionMap', 'Then'):
         if h == 'CheckAbstractionMap':
             a = M.abs[req[1]]; sv, tv = src_view(M, D, a['source']), view_machine(M, a['target'])
             f = {s: M.map[a['map']]['f'][s] for s in sv['states']}
+            same_interface(sv, tv)
         else:
             s1, t1, f1 = arrow(M, D, req[1]); s2, t2, g = arrow(M, D, req[2])
             need(t1['id'] == s2['id'], 'interface mismatch'); sv, tv = s1, t2; f = {s: g[f1[s]] for s in s1['states']}
         bad = commute_fail(sv, tv, f)
         if st == 'Refuted':
             need(bad is not None, 'refuted map commutes')
+            value_is(val, ['Refutation', ['Obligation', 'Commutation']])
             # review 2 F2: the witness itself must replay, not just "some commutation fails"
             w = find(evd, 'Witness')[1]
             need(isinstance(w, list) and len(w) == 5 and w[0] == 'CommutationWitness', 'CommutationWitness expected')
@@ -287,7 +379,12 @@ def replay(M, D, req, env):
         rows = {key(x[1]): key(x[2]) for x in find(find(evd, 'Certificate'), 'Table')[1:]}
         need(rows == f, 'certificate table differs from the recomputed map')
         surj = set(f.values()) == set(tv['states'])
-        need(find(val, 'Kind')[1] == ('Quotient' if surj else 'Homomorphism'), 'Kind disagrees with surjectivity')
+        kd = ['Kind', 'Quotient' if surj else 'Homomorphism']
+        if h == 'CheckAbstractionMap':
+            value_is(val, ['CheckedAbstractionMap', kd, ['Surjective', 'True' if surj else 'False']])
+        else:
+            value_is(val, ['ComposedArrow', ['Source', sv['id']], ['Target', tv['id']], kd])
+        cert_ok(evidence_one(evd, 'Certificate'), [['Kind', 'rule'], ['Rule', 'Commutation' if h == 'CheckAbstractionMap' else 'Composition']], ['Table'])
     else: raise Fail('request %s has no M0 replay rule' % h)
     return 'ok'
 

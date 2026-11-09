@@ -4,7 +4,9 @@ MeTTaDinC sublanguage on Cetta
 ## The MeTTaDinC epic
 
 This repository is where MeTTaDinC is to be built on Cetta, following Ben Goertzel's MeTTaDinC documents and the
-milestones M0–M7 of the Cetta work plan. It holds no MeTTaDinC implementation code yet. Cetta is the git submodule
+milestones M0–M7 of the Cetta work plan. It holds the M0 core: the `dcalc` checker in `src/dcalc/` (C, built and
+tested by `tools/dcalc-run-all.sh`) with its independent replay checker and suites in `tests/dcalc/`; M1–M7 are not
+implemented yet. Cetta is the git submodule
 `cetta/`, pinned to the plan's commit and unmodified (see "M0 prerequisites" below); fetch it with
 `git submodule update --init`.
 

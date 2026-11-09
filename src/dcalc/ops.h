@@ -21,6 +21,7 @@ typedef struct {
     int src_car, tgt_car;  /* state carriers of source and target */
     int *table;            /* src state index -> tgt state index */
     int surjective;
+    int *src_valid, *tgt_valid;     /* review 4 F6: valid states of the source/target views (owned, may be NULL = all) */
     char src_id[160], tgt_id[160];  /* interface identities */
 } DcArrow;
 

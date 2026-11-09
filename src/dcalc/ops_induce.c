@@ -98,6 +98,9 @@ Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int slot) {
         A->src = rp->machine; A->tgt = -1; A->src_car = mc->states; A->tgt_car = enc->to;
         A->table = malloc((S->n ? S->n : 1) * sizeof(int)); memcpy(A->table, enc->table, S->n * sizeof(int));
         A->surjective = 1;
+        A->src_valid = NULL;   /* review 4 F6: every machine state is a source state */
+        A->tgt_valid = malloc((enc->to < 0 ? 1 : (m->car[enc->to].n ? m->car[enc->to].n : 1)) * sizeof(int));
+        for (size_t c = 0; c < m->car[enc->to].n; c++) A->tgt_valid[c] = r->view[slot].valid[c];
         snprintf(A->src_id, sizeof A->src_id, "%s", mc->name); snprintf(A->tgt_id, sizeof A->tgt_id, "%s", id);
     }
     size_t nblocks = fib->n - 1;

@@ -23,6 +23,13 @@ static int output_slot(DcRun *r, const Sx *x, const char *what, char *why, size_
     return d;
 }
 
+/* review 4 F6: copy a view's valid-state mask for an arrow kept in a slot */
+static int *mask_dup(const int *v, size_t n) {
+    int *c = malloc((n ? n : 1) * sizeof(int));
+    for (size_t i = 0; i < n; i++) c[i] = v ? v[i] : 1;
+    return c;
+}
+
 static Sx *arrow_cert(const DcModule *m, const DcArrow *A, const DcView *src) {
     const DcCarrier *S = &m->car[A->src_car], *T = &m->car[A->tgt_car];
     Sx *t = dc_form("Table", NULL);
@@ -126,6 +133,35 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
     A.src = -1; A.tgt = a->target; A.src_car = sv.states; A.tgt_car = tv.states;
     A.table = malloc((sv.n ? sv.n : 1) * sizeof(int)); memcpy(A.table, mp->table, sv.n * sizeof(int));
     snprintf(A.src_id, sizeof A.src_id, "%s", sv.id); snprintf(A.tgt_id, sizeof A.tgt_id, "%s", tv.id);
+    /* review 4 F4 (spec Definition 3.5): a homomorphism relates two machines with
+     * the same interface.  Every observation and action label of either side must
+     * exist on the other, with the same observation carrier; a target port the
+     * source lacks is not silently ignored. */
+    {
+        const char *bad = NULL, *side = NULL, *kind = NULL;
+        for (size_t p = 0; p < sv.nobs && !bad; p++) {
+            size_t k; for (k = 0; k < tv.nobs && strcmp(tv.obs_label[k], sv.obs_label[p]); k++) ;
+            if (k == tv.nobs) { bad = sv.obs_label[p]; side = "Target has no"; kind = "observation"; }
+        }
+        for (size_t k = 0; k < tv.nobs && !bad; k++) {
+            size_t p; for (p = 0; p < sv.nobs && strcmp(sv.obs_label[p], tv.obs_label[k]); p++) ;
+            if (p == sv.nobs) { bad = tv.obs_label[k]; side = "Source has no"; kind = "observation"; }
+            else if (sv.obs_car[p] != tv.obs_car[k]) { bad = tv.obs_label[k]; side = "Source and Target differ in the carrier of"; kind = "observation"; }
+        }
+        for (size_t p = 0; p < sv.nact && !bad; p++) {
+            size_t k; for (k = 0; k < tv.nact && strcmp(tv.act_label[k], sv.act_label[p]); k++) ;
+            if (k == tv.nact) { bad = sv.act_label[p]; side = "Target has no"; kind = "action"; }
+        }
+        for (size_t k = 0; k < tv.nact && !bad; k++) {
+            size_t p; for (p = 0; p < sv.nact && strcmp(sv.act_label[p], tv.act_label[k]); p++) ;
+            if (p == sv.nact) { bad = tv.act_label[k]; side = "Source has no"; kind = "action"; }
+        }
+        if (bad) {
+            /* format before the views are freed: bad points into sv/tv */
+            Sx *res = dc_invalid(m, "CheckAbstractionMap %s: interfaces differ: %s %s %s", nm, side, kind, bad);
+            dc_view_free(&sv); dc_view_free(&tv); free(A.table); return res;
+        }
+    }
     /* search for the least failing (state, port) */
     Sx *wit = NULL; const DcCarrier *S = &m->car[sv.states], *T = &m->car[tv.states];
     for (size_t s = 0; s < sv.n && !wit; s++) {
@@ -133,7 +169,7 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
         int fs = A.table[s];
         for (size_t p = 0; p < sv.nobs && !wit; p++) {
             size_t k; for (k = 0; k < tv.nobs && strcmp(tv.obs_label[k], sv.obs_label[p]); k++) ;
-            if (k == tv.nobs) { dc_view_free(&sv); dc_view_free(&tv); free(A.table); return dc_invalid(m, "CheckAbstractionMap %s: Target has no observation %s", nm, sv.obs_label[p]); }
+            if (k == tv.nobs) { Sx *e = dc_invalid(m, "CheckAbstractionMap %s: Target has no observation %s", nm, sv.obs_label[p]); dc_view_free(&sv); dc_view_free(&tv); free(A.table); return e; }
             if (sv.obs[p][s] != tv.obs[k][fs]) {
                 const DcCarrier *O = &m->car[sv.obs_car[p]];
                 wit = dc_form("CommutationWitness", dc_form("State", sx_copy(S->elems[s]), NULL), dc_form("Observe", dc_sym(sv.obs_label[p]), NULL),
@@ -142,7 +178,7 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
         }
         for (size_t p = 0; p < sv.nact && !wit; p++) {
             size_t k; for (k = 0; k < tv.nact && strcmp(tv.act_label[k], sv.act_label[p]); k++) ;
-            if (k == tv.nact) { dc_view_free(&sv); dc_view_free(&tv); free(A.table); return dc_invalid(m, "CheckAbstractionMap %s: Target has no action %s", nm, sv.act_label[p]); }
+            if (k == tv.nact) { Sx *e = dc_invalid(m, "CheckAbstractionMap %s: Target has no action %s", nm, sv.act_label[p]); dc_view_free(&sv); dc_view_free(&tv); free(A.table); return e; }
             if (A.table[sv.act[p][s]] != tv.act[k][fs])
                 wit = dc_form("CommutationWitness", dc_form("State", sx_copy(S->elems[s]), NULL), dc_form("Action", dc_sym(sv.act_label[p]), NULL),
                               dc_form("Left", sx_copy(T->elems[A.table[sv.act[p][s]]]), NULL), dc_form("Right", sx_copy(T->elems[tv.act[k][fs]]), NULL), NULL);
@@ -169,7 +205,7 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
                                   dc_form("Surjective", dc_sym(A.surjective ? "True" : "False"), NULL), NULL), NULL),
                           dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("rule"), NULL), dc_form("Rule", dc_sym("Commutation"), NULL), table, NULL), NULL), NULL);
         dc_result_bind_models(res, A.src_id, A.tgt_id);
-        if (slot >= 0) { r->arrow[slot] = A; r->arrow_kind[slot] = 2; } else free(A.table);
+        if (slot >= 0) { A.src_valid = mask_dup(sv.valid, sv.n); A.tgt_valid = mask_dup(tv.valid, tv.n); r->arrow[slot] = A; r->arrow_kind[slot] = 2; } else free(A.table);
     }
     dc_view_free(&sv); dc_view_free(&tv);
     return res;
@@ -198,7 +234,16 @@ Sx *dc_req_then(DcRun *r, const Sx *q, int slot) {
     A.src = f->src; A.tgt = g->tgt; A.src_car = f->src_car; A.tgt_car = g->tgt_car;
     A.table = malloc((S->n ? S->n : 1) * sizeof(int));
     for (size_t s = 0; s < S->n; s++) A.table[s] = g->table[f->table[s]];
-    A.surjective = f->surjective && g->surjective;
+    /* review 4 F6: classify the composite by its own image, not by f && g:
+     * surjective iff g(f(s)) over the valid source states hits every valid
+     * target state (a non-surjective f can compose to a surjective g . f). */
+    {
+        int *hit = calloc(T->n ? T->n : 1, sizeof(int));
+        for (size_t s = 0; s < S->n; s++) if (!f->src_valid || f->src_valid[s]) hit[A.table[s]] = 1;
+        A.surjective = 1;
+        for (size_t t = 0; t < T->n; t++) if ((!g->tgt_valid || g->tgt_valid[t]) && !hit[t]) A.surjective = 0;
+        free(hit);
+    }
     snprintf(A.src_id, sizeof A.src_id, "%s", f->src_id); snprintf(A.tgt_id, sizeof A.tgt_id, "%s", g->tgt_id);
     Sx *table = dc_form("Table", NULL);
     for (size_t s = 0; s < S->n; s++) sx_push(table, dc_form("Row", sx_copy(S->elems[s]), sx_copy(T->elems[A.table[s]]), NULL));
@@ -217,6 +262,6 @@ Sx *dc_req_then(DcRun *r, const Sx *q, int slot) {
     /* Boundary 2: the composed result carries the union of both premises' assumptions. */
     for (int k = 0; k < 2; k++) dc_result_add_premise(res, r->memo[d[k]], m->der[d[k]].name);
     dc_result_bind_models(res, A.src_id, A.tgt_id);
-    if (slot >= 0) { r->arrow[slot] = A; r->arrow_kind[slot] = 3; } else free(A.table);
+    if (slot >= 0) { A.src_valid = mask_dup(f->src_valid, S->n); A.tgt_valid = mask_dup(g->tgt_valid, T->n); r->arrow[slot] = A; r->arrow_kind[slot] = 3; } else free(A.table);
     return res;
 }
