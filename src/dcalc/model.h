@@ -1,0 +1,93 @@
+/* Enumerated deterministic model for the MeTTaDinC M0 core.
+ * A module is admitted from its DC.Module source: carriers are enumerated,
+ * every map is tabulated over its source carrier, and every element is a
+ * small integer index into its carrier.  Admission failures name the field. */
+#ifndef DCALC_MODEL_H
+#define DCALC_MODEL_H
+#include "sexp.h"
+
+#define DC_MAX_NAME 64
+
+typedef struct {
+    char name[DC_MAX_NAME];
+    size_t n;            /* number of elements */
+    Sx **elems;          /* canonical value of each element */
+} DcCarrier;
+
+typedef struct {
+    char name[DC_MAX_NAME];
+    int from, to;        /* carrier indices */
+    int *table;          /* table[i] = index in carrier `to` */
+} DcMap;
+
+typedef struct { char label[DC_MAX_NAME]; int map; } DcPort;
+
+typedef struct {
+    char name[DC_MAX_NAME];
+    int states;          /* carrier index */
+    DcPort obs[16];  size_t nobs;
+    DcPort act[16];  size_t nact;
+    int graded_obs;      /* an Observe carries (Values Tol): outside M0 */
+    int bagged;          /* (Bag ...): nondeterministic, outside M0 */
+} DcMachine;
+
+/* Exact: codes compared literally (default). All: (Codes AllCodes), every code
+ * accepted as equal, the tolerance that can hide a literal failure. */
+typedef enum { DC_CODES_EXACT = 0, DC_CODES_ALL = 1 } DcCodes;
+
+typedef struct {
+    char name[DC_MAX_NAME];
+    int machine;
+    int encode;          /* map index */
+    DcCodes codes;
+    int tol;             /* tolerance index, -1 when exact */
+} DcRepr;
+
+typedef struct {
+    char name[DC_MAX_NAME];
+    Sx *source;          /* (Output X Machine) or a machine name */
+    int target;          /* machine index */
+    int map;
+} DcAbsMap;
+
+typedef struct { char name[DC_MAX_NAME]; Sx *request; } DcDerive;
+
+/* (Tolerance Name (On C) (Trivial)): identifies every pair of elements of C.
+ * Other tolerance bodies are outside M0 and are noted as unsupported. */
+typedef struct { char name[DC_MAX_NAME]; int on; int trivial; } DcTol;
+
+typedef struct {
+    char name[DC_MAX_NAME];
+    char profile[DC_MAX_NAME];
+    char digest[65];     /* sha256 of the canonical module text */
+    Sx *source;          /* the admitted DC.Module form */
+    DcCarrier car[32];  size_t ncar;
+    DcMap     map[64];  size_t nmap;
+    DcMachine mach[16]; size_t nmach;
+    DcRepr    rep[16];  size_t nrep;
+    DcAbsMap  abs[16];  size_t nabs;
+    DcDerive  der[32];  size_t nder;
+    DcTol     tol[16];  size_t ntol;
+    int unsupported_decls;   /* declarations outside the M0 fragment */
+    char profile_unsupported[2 * DC_MAX_NAME + 64];  /* non-empty: the whole module is outside M0 (reason) */
+    char skipped[64][DC_MAX_NAME]; size_t nskip;  /* their names */
+    char unsupported_first[2 * DC_MAX_NAME + 32];
+} DcModule;
+
+/* Admission result: 0 ok; otherwise err names the field ("Map keep-ab: ..."). */
+int dc_admit(const Sx *form, DcModule *m, char *err, size_t errsz);
+void dc_module_free(DcModule *m);
+
+int dc_find_carrier(const DcModule *m, const char *name);
+int dc_find_map(const DcModule *m, const char *name);
+int dc_find_machine(const DcModule *m, const char *name);
+int dc_find_repr(const DcModule *m, const char *name);
+int dc_find_abs(const DcModule *m, const char *name);
+int dc_find_derive(const DcModule *m, const char *name);
+int dc_find_tol(const DcModule *m, const char *name);
+int dc_carrier_index(const DcCarrier *c, const Sx *v);  /* -1 if absent */
+/* 1 when name was declared by a declaration outside the M0 fragment. */
+int dc_is_skipped(const DcModule *m, const char *name);
+
+void dc_sha256_hex(const char *data, size_t n, char out[65]);
+#endif
