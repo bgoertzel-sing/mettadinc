@@ -1,0 +1,51 @@
+spec_oracle: exit 0 (6 s)
+ex1_oracle: exit 0 (131 s)
+ex2_oracle: exit 0 (135 s)
+ex3_oracle: exit 0 (8 s)
+ex4_oracle: exit 0 (3 s)
+mg_oracle: exit 0 (81 s)
+ls_oracle: exit 0 (13 s)
+wx_oracle: exit 0 (16 s)
+--- spec_oracle (last lines)
+  [ok ] removing proposals raises the duplicate rate among proposed keys from 1/10 to 1; over the fixed population of ten keys the rate cannot rise (1/10 to 1/10)
+
+All checks passed.
+--- ex1_oracle (last lines)
+ok   frontier: the nine refuted obligations (variables, clauses), codes at 6/35, 1/5, 1/4, 1/2, centers at 6/35, 1/5, 1/4, 1/3, 1/2
+ok   claims: Fewest at 1/5 (21 codes) and FewestCenters at 1/5 (10 centers); the cliques alone at 3/10, 1/3, 2/5
+92 checks passed, 0 failed, 131.2 s, proofs checked: True
+--- ex2_oracle (last lines)
+ok   proofs: unsatisfiable obligations of the audit that carry a DRAT proof
+ok   proofs: every one of them converted to LRAT by drat-trim and checked by cake_lpr
+69 checks passed, 0 failed, 133.9 s, proofs checked: True (619 of 619 proofs replayed)
+--- ex3_oracle (last lines)
+ok   module: the transfers of the three modules are the model's (pullback on target cells, pushforward on commands)
+ok   module: the declared symmetries and the two skills are the model's
+57 checks passed, 0 failed, 8.3 s
+--- ex4_oracle (last lines)
+ok   Detect on CalmTape: largest e-values reached (decimals)
+
+87 checks, 0 failures, 2.3 s
+--- mg_oracle (last lines)
+ok   B Gate: the Refuted (CheckNow ProtectedE) blocks EffectiveSupport and does not count for the other two
+ok   B Gate: results Conditional on cvc5 cover EngineQueries and are inadequate coverage for CommitmentQueries
+195 checks passed, 0 failed, 81.7 s
+--- ls_oracle (last lines)
+ok   B LiveReceipts: negative fixture: every stale label of LiveSuggestions set to 0 under the declared digest; EstimateRate is InvalidInput and computes no count
+ok   B every Conditional verdict records the agreement of Z3 under agreed_by (lifts through their premises, the safety transfer through its simulation)
+94 checks passed, 0 failed, 12.6 s
+--- wx_oracle (last lines)
+ok   B E2 under the snooze release: the frozen journal through the deployed engine index and the release's, with a snooze of one to four days on 30 percent of the release's proposals: every key is first proposed at the same cycle, the release's key receipts are KeysGate's rows and labels, and the snoozes remove proposals of the gate window: keys first proposed alike, KeysGate unchanged, gate-window proposals deployed and under the release, snoozes given
+ok   B every Conditional verdict records the agreement of Z3 under agreed_by (lifts through their premises)
+99 checks passed, 0 failed, 15.5 s
+OK  spec_oracle: 157 checks, 0 failures (expected 157, 0)
+OK  ex1_oracle: 92 checks, 0 failures (expected 92, 0)
+OK  ex2_oracle: 69 checks, 0 failures (expected 69, 0)
+OK  ex3_oracle: 57 checks, 0 failures (expected 57, 0)
+OK  ex4_oracle: 87 checks, 0 failures (expected 87, 0)
+OK  mg_oracle: 195 checks, 0 failures (expected 195, 0)
+OK  ls_oracle: 94 checks, 0 failures (expected 94, 0)
+OK  wx_oracle: 99 checks, 0 failures (expected 99, 0)
+totals: spec 157 / four examples 305 / mg 195 / ls 94 / wx 99 (expected 157 / 305 / 195 / 94 / 99)
+run-oracles: exit 0
+ORACLES_EXIT=0

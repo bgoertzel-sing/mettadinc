@@ -1,0 +1,4 @@
+== MDINC_SWIPL_DIR=/home/openclaw/scratch/mettadinc-e0/swipl9/install on PATH: [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209] ==
+== make PACK_RELATIVE_RELOCS= CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized BUILD=core doctor-gmp ==
+PASS: GMP compile/link probe
+EXIT=0 SECS=1

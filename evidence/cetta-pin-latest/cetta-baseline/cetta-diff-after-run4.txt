@@ -1,0 +1,4 @@
+ langdef/metamath/generated/direct_runtime_lock_v1.metta | 2 +-
+ tests/rhocalc/translate_rho_to_mrho.expected            | 1 +
+ tests/test_arithmetic.expected                          | 1 +
+ 3 files changed, 3 insertions(+), 1 deletion(-)

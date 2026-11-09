@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 # Cetta baseline harness: is Cetta, the submodule checkout under cetta/ (pinned in docs/CETTA-PIN.md), still "green" in the sense of Ben's decision 2
-# (README "Decisions", item 2): no regression against E0's frozen baseline at Cetta 12da03b4?
+# (README "Decisions", item 2): no regression against the frozen baseline in tools/cetta-baseline.expected?
+#
+# The frozen baseline: until commit 87ebf79 it was E0's at Cetta 12da03b4 (derived from E0's logs, never from a new run).
+# Since the pin moved to 4c285a97 (hive t-2026-11-06-mettadinc-cetta-pin-latest, answer 2) it is the run
+# evidence/cetta-pin-latest/cetta-baseline/latest-run3-swipl, made WITH build overrides (MDINC_MAKE_ARGS) and SWI-Prolog
+# 9.2.9 on PATH (MDINC_SWIPL_DIR); see docs/CETTA-LATEST.md and the expected file's header.
 #
 # Builds the submodule checkout cetta/ (BUILD=core, then BUILD=python) in place and runs E0's three gates exactly as E0 ran them
 # (docs/e0/CETTA.md, steps 07, 08 and 10):
-#   rhocalc  make BUILD=core test-rhocalc                                  expected: 253 passed, 0 failed, exit 0
-#   core     make -k BUILD=core   test-correctness test-profiles           expected: 502 PASS / 6 SKIP / 1 FAIL (py-call)
-#   python   make -k BUILD=python test-correctness test-profiles           expected: 503 PASS / 6 SKIP / 0 FAIL
-# and compares each log with tools/cetta-baseline.expected (derived from E0's logs, never from a new run) using
-# tools/cetta_baseline_check.py.  Exit status: 0 green; 1 regression (a missing PASS, a new SKIP or FAIL line, a
-# new failed make target, or a changed rhocalc summary); 2 build or setup failure.
+#   rhocalc  make BUILD=core test-rhocalc                                  4c285a97: 285 passed, 0 failed, exit 0 (12da03b4: 253/0)
+#   core     make -k BUILD=core   test-correctness test-profiles           4c285a97: 704 PASS / 84 SKIP / 0 FAIL (12da03b4: 502/6/1)
+#   python   make -k BUILD=python test-correctness test-profiles           4c285a97: 709 PASS / 80 SKIP / 0 FAIL (12da03b4: 503/6/0)
+# and compares each log with tools/cetta-baseline.expected using tools/cetta_baseline_check.py.  Exit status: 0 green;
+# 1 regression (a missing PASS, a new SKIP or FAIL line, a new failed make target, or a changed rhocalc summary);
+# 2 build or setup failure.
 #
 # Mettapedia-dependent targets are excluded: METTAPEDIA_ROOT points at a path that must not exist, so the
-# Mettapedia-dependent checks take their SKIP branch (the six known skips) and test-he-compat-catalog-guards fails
-# at setup as in E0's run; that failure is an expected failed target in both lanes.  Note the consequence of
-# running E0's command unchanged: under make -k the recipes of targets that depend on catalog-guards (the
-# test-he-contract-suite and the aggregate "test" recipe that loops over tests/test_*.metta) do not run, in E0's
-# baseline or here.  Widening the gate is a change to decision 2's baseline, not something this script does.
+# Mettapedia-dependent checks take their SKIP branch.  Expected failed make targets are pinned in the expected file: at
+# 12da03b4 test-he-compat-catalog-guards (which hid the targets depending on it); at 4c285a97 test-test-target-scope
+# ("Argument list too long", upstream issue 6 in docs/CETTA-LATEST.md), which hides no other target.
 #
 # Environment (all optional):
 #   MDINC_GMP_PREFIX  a prefix holding GMP headers and libgmp.so when the system has no libgmp-dev, laid out as
@@ -27,6 +30,19 @@
 #                       export MDINC_GMP_PREFIX=$PWD/root/usr
 #                     With sudo, "apt-get install libgmp-dev" makes this unnecessary.
 #   MDINC_JOBS        parallel build jobs (default 8); tests always run serially, as in E0's baseline
+#   MDINC_MAKE_ARGS   extra make command-line arguments, split with shell quoting rules (Python shlex, never eval'd)
+#                     and passed to every make below; recorded in summary.txt.  Unset (the default) means an
+#                     unmodified Cetta build, as before.  The 4c285a97 baseline in tools/cetta-baseline.expected was
+#                     produced WITH build overrides on Ubuntu 22.04 (gcc 11.4, ld 2.38, glibc 2.35); the exact string
+#                     is in docs/CETTA-LATEST.md ("Build overrides") and in the expected file's header.  Note that a
+#                     CFLAGS=... make argument replaces the Makefile's CFLAGS, so it must repeat the Makefile's flags.
+#   MDINC_SWIPL_DIR   the install prefix of a SWI-Prolog (its swipl program is <prefix>/bin/swipl), e.g. one built
+#                     from source without sudo.  When set, <prefix>/bin is put first on PATH for every command
+#                     below, and the swipl path and version are recorded in summary.txt, at the top of every lane
+#                     log and on every lane's summary line.  Unset (the default): nothing changes.  Since
+#                     d9b3f42d, test-rhocalc runs the swipl program (a SWI-Prolog 9.x; Ubuntu 22.04's 8.4.2
+#                     crashes, see docs/CETTA-LATEST.md).  Only PATH is changed: Cetta's ENABLE_LIB_PROLOG=auto
+#                     probe uses pkg-config, which does not see <prefix>, so the build does not link libswipl.
 #   MDINC_BASELINE_LOGDIR  where logs go (default build/cetta-baseline/<UTC timestamp>, ignored by git)
 #
 # System packages used: bash, GNU make, gcc, python3 (with python3-config --embed for the python lane),
@@ -38,6 +54,12 @@ CETTA="$REPO/cetta"
 EXPECTED="$REPO/tools/cetta-baseline.expected"
 CHECK="$REPO/tools/cetta_baseline_check.py"
 JOBS=${MDINC_JOBS:-8}
+MK=()
+if [ -n "${MDINC_MAKE_ARGS:-}" ]; then
+  MK_WORDS=$(python3 -c 'import os, shlex; [print(w) for w in shlex.split(os.environ["MDINC_MAKE_ARGS"])]') \
+    || { echo "cetta-baseline: MDINC_MAKE_ARGS does not parse with shell quoting rules" >&2; exit 2; }
+  mapfile -t MK <<< "$MK_WORDS"
+fi
 LOG=${MDINC_BASELINE_LOGDIR:-$REPO/build/cetta-baseline/$(date -u +%Y%m%dT%H%M%SZ)}
 mkdir -p "$LOG"
 SUMMARY="$LOG/summary.txt"
@@ -54,6 +76,14 @@ if [ -n "${MDINC_GMP_PREFIX:-}" ]; then
   export CPATH="$P/include:$P/include/x86_64-linux-gnu${CPATH:+:$CPATH}"
   export LIBRARY_PATH="$P/lib/x86_64-linux-gnu:$P/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
 fi
+SWIPL_NOTE=""
+if [ -n "${MDINC_SWIPL_DIR:-}" ]; then
+  [ -x "$MDINC_SWIPL_DIR/bin/swipl" ] || die "MDINC_SWIPL_DIR=$MDINC_SWIPL_DIR has no executable bin/swipl"
+  export PATH="$MDINC_SWIPL_DIR/bin:$PATH"
+  SWIPL_VERSION=$(swipl --dump-runtime-variables 2>/dev/null | sed -n 's/^PLVERSION="\(.*\)";$/\1/p')
+  [ -n "$SWIPL_VERSION" ] || die "swipl in MDINC_SWIPL_DIR=$MDINC_SWIPL_DIR does not run (swipl --dump-runtime-variables)"
+  SWIPL_NOTE=" [swipl $(command -v swipl), PLVERSION $SWIPL_VERSION]"
+fi
 export METTAPEDIA_ROOT="$REPO/build/no-mettapedia-here"
 [ -e "$METTAPEDIA_ROOT" ] && die "$METTAPEDIA_ROOT exists; the frozen baseline is defined without Mettapedia"
 unset RHOLANG_CLI
@@ -69,29 +99,42 @@ if git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1; then
 fi
 say "cetta-baseline: gcc $(gcc -dumpfullversion 2>/dev/null), $(make --version | head -1), $(python3 --version 2>&1)"
 say "cetta-baseline: logs in $LOG"
+[ -n "$SWIPL_NOTE" ] && say "cetta-baseline: MDINC_SWIPL_DIR=$MDINC_SWIPL_DIR, on PATH:$SWIPL_NOTE"
+say "cetta-baseline: extra make arguments (MDINC_MAKE_ARGS): ${MDINC_MAKE_ARGS:-none}"
+for w in "${MK[@]}"; do say "cetta-baseline:   make argument: [$w]"; done
+EXP_ARGS=$(sed -n 's/^# Build overrides (MDINC_MAKE_ARGS): //p' "$EXPECTED" | head -1)
+if [ -n "$EXP_ARGS" ] && [ "$EXP_ARGS" != "${MDINC_MAKE_ARGS:-}" ]; then
+  say "cetta-baseline: NOTE: tools/cetta-baseline.expected was produced with build overrides MDINC_MAKE_ARGS=$EXP_ARGS"
+  say "cetta-baseline: NOTE: this run uses MDINC_MAKE_ARGS=${MDINC_MAKE_ARGS:-none}; see docs/CETTA-LATEST.md"
+fi
+EXP_SWIPL=$(sed -n 's/^# SWI-Prolog (MDINC_SWIPL_DIR): //p' "$EXPECTED" | head -1)
+if [ -n "$EXP_SWIPL" ] && [ -z "$SWIPL_NOTE" ]; then
+  say "cetta-baseline: NOTE: tools/cetta-baseline.expected was produced with SWI-Prolog on PATH ($EXP_SWIPL);"
+  say "cetta-baseline: NOTE: this run has no MDINC_SWIPL_DIR, so the rhocalc lane is expected to fail; see docs/CETTA-LATEST.md"
+fi
 
 run(){ # run <name> <cmd...>: log the command, its output and EXIT=<status>
   local n=$1; shift
   local s; s=$(date +%s)
-  { echo "== $* =="; (cd "$CETTA" && "$@"); echo "EXIT=$? SECS=$(( $(date +%s) - s ))"; } > "$LOG/$n.log" 2>&1
+  { [ -n "$SWIPL_NOTE" ] && echo "== MDINC_SWIPL_DIR=$MDINC_SWIPL_DIR on PATH:$SWIPL_NOTE =="; echo "== $* =="; (cd "$CETTA" && "$@"); echo "EXIT=$? SECS=$(( $(date +%s) - s ))"; } > "$LOG/$n.log" 2>&1
   local e; e=$(sed -n 's/^EXIT=\([0-9]*\).*/\1/p' "$LOG/$n.log" | tail -1)
-  say "$n: exit $e ($(( $(date +%s) - s )) s)"
+  say "$n: exit $e ($(( $(date +%s) - s )) s)$SWIPL_NOTE"
   return "$e"
 }
 
-run 01_doctor_gmp make BUILD=core doctor-gmp || die "GMP probe failed (see $LOG/01_doctor_gmp.log; set MDINC_GMP_PREFIX)"
-run 02_build_core make -j"$JOBS" BUILD=core || die "core build failed (see $LOG/02_build_core.log)"
+run 01_doctor_gmp make "${MK[@]}" BUILD=core doctor-gmp || die "GMP probe failed (see $LOG/01_doctor_gmp.log; set MDINC_GMP_PREFIX)"
+run 02_build_core make "${MK[@]}" -j"$JOBS" BUILD=core || die "core build failed (see $LOG/02_build_core.log)"
 run 03_version_core ./cetta --version; grep -q '(core)' "$LOG/03_version_core.log" || die "./cetta is not the core build"
-run 04_test_rhocalc make BUILD=core test-rhocalc
-run 05_test_core_k make -k BUILD=core test-correctness test-profiles
-run 06_build_python make -j"$JOBS" BUILD=python || die "python build failed (see $LOG/06_build_python.log)"
+run 04_test_rhocalc make "${MK[@]}" BUILD=core test-rhocalc
+run 05_test_core_k make "${MK[@]}" -k BUILD=core test-correctness test-profiles
+run 06_build_python make "${MK[@]}" -j"$JOBS" BUILD=python || die "python build failed (see $LOG/06_build_python.log)"
 run 07_version_python ./cetta --version; grep -q '(python)' "$LOG/07_version_python.log" || die "./cetta is not the python build"
-run 08_test_python_k make -k BUILD=python test-correctness test-profiles
+run 08_test_python_k make "${MK[@]}" -k BUILD=python test-correctness test-profiles
 
 say "cetta-baseline: comparison with tools/cetta-baseline.expected"
 python3 "$CHECK" compare "$EXPECTED" "$CETTA" rhocalc="$LOG/04_test_rhocalc.log" core="$LOG/05_test_core_k.log" \
   python="$LOG/08_test_python_k.log" | tee -a "$SUMMARY"
 st=${PIPESTATUS[0]}
-if [ "$st" -eq 0 ]; then say "RESULT: GREEN (no regression against E0's frozen baseline)"; exit 0; fi
+if [ "$st" -eq 0 ]; then say "RESULT: GREEN (no regression against the frozen baseline in tools/cetta-baseline.expected)"; exit 0; fi
 say "RESULT: NOT GREEN (regression, exit 1)"
 exit 1

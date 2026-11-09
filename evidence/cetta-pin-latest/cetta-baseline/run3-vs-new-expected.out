@@ -1,0 +1,4 @@
+GREEN rhocalc: PASS 295 SKIP 1 FAIL 0 failed-targets 0 exit 0 final 285/0
+GREEN core: PASS 704 SKIP 84 FAIL 0 failed-targets 1 exit 2 final 135/0
+GREEN python: PASS 709 SKIP 80 FAIL 0 failed-targets 1 exit 2 final 135/0
+EXIT=0

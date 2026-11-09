@@ -1,0 +1,11 @@
+== 2026-11-06T06:11:26Z smoke test of /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl ==
+/home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl
+SWI-Prolog version 9.2.9 for x86_64-linux
+PLBASE="/home/openclaw/scratch/mettadinc-e0/swipl9/install/lib/swipl";
+PLARCH="x86_64-linux";
+PLVERSION="90209";
+== crypto_data_hash(abc, sha256) (crashed in Ubuntu 8.4.2) ==
+ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+rc=0
+== pkg-config --exists swipl (the Cetta ENABLE_LIB_PROLOG=auto probe) with PATH set ==
+rc=1 (1 = not found, so libswipl is not linked)

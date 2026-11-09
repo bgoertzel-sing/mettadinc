@@ -1,0 +1,1222 @@
+cetta-baseline: repo /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc
+cetta-baseline: repo commit 3c6472ce9945f0c36abd302ca4750afc95ee3e61
+cetta-baseline: pin 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c (2026-11-05 20:26:01 +0100, "WIP: make pre-main shareable and preserve benchmark evidence", 486 commits)
+cetta-baseline: gitlink HEAD:cetta 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+cetta-baseline: submodule checkout cetta/ at 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+cetta-baseline: submodule checkout has no changes to tracked files
+cetta-baseline: gcc 11.4.0, GNU Make 4.3, Python 3.10.12
+cetta-baseline: logs in /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/build/cetta-baseline/latest-run2-overrides
+cetta-baseline: extra make arguments (MDINC_MAKE_ARGS): PACK_RELATIVE_RELOCS= 'CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized'
+cetta-baseline:   make argument: [PACK_RELATIVE_RELOCS=]
+cetta-baseline:   make argument: [CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized]
+01_doctor_gmp: exit 0 (1 s)
+02_build_core: exit 0 (502 s)
+03_version_core: exit 0 (0 s)
+04_test_rhocalc: exit 2 (42 s)
+05_test_core_k: exit 2 (180 s)
+06_build_python: exit 0 (454 s)
+07_version_python: exit 0 (0 s)
+08_test_python_k: exit 2 (188 s)
+cetta-baseline: comparison with tools/cetta-baseline.expected
+RED   rhocalc: PASS 0 SKIP 0 FAIL 0 failed-targets 2 exit 2
+  REGRESSION: exit status 2, expected 0
+  REGRESSION: final suite line None, expected (253, 0)
+  REGRESSION: 0 PASS lines, expected at least 261
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress independent-surfaces
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress large-cover-laziness
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress one-purse-serialization
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress randomized-independent-receipts
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress same-surface-disjoint-occurrences
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress search-budget-monotonicity
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/budget_meter.metta
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/notary_chain.metta
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/parallel_settlement.mrho
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/parallel_settlement.mrho (threaded matches sequential)
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/vending_machine.rho
+  REGRESSION: missing PASS (x1): PASS: examples/rho/pure/eval_at_comm.rho
+  REGRESSION: missing PASS (x1): PASS: nameful rho substitution agrees with canonical ABT substitution
+  REGRESSION: missing PASS (x1): PASS: pure-rho canonical selector agrees with exhaustive frontier (N named + N generated; seed=N)
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier comm-contention-two-outputs
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier fanout-empty
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-certificate-quorum
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-comm-contention
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-computed-payload
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-conditional-route
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-demand-index
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-fanout
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-finite-replication
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-fresh-extrusion
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-indexed-demand
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-iterated-workload
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-job-queue-collector
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-pipeline-forward
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-channel
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-no-leak
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-session
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-reflection-loader
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-registry-lookup
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-route-policy
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-route-synthesis
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-space-registry
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-threshold-quorum
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier paper-input-guarded-replication
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier paper-reflection-name-generation
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier pipeline-forward-empty
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap basic-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap input-guarded-unfold
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap reflection-name-generation
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN rholang-cli parser/oracle selftest
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-alpha-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-assoc-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-comm-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-zero-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-quote-drop-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation diamond-path-a-vs-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation pure-surface-vs-core-comm
+  REGRESSION: missing PASS (x2): PASS: rhocalc bounded bisimulation scheduler-persistent-limitN-canonical-vs-rotating
+  REGRESSION: missing PASS (x2): PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limitN-canonical-vs-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-input-guarded-vs-core-input-guarded
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-primed-diamond-vs-core-primed-diamond
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-reflection-vs-core-reflection
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-rotating-witness-vs-core-rotating-witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-assoc-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-comm-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-zero-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-quote-drop-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence diamond-path-a-vs-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence pure-surface-vs-core-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-input-guarded-vs-core-input-guarded
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-primed-diamond-vs-core-primed-diamond
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-reflection-vs-core-reflection
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-rotating-witness-vs-core-rotating-witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation inequivalence literal-static-drop
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical scheduler witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/branching_relation.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_avoidance_alpha_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_free_var_rejected_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_shadow_ok_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_discrimination_survives_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_alpha_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_assoc_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_comm_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_zero_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_var_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/comm_par_chain_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/core_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/literal_drop_quote_static_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_free_name_same_spelling_binder.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_inner_binder_restores_scope.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_seals_outer_binder.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_shadow_same_spelling.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_path_a.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_path_b.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_setup.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_pass_basic_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_quote_drop.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/nested_drop_quote_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_divergence_self_recreates_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_input_guarded_replication_unfold_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_reflection_name_generation_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_drop_comm_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_substitution_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_substitution_opaque_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/recv_under_binder_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/rotating_scheduler_persistent_branch.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_alpha_dedup_display.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_hot_successors.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc cost dequotation tests/rhocalc_cost/reject_dequote.rho
+  REGRESSION: missing PASS (x2): PASS: rhocalc cost threaded execution (N workers)
+  REGRESSION: missing PASS (x1): PASS: rhocalc de-step allow-list surface
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho hygiene
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_causal_trace.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_parallel_branches.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_search_budget.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rho_lib_hygiene_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rho_lib_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_dedfarm.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_ecan.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_mayset.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_revision.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_isolation_oracle.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_lib_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc old step surface purged
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/free_drop_is_stuck_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/no_reduction_under_recv_puritanical.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_name_variable_roundtrip_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_quoted_name_roundtrip_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/quoted_process_not_reduced_in_name_eq.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/surface_open_name_variable.rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc rejects scheduler with threaded execution
+  REGRESSION: missing PASS (x1): PASS: rhocalc rotating scheduler witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc run reduction-limit exhaustion
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability capture-shadow-recv-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability capture-shadow-recv-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-discrimination-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-discrimination-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-var-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-var-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability core-comm-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability core-comm-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability literal-drop-static-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability literal-drop-static-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-pass-basic-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-pass-basic-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-quote-drop-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-quote-drop-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability nested-drop-quote-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability nested-drop-quote-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-divergence-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-divergence-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability pure-surface-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability pure-surface-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability recv-under-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability recv-under-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-three-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-name-output-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-name-output-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-three-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_fresh.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_join.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_quoted_payload.rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_send_continuation.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc thread-budget plumbing
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress alpha-capture-stress
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress dequote-spawn
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress hot-channel-linear-consumption
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress independent-many-comms
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress limit-batch-exact
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress payload-race
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress randomized-threaded-loop
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle branching-relation
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle core-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle free-drop-is-stuck
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-path-a
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-setup
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle no-reduction-inside-quote
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle no-reduction-under-recv
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle open-name-variable
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle open-quoted-name
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle quiescent-nil
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle self-recreation
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle stuck-pending-receive
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle stuck-pending-send
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate alpha mrho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate alpha mrho -> rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate mrho -> rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate rho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate shadow rho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc zero thread budget uses sequential path
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/compound_sig_missing_partial_token_quiescent.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/internal_split_tokens_basic.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/missing_token_quiescent.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_alpha.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_quote_drop.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_wrong_purse.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/parallel_claim_rollback_competition.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/split_tokens_basic.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/split_tokens_compound_sig_combined_token.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/substitution_quote_term.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_combined_token.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_split_tokens.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_single_sig.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/branching_deterministic_choice.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/core_comm_run.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/literal_drop_quote_static_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/pipeline_two_forwarders.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/pipeline_two_forwarders_surface.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/quiescent_nil_core.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/quiescent_nil_surface.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/stuck_pending_receive.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/stuck_pending_send.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/substituted_drop_reveals_static_inner_drop.mrho
+  REGRESSION: new failed make target (x1): langdef/metamath/generated/syntax_parser_pack_v1.abi
+  REGRESSION: new failed make target (x1): test-metamath-state-proof-runtime-rhometta-v1
+  note: expected SKIP no longer present (x1): SKIP: cost-rho differential harness (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc MN rholang-cli overlap (set RHOLANG_CLI or install rholang-cli)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc cost lean bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc lean microcheck (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc lean trace bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+RED   core: PASS 704 SKIP 84 FAIL 0 failed-targets 1 exit 2 final 135/0
+  REGRESSION: missing PASS (x1): PASS: ABT default declarations have one MeTTa source; drift mutant killed
+  REGRESSION: missing PASS (x1): PASS: ABT mutation gate (N/N)
+  REGRESSION: missing PASS (x23): PASS: ABT mutation rejected: runtime/test_abt_mutation-core.prime-need-heap-index.prime-eval-stack-N
+  REGRESSION: missing PASS (x1): PASS: GC adversarial audit
+  REGRESSION: missing PASS (x1): PASS: HE profile he-extended unchanged by Prime Need
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (GC relocation)
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (he)
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (he-compat)
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (he-extended)
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (he-prime)
+  REGRESSION: missing PASS (x1): PASS: N PeTTa capability clusters have positive contracts; foreign syntax is inert without an adapter; all N have negative contracts
+  REGRESSION: missing PASS (x1): PASS: PeTTa MAM contender mutations are killed
+  REGRESSION: missing PASS (x1): PASS: PeTTa extended query/space algebra is executable and profile-local
+  REGRESSION: missing PASS (x1): PASS: PeTTa ground exact existence fusion and decline boundaries
+  REGRESSION: missing PASS (x1): PASS: PeTTa opt-in memoization policy and effect boundaries
+  REGRESSION: missing PASS (x1): PASS: PeTTa ordered files preserve per-file scope and working directories; other dialect argv is unchanged
+  REGRESSION: missing PASS (x1): PASS: PeTTa prepared register loop preserves aliasing, ambiguity, table, and count boundaries
+  REGRESSION: missing PASS (x1): PASS: PeTTa relational control, stream bags, list length, parse-as-data, implicit spaces, shared sequencing, named state, alpha uniqueness, metatype and typed-failure policy, library descriptors, and stable term order
+  REGRESSION: missing PASS (x1): PASS: PeTTa specialized recursion preserves opaque values and evaluates active constructor fields
+  REGRESSION: missing PASS (x1): PASS: PeTTa specializer boundary and route cache preserve exact answers
+  REGRESSION: missing PASS (x1): PASS: checked-in PeTTa direct reader regenerates byte-for-byte
+  REGRESSION: missing PASS (x1): PASS: cli help flags
+  REGRESSION: missing PASS (x1): PASS: closed ABT/MMN/MORK boundary
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress independent-surfaces
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress large-cover-laziness
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress one-purse-serialization
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress randomized-independent-receipts
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress same-surface-disjoint-occurrences
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress search-budget-monotonicity
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/budget_meter.metta
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/notary_chain.metta
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/parallel_settlement.mrho
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/parallel_settlement.mrho (threaded matches sequential)
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/vending_machine.rho
+  REGRESSION: missing PASS (x1): PASS: examples/rho/pure/eval_at_comm.rho
+  REGRESSION: missing PASS (x1): PASS: explicit PeTTa search machine
+  REGRESSION: missing PASS (x1): PASS: formal he documentation surface
+  REGRESSION: missing PASS (x1): PASS: formal he eval surface
+  REGRESSION: missing PASS (x1): PASS: formal he get-doc surface
+  REGRESSION: missing PASS (x1): PASS: formal he no-return surface
+  REGRESSION: missing PASS (x1): PASS: formal he numeric surface
+  REGRESSION: missing PASS (x1): PASS: he-compat collect Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat core-surface extensions are hidden
+  REGRESSION: missing PASS (x1): PASS: he-compat count-atoms Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat fold Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat fold-by-key Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat foldl-atom Rust core surface
+  REGRESSION: missing PASS (x1): PASS: he-compat foldl-atom-in-space Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat get-doc Rust surface
+  REGRESSION: missing PASS (x1): PASS: he-compat git-module! surface
+  REGRESSION: missing PASS (x1): PASS: he-compat include Rust result surface
+  REGRESSION: missing PASS (x1): PASS: he-compat module-inventory Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat once Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat parse Rust surface
+  REGRESSION: missing PASS (x1): PASS: he-compat reduce Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat runtime-stats Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat search-policy Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat select Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat size Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat space-set-match-backend! Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-extended collect extension
+  REGRESSION: missing PASS (x1): PASS: he-extended compile collect
+  REGRESSION: missing PASS (x1): PASS: he-extended compile extension
+  REGRESSION: missing PASS (x1): PASS: he-extended compile fold
+  REGRESSION: missing PASS (x1): PASS: he-extended compile fold-by-key
+  REGRESSION: missing PASS (x1): PASS: he-extended compile fs capability
+  REGRESSION: missing PASS (x1): PASS: he-extended compile hyperpose
+  REGRESSION: missing PASS (x1): PASS: he-extended compile module-inventory
+  REGRESSION: missing PASS (x1): PASS: he-extended compile reduce
+  REGRESSION: missing PASS (x1): PASS: he-extended compile runtime-stats
+  REGRESSION: missing PASS (x1): PASS: he-extended compile search-policy
+  REGRESSION: missing PASS (x1): PASS: he-extended compile select
+  REGRESSION: missing PASS (x1): PASS: he-extended compile space-set-match-backend!
+  REGRESSION: missing PASS (x1): PASS: he-extended compile str capability
+  REGRESSION: missing PASS (x1): PASS: he-extended compile system capability
+  REGRESSION: missing PASS (x1): PASS: he-extended count-atoms extension
+  REGRESSION: missing PASS (x1): PASS: he-extended fold extension
+  REGRESSION: missing PASS (x1): PASS: he-extended fold-by-key extension
+  REGRESSION: missing PASS (x1): PASS: he-extended foldl-atom-in-space extension
+  REGRESSION: missing PASS (x1): PASS: he-extended fs capability
+  REGRESSION: missing PASS (x1): PASS: he-extended get-doc surface
+  REGRESSION: missing PASS (x1): PASS: he-extended hyperpose CLI threads
+  REGRESSION: missing PASS (x1): PASS: he-extended hyperpose extension
+  REGRESSION: missing PASS (x1): PASS: he-extended import modules
+  REGRESSION: missing PASS (x1): PASS: he-extended keeps literal binder-domain behavior
+  REGRESSION: missing PASS (x1): PASS: he-extended leaves he-prime extensions inert
+  REGRESSION: missing PASS (x1): PASS: he-extended leaves he-prime typed search inert
+  REGRESSION: missing PASS (x1): PASS: he-extended leaves type-level user computation residual
+  REGRESSION: missing PASS (x1): PASS: he-extended lts:he surface
+  REGRESSION: missing PASS (x1): PASS: he-extended module-inventory extension
+  REGRESSION: missing PASS (x1): PASS: he-extended new-space kind overload is visible
+  REGRESSION: missing PASS (x1): PASS: he-extended once alias
+  REGRESSION: missing PASS (x1): PASS: he-extended reduce extension
+  REGRESSION: missing PASS (x1): PASS: he-extended runtime-stats extension
+  REGRESSION: missing PASS (x1): PASS: he-extended search-policy capability
+  REGRESSION: missing PASS (x1): PASS: he-extended select extension
+  REGRESSION: missing PASS (x1): PASS: he-extended shared HE typing conformance
+  REGRESSION: missing PASS (x1): PASS: he-extended size compile
+  REGRESSION: missing PASS (x1): PASS: he-extended size extension
+  REGRESSION: missing PASS (x1): PASS: he-extended space-set-match-backend! extension
+  REGRESSION: missing PASS (x1): PASS: he-extended str capability
+  REGRESSION: missing PASS (x1): PASS: he-extended system capability
+  REGRESSION: missing PASS (x1): PASS: iterative capture-avoiding ABT core
+  REGRESSION: missing PASS (x1): PASS: lib_parse ABT bridge (N admitted, N rejected, N preserved)
+  REGRESSION: missing PASS (x1): PASS: mmN has no named profiles
+  REGRESSION: missing PASS (x1): PASS: nameful rho substitution agrees with canonical ABT substitution
+  REGRESSION: missing PASS (x1): PASS: native PeTTa process_metta_string
+  REGRESSION: missing PASS (x1): PASS: optional PeTTa/libpl boundary invariants
+  REGRESSION: missing PASS (x1): PASS: parse depth guard
+  REGRESSION: missing PASS (x1): PASS: pure-rho canonical selector agrees with exhaustive frontier (N named + N generated; seed=N)
+  REGRESSION: missing PASS (x1): PASS: revision-pinned ordered MatchDecision oracle
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier comm-contention-two-outputs
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier fanout-empty
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-certificate-quorum
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-comm-contention
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-computed-payload
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-conditional-route
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-demand-index
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-fanout
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-finite-replication
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-fresh-extrusion
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-indexed-demand
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-iterated-workload
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-job-queue-collector
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-pipeline-forward
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-channel
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-no-leak
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-session
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-reflection-loader
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-registry-lookup
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-route-policy
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-route-synthesis
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-space-registry
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-threshold-quorum
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier paper-input-guarded-replication
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier paper-reflection-name-generation
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier pipeline-forward-empty
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap basic-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap input-guarded-unfold
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap reflection-name-generation
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN rholang-cli parser/oracle selftest
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-alpha-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-assoc-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-comm-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-zero-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-quote-drop-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation diamond-path-a-vs-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation pure-surface-vs-core-comm
+  REGRESSION: missing PASS (x2): PASS: rhocalc bounded bisimulation scheduler-persistent-limitN-canonical-vs-rotating
+  REGRESSION: missing PASS (x2): PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limitN-canonical-vs-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-input-guarded-vs-core-input-guarded
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-primed-diamond-vs-core-primed-diamond
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-reflection-vs-core-reflection
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-rotating-witness-vs-core-rotating-witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-assoc-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-comm-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-zero-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-quote-drop-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence diamond-path-a-vs-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence pure-surface-vs-core-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-input-guarded-vs-core-input-guarded
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-primed-diamond-vs-core-primed-diamond
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-reflection-vs-core-reflection
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-rotating-witness-vs-core-rotating-witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation inequivalence literal-static-drop
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical scheduler witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/branching_relation.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_avoidance_alpha_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_free_var_rejected_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_shadow_ok_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_discrimination_survives_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_alpha_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_assoc_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_comm_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_zero_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_var_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/comm_par_chain_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/core_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/literal_drop_quote_static_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_free_name_same_spelling_binder.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_inner_binder_restores_scope.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_seals_outer_binder.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_shadow_same_spelling.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_path_a.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_path_b.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_setup.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_pass_basic_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_quote_drop.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/nested_drop_quote_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_divergence_self_recreates_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_input_guarded_replication_unfold_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_reflection_name_generation_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_drop_comm_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_substitution_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_substitution_opaque_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/recv_under_binder_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/rotating_scheduler_persistent_branch.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_alpha_dedup_display.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_hot_successors.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc cost dequotation tests/rhocalc_cost/reject_dequote.rho
+  REGRESSION: missing PASS (x2): PASS: rhocalc cost threaded execution (N workers)
+  REGRESSION: missing PASS (x1): PASS: rhocalc de-step allow-list surface
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho hygiene
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_causal_trace.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_parallel_branches.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_search_budget.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rho_lib_hygiene_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rho_lib_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_dedfarm.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_ecan.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_mayset.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_revision.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_isolation_oracle.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_lib_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc old step surface purged
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/free_drop_is_stuck_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/no_reduction_under_recv_puritanical.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_name_variable_roundtrip_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_quoted_name_roundtrip_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/quoted_process_not_reduced_in_name_eq.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/surface_open_name_variable.rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc rejects scheduler with threaded execution
+  REGRESSION: missing PASS (x1): PASS: rhocalc rotating scheduler witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc run reduction-limit exhaustion
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability capture-shadow-recv-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability capture-shadow-recv-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-discrimination-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-discrimination-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-var-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-var-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability core-comm-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability core-comm-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability literal-drop-static-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability literal-drop-static-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-pass-basic-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-pass-basic-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-quote-drop-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-quote-drop-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability nested-drop-quote-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability nested-drop-quote-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-divergence-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-divergence-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability pure-surface-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability pure-surface-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability recv-under-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability recv-under-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-three-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-name-output-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-name-output-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-three-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_fresh.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_join.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_quoted_payload.rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_send_continuation.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc thread-budget plumbing
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress alpha-capture-stress
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress dequote-spawn
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress hot-channel-linear-consumption
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress independent-many-comms
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress limit-batch-exact
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress payload-race
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress randomized-threaded-loop
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle branching-relation
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle core-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle free-drop-is-stuck
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-path-a
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-setup
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle no-reduction-inside-quote
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle no-reduction-under-recv
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle open-name-variable
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle open-quoted-name
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle quiescent-nil
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle self-recreation
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle stuck-pending-receive
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle stuck-pending-send
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate alpha mrho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate alpha mrho -> rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate mrho -> rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate rho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate shadow rho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc zero thread budget uses sequential path
+  REGRESSION: missing PASS (x1): PASS: rhometta macro differential audit
+  REGRESSION: missing PASS (x1): PASS: rhometta payload map capacity C test
+  REGRESSION: missing PASS (x1): PASS: shared lib_prolog surface in HE, Prime, and PeTTa
+  REGRESSION: missing PASS (x1): PASS: source-AtomId memo rejects stale entries after arena reset
+  REGRESSION: missing PASS (x1): PASS: space term universe membership
+  REGRESSION: missing PASS (x1): PASS: specializer prepare boundary (N checks)
+  REGRESSION: missing PASS (x1): PASS: staged Subzero candidate
+  REGRESSION: missing PASS (x1): PASS: staged query-first MeTTa Zero candidate
+  REGRESSION: missing PASS (x1): PASS: stdlib growth memory regression rss_kb=N
+  REGRESSION: missing PASS (x1): PASS: test_closed_stream_fastpath
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_adversarial.metta budget-invariance
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_adversarial.metta eval-hashcons guard
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_indirect_state_stream.metta budget-invariance
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_indirect_state_stream.metta eval-hashcons guard
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_nested_outcome_roots.metta budget-invariance
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_nested_outcome_roots.metta eval-hashcons guard
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/compound_sig_missing_partial_token_quiescent.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/internal_split_tokens_basic.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/missing_token_quiescent.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_alpha.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_quote_drop.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_wrong_purse.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/parallel_claim_rollback_competition.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/split_tokens_basic.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/split_tokens_compound_sig_combined_token.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/substitution_quote_term.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_combined_token.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_split_tokens.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_single_sig.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/branching_deterministic_choice.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/core_comm_run.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/literal_drop_quote_static_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/pipeline_two_forwarders.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/pipeline_two_forwarders_surface.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/quiescent_nil_core.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/quiescent_nil_surface.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/stuck_pending_receive.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/stuck_pending_send.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/substituted_drop_reveals_static_inner_drop.mrho
+  REGRESSION: missing PASS (x1): PASS: variant shape roundtrip
+  REGRESSION: new SKIP (x1): SKIP: tests/test_add_atom_nodup_pathmap_alpha_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_bigint_bridge_roundtrip_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_bio_bc_let_hidden_env_regression.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_checkpoint_disease_route_probe.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_checkpoint_group_extract_cross_form_regression.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_effect_append_batch_fastpath.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_gparse_native_forest_digest.metta (reads the metamath-test checkout beside this repository, which is absent)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_gparse_native_metamath_corpus.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_gparse_native_metamath_frontier.metta (reads the metamath-test checkout beside this repository, which is absent)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_import_act_module_syntax.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_import_foreign_pkg_error.metta (requires a Python-enabled build)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_import_foreign_python_file.metta (requires a Python-enabled build)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_include_mmN_space_target.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_json_bridge_compat.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_json_bridge.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_no_http.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_rho_bridge.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_syntax.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_direct_reference.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_byte_lengths.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_hostile_constructors.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_invalid_number.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_legacy_nul.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_library.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_aN_block_pair_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_aN_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_anatomy_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_axioms_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_block_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_defs_aN_block_pair_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_defs_aN_block_triplet_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_defs_block_pair_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_defs_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_dv_multivar_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_dv_scope_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_grammar_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_local_var_good_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mini_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mini_thm_compressed_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mini_thm_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mmtest_compressed_z_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mmtest_d_before_float_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mmtest_min_found_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mmtest_toplevel_e_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_nested_scope_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_prefix_frontier_native.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_raw_stmt_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_repeat_vars_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_stmt_prefix_frontier_native.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_theorem_compressed_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_theorem_length_ladder_native.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_theorem_normal_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lts_mi_syntax.metta (imports a Mettapedia checkout; covered by test-lean)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_match_chain_cross_space_pathmap_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mmN_match_order_fragile.metta (covered by probe-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_module_inventory_act_registered_root.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_act_roundtrip.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_fc_depthN_witness_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_nil_parity_regression.metta (covered by probe-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_recursive_bc_micro_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_recursive_bc_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_namespace_sugar_guardrails.metta (requires a Python-enabled build)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_backend_primary_destructive_regression.metta (covered by probe-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_backend_primary_growth_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_contextual_var_projection_remove.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_counted_space_syntax.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_fc_depthN_count_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_indexed_opening_identity_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_indexed_query_work.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_match_copy_var_identity_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_program_shadow_sync_work.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_pull_consumers_work.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_scientific_float_roundtrip_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_scoped_queries.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_stored_variable_exact_query_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_typed_query_syntax.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_print_nondet_probe.metta (covered by probe-core-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_py_ops_syntax.metta (requires a Python-enabled build)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_rational_bridge_roundtrip_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_size_atom_collapse_cross_engine_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_space_batch_copy_optimizer_guards.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_space_batch_copy_syntax.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_space_engine_backend.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_space_type.metta (covered by test-pathmap-lane)
+  REGRESSION: new failed make target (x1): test-test-target-scope
+  note: expected SKIP no longer present (x1): SKIP: ABT differential (set METTAPEDIA_ROOT to a Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: cost-rho differential harness (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc MN rholang-cli overlap (set RHOLANG_CLI or install rholang-cli)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc cost lean bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc lean microcheck (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc lean trace bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected FAIL no longer present (x1): FAIL: native PeTTa source-relative Python namespace
+  note: expected targets no longer present (x1): test-he-compat-catalog-guards
+  note: expected targets no longer present (x1): test-petta-search-machine
+  note: 599 PASS line(s) beyond the baseline
+RED   python: PASS 709 SKIP 80 FAIL 0 failed-targets 1 exit 2 final 135/0
+  REGRESSION: missing PASS (x1): PASS: ABT default declarations have one MeTTa source; drift mutant killed
+  REGRESSION: missing PASS (x1): PASS: ABT mutation gate (N/N)
+  REGRESSION: missing PASS (x23): PASS: ABT mutation rejected: runtime/test_abt_mutation-python.prime-need-heap-index.prime-eval-stack-N
+  REGRESSION: missing PASS (x1): PASS: GC adversarial audit
+  REGRESSION: missing PASS (x1): PASS: HE profile he-extended unchanged by Prime Need
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (GC relocation)
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (he)
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (he-compat)
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (he-extended)
+  REGRESSION: missing PASS (x1): PASS: HE return-contract correlation (he-prime)
+  REGRESSION: missing PASS (x1): PASS: PeTTa MAM contender mutations are killed
+  REGRESSION: missing PASS (x1): PASS: PeTTa extended query/space algebra is executable and profile-local
+  REGRESSION: missing PASS (x1): PASS: PeTTa ground exact existence fusion and decline boundaries
+  REGRESSION: missing PASS (x1): PASS: PeTTa opt-in memoization policy and effect boundaries
+  REGRESSION: missing PASS (x1): PASS: PeTTa ordered files preserve per-file scope and working directories; other dialect argv is unchanged
+  REGRESSION: missing PASS (x1): PASS: PeTTa prepared register loop preserves aliasing, ambiguity, table, and count boundaries
+  REGRESSION: missing PASS (x1): PASS: PeTTa relational control, stream bags, list length, parse-as-data, implicit spaces, shared sequencing, named state, alpha uniqueness, metatype and typed-failure policy, library descriptors, and stable term order
+  REGRESSION: missing PASS (x1): PASS: PeTTa specialized recursion preserves opaque values and evaluates active constructor fields
+  REGRESSION: missing PASS (x1): PASS: PeTTa specializer boundary and route cache preserve exact answers
+  REGRESSION: missing PASS (x1): PASS: all N PeTTa capability clusters have positive and negative executable contracts
+  REGRESSION: missing PASS (x1): PASS: checked-in PeTTa direct reader regenerates byte-for-byte
+  REGRESSION: missing PASS (x1): PASS: cli help flags
+  REGRESSION: missing PASS (x1): PASS: closed ABT/MMN/MORK boundary
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress independent-surfaces
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress large-cover-laziness
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress one-purse-serialization
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress randomized-independent-receipts
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress same-surface-disjoint-occurrences
+  REGRESSION: missing PASS (x1): PASS: cost-rho parallel stress search-budget-monotonicity
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/budget_meter.metta
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/notary_chain.metta
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/parallel_settlement.mrho
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/parallel_settlement.mrho (threaded matches sequential)
+  REGRESSION: missing PASS (x1): PASS: examples/rho/cost/vending_machine.rho
+  REGRESSION: missing PASS (x1): PASS: examples/rho/pure/eval_at_comm.rho
+  REGRESSION: missing PASS (x1): PASS: explicit PeTTa search machine
+  REGRESSION: missing PASS (x1): PASS: formal he documentation surface
+  REGRESSION: missing PASS (x1): PASS: formal he eval surface
+  REGRESSION: missing PASS (x1): PASS: formal he get-doc surface
+  REGRESSION: missing PASS (x1): PASS: formal he no-return surface
+  REGRESSION: missing PASS (x1): PASS: formal he numeric surface
+  REGRESSION: missing PASS (x1): PASS: he-compat collect Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat core-surface extensions are hidden
+  REGRESSION: missing PASS (x1): PASS: he-compat count-atoms Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat fold Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat fold-by-key Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat foldl-atom Rust core surface
+  REGRESSION: missing PASS (x1): PASS: he-compat foldl-atom-in-space Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat get-doc Rust surface
+  REGRESSION: missing PASS (x1): PASS: he-compat git-module! surface
+  REGRESSION: missing PASS (x1): PASS: he-compat include Rust result surface
+  REGRESSION: missing PASS (x1): PASS: he-compat module-inventory Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat once Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat parse Rust surface
+  REGRESSION: missing PASS (x1): PASS: he-compat reduce Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat runtime-stats Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat search-policy Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat select Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat size Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-compat space-set-match-backend! Rust-inert surface
+  REGRESSION: missing PASS (x1): PASS: he-extended collect extension
+  REGRESSION: missing PASS (x1): PASS: he-extended compile collect
+  REGRESSION: missing PASS (x1): PASS: he-extended compile extension
+  REGRESSION: missing PASS (x1): PASS: he-extended compile fold
+  REGRESSION: missing PASS (x1): PASS: he-extended compile fold-by-key
+  REGRESSION: missing PASS (x1): PASS: he-extended compile fs capability
+  REGRESSION: missing PASS (x1): PASS: he-extended compile hyperpose
+  REGRESSION: missing PASS (x1): PASS: he-extended compile module-inventory
+  REGRESSION: missing PASS (x1): PASS: he-extended compile reduce
+  REGRESSION: missing PASS (x1): PASS: he-extended compile runtime-stats
+  REGRESSION: missing PASS (x1): PASS: he-extended compile search-policy
+  REGRESSION: missing PASS (x1): PASS: he-extended compile select
+  REGRESSION: missing PASS (x1): PASS: he-extended compile space-set-match-backend!
+  REGRESSION: missing PASS (x1): PASS: he-extended compile str capability
+  REGRESSION: missing PASS (x1): PASS: he-extended compile system capability
+  REGRESSION: missing PASS (x1): PASS: he-extended count-atoms extension
+  REGRESSION: missing PASS (x1): PASS: he-extended fold extension
+  REGRESSION: missing PASS (x1): PASS: he-extended fold-by-key extension
+  REGRESSION: missing PASS (x1): PASS: he-extended foldl-atom-in-space extension
+  REGRESSION: missing PASS (x1): PASS: he-extended fs capability
+  REGRESSION: missing PASS (x1): PASS: he-extended get-doc surface
+  REGRESSION: missing PASS (x1): PASS: he-extended hyperpose CLI threads
+  REGRESSION: missing PASS (x1): PASS: he-extended hyperpose extension
+  REGRESSION: missing PASS (x1): PASS: he-extended import modules
+  REGRESSION: missing PASS (x1): PASS: he-extended keeps literal binder-domain behavior
+  REGRESSION: missing PASS (x1): PASS: he-extended leaves he-prime extensions inert
+  REGRESSION: missing PASS (x1): PASS: he-extended leaves he-prime typed search inert
+  REGRESSION: missing PASS (x1): PASS: he-extended leaves type-level user computation residual
+  REGRESSION: missing PASS (x1): PASS: he-extended lts:he surface
+  REGRESSION: missing PASS (x1): PASS: he-extended module-inventory extension
+  REGRESSION: missing PASS (x1): PASS: he-extended new-space kind overload is visible
+  REGRESSION: missing PASS (x1): PASS: he-extended once alias
+  REGRESSION: missing PASS (x1): PASS: he-extended reduce extension
+  REGRESSION: missing PASS (x1): PASS: he-extended runtime-stats extension
+  REGRESSION: missing PASS (x1): PASS: he-extended search-policy capability
+  REGRESSION: missing PASS (x1): PASS: he-extended select extension
+  REGRESSION: missing PASS (x1): PASS: he-extended shared HE typing conformance
+  REGRESSION: missing PASS (x1): PASS: he-extended size compile
+  REGRESSION: missing PASS (x1): PASS: he-extended size extension
+  REGRESSION: missing PASS (x1): PASS: he-extended space-set-match-backend! extension
+  REGRESSION: missing PASS (x1): PASS: he-extended str capability
+  REGRESSION: missing PASS (x1): PASS: he-extended system capability
+  REGRESSION: missing PASS (x1): PASS: iterative capture-avoiding ABT core
+  REGRESSION: missing PASS (x1): PASS: lib_parse ABT bridge (N admitted, N rejected, N preserved)
+  REGRESSION: missing PASS (x1): PASS: mmN has no named profiles
+  REGRESSION: missing PASS (x1): PASS: nameful rho substitution agrees with canonical ABT substitution
+  REGRESSION: missing PASS (x1): PASS: native PeTTa machine evaluator integration
+  REGRESSION: missing PASS (x1): PASS: native PeTTa process_metta_string
+  REGRESSION: missing PASS (x1): PASS: optional PeTTa/libpl boundary invariants
+  REGRESSION: missing PASS (x1): PASS: parse depth guard
+  REGRESSION: missing PASS (x1): PASS: pure-rho canonical selector agrees with exhaustive frontier (N named + N generated; seed=N)
+  REGRESSION: missing PASS (x1): PASS: revision-pinned ordered MatchDecision oracle
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier comm-contention-two-outputs
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier fanout-empty
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-certificate-quorum
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-comm-contention
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-computed-payload
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-conditional-route
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-demand-index
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-fanout
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-finite-replication
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-fresh-extrusion
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-indexed-demand
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-iterated-workload
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-job-queue-collector
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-pipeline-forward
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-channel
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-no-leak
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-private-session
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-reflection-loader
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-registry-lookup
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-route-policy
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-route-synthesis
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-space-registry
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier metta-threshold-quorum
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier paper-input-guarded-replication
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier paper-reflection-name-generation
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN may/must frontier pipeline-forward-empty
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap basic-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap input-guarded-unfold
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN overlap reflection-name-generation
+  REGRESSION: missing PASS (x1): PASS: rhocalc MN rholang-cli parser/oracle selftest
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-alpha-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-assoc-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-comm-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-par-zero-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation core-comm-vs-quote-drop-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation diamond-path-a-vs-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation pure-surface-vs-core-comm
+  REGRESSION: missing PASS (x2): PASS: rhocalc bounded bisimulation scheduler-persistent-limitN-canonical-vs-rotating
+  REGRESSION: missing PASS (x2): PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limitN-canonical-vs-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-input-guarded-vs-core-input-guarded
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-primed-diamond-vs-core-primed-diamond
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-reflection-vs-core-reflection
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded bisimulation surface-rotating-witness-vs-core-rotating-witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-assoc-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-comm-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-par-zero-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence core-comm-vs-quote-drop-name-equivalence
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence diamond-path-a-vs-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence pure-surface-vs-core-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-input-guarded-vs-core-input-guarded
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-primed-diamond-vs-core-primed-diamond
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-reflection-vs-core-reflection
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation equivalence surface-rotating-witness-vs-core-rotating-witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc bounded relation inequivalence literal-static-drop
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical scheduler witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/branching_relation.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_avoidance_alpha_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_free_var_rejected_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_shadow_ok_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_discrimination_survives_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_alpha_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_assoc_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_comm_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_zero_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_var_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/comm_par_chain_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/core_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/literal_drop_quote_static_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_free_name_same_spelling_binder.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_inner_binder_restores_scope.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_seals_outer_binder.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_shadow_same_spelling.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_path_a.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_path_b.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_hN_setup.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_pass_basic_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_quote_drop.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/nested_drop_quote_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_divergence_self_recreates_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_input_guarded_replication_unfold_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_reflection_name_generation_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_drop_comm_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_substitution_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_substitution_opaque_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/recv_under_binder_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/rotating_scheduler_persistent_branch.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_alpha_dedup_display.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_hot_successors.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc cost dequotation tests/rhocalc_cost/reject_dequote.rho
+  REGRESSION: missing PASS (x2): PASS: rhocalc cost threaded execution (N workers)
+  REGRESSION: missing PASS (x1): PASS: rhocalc de-step allow-list surface
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho hygiene
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_causal_trace.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_parallel_branches.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_search_budget.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_cost_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_rho_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_lts_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rho_lib_hygiene_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rho_lib_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_dedfarm.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_ecan.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_mayset.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_demo_revision.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_isolation_oracle.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc lib/rho surface tests/test_rhometta_lib_surface.metta
+  REGRESSION: missing PASS (x1): PASS: rhocalc old step surface purged
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/free_drop_is_stuck_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/no_reduction_under_recv_puritanical.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_name_variable_roundtrip_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_quoted_name_roundtrip_hN.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/quoted_process_not_reduced_in_name_eq.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc quiescent/open-name contract tests/rhocalc/surface_open_name_variable.rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc rejects scheduler with threaded execution
+  REGRESSION: missing PASS (x1): PASS: rhocalc rotating scheduler witness
+  REGRESSION: missing PASS (x1): PASS: rhocalc run reduction-limit exhaustion
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability branching-relation-one-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability capture-shadow-recv-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability capture-shadow-recv-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-discrimination-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-discrimination-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-var-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability channel-var-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability comm-par-chain-one-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability core-comm-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability core-comm-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability literal-drop-static-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability literal-drop-static-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability multistep-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-pass-basic-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-pass-basic-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-quote-drop-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability name-quote-drop-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability nested-drop-quote-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability nested-drop-quote-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-divergence-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-divergence-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability pure-surface-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability pure-surface-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability recv-under-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability recv-under-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-persistent-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-three-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability rotating-primed-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-input-guarded-unfold-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-name-output-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-name-output-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-three-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-three-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-primed-diamond-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-quote-inner-binder-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-reflection-name-generation-one-step-rotating
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-canonical-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-rotating-two-step
+  REGRESSION: missing PASS (x1): PASS: rhocalc scheduler reachability surface-rotating-persistent-two-step-threaded
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_fresh.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_join.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_quoted_payload.rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc strict-boundary reject tests/rhocalc/reject_send_continuation.mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc thread-budget plumbing
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress alpha-capture-stress
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress dequote-spawn
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress hot-channel-linear-consumption
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress independent-many-comms
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress limit-batch-exact
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress payload-race
+  REGRESSION: missing PASS (x1): PASS: rhocalc threaded stress randomized-threaded-loop
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle branching-relation
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle core-comm
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle free-drop-is-stuck
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-path-a
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-path-b
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle multistep-diamond-setup
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle no-reduction-inside-quote
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle no-reduction-under-recv
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle open-name-variable
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle open-quoted-name
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle quiescent-nil
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle self-recreation
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle stuck-pending-receive
+  REGRESSION: missing PASS (x1): PASS: rhocalc tiny oracle stuck-pending-send
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate alpha mrho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate alpha mrho -> rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate mrho -> rho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate rho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate shadow rho -> mrho
+  REGRESSION: missing PASS (x1): PASS: rhocalc zero thread budget uses sequential path
+  REGRESSION: missing PASS (x1): PASS: rhometta macro differential audit
+  REGRESSION: missing PASS (x1): PASS: rhometta payload map capacity C test
+  REGRESSION: missing PASS (x1): PASS: shared lib_prolog surface in HE, Prime, and PeTTa
+  REGRESSION: missing PASS (x1): PASS: source-AtomId memo rejects stale entries after arena reset
+  REGRESSION: missing PASS (x1): PASS: space term universe membership
+  REGRESSION: missing PASS (x1): PASS: specializer prepare boundary (N checks)
+  REGRESSION: missing PASS (x1): PASS: staged Subzero candidate
+  REGRESSION: missing PASS (x1): PASS: staged query-first MeTTa Zero candidate
+  REGRESSION: missing PASS (x1): PASS: stdlib growth memory regression rss_kb=N
+  REGRESSION: missing PASS (x1): PASS: test_closed_stream_fastpath
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_adversarial.metta budget-invariance
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_adversarial.metta eval-hashcons guard
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_indirect_state_stream.metta budget-invariance
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_indirect_state_stream.metta eval-hashcons guard
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_nested_outcome_roots.metta budget-invariance
+  REGRESSION: missing PASS (x1): PASS: tests/gc/test_eval_gc_nested_outcome_roots.metta eval-hashcons guard
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/compound_sig_missing_partial_token_quiescent.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/internal_split_tokens_basic.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/missing_token_quiescent.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_alpha.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_quote_drop.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/name_equivalence_wrong_purse.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/parallel_claim_rollback_competition.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/split_tokens_basic.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/split_tokens_compound_sig_combined_token.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/substitution_quote_term.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_combined_token.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_split_tokens.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_cost_run/whole_redex_single_sig.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/branching_deterministic_choice.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/core_comm_run.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/literal_drop_quote_static_after_comm.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/pipeline_two_forwarders.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/pipeline_two_forwarders_surface.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/quiescent_nil_core.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/quiescent_nil_surface.rho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/stuck_pending_receive.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/stuck_pending_send.mrho
+  REGRESSION: missing PASS (x1): PASS: tests/rhocalc_run/substituted_drop_reveals_static_inner_drop.mrho
+  REGRESSION: missing PASS (x1): PASS: variant shape roundtrip
+  REGRESSION: new SKIP (x1): SKIP: tests/test_add_atom_nodup_pathmap_alpha_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_bigint_bridge_roundtrip_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_bio_bc_let_hidden_env_regression.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_checkpoint_disease_route_probe.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_checkpoint_group_extract_cross_form_regression.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_effect_append_batch_fastpath.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_gparse_native_forest_digest.metta (reads the metamath-test checkout beside this repository, which is absent)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_gparse_native_metamath_corpus.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_gparse_native_metamath_frontier.metta (reads the metamath-test checkout beside this repository, which is absent)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_import_act_module_syntax.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_include_mmN_space_target.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_json_bridge_compat.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_json_bridge.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_no_http.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_rho_bridge.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_io_syntax.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_direct_reference.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_byte_lengths.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_hostile_constructors.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_invalid_number.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_legacy_nul.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_json_gslt_library.metta (covered by isolated opt-in feature gates)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_aN_block_pair_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_aN_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_anatomy_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_axioms_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_block_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_defs_aN_block_pair_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_defs_aN_block_triplet_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_defs_block_pair_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_defs_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_dv_multivar_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_dv_scope_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_grammar_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_local_var_good_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mini_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mini_thm_compressed_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mini_thm_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mmtest_compressed_z_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mmtest_d_before_float_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mmtest_min_found_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_mmtest_toplevel_e_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_nested_scope_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_prefix_frontier_native.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_raw_stmt_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_repeat_vars_db_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_stmt_prefix_frontier_native.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_theorem_compressed_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_theorem_length_ladder_native.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lib_parse_metamath_theorem_normal_vN.metta (covered by test-heavy)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_lts_mi_syntax.metta (imports a Mettapedia checkout; covered by test-lean)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_match_chain_cross_space_pathmap_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mmN_match_order_fragile.metta (covered by probe-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_module_inventory_act_registered_root.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_act_roundtrip.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_fc_depthN_witness_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_nil_parity_regression.metta (covered by probe-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_recursive_bc_micro_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_mork_recursive_bc_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_backend_primary_destructive_regression.metta (covered by probe-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_backend_primary_growth_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_contextual_var_projection_remove.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_counted_space_syntax.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_fc_depthN_count_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_indexed_opening_identity_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_indexed_query_work.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_match_copy_var_identity_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_program_shadow_sync_work.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_pull_consumers_work.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_scientific_float_roundtrip_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_scoped_queries.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_stored_variable_exact_query_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_pathmap_typed_query_syntax.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_print_nondet_probe.metta (covered by probe-core-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_rational_bridge_roundtrip_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_size_atom_collapse_cross_engine_regression.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_space_batch_copy_optimizer_guards.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_space_batch_copy_syntax.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_space_engine_backend.metta (covered by test-pathmap-lane)
+  REGRESSION: new SKIP (x1): SKIP: tests/test_space_type.metta (covered by test-pathmap-lane)
+  REGRESSION: new failed make target (x1): test-test-target-scope
+  note: expected SKIP no longer present (x1): SKIP: ABT differential (set METTAPEDIA_ROOT to a Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: cost-rho differential harness (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc MN rholang-cli overlap (set RHOLANG_CLI or install rholang-cli)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc cost lean bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc lean microcheck (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected SKIP no longer present (x1): SKIP: rhocalc lean trace bridge (set METTAPEDIA_ROOT to a local Mettapedia checkout)
+  note: expected targets no longer present (x1): test-he-compat-catalog-guards
+  note: 604 PASS line(s) beyond the baseline
+RESULT: NOT GREEN (regression, exit 1)
+HARNESS_EXIT=1

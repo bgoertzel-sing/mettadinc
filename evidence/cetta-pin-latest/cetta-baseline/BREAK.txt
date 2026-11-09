@@ -1,0 +1,17 @@
+== 2026-11-06T06:37:10Z break: one line appended to each file ==
+diff --git a/tests/rhocalc/translate_rho_to_mrho.expected b/tests/rhocalc/translate_rho_to_mrho.expected
+index b799d505..5b7bfdbd 100644
+--- a/tests/rhocalc/translate_rho_to_mrho.expected
++++ b/tests/rhocalc/translate_rho_to_mrho.expected
+@@ -1 +1,2 @@
+ (rho:par (rho:send (rho:quote rho:nil) rho:nil) (rho:recv (rho:quote rho:nil) $x (rho:drop $x)))
++deliberately broken by mettadinc break-a-test
+diff --git a/tests/test_arithmetic.expected b/tests/test_arithmetic.expected
+index 5940c1dc..6add3171 100644
+--- a/tests/test_arithmetic.expected
++++ b/tests/test_arithmetic.expected
+@@ -11,3 +11,4 @@
+ [()]
+ [()]
+ [()]
++deliberately broken by mettadinc break-a-test

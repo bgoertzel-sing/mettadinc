@@ -33,7 +33,7 @@ cd docs/e0 && sha256sum -c SHA256SUMS
 | Path | What |
 |---|---|
 | [docs/e0/MILESTONES.md](docs/e0/MILESTONES.md) | M0–M7 with claims, fixtures, negative tests, dependencies and the first-release map |
-| [docs/e0/CETTA.md](docs/e0/CETTA.md) | Cetta pin (12da03b4), build record, test counts, extension points |
+| [docs/e0/CETTA.md](docs/e0/CETTA.md) | E0's Cetta pin (12da03b4, since superseded by 4c285a97), build record, test counts, extension points |
 | [docs/e0/ORACLES.md](docs/e0/ORACLES.md) | The reference oracles' and evaluators' results, reproduced |
 | [docs/e0/OPEN_QUESTIONS.md](docs/e0/OPEN_QUESTIONS.md) | Questions E0 raised for Ben |
 | [docs/e0/tools/](docs/e0/tools/) | E0's scripts (crawl, assembly, milestone generation, Cetta baseline, oracle runs) |
@@ -47,11 +47,11 @@ cd docs/e0 && sha256sum -c SHA256SUMS
 | [validation/check_fixtures.py](validation/check_fixtures.py) | Working copy of the package checker, reading the adopted registry; `cd validation && python3 check_fixtures.py` |
 | [tools/check_bundles.py](tools/check_bundles.py) | Each bundle's own ex_check.py check against the adopted registry alone, no patch; must report 0 diagnostics |
 | [tools/run-oracles.sh](tools/run-oracles.sh) | The reference oracles, on a copy: 157 / 305 / 195 / 94 / 99 |
-| [cetta/](cetta/) | Submodule: zariuq/CeTTa pinned to 12da03b4 ([docs/CETTA-PIN.md](docs/CETTA-PIN.md)); `tools/check-vendored-cetta.sh` checks the gitlink equals the pin and the checkout is at it and clean |
-| [tools/cetta-baseline.sh](tools/cetta-baseline.sh) | Decision 2's "green": builds the cetta/ submodule checkout (core, then python), runs the three gates and compares with [tools/cetta-baseline.expected](tools/cetta-baseline.expected), which is derived from E0's frozen logs. Exit 0 green, 1 regression, 2 build/setup failure. Set `MDINC_GMP_PREFIX` if the system has no GMP headers (see the script's header) |
+| [cetta/](cetta/) | Submodule: zariuq/CeTTa `main` pinned to 4c285a97 (previously 12da03b4; [docs/CETTA-PIN.md](docs/CETTA-PIN.md)), green at 4c285a97 with build overrides (see [docs/CETTA-LATEST.md](docs/CETTA-LATEST.md)); `tools/check-vendored-cetta.sh` checks the gitlink equals the pin and the checkout is at it and clean |
+| [tools/cetta-baseline.sh](tools/cetta-baseline.sh) | Decision 2's "green": builds the cetta/ submodule checkout (core, then python), runs the three gates and compares with [tools/cetta-baseline.expected](tools/cetta-baseline.expected), which since the pin move is frozen from the 4c285a97 run evidence/cetta-pin-latest/cetta-baseline/latest-run3-swipl (green at 4c285a97 with build overrides, see [docs/CETTA-LATEST.md](docs/CETTA-LATEST.md); until 87ebf79 it was derived from E0's frozen logs at 12da03b4). Set `MDINC_MAKE_ARGS` to the build overrides and `MDINC_SWIPL_DIR` to a SWI-Prolog 9.x prefix as recorded there. Exit 0 green, 1 regression, 2 build/setup failure. Set `MDINC_GMP_PREFIX` if the system has no GMP headers (see the script's header) |
 
 ### Ben's decisions
 
 1. Adopt the bundles' proposed registry patches before M0.
-2. Cetta "green" means no regression against E0's frozen baseline at Cetta commit 12da03b4.
+2. Cetta "green" means no regression against E0's frozen baseline at Cetta commit 12da03b4. (Since the pin moved to 4c285a97, by hive task t-2026-11-06-mettadinc-cetta-pin-latest, the frozen baseline is "green at 4c285a97 with build overrides (see [docs/CETTA-LATEST.md](docs/CETTA-LATEST.md))".)
 3. Use CUDD 3.0.0 for M3.

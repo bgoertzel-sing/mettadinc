@@ -1,0 +1,704 @@
+== MDINC_SWIPL_DIR=/home/openclaw/scratch/mettadinc-e0/swipl9/install on PATH: [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209] ==
+== make PACK_RELATIVE_RELOCS= CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized BUILD=core test-rhocalc ==
+runtime/rule-machine-program-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--core experiments/gslt2parse_foundation/presentations/core/rule_machine_core_v1.metta \
+	--program-gslt experiments/gslt2parse_foundation/presentations/specializations/rule_machine_hilbert_bfc_program_v1.metta \
+	--out src/generated/rule_machine_program_v1.generated.h
+gcc -std=c11 -O2 -Wall -Wextra -Werror -I. tools/process_scope_v1.c -o runtime/cetta-core.prime-need-heap-index.prime-eval-stack.json-gslt.proc-scope
+(RhoMettaCliArgumentsV1Summary 2 2 2 0)
+gcc -O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized -Isrc -Iexperiments/gslt2parse_foundation/native -o runtime/test_finite_horn_gslt_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	experiments/gslt2parse_foundation/native/finite_horn_gslt_v1.c \
+	experiments/gslt2parse_foundation/native/test_finite_horn_gslt_v1.c \
+	src/native_sha256.c
+(FiniteHornGSLTV1NativeCanarySummary 30 30 0)
+(GSLT2ParseLanguagePackageV1 rhometta-persistent-receive PASS)
+(RhoMettaCliProfileV1Summary 1 1 1 1 1 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--composition experiments/gslt2parse_foundation/presentations/canaries/direct_petta_composition_v1.metta \
+	--out langdef/petta/generated/gslt_direct_relation_canary_v1.metta
+(GSLTDirectPeTTaV1Summary 5 78b880635f6c2248c102fde1f853743664e8ad3e19956803ce47c2e759a526e8 5134e692035d946bdcdb495b4ccebb913b5a890d822f4028b2d2b3cae75a9c5c)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--composition experiments/gslt2parse_foundation/presentations/canaries/direct_petta_composition_v1.metta \
+	--out langdef/rhometta/generated/gslt_direct_relation_canary_v1.metta
+(GSLTDirectRhoMettaV1Summary 5 2 78b880635f6c2248c102fde1f853743664e8ad3e19956803ce47c2e759a526e8 fa68421607c61b3d9f5a715e661046ce08c9499296132ca4cb8fa6a998487cfa)
+(GSLTDirectSourceIdentityV1Summary 2 2 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/canaries/direct_petta_ground_relations_v1.metta \
+	--out langdef/rhometta/generated/gslt_direct_ground_relations_v1.metta
+(GSLTDirectRhoMettaV1Summary 2 2 77cc94e05753d20e2b312835bcef4987527f63c6787fc664305907a48c90a653 5f7059c65a61ccb318c1c227f7d671b11f3463a76eff1e4438cf455600a1a1c2)
+(GSLTDirectRhoMettaGroundRelationsV1Summary 2 3 3 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/canaries/direct_rhometta_constructor_recursion_v1.metta \
+	--out langdef/rhometta/generated/gslt_direct_constructor_recursion_v1.metta
+(GSLTDirectRhoMettaV1Summary 2 1 8180bbad06323985eb90e395b9851109cefc1badc5d8ec886662588fe85c8d4d fcfe5703c1713f9ed8a5bf2a2b704e2419305e7b08bf05d28957eee0a17309fc)
+(GSLTDirectRhoMettaConstructorRecursionV1Summary 2 1 3 1)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native      -DCETTA_BUILD_WITH_DURABLE=0   -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1  -include runtime/bootstrap/build_config.core.prime-need-heap-index.prime-eval-stack.json-gslt.h -O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized -o runtime/gslt-rule-mutate-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt tools/gslt_rule_mutate_v1.c -Wl,--as-needed  -ldl -lm -pthread -lgmp       
+(GSLTDirectRhoMettaV1Summary 5 2 3 1 1)
+(GSLTDirectRhoMettaRhoCalcProfileV1Summary 3 1 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule state-step-require-depth-v1 \
+	--out langdef/rhometta/generated/metamath_require_depth_v1.metta
+(GSLTDirectRhoMettaV1Summary 10 4 c21e347c3ead301a60600696f8131139b65ddb25b90a463f26d470768afe38ce 78740946b7f11481530140e05c22ffd8a4e21ee940010c0b5f20550aae57ca4c)
+(MetamathRequireDepthRhoMettaV1Summary 10 4 1 1 1)
+(MetamathRequireDepthRhoCalcProfileV1Summary 2 1 1 1 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--source experiments/gslt2parse_foundation/presentations/core/occurrence_fold_core_v1.metta --source langdef/metamath/source_fold_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_program_core_v1.metta --source langdef/metamath/state_v1.metta --source langdef/metamath/proof_trace_policy_v1.metta --source langdef/metamath/proof_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/relational_state_program_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_program_interface_v1.metta \
+	--out langdef/petta/generated/metamath_state_compiler_direct_v1.metta
+(GSLTDirectPeTTaV1Summary 267 bcc4e67a49543be4fbe716a032cee8e1f59d221a81e866636436b6cde4b76193 ba4ab10d7159db61863c5f1d7990e033d935746a511db470109be8f6cd7578f4)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.answers --out langdef/metamath/generated/state_transition_input_direct_v1.metta
+(AnswerFactsPresentationV1Summary 105 43359b73f5920b7172d974e5aa8c1caad3678e57e7248880dd3f95c74f835c76)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt state-transition-bindings \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.answers --out langdef/metamath/generated/state_transition_bindings_direct_v1.answers
+(AnswerStreamV1Summary 142 502005ba17be21672f83f808b006524b067c7f4a593b2b6f036eabec106d0935)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.answers --out langdef/metamath/generated/state_transition_bindings_direct_v1.metta
+(AnswerFactsPresentationV1Summary 142 502005ba17be21672f83f808b006524b067c7f4a593b2b6f036eabec106d0935)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--source experiments/gslt2parse_foundation/presentations/compiler/relational_state_transition_compiler_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/compiler/relational_state_transition_input_interface_v1.metta \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.metta \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.metta \
+	--out langdef/petta/generated/metamath_state_transition_lowering_direct_v1.metta
+(GSLTDirectPeTTaV1Summary 308 d5fb020569f00575698d1ff1313f37b2cffe956b34c4beb8f026379a2025ffe2 16607ff80bf1a95ef3482a93ee09b5b6ba87150e23264b3dfcc5b9aff587065e)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/state_transition_exec_ir_direct_v1.answers --out langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta
+(AnswerFactsPresentationV1Summary 31 c0c6dcac4ade3d7f99a7395a8efd8629cf1b7d3e7029d6fade5ba04329c3d776)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--source langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta \
+	--entry-rule state-step-push-scope-v1 \
+	--entry-rule state-step-pop-scope-v1 \
+	--entry-rule state-step-pop-scope-underflow-v1 \
+	--entry-rule state-step-noop-v1 \
+	--out langdef/rhometta/generated/metamath_scope_control_v1.metta
+(GSLTDirectRhoMettaV1Summary 39 9 ed28cc8de729d4935f27366b2c139b54dcba2537b7db05e1924c9e4d738a67b6 a69f356509c54032cd1dbdabac99bebc358ba05e9d7f30509a51910bd3eef626)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--source langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta \
+	--entry-rule state-step-push-scope-v1 \
+	--entry-rule state-step-pop-scope-v1 \
+	--entry-rule state-step-pop-scope-underflow-v1 \
+	--entry-rule state-step-noop-v1 \
+	--epilogue tests/rhometta/metamath_scope_control_query_v1.metta \
+	--out runtime/metamath_scope_control_rhometta_run_v1.metta
+(GSLTDirectRhoMettaV1Summary 39 9 ed28cc8de729d4935f27366b2c139b54dcba2537b7db05e1924c9e4d738a67b6 c08913dfde360bdc8e955719d44aeef209b159dcdc329e941d0e94d98a855a43)
+(MetamathScopeControlRhoMettaV1Summary 4 3 1 1 0)
+(MetamathScopeControlRhoCalcProfileV1Summary 4 3 1 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule state-step-require-row-v1 \
+	--entry-rule state-step-require-row-key-absent-v1 \
+	--entry-rule state-step-insert-row-v1 \
+	--out langdef/rhometta/generated/metamath_row_actions_v1.metta
+(GSLTDirectRhoMettaV1Summary 93 40 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 9434a1bdf53d54e221b6902b3171e7fc56600d4508be098cd270c4f4c89c2059)
+(MetamathRowActionsRhoMettaCompileV1Summary 93 40 3 1 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule require-row-v1 \
+	--entry-rule require-row-key-absent-v1 \
+	--out langdef/rhometta/generated/metamath_row_conditions_core_v1.metta
+(GSLTDirectRhoMettaV1Summary 29 15 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 ea363fe6051b906eb98e9ac1d1b9f6270d2d6ff5bb920d9dceb48f44cd86611a)
+(MetamathRowConditionsCoreRhoCalcProfileV1Summary 29 15 4 2 300 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule require-each-key-absent-nil-v1 \
+	--entry-rule require-each-key-absent-cons-v1 \
+	--out langdef/rhometta/generated/metamath_require_each_key_absent_core_v1.metta
+(GSLTDirectRhoMettaV1Summary 63 23 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 fd0b5b771d5cab1942690bf78588acd72d8dc5eec5d309ca4610ba21665af714)
+(MetamathRequireEachKeyAbsentCoreRhoCalcProfileV1Summary 63 23 3 1 450 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule insert-each-nil-v1 \
+	--entry-rule insert-each-cons-v1 \
+	--out langdef/rhometta/generated/metamath_insert_each_core_v1.metta
+(GSLTDirectRhoMettaV1Summary 76 30 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 237997bcb8a6d80e17cecd8fc454a73ad0a5ab554b4c7f66f999cdd31c9c5cec)
+(MetamathInsertEachCoreRhoCalcProfileV1Summary 76 30 3 1 650 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule insert-each-matching-nil-v1 \
+	--entry-rule insert-each-matching-cons-v1 \
+	--out langdef/rhometta/generated/metamath_insert_each_matching_core_v1.metta
+(GSLTDirectRhoMettaV1Summary 85 35 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 71de1781e8b50ef801115e80bd604c235eb56e17b77e63ceed7ad98e8194fd7a)
+(MetamathInsertEachMatchingCoreRhoMettaCompileV1Summary 85 35 2 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule copy-each-row-nil-v1 \
+	--entry-rule copy-each-row-cons-v1 \
+	--entry-rule copy-each-row-matching-nil-v1 \
+	--entry-rule copy-each-row-matching-cons-v1 \
+	--out langdef/rhometta/generated/metamath_copy_actions_core_v1.metta
+(GSLTDirectRhoMettaV1Summary 89 37 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 11c7453ff48e95adfcddecb0595d436d251ccf877d697048b22648c0c5c44134)
+(MetamathCopyActionsCoreRhoMettaCompileV1Summary 89 37 4 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_singleton_occurrence_v1.metta \
+	--entry-rule state-step-insert-each-v1 \
+	--out langdef/rhometta/generated/metamath_insert_each_state_step_v1.metta
+(GSLTDirectRhoMettaV1Summary 81 37 f778411c5e12354deb8493a5ec8ac5a88e5009fcd27d7a551a2f24d8adea9c13 0f323912c3720c5c5fba01aa59d29a3b052be2bca44bb74f39e527733817df92)
+(MetamathInsertEachStateStepRhoMettaCompileV1Summary 81 37 1 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule state-step-require-row-v1 \
+	--out langdef/rhometta/generated/metamath_require_row_state_step_v1.metta
+(GSLTDirectRhoMettaV1Summary 55 23 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 78d91fe4714b7e5a9546318c63d1105c71b2472f4dd344a8ad0c6e954c655c04)
+(MetamathRequireRowStateStepRhoCalcProfileV1Summary 55 23 2 400 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule state-step-require-row-key-absent-v1 \
+	--out langdef/rhometta/generated/metamath_require_row_key_absent_state_step_v1.metta
+(GSLTDirectRhoMettaV1Summary 57 24 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 a0b9f5415df57fbee82d84408a310611a0c1c7200a080e1cafc2ad1067a913ea)
+(MetamathRequireRowKeyAbsentStateStepRhoCalcProfileV1Summary 57 24 2 400 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule insert-row-v1 \
+	--out langdef/rhometta/generated/metamath_insert_row_core_v1.metta
+(GSLTDirectRhoMettaV1Summary 35 18 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 bf43d732c4946ea40db580dfa5b33592b47ab6e300539064acf4a1ab26c957af)
+(MetamathInsertRowCoreRhoCalcProfileV1Summary 35 18 2 400 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/canaries/metamath_state_transition_execution_canary_v1.metta \
+	--entry-rule state-step-insert-row-v1 \
+	--out langdef/rhometta/generated/metamath_insert_row_state_step_v1.metta
+(GSLTDirectRhoMettaV1Summary 81 34 aacc78727958ac8118d6872bdb90a371a01f38799baea4f936d9f88cef18d7e0 cdb6ab97f87e8726783ea5f9b3a7ebf53acad260b47f320405e6569d28d472f1)
+(MetamathInsertRowStateStepRhoCalcProfileV1Summary 81 34 2 400 0)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt select-answers \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.answers \
+	--head StateDenseIdentityV1 \
+	--out langdef/metamath/generated/state_runtime_identities_direct_v1.answers
+(SelectedAnswerStreamV1Summary 19 c9dcbc7857b21e7f2e1b7bf3b8d1e92b75a696d7a02fb997dc8e08e250c4177b)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack answer-facts \
+	--source langdef/metamath/generated/state_runtime_identities_direct_v1.answers --out langdef/metamath/generated/state_runtime_identities_direct_v1.metta
+(AnswerFactsPresentationV1Summary 19 c9dcbc7857b21e7f2e1b7bf3b8d1e92b75a696d7a02fb997dc8e08e250c4177b)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt select-answers \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.answers \
+	--head state-proof-machine-v1 \
+	--out langdef/metamath/generated/state_runtime_proof_machines_direct_v1.answers
+(SelectedAnswerStreamV1Summary 1 ba364b5b59f1d8536e5e5e5fefc4af5b54fe9b41a83c3339178186a5a57f0b57)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack answer-facts \
+	--source langdef/metamath/generated/state_runtime_proof_machines_direct_v1.answers --out langdef/metamath/generated/state_runtime_proof_machines_direct_v1.metta
+(AnswerFactsPresentationV1Summary 1 ba364b5b59f1d8536e5e5e5fefc4af5b54fe9b41a83c3339178186a5a57f0b57)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_article_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_article_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/certificate_gslt_article_conversion_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_article_document_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_article_document_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/certificate_gslt_article_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/certificate_gslt_article_document_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_sequence_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_sequence_assertion_v1.metta --source langdef/metamath/proof_calculus_functional_v1.metta \
+	--out langdef/petta/generated/metamath_proof_compiler_direct_v1.metta
+(GSLTDirectPeTTaV1Summary 241 2d0092256fa655939e30f880a16d98fac860204d2a2c6a632ae400e891b4cca9 b66458c43e9d61bf31a4f1929d4f1b33a9207237a0548534d66bb3997a094493)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/proof_plan_direct_v1.answers --out langdef/metamath/generated/proof_semantic_payload_direct_v1.metta
+(AnswerFactsPresentationV1Summary 58 35cb7181d70b75fc43e565d1c13a578f98aec3b42d591fd45df680d83dc4f534)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--source langdef/metamath/generated/proof_semantic_payload_direct_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/compiler/certificate_gslt_first_order_denotation_v1.metta \
+	--out langdef/petta/generated/metamath_proof_denotation_direct_v1.metta
+(GSLTDirectPeTTaV1Summary 75 32e0de99be5a361f63e235d02ef97761f7cadb351f32cb607c185d81e0b92640 989b4f4412f6dcc4bbd9ec2faf46071b290b919ce42193cec75c8d9328a4040a)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt semantic-gslt \
+	--source langdef/metamath/generated/proof_reflection_direct_v1.answers --out langdef/metamath/generated/proof_semantic_exec_direct_v1.metta
+(SemanticGSLTV1Summary 33 24 a03a6857d4760a2095c506ddd5d1e774446d947c83934a7f4fe2f9d8cc979dd2)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_runtime_occurrence_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_execution_link_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_stream_v1.metta --source langdef/metamath/generated/state_runtime_identities_direct_v1.metta --source langdef/metamath/generated/state_runtime_proof_machines_direct_v1.metta --source langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta --source langdef/metamath/generated/proof_semantic_exec_direct_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_semantics_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_input_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_input_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_projected_input_interface_v1.metta --source langdef/metamath/proof_trace_policy_v1.metta --source langdef/metamath/proof_trace_codec_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_proof_bridge_v1.metta \
+	--entry-rule state-step-check-proof-normal-v1 \
+	--entry-rule state-step-check-proof-compressed-v1 \
+	--out langdef/rhometta/generated/metamath_state_proof_bridge_direct_v1.metta
+(GSLTDirectRhoMettaV1Summary 392 164 f5ff356a42f9afda0f8a2c9d104238bc361c6d53395f32967c6e0aefe3babad5 b8288fbebcd2c064b567afefc2e2bf4dc12986bec24675e0f102678eb6273227)
+(MetamathStateProofBridgeRhoMettaCompileV1Summary 392 164 2 2 0)
+runtime/rule-machine-program-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--core experiments/gslt2parse_foundation/presentations/core/rule_machine_core_v1.metta \
+	--program-gslt experiments/gslt2parse_foundation/presentations/specializations/rule_machine_hilbert_bfc_program_v1.metta \
+	--out src/generated/rule_machine_program_v1.generated.h
+gcc -std=c11 -O2 -Wall -Wextra -Werror -I. tools/process_scope_v1.c -o runtime/cetta-metamath-core-v1.proc-scope
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt state-transition-bindings \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.answers --out langdef/metamath/generated/state_transition_bindings_direct_v1.answers
+(AnswerStreamV1Summary 142 502005ba17be21672f83f808b006524b067c7f4a593b2b6f036eabec106d0935)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt select-answers \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.answers \
+	--head StateDenseIdentityV1 \
+	--out langdef/metamath/generated/state_runtime_identities_direct_v1.answers
+(SelectedAnswerStreamV1Summary 19 c9dcbc7857b21e7f2e1b7bf3b8d1e92b75a696d7a02fb997dc8e08e250c4177b)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack answer-facts \
+	--source langdef/metamath/generated/state_runtime_identities_direct_v1.answers --out langdef/metamath/generated/state_runtime_identities_direct_v1.metta
+(AnswerFactsPresentationV1Summary 19 c9dcbc7857b21e7f2e1b7bf3b8d1e92b75a696d7a02fb997dc8e08e250c4177b)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt select-answers \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.answers \
+	--head state-proof-machine-v1 \
+	--out langdef/metamath/generated/state_runtime_proof_machines_direct_v1.answers
+(SelectedAnswerStreamV1Summary 1 ba364b5b59f1d8536e5e5e5fefc4af5b54fe9b41a83c3339178186a5a57f0b57)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack answer-facts \
+	--source langdef/metamath/generated/state_runtime_proof_machines_direct_v1.answers --out langdef/metamath/generated/state_runtime_proof_machines_direct_v1.metta
+(AnswerFactsPresentationV1Summary 1 ba364b5b59f1d8536e5e5e5fefc4af5b54fe9b41a83c3339178186a5a57f0b57)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.answers --out langdef/metamath/generated/state_transition_input_direct_v1.metta
+(AnswerFactsPresentationV1Summary 105 43359b73f5920b7172d974e5aa8c1caad3678e57e7248880dd3f95c74f835c76)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.answers --out langdef/metamath/generated/state_transition_bindings_direct_v1.metta
+(AnswerFactsPresentationV1Summary 142 502005ba17be21672f83f808b006524b067c7f4a593b2b6f036eabec106d0935)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--source experiments/gslt2parse_foundation/presentations/compiler/relational_state_transition_compiler_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/compiler/relational_state_transition_input_interface_v1.metta \
+	--source langdef/metamath/generated/state_transition_input_direct_v1.metta \
+	--source langdef/metamath/generated/state_transition_bindings_direct_v1.metta \
+	--out langdef/petta/generated/metamath_state_transition_lowering_direct_v1.metta
+(GSLTDirectPeTTaV1Summary 308 d5fb020569f00575698d1ff1313f37b2cffe956b34c4beb8f026379a2025ffe2 16607ff80bf1a95ef3482a93ee09b5b6ba87150e23264b3dfcc5b9aff587065e)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/state_transition_exec_ir_direct_v1.answers --out langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta
+(AnswerFactsPresentationV1Summary 31 c0c6dcac4ade3d7f99a7395a8efd8629cf1b7d3e7029d6fade5ba04329c3d776)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/proof_plan_direct_v1.answers --out langdef/metamath/generated/proof_semantic_payload_direct_v1.metta
+(AnswerFactsPresentationV1Summary 58 35cb7181d70b75fc43e565d1c13a578f98aec3b42d591fd45df680d83dc4f534)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--source langdef/metamath/generated/proof_semantic_payload_direct_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/compiler/certificate_gslt_first_order_denotation_v1.metta \
+	--out langdef/petta/generated/metamath_proof_denotation_direct_v1.metta
+(GSLTDirectPeTTaV1Summary 75 32e0de99be5a361f63e235d02ef97761f7cadb351f32cb607c185d81e0b92640 989b4f4412f6dcc4bbd9ec2faf46071b290b919ce42193cec75c8d9328a4040a)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt semantic-gslt \
+	--source langdef/metamath/generated/proof_reflection_direct_v1.answers --out langdef/metamath/generated/proof_semantic_exec_direct_v1.metta
+(SemanticGSLTV1Summary 33 24 a03a6857d4760a2095c506ddd5d1e774446d947c83934a7f4fe2f9d8cc979dd2)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt rhometta-direct --target experiments/gslt2parse_foundation/presentations/shared/rho_abstract_syntax_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rho_runtime_term_abi_v1.metta --target experiments/gslt2parse_foundation/presentations/shared/rhometta_persistent_receive_extension_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/shared/ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/cetta_petta_ground_relations_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_transition_core_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_runtime_occurrence_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_execution_link_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_occurrence_stream_v1.metta --source langdef/metamath/generated/state_runtime_identities_direct_v1.metta --source langdef/metamath/generated/state_runtime_proof_machines_direct_v1.metta --source langdef/metamath/generated/state_transition_exec_ir_direct_v1.metta --source langdef/metamath/generated/proof_semantic_exec_direct_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_semantics_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_input_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_input_interface_v1.metta --source experiments/gslt2parse_foundation/presentations/core/certificate_gslt_trace_projected_input_interface_v1.metta --source langdef/metamath/proof_trace_policy_v1.metta --source langdef/metamath/proof_trace_codec_v1.metta --source experiments/gslt2parse_foundation/presentations/core/relational_state_proof_bridge_v1.metta \
+	--entry-rule state-start-occurrence-stream-v1 \
+	--out langdef/rhometta/generated/metamath_state_proof_runtime_v1.metta
+(GSLTDirectRhoMettaV1Summary 578 236 f5ff356a42f9afda0f8a2c9d104238bc361c6d53395f32967c6e0aefe3babad5 88f024e5cf8c865cbe0a792e747d64032e40dca80ebb38672153ad479f91a6fe)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt parser-pack \
+	--manifest langdef/metamath/syntax_pack_v1.metta \
+	--compiler-root "/home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/cetta/experiments/gslt2parse_foundation/prolog" \
+	--presentation-root \
+	"/home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/cetta/experiments/gslt2parse_foundation/presentations" \
+	--pack-out langdef/metamath/generated/syntax_parser_pack_v1.abi \
+	--lock-out langdef/metamath/generated/syntax_lock_v1.metta
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt transparent-inline \
+	--abi langdef/metamath/generated/syntax_parser_pack_v1.abi --out langdef/metamath/generated/normalized_parser_pack_v1.abi
+(ParserPackTransparentInlineNativeV1Summary 441 126 324 8 f5ad6cf1ae8f0dc9d6b229144b32096bb2ff868e2db388384cf9d3d1b5ec6dca cb13116413e8b0133798af5a900b216e9883585194fa5eb5e8d13cb5438ccd3e 7449c9f289730449799f1da95cfda7f3c895c7ff9924718ce4e6feefac2287b3)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source experiments/gslt2parse_foundation/presentations/core/lexical_projection_core_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/compiler/lexical_projection_compiler_v1.metta \
+	--source langdef/metamath/lexical_projection_v1.metta \
+	--query '(compile-lexical-root ?root)' --out langdef/metamath/generated/lexical_roots_v1.answers
+(FiniteHornAnswerStreamV1Summary 22 fc562b29b2278a073785d6b9fb31311d394536fa841ce0f735525ae65d5b63f4)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt lexical-answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source experiments/gslt2parse_foundation/presentations/core/syntax_core_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/lookahead_core_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/syntax_compiler_v1.metta --source langdef/metamath/syntax_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/regular_span_compiler_v1.metta \
+	--roots langdef/metamath/generated/lexical_roots_v1.answers --timeout 60 --out langdef/metamath/generated/lexical_nfa_v1.answers
+(FiniteHornAnswerStreamV1Summary 569 bc1912317ec1f7f3bedd52ac99fa5adf01e48d0e14e5e53a116caabfaf8f2bfe)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt empty-answers --out langdef/metamath/generated/empty_guard_v1.answers
+(AnswerStreamV1Summary 0 6bed40f6273f091a3034a070a5a622ccc802752ea7dc76d622dabba106377f07)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt empty-guard-evidence \
+	--abi langdef/metamath/generated/normalized_parser_pack_v1.abi --out langdef/metamath/generated/empty_guard_v1.evidence
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt pack-facts \
+	--abi langdef/metamath/generated/normalized_parser_pack_v1.abi \
+	--source-abi langdef/metamath/generated/syntax_parser_pack_v1.abi --out langdef/metamath/generated/normalized_parser_pack_facts_v1.metta
+(ParserPackFactsV1Summary 605 cb13116413e8b0133798af5a900b216e9883585194fa5eb5e8d13cb5438ccd3e)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source langdef/metamath/generated/normalized_parser_pack_facts_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/compiler/parser_action_bytecode_compiler_v1.metta \
+	--query '(compile-pack-action-program ?owner ?label ?arity ?action ?code)' \
+	--out langdef/metamath/generated/action_bytecode_v1.answers
+(FiniteHornAnswerStreamV1Summary 126 16725c2317f5aefce1d4ae96137288d0d93914db31285600acedd8470a7ac079)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt pack-facts --abi langdef/metamath/generated/syntax_parser_pack_v1.abi --out langdef/metamath/generated/source_parser_pack_facts_v1.metta
+(ParserPackFactsV1Summary 441 f5ad6cf1ae8f0dc9d6b229144b32096bb2ff868e2db388384cf9d3d1b5ec6dca)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source experiments/gslt2parse_foundation/presentations/core/syntax_core_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/lookahead_core_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/syntax_compiler_v1.metta --source langdef/metamath/syntax_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/regular_span_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/occurrence_fold_core_v1.metta --source langdef/metamath/source_fold_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_action_bytecode_compiler_v1.metta --source langdef/metamath/generated/source_parser_pack_facts_v1.metta --source langdef/metamath/generated/normalized_parser_pack_facts_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_fold_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_fold_plan_compiler_v1.metta \
+	--query '(occurrence-fold-production-v1 ?label ?node ?operation ?contract)' \
+	--out runtime/bootstrap/metamath-occurrence-fold-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/production.answers
+(FiniteHornAnswerStreamV1Summary 10 682f1e04360f94c26b83a8108137450bfa0e401fbb413b86ece89151ade6884f)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source experiments/gslt2parse_foundation/presentations/core/syntax_core_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/lookahead_core_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/syntax_compiler_v1.metta --source langdef/metamath/syntax_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/regular_span_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/occurrence_fold_core_v1.metta --source langdef/metamath/source_fold_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_action_bytecode_compiler_v1.metta --source langdef/metamath/generated/source_parser_pack_facts_v1.metta --source langdef/metamath/generated/normalized_parser_pack_facts_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_fold_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_fold_plan_compiler_v1.metta \
+	--query '(occurrence-fold-shift-v1 ?role ?operation)' --out runtime/bootstrap/metamath-occurrence-fold-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/shift.answers
+(FiniteHornAnswerStreamV1Summary 2 a7954480b2e6c6309f29c0c2b248d61b5a5feb5cbf30da31521e49e2bbaf61b5)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source experiments/gslt2parse_foundation/presentations/core/syntax_core_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/lookahead_core_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/syntax_compiler_v1.metta --source langdef/metamath/syntax_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/regular_span_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/occurrence_fold_core_v1.metta --source langdef/metamath/source_fold_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_action_bytecode_compiler_v1.metta --source langdef/metamath/generated/source_parser_pack_facts_v1.metta --source langdef/metamath/generated/normalized_parser_pack_facts_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_fold_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_fold_plan_compiler_v1.metta \
+	--query '(occurrence-fold-token-v1 ?tag ?role)' --out runtime/bootstrap/metamath-occurrence-fold-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/token.answers
+(FiniteHornAnswerStreamV1Summary 2 15b0dea7681a8b07c0f9e4c7ab3c87df188d3049300c54d07cdb381425da7134)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source experiments/gslt2parse_foundation/presentations/core/syntax_core_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/lookahead_core_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/syntax_compiler_v1.metta --source langdef/metamath/syntax_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/regular_span_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/core/occurrence_fold_core_v1.metta --source langdef/metamath/source_fold_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_action_bytecode_compiler_v1.metta --source langdef/metamath/generated/source_parser_pack_facts_v1.metta --source langdef/metamath/generated/normalized_parser_pack_facts_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_fold_compiler_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_fold_plan_compiler_v1.metta \
+	--query '(occurrence-fold-token-v3 ?tag ?role ?node ?source-label ?normalized-label)' \
+	--out runtime/bootstrap/metamath-occurrence-fold-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/value-token.answers
+(FiniteHornAnswerStreamV1Summary 6 0ef583a0d64e94e0b80fa8d05725dcefaeea206ea6a942cf3fe2615f62040ef8)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt merge-answers \
+	--source runtime/bootstrap/metamath-occurrence-fold-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/production.answers --source runtime/bootstrap/metamath-occurrence-fold-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/shift.answers --source runtime/bootstrap/metamath-occurrence-fold-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/token.answers --source runtime/bootstrap/metamath-occurrence-fold-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/value-token.answers --out langdef/metamath/generated/occurrence_fold_v1.answers
+(AnswerStreamV1Summary 20 0420813846396853acd6215dbf383502211a49eb48df7cf25b56e8ef5b37a5a6)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answer-facts \
+	--source langdef/metamath/generated/occurrence_fold_v1.answers --out runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/fold-facts.metta
+(AnswerFactsPresentationV1Summary 20 0420813846396853acd6215dbf383502211a49eb48df7cf25b56e8ef5b37a5a6)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source experiments/gslt2parse_foundation/presentations/core/syntax_core_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/lookahead_core_v1.metta --source experiments/gslt2parse_foundation/presentations/reflection/finite_horn_reflection_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/syntax_compiler_v1.metta --source langdef/metamath/syntax_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/semantic_mask_span_compiler_v1.metta --source runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/fold-facts.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_span_mask_compiler_v1.metta \
+	--query '(compile-occurrence-span-mask-nfa-v1 ?record)' \
+	--timeout 120 --out runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/nfa-wrapper.answers
+(FiniteHornAnswerStreamV1Summary 128 23aa4a317d6719ef4d6f6aec1c38ffb4d92f721d06e81e504f7365fdfce2e3dc)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt project-answers --source runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/nfa-wrapper.answers \
+	--head compile-occurrence-span-mask-nfa-v1 --arg 0 --out runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/nfa.answers
+(AnswerStreamV1Summary 128 98a6a026b9163d2df094a83df484f0be604039160d3d368a4a60666a8c8c5146)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt answers \
+	--chart runtime/finite_horn_chart_v1-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--source experiments/gslt2parse_foundation/presentations/core/syntax_core_v1.metta --source experiments/gslt2parse_foundation/presentations/shared/lookahead_core_v1.metta --source experiments/gslt2parse_foundation/presentations/reflection/finite_horn_reflection_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/syntax_compiler_v1.metta --source langdef/metamath/syntax_v1.metta --source experiments/gslt2parse_foundation/presentations/compiler/semantic_mask_span_compiler_v1.metta --source runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/fold-facts.metta --source experiments/gslt2parse_foundation/presentations/compiler/parser_occurrence_span_mask_compiler_v1.metta \
+	--query '(compile-occurrence-span-mask-link-v1 ?record)' \
+	--timeout 120 --out runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/link-wrapper.answers
+(FiniteHornAnswerStreamV1Summary 6 b6be08b971e229c7409bbc859c7774af3f471cd77174b4de6f0278e4bd190667)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt project-answers --source runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/link-wrapper.answers \
+	--head compile-occurrence-span-mask-link-v1 --arg 0 --out runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/link.answers
+(AnswerStreamV1Summary 6 53480209823ff1f28f4e8b3ce9b103e5f62f879bdb73a054074d81b8d36322ef)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt merge-answers \
+	--source runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/nfa.answers --source runtime/bootstrap/metamath-occurrence-span-mask-v1.core.prime-need-heap-index.prime-eval-stack.json-gslt/link.answers --out langdef/metamath/generated/occurrence_span_mask_v1.answers
+(AnswerStreamV1Summary 134 44d542e0b72ab437d929119481f5a49cdada148679916a2526465add3c43e868)
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt petta-direct \
+	--source experiments/gslt2parse_foundation/presentations/core/source_resolution_control_core_v1.metta \
+	--source experiments/gslt2parse_foundation/presentations/compiler/source_resolution_control_compiler_v1.metta \
+	--closed-entry-mode SourceResolutionControlRecordV1:0000 \
+	--out langdef/petta/generated/metamath_source_resolution_control_direct_v1.metta
+(GSLTDirectPeTTaV1Summary 40 9fa27552a4653f85f4646040d76b9b416f7435edddd68a8b6e94f1b9d0b582eb d51dd30897aa68b0259959a8780c77b944519d740b905541246b5ebd920823c0)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native      -DCETTA_BUILD_WITH_DURABLE=0   -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1  -include runtime/bootstrap/build_config.core.prime-need-heap-index.prime-eval-stack.json-gslt.h -O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized -MMD -MP -MF runtime/bootstrap/parser_pack_cursor_compile_v1_stream.core.prime-need-heap-index.prime-eval-stack.json-gslt.d -c -o runtime/bootstrap/parser_pack_cursor_compile_v1_stream.core.prime-need-heap-index.prime-eval-stack.json-gslt.o experiments/gslt2parse_foundation/native/parser_pack_cursor_compile_v1_stream.c
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native      -DCETTA_BUILD_WITH_DURABLE=0   -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1  -include runtime/bootstrap/build_config.core.prime-need-heap-index.prime-eval-stack.json-gslt.h -O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized -MMD -MP -MF runtime/bootstrap/parser_pack_cursor_c_emitter_v1.core.prime-need-heap-index.prime-eval-stack.json-gslt.d -c -o runtime/bootstrap/parser_pack_cursor_c_emitter_v1.core.prime-need-heap-index.prime-eval-stack.json-gslt.o experiments/gslt2parse_foundation/native/parser_pack_cursor_c_emitter_v1.c
+runtime/parser_pack_cursor_compile_v1_stream-core.prime-need-heap-index.prime-eval-stack.json-gslt \
+	--abi langdef/metamath/generated/normalized_parser_pack_v1.abi \
+	--lexical-answers langdef/metamath/generated/lexical_nfa_v1.answers \
+	--guard-answers langdef/metamath/generated/empty_guard_v1.answers \
+	--guard-evidence langdef/metamath/generated/empty_guard_v1.evidence \
+	--guarded-answers langdef/metamath/generated/empty_guard_v1.answers \
+	--regular-compiler-digest 3fc737afb6df4e45dc19dd50597694297b4dd672965ef12197a0a64c492d9189 \
+	--guarded-compiler-digest 395867dc43f7a202ec500faf1dfb28b281fd04e699a63a48d4d90f937204c181 \
+	--action-answers langdef/metamath/generated/action_bytecode_v1.answers \
+	--action-compiler-digest f1db434e1e83237d286937fee18a9e03cabadc08fb04b78daa27550b5da75b9c \
+	--occurrence-fold-answers langdef/metamath/generated/occurrence_fold_v1.answers \
+	--occurrence-span-mask-answers langdef/metamath/generated/occurrence_span_mask_v1.answers \
+	--occurrence-span-mask-compiler-digest c1961ca07070e699e1ecca734181b15a9c107486d9a4eda687cb11b7682ab893 \
+	--state-answers langdef/metamath/generated/state_transition_input_direct_v1.answers \
+	--source-control-answers langdef/metamath/generated/source_resolution_control_direct_v1.answers \
+	--source-control-compiler-digest 13569bd6bdb0bcee4b94549cc926501d76d8d9b2a360f54e693e2c7dde58eced \
+	--out-c langdef/metamath/generated/syntax_cursor_fold_direct_v1.generated.c --prefix metamath_syntax_cursor_fold_direct_v1
+parser-pack-cursor-compile-v1
+source-digest	9dd3bc4b09176a104ca1e406341eaef02cfe64414c18bd1bf1cb9734a9051bb8
+pack-digest	cb13116413e8b0133798af5a900b216e9883585194fa5eb5e8d13cb5438ccd3e
+lexical-plan-digest	3a6860fbdd0995825c5b69e554c0348886ac1c191f9061c1cf47873fc3fd1512
+guard-plan-digest	fd26c7853eeddb5bf429015b38dccb0372e00de13c1a9b224f8357a208754719
+guarded-plan-digest	141ad79cb1f0a22077d50ec3ef4ce73a335066b71c7086a8fb494d324db42de5
+cursor-program-digest	e902a4f76d7359c629b7d8cab2ca9e7997c05d117285ed45ec79d5822be37244
+action-answer-digest	16725c2317f5aefce1d4ae96137288d0d93914db31285600acedd8470a7ac079
+occurrence-fold-plan-digest	07dea6d271b6115d52f752b7b0d370c56323bde7f0a89b876b28d63cb89adde8
+occurrence-span-mask-plan-digest	384c0b7de7d3d65b8923005977ab52e3b758fc0cf72de874c825afd7086e7240
+relational-state-plan-digest	f1a74f900c6ef7ae16f4de0244e7b84f26539762536c292b90df5670c0e2aeeb
+source-resolution-control-plan-digest	18bdb6d436fa9890c1c10765d1f813a59c92ebba6022800fb4cc55527840ae24
+terminals	24
+value-programs	21
+fold-transitions	38
+end
+runtime/langdef-compile-v1-core.prime-need-heap-index.prime-eval-stack.json-gslt seal \
+	--manifest langdef/metamath/direct_runtime_v1.metta \
+	--pack langdef/metamath/generated/normalized_parser_pack_v1.abi \
+	--compiled-cursor langdef/metamath/generated/syntax_cursor_fold_direct_v1.generated.so \
+	--lock-out langdef/metamath/generated/direct_runtime_lock_v1.metta
+(MetamathStateProofRuntimeRhoMettaV1Summary 578 236 1 1 0)
+PASS: pure-rho canonical selector agrees with exhaustive frontier (8 named + 96 generated; seed=800634)
+PASS: pure-rho canonical selector agrees with exhaustive frontier (8 named + 96 generated; seed=800634)
+gcc -Isrc -I. -Iexperiments/gslt2parse_foundation/native      -DCETTA_BUILD_WITH_DURABLE=0   -DCETTA_PRIME_NEED_HEAP_INDEX=1  -DCETTA_PRIME_EVAL_STACK=1  -include runtime/bootstrap/build_config.core.prime-need-heap-index.prime-eval-stack.json-gslt.h -O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized -MMD -MP -MF runtime/bootstrap/test_rhocalc_abt_substitution.core.prime-need-heap-index.prime-eval-stack.json-gslt.d -c -o runtime/bootstrap/test_rhocalc_abt_substitution.core.prime-need-heap-index.prime-eval-stack.json-gslt.o tests/support/test_rhocalc_abt_substitution.c
+(RhoCoreCorrespondenceSummary 2 2 0)
+PASS: nameful rho substitution agrees with canonical ABT substitution
+PASS: direct rho payload keys agree with ordinary atom rendering
+PASS: examples/rho/pure/eval_at_comm.rho
+PASS: examples/rho/cost/parallel_settlement.mrho
+PASS: examples/rho/cost/vending_machine.rho
+PASS: examples/rho/cost/budget_meter.metta
+PASS: examples/rho/cost/notary_chain.metta
+PASS: examples/rho/cost/parallel_settlement.mrho (threaded matches sequential)
+---
+6 passed, 0 failed
+PASS: tests/rhocalc_run/branching_deterministic_choice.mrho
+PASS: tests/rhocalc_run/core_comm_run.mrho
+PASS: tests/rhocalc_run/literal_drop_quote_static_after_comm.mrho
+PASS: tests/rhocalc_run/pipeline_two_forwarders.mrho
+PASS: tests/rhocalc_run/quiescent_nil_core.mrho
+PASS: tests/rhocalc_run/stuck_pending_receive.mrho
+PASS: tests/rhocalc_run/stuck_pending_send.mrho
+PASS: tests/rhocalc_run/substituted_drop_reveals_static_inner_drop.mrho
+PASS: tests/rhocalc_run/pipeline_two_forwarders_rho.rho
+PASS: tests/rhocalc_run/quiescent_nil_rho.rho
+PASS: tests/rhocalc_cost_run/internal_split_tokens_basic.mrho
+PASS: tests/rhocalc_cost_run/parallel_claim_rollback_competition.mrho
+PASS: tests/rhocalc_cost_run/compound_sig_missing_partial_token_quiescent.rho
+PASS: tests/rhocalc_cost_run/missing_token_quiescent.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_alpha.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_quote_drop.rho
+PASS: tests/rhocalc_cost_run/name_equivalence_wrong_purse.rho
+PASS: tests/rhocalc_cost_run/split_tokens_basic.rho
+PASS: tests/rhocalc_cost_run/split_tokens_compound_sig_combined_token.rho
+PASS: tests/rhocalc_cost_run/substitution_quote_term.rho
+PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_combined_token.rho
+PASS: tests/rhocalc_cost_run/whole_redex_compound_sig_split_tokens.rho
+PASS: tests/rhocalc_cost_run/whole_redex_single_sig.rho
+PASS: rhocalc run reduction-limit exhaustion
+PASS: rhocalc generation compaction preserves bounded residual
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_fresh.mrho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_join.mrho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_quoted_payload.rho
+PASS: rhocalc strict-boundary reject tests/rhocalc/reject_send_continuation.mrho
+PASS: rhocalc cost dequotation tests/rhocalc_cost/reject_dequote.rho
+PASS: rhocalc cost threaded execution (2 workers)
+PASS: rhocalc cost threaded execution (4 workers)
+PASS: rhocalc zero thread budget uses sequential path
+PASS: rhocalc rejects scheduler with threaded execution
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/no_reduction_under_recv_puritanical.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/quoted_process_not_reduced_in_name_eq.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_name_variable_roundtrip_h7.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/open_quoted_name_roundtrip_h7.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/free_drop_is_stuck_h4.mrho
+PASS: rhocalc quiescent/open-name contract tests/rhocalc/rho_open_name_variable.rho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/branching_relation.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_avoidance_alpha_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_free_var_rejected_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/capture_shadow_ok_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_discrimination_survives_after_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_alpha_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_assoc_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_comm_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_eq_par_zero_h2.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/channel_var_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/comm_par_chain_h1.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/core_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/literal_drop_quote_static_after_comm.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_free_name_same_spelling_binder.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_inner_binder_restores_scope.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_quote_seals_outer_binder.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/mrho_shadow_same_spelling.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_path_a.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_path_b.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/multistep_diamond_h3_setup.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_pass_basic_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/name_quote_drop.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/nested_drop_quote_h5.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_divergence_self_recreates_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_input_guarded_replication_unfold_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/paper_reflection_name_generation_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_drop_comm_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_drop_whole_name_substitution_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/quote_substitution_opaque_h7.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/recv_under_binder_h4.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/rotating_scheduler_persistent_branch.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_alpha_dedup_display.mrho
+PASS: rhocalc canonical single-reduction parity tests/rhocalc/threaded_hot_successors.mrho
+PASS: rhocalc thread-budget plumbing
+PASS: rhocalc threaded stress independent-many-comms
+PASS: rhocalc threaded stress hot-channel-linear-consumption
+PASS: rhocalc threaded stress payload-race
+PASS: rhocalc threaded stress dequote-spawn
+PASS: rhocalc threaded stress limit-batch-exact
+PASS: rhocalc threaded stress alpha-capture-stress
+PASS: rhocalc threaded stress randomized-threaded-loop
+PASS: cost-rho parallel stress independent-locations
+PASS: cost-rho parallel stress same-syntax-disjoint-occurrences
+PASS: cost-rho parallel stress one-purse-serialization
+PASS: cost-rho parallel stress search-budget-monotonicity
+PASS: cost-rho parallel stress large-cover-laziness
+PASS: cost-rho parallel stress randomized-independent-receipts
+PASS: rhocalc canonical scheduler witness
+PASS: rhocalc rotating scheduler witness
+PASS: rhocalc scheduler reachability branching-relation-one-step
+PASS: rhocalc scheduler reachability comm-par-chain-one-step
+PASS: rhocalc scheduler reachability capture-shadow-recv-one-step
+PASS: rhocalc scheduler reachability core-comm-one-step
+PASS: rhocalc scheduler reachability name-quote-drop-one-step
+PASS: rhocalc scheduler reachability nested-drop-quote-one-step
+PASS: rhocalc scheduler reachability name-pass-basic-one-step
+PASS: rhocalc scheduler reachability recv-under-binder-one-step
+PASS: rhocalc scheduler reachability channel-var-one-step
+PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step
+PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step
+PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step
+PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step
+PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step
+PASS: rhocalc scheduler reachability literal-drop-static-one-step
+PASS: rhocalc scheduler reachability channel-discrimination-one-step
+PASS: rhocalc scheduler reachability paper-divergence-one-step
+PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step
+PASS: rhocalc scheduler reachability multistep-diamond-two-step
+PASS: rhocalc scheduler reachability rotating-persistent-canonical-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-canonical-three-step
+PASS: rhocalc scheduler reachability pure-syntax-one-step
+PASS: rhocalc scheduler reachability syntax-name-output-one-step
+PASS: rhocalc scheduler reachability syntax-quote-inner-binder-one-step
+PASS: rhocalc scheduler reachability syntax-reflection-name-generation-one-step
+PASS: rhocalc scheduler reachability syntax-input-guarded-unfold-one-step
+PASS: rhocalc scheduler reachability syntax-rotating-persistent-canonical-two-step
+PASS: rhocalc scheduler reachability syntax-primed-diamond-canonical-two-step
+PASS: rhocalc scheduler reachability syntax-primed-diamond-canonical-three-step
+PASS: rhocalc scheduler reachability branching-relation-one-step-rotating
+PASS: rhocalc scheduler reachability comm-par-chain-one-step-rotating
+PASS: rhocalc scheduler reachability capture-shadow-recv-one-step-rotating
+PASS: rhocalc scheduler reachability core-comm-one-step-rotating
+PASS: rhocalc scheduler reachability name-quote-drop-one-step-rotating
+PASS: rhocalc scheduler reachability nested-drop-quote-one-step-rotating
+PASS: rhocalc scheduler reachability name-pass-basic-one-step-rotating
+PASS: rhocalc scheduler reachability recv-under-binder-one-step-rotating
+PASS: rhocalc scheduler reachability channel-var-one-step-rotating
+PASS: rhocalc scheduler reachability quote-substitution-opaque-one-step-rotating
+PASS: rhocalc scheduler reachability paper-reflection-name-generation-one-step-rotating
+PASS: rhocalc scheduler reachability mrho-shadow-same-spelling-one-step-rotating
+PASS: rhocalc scheduler reachability mrho-quote-inner-binder-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-zero-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-comm-one-step-rotating
+PASS: rhocalc scheduler reachability channel-eq-par-assoc-one-step-rotating
+PASS: rhocalc scheduler reachability literal-drop-static-one-step-rotating
+PASS: rhocalc scheduler reachability channel-discrimination-one-step-rotating
+PASS: rhocalc scheduler reachability paper-divergence-one-step-rotating
+PASS: rhocalc scheduler reachability paper-input-guarded-unfold-one-step-rotating
+PASS: rhocalc scheduler reachability multistep-diamond-two-step-rotating
+PASS: rhocalc scheduler reachability rotating-persistent-rotating-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-two-step
+PASS: rhocalc scheduler reachability rotating-primed-diamond-rotating-three-step
+PASS: rhocalc scheduler reachability pure-syntax-one-step-rotating
+PASS: rhocalc scheduler reachability syntax-name-output-one-step-rotating
+PASS: rhocalc scheduler reachability syntax-quote-inner-binder-one-step-rotating
+PASS: rhocalc scheduler reachability syntax-reflection-name-generation-one-step-rotating
+PASS: rhocalc scheduler reachability syntax-input-guarded-unfold-one-step-rotating
+PASS: rhocalc scheduler reachability syntax-rotating-persistent-rotating-two-step
+PASS: rhocalc scheduler reachability syntax-primed-diamond-rotating-two-step
+PASS: rhocalc scheduler reachability syntax-primed-diamond-rotating-three-step
+PASS: rhocalc scheduler reachability branching-relation-one-step-threaded
+PASS: rhocalc scheduler reachability comm-par-chain-one-step-threaded
+PASS: rhocalc scheduler reachability multistep-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-persistent-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-primed-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability rotating-primed-diamond-three-step-threaded
+PASS: rhocalc scheduler reachability syntax-rotating-persistent-two-step-threaded
+PASS: rhocalc scheduler reachability syntax-primed-diamond-two-step-threaded
+PASS: rhocalc scheduler reachability syntax-primed-diamond-three-step-threaded
+PASS: rhocalc bounded relation equivalence pure-syntax-vs-core-comm
+PASS: rhocalc bounded relation equivalence syntax-reflection-vs-core-reflection
+PASS: rhocalc bounded relation equivalence syntax-input-guarded-vs-core-input-guarded
+PASS: rhocalc bounded relation equivalence syntax-rotating-witness-vs-core-rotating-witness
+PASS: rhocalc bounded relation equivalence syntax-primed-diamond-vs-core-primed-diamond
+PASS: rhocalc bounded relation equivalence core-comm-vs-quote-drop-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-zero-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-comm-name-equivalence
+PASS: rhocalc bounded relation equivalence core-comm-vs-par-assoc-name-equivalence
+PASS: rhocalc bounded relation equivalence diamond-path-a-vs-path-b
+PASS: rhocalc bounded relation inequivalence literal-static-drop
+PASS: rhocalc bounded bisimulation pure-syntax-vs-core-comm
+PASS: rhocalc bounded bisimulation syntax-reflection-vs-core-reflection
+PASS: rhocalc bounded bisimulation syntax-input-guarded-vs-core-input-guarded
+PASS: rhocalc bounded bisimulation syntax-rotating-witness-vs-core-rotating-witness
+PASS: rhocalc bounded bisimulation syntax-primed-diamond-vs-core-primed-diamond
+PASS: rhocalc bounded bisimulation core-comm-vs-quote-drop-name-equivalence
+PASS: rhocalc bounded bisimulation scheduler-persistent-limit1-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limit3-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation core-comm-vs-alpha-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-zero-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-comm-name-equivalence
+PASS: rhocalc bounded bisimulation core-comm-vs-par-assoc-name-equivalence
+PASS: rhocalc bounded bisimulation diamond-path-a-vs-path-b
+PASS: rhocalc bounded bisimulation scheduler-persistent-limit2-canonical-vs-rotating
+PASS: rhocalc bounded bisimulation scheduler-primed-diamond-limit2-canonical-vs-rotating
+PASS: rhocalc M3 overlap basic-comm
+PASS: rhocalc M3 overlap reflection-name-generation
+PASS: rhocalc M3 overlap input-guarded-unfold
+PASS: rhocalc M3 rholang-cli parser/oracle selftest
+PASS: rhocalc M3 may/must frontier pipeline-forward-empty
+PASS: rhocalc M3 may/must frontier fanout-empty
+PASS: rhocalc M3 may/must frontier comm-contention-two-outputs
+PASS: rhocalc M3 may/must frontier metta-certificate-quorum
+PASS: rhocalc M3 may/must frontier metta-demand-index
+PASS: rhocalc M3 may/must frontier metta-fanout
+PASS: rhocalc M3 may/must frontier metta-comm-contention
+PASS: rhocalc M3 may/must frontier metta-indexed-demand
+PASS: rhocalc M3 may/must frontier metta-pipeline-forward
+PASS: rhocalc M3 may/must frontier metta-route-policy
+PASS: rhocalc M3 may/must frontier metta-route-synthesis
+PASS: rhocalc M3 may/must frontier metta-registry-lookup
+PASS: rhocalc M3 may/must frontier metta-conditional-route
+PASS: rhocalc M3 may/must frontier metta-computed-payload
+PASS: rhocalc M3 may/must frontier metta-iterated-workload
+PASS: rhocalc M3 may/must frontier metta-private-channel
+PASS: rhocalc M3 may/must frontier metta-fresh-extrusion
+PASS: rhocalc M3 may/must frontier metta-private-session
+PASS: rhocalc M3 may/must frontier metta-space-registry
+PASS: rhocalc M3 may/must frontier metta-threshold-quorum
+PASS: rhocalc M3 may/must frontier metta-reflection-loader
+PASS: rhocalc M3 may/must frontier metta-finite-replication
+PASS: rhocalc M3 may/must frontier metta-private-no-leak
+PASS: rhocalc M3 may/must frontier metta-job-queue-collector
+PASS: rhocalc M3 may/must frontier paper-reflection-name-generation
+PASS: rhocalc M3 may/must frontier paper-input-guarded-replication
+SKIP: rhocalc M3 rholang-cli overlap (set RHOLANG_CLI or install rholang-cli)
+PASS: rhocalc lib/rho syntax tests/test_lts_syntax.metta
+PASS: rhocalc lib/rho syntax tests/test_rho_lib_syntax.metta
+PASS: rhocalc lib/rho syntax tests/test_rho_lib_hygiene_syntax.metta
+PASS: rhocalc lib/rho syntax tests/test_rhometta_lib_syntax.metta
+PASS: rhocalc lib/rho syntax tests/test_rhometta_value_delivery.metta
+PASS: rhocalc lib/rho syntax tests/test_rhometta_isolation_oracle.metta
+PASS: rhocalc lib/rho syntax tests/test_rhometta_demo_dedfarm.metta
+PASS: rhocalc lib/rho syntax tests/test_rhometta_demo_revision.metta
+PASS: rhocalc lib/rho syntax tests/test_rhometta_demo_mayset.metta
+PASS: rhocalc lib/rho syntax tests/test_rhometta_demo_ecan.metta
+PASS: rhocalc lib/rho syntax tests/test_lts_rho_syntax.metta
+PASS: rhocalc lib/rho syntax tests/test_lts_rho_cost_location.metta
+PASS: rhocalc lib/rho syntax tests/test_lts_rho_cost_causal_trace.metta
+PASS: rhocalc lib/rho syntax tests/test_lts_rho_cost_parallel_branches.metta
+PASS: rhocalc lib/rho syntax tests/test_lts_rho_cost_search_budget.metta
+PASS: rhocalc tiny oracle core-comm
+PASS: rhocalc tiny oracle branching-relation
+PASS: rhocalc tiny oracle multistep-diamond-setup
+PASS: rhocalc tiny oracle multistep-diamond-path-a
+PASS: rhocalc tiny oracle multistep-diamond-path-b
+PASS: rhocalc tiny oracle self-recreation
+PASS: rhocalc tiny oracle no-reduction-under-recv
+PASS: rhocalc tiny oracle no-reduction-inside-quote
+PASS: rhocalc tiny oracle open-name-variable
+PASS: rhocalc tiny oracle open-quoted-name
+PASS: rhocalc tiny oracle free-drop-is-stuck
+PASS: rhocalc tiny oracle quiescent-nil
+PASS: rhocalc tiny oracle stuck-pending-send
+PASS: rhocalc tiny oracle stuck-pending-receive
+PASS: rhocalc lean trace bridge core-comm-semantic-collapse
+PASS: rhocalc lean trace bridge core-comm-transport-to-representative
+PASS: rhocalc lean trace bridge core-comm-continued-contract-transport
+PASS: rhocalc lean trace bridge core-comm-up-to-subject-equiv
+PASS: rhocalc lean trace bridge core-comm-strict-core-body-up-to-subject-equiv
+PASS: rhocalc lean trace bridge core-comm-strict-core-body-saturated-typedAt
+PASS: rhocalc lean trace bridge comm-par-chain-exact-one-step
+PASS: rhocalc lean trace bridge literal-drop-static-preserved
+PASS: rhocalc lean trace bridge literal-drop-static-common-fragment-agreement
+PASS: rhocalc lean trace bridge quote-opacity-preserved
+PASS: rhocalc lean trace bridge quote-opacity-diverges-from-syntactic-open
+PASS: rhocalc lean trace bridge quote-opacity-obstruction-survives
+PASS: rhocalc lean trace bridge quote-drop-whole-name-normalizes
+PASS: rhocalc lean trace bridge quote-drop-whole-name-diverges-from-syntactic-open
+PASS: rhocalc lean trace bridge quote-drop-whole-name-saturated-typedAt
+PASS: rhocalc lean trace bridge quote-drop-whole-name-drop-saturated-typedAt
+PASS: rhocalc lean trace bridge quiescent-nil-exact-one-step-empty
+PASS: rhocalc lean trace bridge free-drop-common-fragment-empty
+PASS: rhocalc run lean bridge rhometta-run-pure-single
+PASS: rhocalc run lean bridge rhometta-run-data-single
+PASS: rhocalc run lean bridge rhometta-run-multi-two-way
+PASS: rhocalc run lean bridge rhometta-run-zero-stuck
+PASS: rhocalc run lean bridge rhometta-run-state-local
+PASS: rhocalc run lean bridge rhometta-run-owned-space
+PASS: rhocalc run lean bridge rhometta-run-owned-state
+PASS: rhocalc run lean bridge rhometta-run-owned-space-aliased
+PASS: rhocalc run lean bridge rhometta-run-owned-state-aliased
+PASS: rhocalc run lean bridge rhometta-run-sibling-pair
+PASS: rhocalc run lean bridge rhometta-run-contended-pair
+PASS: rhocalc run lean bridge rhometta-run-chained-two-round
+PASS: rhocalc lib/rho hygiene
+PASS: rhocalc old step syntax purged
+PASS: rhocalc de-step allow-list syntax
+FAIL: rhocalc translate rho -> mrho
+2d1
+< deliberately broken by mettadinc break-a-test
+PASS: rhocalc translate mrho -> rho
+PASS: rhocalc translate alpha mrho -> mrho
+PASS: rhocalc translate alpha mrho -> rho
+PASS: rhocalc translate shadow rho -> mrho
+---
+284 passed, 1 failed
+make: *** [Makefile:19759: test-rhocalc] Error 1
+EXIT=2 SECS=57

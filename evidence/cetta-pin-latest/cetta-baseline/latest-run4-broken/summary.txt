@@ -1,0 +1,42 @@
+cetta-baseline: repo /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc
+cetta-baseline: repo commit 174d534ccac7a50e60427c7b3efea1f91409cadd
+cetta-baseline: pin 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c (2026-11-05 20:26:01 +0100, "WIP: make pre-main shareable and preserve benchmark evidence", 486 commits)
+cetta-baseline: gitlink HEAD:cetta 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+cetta-baseline: submodule checkout cetta/ at 4c285a97fd8c60e3c3fccd5ccd3b3e5e0ebccb4c
+cetta-baseline: NOTE: submodule checkout has uncommitted changes:
+ tests/rhocalc/translate_rho_to_mrho.expected | 1 +
+ tests/test_arithmetic.expected               | 1 +
+ 2 files changed, 2 insertions(+)
+cetta-baseline: gcc 11.4.0, GNU Make 4.3, Python 3.10.12
+cetta-baseline: logs in /home/openclaw/research-agent/projects/mettadinc/repos/mettadinc/build/cetta-baseline/latest-run4-broken
+cetta-baseline: MDINC_SWIPL_DIR=/home/openclaw/scratch/mettadinc-e0/swipl9/install, on PATH: [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+cetta-baseline: extra make arguments (MDINC_MAKE_ARGS): PACK_RELATIVE_RELOCS= 'CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized'
+cetta-baseline:   make argument: [PACK_RELATIVE_RELOCS=]
+cetta-baseline:   make argument: [CFLAGS=-O3 -Wall -Werror -std=c11 -pthread -Wno-error=stringop-overflow -Wno-error=maybe-uninitialized]
+01_doctor_gmp: exit 0 (1 s) [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+02_build_core: exit 0 (424 s) [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+03_version_core: exit 0 (0 s) [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+04_test_rhocalc: exit 2 (57 s) [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+05_test_core_k: exit 2 (168 s) [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+06_build_python: exit 0 (412 s) [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+07_version_python: exit 0 (0 s) [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+08_test_python_k: exit 2 (172 s) [swipl /home/openclaw/scratch/mettadinc-e0/swipl9/install/bin/swipl, PLVERSION 90209]
+cetta-baseline: comparison with tools/cetta-baseline.expected
+RED   rhocalc: PASS 294 SKIP 1 FAIL 1 failed-targets 1 exit 2 final 284/1
+  REGRESSION: exit status 2, expected 0
+  REGRESSION: final suite line (284, 1), expected (285, 0)
+  REGRESSION: 294 PASS lines, expected at least 295
+  REGRESSION: missing PASS (x1): PASS: rhocalc translate rho -> mrho
+  REGRESSION: new FAIL (x1): FAIL: rhocalc translate rho -> mrho
+  REGRESSION: new failed make target (x1): test-rhocalc
+RED   core: PASS 703 SKIP 84 FAIL 1 failed-targets 2 exit 2 final 135/0
+  REGRESSION: 703 PASS lines, expected at least 704
+  REGRESSION: missing PASS (x1): PASS: tests/test_arithmetic.metta
+  REGRESSION: new FAIL (x1): FAIL: tests/test_arithmetic.metta (runtime status N)
+  REGRESSION: new failed make target (x1): test-main-corpus-default
+RED   python: PASS 708 SKIP 80 FAIL 1 failed-targets 2 exit 2 final 135/0
+  REGRESSION: 708 PASS lines, expected at least 709
+  REGRESSION: missing PASS (x1): PASS: tests/test_arithmetic.metta
+  REGRESSION: new FAIL (x1): FAIL: tests/test_arithmetic.metta (runtime status N)
+  REGRESSION: new failed make target (x1): test-main-corpus-default
+RESULT: NOT GREEN (regression, exit 1)
