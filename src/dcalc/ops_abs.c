@@ -23,6 +23,13 @@ static int output_slot(DcRun *r, const Sx *x, const char *what, char *why, size_
     return d;
 }
 
+/* review 4 F6: copy a view's valid-state mask for an arrow kept in a slot */
+static int *mask_dup(const int *v, size_t n) {
+    int *c = malloc((n ? n : 1) * sizeof(int));
+    for (size_t i = 0; i < n; i++) c[i] = v ? v[i] : 1;
+    return c;
+}
+
 static Sx *arrow_cert(const DcModule *m, const DcArrow *A, const DcView *src) {
     const DcCarrier *S = &m->car[A->src_car], *T = &m->car[A->tgt_car];
     Sx *t = dc_form("Table", NULL);
@@ -198,7 +205,7 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
                                   dc_form("Surjective", dc_sym(A.surjective ? "True" : "False"), NULL), NULL), NULL),
                           dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("rule"), NULL), dc_form("Rule", dc_sym("Commutation"), NULL), table, NULL), NULL), NULL);
         dc_result_bind_models(res, A.src_id, A.tgt_id);
-        if (slot >= 0) { r->arrow[slot] = A; r->arrow_kind[slot] = 2; } else free(A.table);
+        if (slot >= 0) { A.src_valid = mask_dup(sv.valid, sv.n); A.tgt_valid = mask_dup(tv.valid, tv.n); r->arrow[slot] = A; r->arrow_kind[slot] = 2; } else free(A.table);
     }
     dc_view_free(&sv); dc_view_free(&tv);
     return res;
@@ -227,7 +234,16 @@ Sx *dc_req_then(DcRun *r, const Sx *q, int slot) {
     A.src = f->src; A.tgt = g->tgt; A.src_car = f->src_car; A.tgt_car = g->tgt_car;
     A.table = malloc((S->n ? S->n : 1) * sizeof(int));
     for (size_t s = 0; s < S->n; s++) A.table[s] = g->table[f->table[s]];
-    A.surjective = f->surjective && g->surjective;
+    /* review 4 F6: classify the composite by its own image, not by f && g:
+     * surjective iff g(f(s)) over the valid source states hits every valid
+     * target state (a non-surjective f can compose to a surjective g . f). */
+    {
+        int *hit = calloc(T->n ? T->n : 1, sizeof(int));
+        for (size_t s = 0; s < S->n; s++) if (!f->src_valid || f->src_valid[s]) hit[A.table[s]] = 1;
+        A.surjective = 1;
+        for (size_t t = 0; t < T->n; t++) if ((!g->tgt_valid || g->tgt_valid[t]) && !hit[t]) A.surjective = 0;
+        free(hit);
+    }
     snprintf(A.src_id, sizeof A.src_id, "%s", f->src_id); snprintf(A.tgt_id, sizeof A.tgt_id, "%s", g->tgt_id);
     Sx *table = dc_form("Table", NULL);
     for (size_t s = 0; s < S->n; s++) sx_push(table, dc_form("Row", sx_copy(S->elems[s]), sx_copy(T->elems[A.table[s]]), NULL));
@@ -246,6 +262,6 @@ Sx *dc_req_then(DcRun *r, const Sx *q, int slot) {
     /* Boundary 2: the composed result carries the union of both premises' assumptions. */
     for (int k = 0; k < 2; k++) dc_result_add_premise(res, r->memo[d[k]], m->der[d[k]].name);
     dc_result_bind_models(res, A.src_id, A.tgt_id);
-    if (slot >= 0) { r->arrow[slot] = A; r->arrow_kind[slot] = 3; } else free(A.table);
+    if (slot >= 0) { A.src_valid = mask_dup(f->src_valid, S->n); A.tgt_valid = mask_dup(g->tgt_valid, T->n); r->arrow[slot] = A; r->arrow_kind[slot] = 3; } else free(A.table);
     return res;
 }

@@ -13,7 +13,7 @@ void dc_run_free(DcRun *r) {
     for (int i = 0; i < DC_MAX_DERIVE; i++) {
         sx_free(r->memo[i]);
         if (r->has_view[i]) dc_view_free(&r->view[i]);
-        if (r->arrow_kind[i]) free(r->arrow[i].table);
+        if (r->arrow_kind[i]) { free(r->arrow[i].table); free(r->arrow[i].src_valid); free(r->arrow[i].tgt_valid); }
     }
     free(r);
 }
