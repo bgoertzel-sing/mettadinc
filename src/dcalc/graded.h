@@ -10,6 +10,15 @@
 #include "rat.h"
 /* d0(x,x') = max_j d_j(o_j x, o_j x'); a literal port contributes 0 or 1. */
 int dc_g_seed(const DcModule *m, const DcView *v, DcRat *d0);
+/* Sampled clock-rate screen (OQ2 decision; spec Section 11.3).  Draws nsamples states
+ * uniformly with a fixed seed (splitmix64) and, for each coordinate i, counts the samples
+ * x whose flip F_i x (flip[i*n + x], a state index) lies in another behavioral class
+ * (cls: crisp behavioral partition labels, so d(x, F_i x) is 0 or 1).  hits[i]/nsamples
+ * estimates the mean clock rate r_i.  keep[i] = 1 iff hits[i] > 0.  The kept coordinates
+ * are only a CANDIDATE encoding: a screen proposes, refinement or a behavioral check
+ * certifies.  Returns the number kept, or -1 on invalid input. */
+int dc_g_sampled_screen(size_t n, const int *cls, size_t ncoord, const int *flip,
+                        uint64_t seed, long nsamples, long *hits, int *keep);
 /* dq(x,x') = code distance of q x, q x' under the representation's code tolerance. */
 int dc_g_codes(const DcModule *m, int ri, DcRat *dq);
 /* horizon < 0: unbounded.  g in (0,1]. */

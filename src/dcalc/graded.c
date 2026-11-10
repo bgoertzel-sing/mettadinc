@@ -110,3 +110,25 @@ DcRat dc_g_clock_rates(const DcView *v, const DcRat *dq, DcRat *sup, DcRat *mean
     }
     return best;
 }
+
+/* ---- sampled clock-rate screen (OQ2) ---- */
+static uint64_t sm64(uint64_t *st) {
+    uint64_t z = (*st += 0x9E3779B97F4A7C15ULL);
+    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL; z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+    return z ^ (z >> 31);
+}
+int dc_g_sampled_screen(size_t n, const int *cls, size_t ncoord, const int *flip,
+                        uint64_t seed, long nsamples, long *hits, int *keep) {
+    if (!n || !cls || !flip || !hits || !keep || nsamples <= 0) return -1;
+    for (size_t i = 0; i < ncoord * n; i++) if (flip[i] < 0 || (size_t)flip[i] >= n) return -1;
+    uint64_t st = seed; int kept = 0;
+    for (size_t i = 0; i < ncoord; i++) hits[i] = 0;
+    for (long s = 0; s < nsamples; s++) {
+        uint64_t r; size_t x;
+        do { r = sm64(&st); } while (r >= UINT64_MAX - UINT64_MAX % n);   /* unbiased */
+        x = (size_t)(r % n);
+        for (size_t i = 0; i < ncoord; i++) if (cls[flip[i * n + x]] != cls[x]) hits[i]++;
+    }
+    for (size_t i = 0; i < ncoord; i++) { keep[i] = hits[i] > 0; kept += keep[i]; }
+    return kept;
+}

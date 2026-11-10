@@ -28,6 +28,7 @@ step admission_mutations; $R admission_mutations "python3 tests/dcalc/mutations/
 step m2_claims;        $R m2_claims "python3 tests/dcalc/check_claims_m2.py > build/m2_claims.out; r=\$?; tail -1 build/m2_claims.out; exit \$r" || rc=1
 step m2_gates;         $R m2_gates "python3 tests/dcalc/mutations/run_m2_gates.py > build/m2_gates.out; r=\$?; tail -1 build/m2_gates.out; exit \$r" || rc=1
 step m2_differential;  $R m2_differential "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/differential_m2.c build/dcalc/libdcalc.a -o build/dcalc/differential_m2 && build/dcalc/differential_m2 20261110 5000 7" || rc=1
+step m2_screen;  $R m2_screen "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/screen_m2.c build/dcalc/libdcalc.a -lm -o build/dcalc/screen_m2 && build/dcalc/screen_m2 20261110" || rc=1
 step m2_claimless;     $R m2_claimless "python3 tests/dcalc/claimless/run_claimless.py > build/m2_claimless.out; r=\$?; tail -1 build/m2_claimless.out; exit \$r" || rc=1
 step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_CETTA=1)"; else $R cetta_smoke "tools/dcalc-cetta-smoke.sh" || rc=1; fi
 step resources;        cat build/dcalc-resources.tsv
