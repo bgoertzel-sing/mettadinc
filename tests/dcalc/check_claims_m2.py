@@ -88,6 +88,8 @@ def oracle_value(key, env, res):
     if key == 'packets.frontier.1':   # the oracle writes packets E, U, V, B (spec Example 4.3): first letters
         P = [[x[0] for x in B[1:]] for B in R.find(val, 'Partition')[1:]]
         return [iv(val), R.find(val, 'Weakness')[1], P]
+    if key == 'packets.induced_defect_E_UVB':
+        return iv(val)
     raise KeyError('no extractor yet for oracle key ' + key)
 
 def fixture_of(row):

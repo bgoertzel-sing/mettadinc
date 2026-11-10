@@ -35,4 +35,5 @@ Sx *dc_req_refine(DcRun *r, const Sx *q, int slot);
 Sx *dc_req_same_partition(DcRun *r, const Sx *q);
 /* M2 frontier (ops_weakest.c). */
 Sx *dc_req_weakest(DcRun *r, const Sx *q, int slot);
+Sx *dc_req_induce_approx(DcRun *r, const Sx *q, int slot);
 #endif

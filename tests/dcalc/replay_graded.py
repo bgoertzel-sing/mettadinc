@@ -133,7 +133,7 @@ def graded_rep(M, rn):
     if not r: return False
     return any(t for _, _, t in M.mach[r['machine']]['obs']) or (r['tol'] is not None and M.tol[r['tol']]['kind'] != 'Trivial')
 
-CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin')
+CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin', 'InduceApprox')
 def is_graded(M, req):
     if isinstance(req, str) and req in M.der: req = M.der[req]
     if not isinstance(req, list) or not req: return False
@@ -398,6 +398,91 @@ def replay_weakest(M, req, env, st, dname):
     C.h = None; check_kernel(C, evd[2], None)
     return 'ok'
 
+def rgs(n):
+    """Partitions as restricted growth strings, in lexicographic order."""
+    a = [0] * n
+    def rec(i, mx):
+        if i == n: yield list(a); return
+        for v in range(mx + 2):
+            a[i] = v; yield from rec(i + 1, max(mx, v))
+    yield from rec(0, -1)
+
+def premise_partition(M, dn):
+    """(machine, class map key -> block-minimum key) of a Refine or WeakestWithin premise, recomputed."""
+    rq = M.der[dn]
+    if rq[0] == 'Refine':
+        C = Ctx(M, rq[1]); _, cls, _ = refine(C); return C.r['machine'], cls
+    need(rq[0] == 'WeakestWithin', 'premise %s has no Representation output' % dn)
+    f = {x[0]: x for x in rq[2:]}; mn = rq[1]
+    bound, g = rat(f['Within'][1]), rat(f['Discount'][1]) if 'Discount' in f else Q(1)
+    C = MCtx(M, mn, g); S = C.S; n = len(S); best, bsq = None, -1
+    for a in rgs(n):          # the first partition of largest weakness within the bound
+        diam = max([C.beh[S[i], S[j]] for i in range(n) for j in range(i + 1, n) if a[i] == a[j]] or [Q(0)])
+        sq = sum(a.count(b) ** 2 for b in range(n))
+        if diam <= bound and sq > bsq: best, bsq = a, sq
+    return mn, {S[i]: S[best.index(best[i])] for i in range(n)}
+
+def replay_approx(M, req, env, st, dname):
+    o = req[1]
+    need(isinstance(o, list) and len(o) == 3 and o[0] == 'Output' and o[2] == 'Representation' and o[1] in M.der, 'bad Output')
+    dn = o[1]; mn, cls = premise_partition(M, dn)
+    sel, w, g = 'Center', None, Q(1)
+    for f in req[2:]:
+        if f[0] == 'Representatives': sel = f[1]
+        elif f[0] == 'Within': w = rat(f[1])
+        elif f[0] == 'Discount': g = rat(f[1])
+        else: raise GFail('unknown InduceApprox field %s' % show(f))
+    C = MCtx(M, mn, g); S = C.S; st_car = M.mach[mn]['states']; raw = M.car[st_car]
+    mins = [x for x in S if cls[x] == x]; cn = {x: mins.index(cls[x]) for x in S}; k = len(mins)
+    rep = []
+    for c in range(k):
+        mem = [x for x in S if cn[x] == c]
+        if sel == 'First': rep.append(mem[0])
+        elif sel == 'Center':
+            ecc = {x: max(C.beh[x, y] for y in mem) for x in mem}; e0 = min(ecc.values())
+            rep.append(next(x for x in mem if ecc[x] == e0))
+        else:
+            need(isinstance(sel, list) and sel[0] == 'Choose' and sel[1] in M.map, 'bad selector')
+            mp = M.map[sel[1]]; need(mp['from'] == st_car and mp['to'] == st_car, 'section map off the states')
+            rs_ = set(mp['f'][x] for x in mem); need(len(rs_) == 1 and cn[next(iter(rs_))] == c, 'section picks no single member')
+            rep.append(next(iter(rs_)))
+    U = S + [('class', c) for c in range(k)]
+    obs = []
+    for lab, f, t in C.obs:
+        fu = dict(f); fu.update({('class', c): f[rep[c]] for c in range(k)}); obs.append((fu, t))
+    act = []
+    for lab, f in C.act:
+        fu = dict(f); fu.update({('class', c): ('class', cn[f[rep[c]]]) for c in range(k)}); act.append((lab, fu))
+    d0 = {(x, y): max([dist(M, t, f[x], f[y]) for f, t in obs] or [Q(0)]) for x in U for y in U}
+    D = dict(d0)
+    for _ in range(len(U) ** 2 + 2):
+        N = {(x, y): max([d0[x, y]] + [g * D[f[x], f[y]] for _, f in act]) for (x, y) in D}
+        if N == D: break
+        D = N
+    else: raise GFail('union iteration did not stabilise')
+    radius = max(C.beh[x, rep[cn[x]]] for x in S); defect = max(D[x, ('class', cn[x])] for x in S)
+    bound = rs(radius / (1 - g)) if g < 1 else 'Unbounded'
+    exp_st = 'Refuted' if w is not None and defect > w else 'Checked'
+    need(st == exp_st, 'status %s, recomputed %s' % (st, exp_st))
+    heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
+    need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s' % heads)
+    need(show(find(env, 'Claim')) == show(['Claim', req, ['Equality', 'Literal']]), 'Claim differs')
+    need(show(find(env, 'Binding')) == show(['Binding', ['Module', M.name], ['Digest', ('str', M.digest)],
+         ['Subject', ['Partition', dn], ['Machine', mn]], ['Source', mn], ['Target', dname or '?'], ['Interface', ['Tolerance', 'Exact']]]), 'Binding differs')
+    need(show(find(env, 'Scope')) == show(['Scope', ['Profile', M.profile], ['Fragment', 'M2-GradedDeterministic'], ['InitialStates', 'AllDeclared'],
+         ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded'], ['Discount', rs(g)], ['PolicyClass', 'None']]), 'Scope differs')
+    need(find(env, 'Assumptions') == ['Assumptions'], 'no assumptions')
+    need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M2-ExactReplay'], ['Replayed', 'True'],
+         ['Ground', 'Witness' if st == 'Refuted' else 'Replayed']]), 'Assurance differs')
+    exp = ['ApproximateAbstraction', ['Machine', ['Output', dname or '?', 'Machine']], ['States', str(k)], ['Selector', sel],
+           ['Representatives'] + [['Class', str(c), ['Block'] + [raw[i] for i, x in enumerate(S) if cn[x] == c], raw[S.index(rep[c])]] for c in range(k)],
+           ['Radius', rs(radius)], ['Defect', IV(defect)], ['Bound', bound], ['AbstractionMap', ['Kind', 'Graded'], ['Defect', rs(defect)]]]
+    if w is not None: exp.append(['Within', rs(w)])
+    need(show(find(env, 'Value')[1]) == show(exp), 'Value differs from the recomputed %s' % show(exp))
+    upd = ['Updates'] + [['Do', lab] + [['Step', str(c), str(f[('class', c)][1])] for c in range(k)] for lab, f in act]
+    need(show(find(env, 'Evidence')) == show(['Evidence', ['Certificate', ['Kind', 'InducedMachine'], ['Discount', rs(g)], upd]]), 'certificate differs from the recomputed induced machine')
+    return 'ok'
+
 def replay(M, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
@@ -406,6 +491,7 @@ def replay(M, req, env):
     if req[0] == 'Refine': return replay_refine(M, req, env, st, dname)
     if req[0] == 'SamePartition': return replay_same(M, req, env, st)
     if req[0] == 'WeakestWithin': return replay_weakest(M, req, env, st, dname)
+    if req[0] == 'InduceApprox': return replay_approx(M, req, env, st, dname)
     hd = req[0]; need(len(req) >= 2 and req[1] in M.rep, 'request names no graded representation')
     w, h, g = opts(req)
     is_def, is_check = hd == 'Defects', hd.startswith('Check')
