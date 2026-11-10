@@ -159,7 +159,7 @@ CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin', 'InduceApprox')
 def is_graded(M, req):
     if isinstance(req, str) and req in M.der: req = M.der[req]
     if not isinstance(req, list) or not req: return False
-    return req[0] in GRADED_HEADS + CRISP_M2_HEADS or (req[0] in REP_HEADS and len(req) >= 2 and graded_rep(M, req[1]))
+    return req[0] in GRADED_HEADS + CRISP_M2_HEADS or (req[0] in REP_HEADS + ('InduceExact',) and len(req) >= 2 and graded_rep(M, req[1]))
 
 # ---- part 2: independent recomputation and the replay of one graded result ----
 class Ctx:
@@ -522,6 +522,53 @@ def replay_approx(M, req, env, st, dname):
     need(show(find(env, 'Evidence')) == show(['Evidence', ['Certificate', ['Kind', 'InducedMachine'], ['Discount', rs(g)], upd]]), 'certificate differs from the recomputed induced machine')
     return 'ok'
 
+def congruence_fail(C):
+    """First pair with equal codes (literally, whatever the code tolerance) whose successors' codes differ."""
+    S = C.S
+    for i, x in enumerate(S):
+        for y in S[i + 1:]:
+            if C.e[x] != C.e[y]: continue
+            for lab, f in C.act:
+                if C.e[f[x]] != C.e[f[y]]: return x, y, lab, f
+    return None
+
+def replay_induce(M, req, env, st, dname):
+    need(len(req) == 2 and req[1] in M.rep, 'InduceExact takes one representation'); rn = req[1]
+    need(not M.mach[M.rep[rn]['machine']].get('merge'), 'Merge machines are outside graded InduceExact')
+    C = Ctx(M, rn); dn, du, cg = C.defect('Current'), C.defect('Update'), congruence_fail(C)
+    fail = 'Current' if dn > 0 else 'Update' if du > 0 else 'Congruence' if cg else None
+    need(st == ('Refuted' if fail else 'Checked'), 'status %s, recomputed %s' % (st, 'Refuted' if fail else 'Checked'))
+    envelope_gen(M, req, env, st, rn, ['Subject', ['Representation', rn], ['Machine', C.r['machine']]], C.eq)
+    val, evd = find(env, 'Value')[1], find(env, 'Evidence')[1:]
+    if fail:
+        need(show(val) == show(['Refutation', ['Obligation', fail]]), 'Value differs from the recomputed refutation')
+        need(evd and evd[0] == ['Obligation', fail], 'evidence must name the first failing obligation %s' % fail)
+        if fail == 'Current': evidence_ok(C, 'Current', dn, evd[1:], None)
+        elif fail == 'Update': evidence_ok(C, 'Update', du, evd[1:], None)
+        else:
+            need(len(evd) == 2 and evd[1][0] == 'Witness', 'congruence witness expected'); w = evd[1][1]
+            need(w[0] == 'CongruenceWitness' and len(w) == 5, 'malformed CongruenceWitness')
+            x, y = key(w[1][1]), key(w[1][2]); acts = dict(C.act)
+            need(x in C.S and y in C.S and w[2][0] == 'Do' and w[2][1] in acts, 'congruence witness off the machine'); f = acts[w[2][1]]
+            need(C.e[x] == C.e[y] and same_val(w[3][1], C.e[x]), 'congruence witness pair has different codes')
+            need(same_val(w[4][1], C.e[f[x]]) and same_val(w[4][2], C.e[f[y]]) and C.e[f[x]] != C.e[f[y]], 'congruence witness successors agree')
+        return 'ok'
+    S = C.S; codes = []
+    for x in S:
+        if C.e[x] not in codes: codes.append(C.e[x])
+    exp = ['ExactAbstraction', ['Defect', IV(Q(0))], ['Machine', ['Output', dname or '?', 'Machine']], ['States', str(len(codes))],
+           ['Encode', C.r['encode']], ['Equality', C.eq], ['Decoders', 'ZeroDistanceQuotient' if C.eq == 'Observer' else 'Literal']]
+    need(show(val) == show(exp), 'Value differs from the recomputed %s' % show(exp))
+    need(len(evd) == 1 and evd[0][0] == 'Certificate', 'one certificate expected'); c = evd[0]
+    need(show(c[1:3]) == show([['Kind', 'Prefixpoint'], ['Checks', 'Current', 'Update', 'Congruence']]) and len(c) == 4, 'certificate header differs')
+    fib = c[3]; need(fib[0] == 'Fibers', 'Fibers expected'); seen, fc = [], []
+    for F in fib[1:]:
+        need(F[0] == 'Fiber' and len(F) >= 3, 'malformed Fiber')
+        for x_ in F[2:]: x = key(x_); need(x in S and same_val(F[1], C.e[x]), 'fiber code differs from the encoding'); seen.append(x)
+        fc.append(C.e[key(F[2])])
+    need(sorted(seen) == sorted(S) and len(set(map(str, fc))) == len(fc), 'fibers do not partition the states by code')
+    return 'ok'
+
 def replay(M, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
@@ -531,6 +578,7 @@ def replay(M, req, env):
     if req[0] == 'SamePartition': return replay_same(M, req, env, st)
     if req[0] == 'WeakestWithin': return replay_weakest(M, req, env, st, dname)
     if req[0] == 'InduceApprox': return replay_approx(M, req, env, st, dname)
+    if req[0] == 'InduceExact': return replay_induce(M, req, env, st, dname)
     hd = req[0]; need(len(req) >= 2 and req[1] in M.rep, 'request names no graded representation')
     w, h, g = opts(req)
     is_def, is_check = hd == 'Defects', hd.startswith('Check')

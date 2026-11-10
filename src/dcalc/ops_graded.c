@@ -254,3 +254,62 @@ Sx *dc_req_graded(DcRun *run, const Sx *q, const char *h) {
     Sx *res = dc_envelope_scoped(m, vd, rep, dc_claim_of(q, eq), subj, val, ev, NULL, &sc);
     gctx_free(&c); return res;
 }
+
+/* ---- part 3: InduceExact on a graded representation (H02; invariant 4, Prop 4.5) ----
+ * Obligations in order: Current (dnow = 0), Update (dupd = 0), then literal
+ * congruence of the code fibers on code values, whatever the code tolerance.
+ * Under a non-separated observation tolerance the decoders land in the
+ * zero-distance quotient Y/~0 only, and the result says so (Equality Observer). */
+Sx *dc_req_induce_graded(DcRun *run, const Sx *q, int slot) {
+    DcModule *m = run->m; Sx *e = NULL; int ri = g_repr(m, q, "InduceExact", &e);
+    if (ri < 0) return e;
+    if (q->n != 2) return dc_invalid(m, "InduceExact: field 2 is unexpected; InduceExact takes one Representation");
+    const DcRepr *R = &m->rep[ri];
+    if (m->mach[R->machine].nmerge) return dc_unsupported(m, "InduceExact: a machine with Merge ports is outside the M2 fragment");
+    GOpts o; memset(&o, 0, sizeof o); o.within = RZ; o.horizon = -1; o.g = R1;
+    GCtx c;
+    if (gctx_init(&c, m, ri, &o)) { gctx_free(&c); return dc_unsupported(m, "InduceExact: a rational left the 64-bit exact range"); }
+    const char *eq = equality_of(m, &c.v);
+    DcScope sc = {"M2-GradedDeterministic", -1, ""};
+    Sx *subj = dc_form("Subject", dc_form("Representation", dc_sym(R->name), NULL), dc_form("Machine", dc_sym(m->mach[R->machine].name), NULL), NULL);
+    const int *enc = m->map[R->encode].table; int cc = m->map[R->encode].to;
+    const DcCarrier *S = &m->car[c.v.states], *C = &m->car[cc]; size_t n = c.n;
+    GRes now = g_measure(&c, GK_NOW), upd = g_measure(&c, GK_UPD);
+    int cx = -1, cy = -1, ca = -1;
+    for (size_t x = 0; x < n && cx < 0; x++) for (size_t y = x + 1; y < n && cx < 0; y++) {
+        if (enc[x] != enc[y]) continue;
+        for (size_t a = 0; a < c.v.nact; a++) if (enc[c.v.act[a][x]] != enc[c.v.act[a][y]]) { cx = (int)x; cy = (int)y; ca = (int)a; break; }
+    }
+    const char *fail = !dc_rat_is_zero(now.d) ? "Current" : !dc_rat_is_zero(upd.d) ? "Update" : cx >= 0 ? "Congruence" : NULL;
+    Sx *res;
+    if (fail) {
+        Sx *ev = dc_form("Evidence", dc_form("Obligation", dc_sym(fail), NULL), NULL); int rep = 1;
+        if (!strcmp(fail, "Current")) g_evidence(&c, GK_NOW, now, &o, ev, &rep);
+        else if (!strcmp(fail, "Update")) g_evidence(&c, GK_UPD, upd, &o, ev, &rep);
+        else {
+            int tx = c.v.act[ca][cx], ty = c.v.act[ca][cy];
+            sx_push(ev, dc_form("Witness", dc_form("CongruenceWitness",
+                dc_form("Pair", sx_copy(S->elems[cx]), sx_copy(S->elems[cy]), NULL), dc_form("Do", dc_sym(c.v.act_label[ca]), NULL),
+                dc_form("Code", sx_copy(C->elems[enc[cx]]), NULL),
+                dc_form("Successors", sx_copy(C->elems[enc[tx]]), sx_copy(C->elems[enc[ty]]), NULL), NULL), NULL));
+        }
+        res = dc_envelope_scoped(m, VERDICT_FAILS, rep, dc_claim_of(q, eq), subj,
+            dc_form("Value", dc_form("Refutation", dc_form("Obligation", dc_sym(fail), NULL), NULL), NULL), ev, NULL, &sc);
+        gctx_free(&c); return res;
+    }
+    Sx *fib = dc_form("Fibers", NULL); long nb = 0;
+    for (size_t k = 0; k < C->n; k++) {
+        Sx *b = NULL;
+        for (size_t s = 0; s < n; s++) if (enc[s] == (int)k) { if (!b) b = dc_form("Fiber", sx_copy(C->elems[k]), NULL); sx_push(b, sx_copy(S->elems[s])); }
+        if (b) { sx_push(fib, b); nb++; }
+    }
+    char id[160]; snprintf(id, sizeof id, "%s", slot >= 0 ? m->der[slot].name : "?");
+    Sx *val = dc_form("ExactAbstraction", dc_form("Defect", dc_form("Interval", dc_int(0), dc_int(0), NULL), NULL),
+        dc_form("Machine", dc_form("Output", dc_sym(id), dc_sym("Machine"), NULL), NULL), dc_form("States", dc_int(nb), NULL),
+        dc_form("Encode", dc_sym(m->map[R->encode].name), NULL), dc_form("Equality", dc_sym(eq), NULL),
+        dc_form("Decoders", dc_sym(strcmp(eq, "Observer") ? "Literal" : "ZeroDistanceQuotient"), NULL), NULL);
+    Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("Prefixpoint"), NULL),
+        dc_form("Checks", dc_sym("Current"), dc_sym("Update"), dc_sym("Congruence"), NULL), fib, NULL), NULL);
+    res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, dc_claim_of(q, eq), subj, dc_form("Value", val, NULL), ev, NULL, &sc);
+    gctx_free(&c); return res;
+}
