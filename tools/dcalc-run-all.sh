@@ -21,6 +21,7 @@ step envelope;         $R envelope "python3 tests/dcalc/envelope/run_envelope.py
 step limits;           $R limits "python3 tests/dcalc/limits/run_limits.py" || rc=1
 step limits_sanitized; $R limits_sanitized "cd src/dcalc && make -s CC='$CC' BUILD=../../build/dcalc-sanitized CFLAGS='-std=c11 -Wall -Wextra -g -O1 -fsanitize=address,undefined -fno-sanitize-recover=all' && cd ../.. && DCALC=build/dcalc-sanitized/dcalc python3 tests/dcalc/limits/run_limits.py" || rc=1
 step mutation;         $R mutation "python3 tests/dcalc/mutate.py" || rc=1
+step held;             $R held "python3 tests/dcalc/held/run_held.py" || rc=1
 step registry_gen;     $R registry_gen "python3 tools/gen_registry.py --check" || rc=1
 step package;          $R package "python3 tests/dcalc/package/run_package.py > build/package.out; r=\$?; tail -5 build/package.out; exit \$r" || rc=1
 step admission_mutations; $R admission_mutations "python3 tests/dcalc/mutations/run_mutations.py > build/admission_mutations.out; r=\$?; tail -1 build/admission_mutations.out; exit \$r" || rc=1

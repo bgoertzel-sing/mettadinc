@@ -44,6 +44,9 @@ for t in tests/dcalc/cetta/*.metta; do
     got=$(grep -v -x 'true' build/smoke-run.out | tr '\n' ' ')
   fi
   want=$(tr '\n' ' ' < "$exp")
+  # M1 acceptance 4: a held declaration or request must never run its host code.
+  # (a Reason that quotes the source is not a run: match a printed line only)
+  if grep -qx -e 'HELD-DECLARATION-RAN' -e '"HELD-DECLARATION-RAN"' build/smoke-run.out; then echo "FAIL $t: a held host side effect ran"; rc=1; continue; fi
   if [ "$got" = "$want" ]; then echo "PASS $t"; else echo "FAIL $t: got [$got] want [$want]"; rc=1; fi
 done
 exit $rc
