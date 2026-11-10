@@ -25,6 +25,9 @@ step held;             $R held "python3 tests/dcalc/held/run_held.py" || rc=1
 step registry_gen;     $R registry_gen "python3 tools/gen_registry.py --check" || rc=1
 step package;          $R package "python3 tests/dcalc/package/run_package.py > build/package.out; r=\$?; tail -5 build/package.out; exit \$r" || rc=1
 step admission_mutations; $R admission_mutations "python3 tests/dcalc/mutations/run_mutations.py > build/admission_mutations.out; r=\$?; tail -1 build/admission_mutations.out; exit \$r" || rc=1
+step m2_claims;        $R m2_claims "python3 tests/dcalc/check_claims_m2.py > build/m2_claims.out; r=\$?; tail -1 build/m2_claims.out; exit \$r" || rc=1
+step m2_gates;         $R m2_gates "python3 tests/dcalc/mutations/run_m2_gates.py > build/m2_gates.out; r=\$?; tail -1 build/m2_gates.out; exit \$r" || rc=1
+step m2_differential;  $R m2_differential "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/differential_m2.c build/dcalc/libdcalc.a -o build/dcalc/differential_m2 && build/dcalc/differential_m2 20261110 5000 7" || rc=1
 step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_CETTA=1)"; else $R cetta_smoke "tools/dcalc-cetta-smoke.sh" || rc=1; fi
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
