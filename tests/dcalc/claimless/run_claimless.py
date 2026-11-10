@@ -27,6 +27,10 @@ CASES = {
  'refine_three.metta': {
   'RefineThree Split': ('Checked', '(Value (Refinement (Representation Split) (Partition (Block P) (Block Q) (Block R)) (Ledger (Under Uniform) (Before 5/9) (After 1/3))))'),
  },
+ 'then_eight.metta': {
+  'ThenEight SecondChecked': ('Checked', '(Value (CheckedAbstractionMap (Kind Quotient) (Surjective True)))'),
+  'ThenEight Composed': ('Checked', '(Value (ComposedArrow (Source Concrete) (Target Codes) (Kind Quotient)))'),
+ },
 }
 
 def term_at(s, i):
