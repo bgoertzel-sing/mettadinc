@@ -385,6 +385,53 @@ def envelope_gen(M, req, env, st, rn, subj, eq):
     need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M2-ExactReplay'], ['Replayed', 'True'], ['Ground', ground]]),
          'Assurance differs from the recomputed assurance')
 
+def check_split_tree(C, cert, cls, use_enc):
+    """Def 4.11 / Prop 4.12: a splitting tree certifies the coarsest stable partition.
+    Checked independently of the engine: the root is X; every internal node's test (w, j)
+    is constant (zero distance) inside each child and separates every two children; the
+    leaves refine ker q (when use_enc) and K_O, are stable under every letter, and equal cls."""
+    need(isinstance(cert, list) and cert[:2] == ['Certificate', ['Kind', 'SplittingTree']] and len(cert) == 3, 'SplittingTree certificate expected')
+    tr = cert[2]; need(isinstance(tr, list) and tr[0] == 'Tree' and len(tr) == 2, 'malformed Tree')
+    acts = dict(C.act); mg = dict(C.merge); S = C.S
+    def letter(l):
+        need(isinstance(l, list) and l, 'malformed letter')
+        if l[0] == 'Do' and len(l) == 2: need(l[1] in acts, 'tree letter names no action'); f = acts[l[1]]; return lambda x: f[x]
+        if l[0] in ('MergeLeft', 'MergeRight') and len(l) == 3:
+            need(l[1] in mg, 'tree letter names no Merge port'); f = mg[l[1]]; y = key(l[2]); need(y in S, 'merge context off the states')
+            return (lambda x: C.mg(f, x, y)) if l[0] == 'MergeLeft' else (lambda x: C.mg(f, y, x))
+        raise GFail('unknown tree letter %s' % show(l))
+    def qdist(j):
+        if j == 'Encoding': need(use_enc, 'MinimizeForQueries has no Encoding query'); return lambda a, b: C.dq[a, b]
+        ob = [o for o in C.obs if o[0] == j]; need(ob, 'tree query names no observation'); _, f, t = ob[0]
+        return lambda a, b: dist(C.M, t, f[a], f[b])
+    leaves = []
+    def walk(nd):
+        need(isinstance(nd, list) and nd, 'malformed tree node')
+        if nd[0] == 'Leaf':
+            need(len(nd) == 2 and nd[1][0] == 'Block' and len(nd[1]) >= 2, 'malformed Leaf')
+            B = [key(x) for x in nd[1][1:]]; need(all(x in S for x in B), 'leaf off the states'); leaves.append(B); return B
+        need(nd[0] == 'Node' and len(nd) >= 4 and nd[1][0] == 'Test' and len(nd[1]) == 3, 'an internal node needs a test and two or more children')
+        W, Qy = nd[1][1], nd[1][2]; need(W[0] == 'Word' and Qy[0] == 'Query', 'malformed Test')
+        fs = [letter(l) for l in W[1:]]; d = qdist(Qy[1])
+        def ev(x):
+            for f in fs: x = f(x)
+            return x
+        kids = [walk(c) for c in nd[2:]]
+        for i, K in enumerate(kids):
+            need(all(d(ev(a), ev(b)) == 0 for a in K for b in K), 'a test is not constant inside a child')
+            for K2 in kids[i + 1:]: need(all(d(ev(a), ev(b)) > 0 for a in K for b in K2), 'a test does not separate two children')
+        return [x for K in kids for x in K]
+    allx = walk(tr[1])
+    need(sorted(allx, key=S.index) == S and len(allx) == len(S), 'the root is not the state set')
+    lf = {x: i for i, B in enumerate(leaves) for x in B}
+    for B in leaves:
+        need(all(C.d0[a, b] == 0 for a in B for b in B), 'a leaf mixes states the seed separates')
+        if use_enc: need(all(C.dq[a, b] == 0 for a in B for b in B), 'a leaf mixes codes')
+        lets = [lambda x, f=f: f[x] for _, f in C.act]
+        lets += [lambda x, f=f, y=y: C.mg(f, x, y) for _, f in C.merge for y in S] + [lambda x, f=f, y=y: C.mg(f, y, x) for _, f in C.merge for y in S]
+        for g in lets: need(len({lf[g(x)] for x in B}) == 1, 'a leaf is not stable')
+    need(all((lf[x] == lf[y]) == (cls[x] == cls[y]) for x in S for y in S), 'tree leaves differ from the partition')
+
 def replay_refine(M, req, env, st, dname):
     need(st == 'Checked', 'a refinement is Checked'); rn = req[1]; need(rn in M.rep, 'Refine names no representation')
     law, pres, until = None, False, False
@@ -401,8 +448,8 @@ def replay_refine(M, req, env, st, dname):
     if law is not None: exp.append(['Ledger', ['Under', law], ['Before', rs(weak(C.S, p0))], ['After', rs(weak(C.S, cls))]])
     envelope_gen(M, req, env, st, rn, ['Subject', ['Representation', rn], ['Machine', C.r['machine']]], 'Literal')
     need(show(find(env, 'Value')[1]) == show(exp), 'Value differs from the recomputed %s' % show(exp))
-    exp_e = ['Evidence', ['Certificate', ['Kind', 'StablePartition'], blocks(raw, C.S, p0, 'Initial'), ['Rounds', str(rounds)]]]
-    need(show(find(env, 'Evidence')) == show(exp_e), 'certificate differs from the recomputed stable partition')
+    evd = find(env, 'Evidence'); need(len(evd) == 2, 'refinement evidence is one certificate')
+    check_split_tree(C, evd[1], cls, True)
     return 'ok'
 
 def replay_same(M, req, env, st):
