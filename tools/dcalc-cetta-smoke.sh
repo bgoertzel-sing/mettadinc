@@ -39,7 +39,7 @@ for t in tests/dcalc/cetta/*.metta; do
   # *.expected holds either (Status S) lines (full envelopes) or bare result
   # symbols, one per !-line after the import! lines (which print true).
   if head -1 "$exp" | grep -q '^(Status'; then
-    got=$(grep -o '(Status [A-Za-z]*)' build/smoke-run.out | tr '\n' ' ')
+    got=$(grep -o '^(Result (Status [A-Za-z]*)' build/smoke-run.out | sed 's/^(Result //' | tr '\n' ' ')
   else
     got=$(grep -v -x 'true' build/smoke-run.out | tr '\n' ' ')
   fi
