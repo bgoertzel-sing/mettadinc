@@ -31,7 +31,13 @@ int dc_declared_unsupported(const DcModule *m, const char *name) {
 static int need_repr(const DcModule *m, const Sx *q, const char *req, Sx **out) {
     if (q->n < 2 || q->items[1]->kind != SX_SYM) { *out = dc_invalid(m, "%s: field Representation missing or not a name", req); return -1; }
     const char *nm = q->items[1]->text; int ri = dc_find_repr(m, nm);
-    if (ri >= 0) return ri;
+    if (ri >= 0) {
+        /* M2: a graded machine or a non-trivial code tolerance needs the graded engine; the literal M0 path must not answer it */
+        const DcRepr *rp = &m->rep[ri];
+        if (m->mach[rp->machine].graded_obs || (rp->tol >= 0 && m->tol[rp->tol].kind != DC_TOL_TRIVIAL)) {
+            *out = dc_unsupported(m, "%s: Representation %s needs the graded engine", req, nm); return -1; }
+        return ri;
+    }
     if (dc_declared_unsupported(m, nm)) *out = dc_unsupported(m, "%s: Representation %s is outside the M0 fragment", req, nm);
     else *out = dc_invalid(m, "%s: field Representation names no declared representation (%s)", req, nm);
     return -1;

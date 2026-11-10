@@ -43,6 +43,8 @@ Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int slot) {
         if (dc_declared_unsupported(m, nm)) return dc_unsupported(m, "InduceExact: Representation %s is outside the M0 fragment", nm);
         return dc_invalid(m, "InduceExact: field Representation names no declared representation (%s)", nm);
     }
+    if (m->mach[m->rep[ri].machine].graded_obs || (m->rep[ri].tol >= 0 && m->tol[m->rep[ri].tol].kind != DC_TOL_TRIVIAL))
+        return dc_unsupported(m, "InduceExact: Representation %s needs the graded engine", nm);
     if (q->n != 2) return dc_invalid(m, "InduceExact: field 2 is unexpected; InduceExact takes one Representation");
     const DcRepr *rp = &m->rep[ri];
     Sx *subject = dc_form("Subject", dc_form("Representation", dc_sym(rp->name), NULL),

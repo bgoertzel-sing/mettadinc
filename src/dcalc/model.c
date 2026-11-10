@@ -43,6 +43,7 @@ static int parse_int(const Sx *x, long *out) {
     if (errno == ERANGE) return -1;
     *out = v; return 1;
 }
+static int allow_rat;   /* M2: set by admit_map only for a Graded map into a value carrier */
 static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
     if (b->kind == SX_SYM && b->text[0] == '$') {
         for (int i = 0; i < e->n; i++) if (!strcmp(e->var[i], b->text)) return sx_copy(e->val[i]);
@@ -64,6 +65,7 @@ static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
         snprintf(buf, sizeof buf, "%ld", r);
         sx_free(x); sx_free(y); return sx_sym(buf);
     }
+    if (allow_rat && sx_head_is(b, "Rat") && b->n == 3) return sx_copy(b);
     if (b->n && b->items[0]->kind == SX_SYM && strcmp(b->items[0]->text, "Tuple")) { if (*ok == 1) *ok = 2; return sx_sym("?"); }
     Sx *l = sx_list();
     for (size_t i = 0; i < b->n; i++) sx_push(l, eval_body(b->items[i], e, ok));
@@ -122,6 +124,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
     if (!sx_head_is(fr, "From") || fr->n != 2 || !name_ok(fr->items[1])) return fail(err, es, "[M0] Map %s: field From", nm);
     if (!sx_head_is(to, "To") || to->n != 2 || !name_ok(to->items[1])) return fail(err, es, "[M0] Map %s: field To", nm);
     int f = dc_find_carrier(m, fr->items[1]->text), t = dc_find_carrier(m, to->items[1]->text);
+    if (t < 0 && !strcmp(m->profile, "Graded")) t = dc_value_carrier(m, to->items[1]->text);
     if (f < 0) return fail(err, es, "Map %s: field From names no declared carrier (%s)", nm, fr->items[1]->text);
     if (t < 0) return fail(err, es, "Map %s: field To names no declared carrier (%s)", nm, to->items[1]->text);
     DcCarrier *F = &m->car[f], *T = &m->car[t];
@@ -133,7 +136,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
         for (size_t j = 1; j < body->n; j++) {
             const Sx *row = body->items[j];
             if (row->kind != SX_LIST || row->n != 2) { free(mp->table); return fail(err, es, "Map %s: Table row %zu is not a pair", nm, j - 1); }
-            int a = dc_carrier_index(F, row->items[0]), b = dc_carrier_index(T, row->items[1]);
+            int a = dc_carrier_index(F, row->items[0]), b = T->value ? dc_value_add(T, row->items[1]) : dc_carrier_index(T, row->items[1]);
             if (a < 0) { free(mp->table); return fail(err, es, "Map %s: Table row %zu key outside carrier %s", nm, j - 1, F->name); }
             if (b < 0) { free(mp->table); return fail(err, es, "Map %s: Table row %zu value outside carrier %s", nm, j - 1, T->name); }
             if (mp->table[a] >= 0) { free(mp->table); return fail(err, es, "Map %s: Table key at row %zu repeated", nm, j - 1); }
@@ -145,10 +148,10 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 const Sx *row = body->items[j]; Env e = {0}; int ok = 1;
                 if (row->kind != SX_LIST || row->n != 2) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu is not a pair", nm, j - 1); }
                 if (!match(row->items[0], F->elems[i], &e)) continue;
-                Sx *v = eval_body(row->items[1], &e, &ok);
+                allow_rat = T->value; Sx *v = eval_body(row->items[1], &e, &ok); allow_rat = 0;
                 if (ok == 2) { sx_free(v); free(mp->table); return fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1); }
                 if (ok == 3) { sx_free(v); free(mp->table); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, j - 1); }
-                int b = ok ? dc_carrier_index(T, v) : -1; sx_free(v);
+                int b = ok ? (T->value ? dc_value_add(T, v) : dc_carrier_index(T, v)) : -1; sx_free(v);
                 if (b < 0) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu gives a value outside carrier %s", nm, j - 1, T->name); }
                 mp->table[i] = b; break;
             }
@@ -163,18 +166,29 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
 static int admit_ports(DcModule *m, DcMachine *mc, const Sx *d, int is_obs, char *err, size_t es) {
     DcPort *ports = is_obs ? mc->obs : mc->act; size_t *np = is_obs ? &mc->nobs : &mc->nact;
     const char *field = is_obs ? "Observe" : "Action";
-    if (d->n > 3 && name_ok(d->items[1]) && name_ok(d->items[2]))
+    int ptol = -1;
+    /* M2: (Observe label map (Values Tol)) in a Graded module; the tolerance must sit on the map's target */
+    if (is_obs && d->n == 4 && !strcmp(m->profile, "Graded") && name_ok(d->items[1]) && name_ok(d->items[2])
+        && sx_head_is(d->items[3], "Values") && d->items[3]->n == 2 && name_ok(d->items[3]->items[1])) {
+        ptol = dc_find_tol(m, d->items[3]->items[1]->text);
+        if (ptol < 0) return fail(err, es, "Machine %s: field Observe names no declared tolerance (%s)", mc->name, d->items[3]->items[1]->text);
+        int mp0 = dc_find_map(m, d->items[2]->text);
+        if (mp0 >= 0 && m->map[mp0].to != m->tol[ptol].on)
+            return fail(err, es, "Machine %s: field Observe tolerance %s is not on the target of map %s", mc->name, m->tol[ptol].name, d->items[2]->text);
+        mc->graded_obs = 1;
+    }
+    if (ptol < 0 && d->n > 3 && name_ok(d->items[1]) && name_ok(d->items[2]))
         return fail(err, es, "[M0] Machine %s: field %s with value tolerances is outside the M0 deterministic fragment", mc->name, field);
     /* (Observe label (map arg ...)): an applied, parameterised map is outside M0 */
     if (d->n == 3 && name_ok(d->items[1]) && d->items[2]->kind == SX_LIST) return -2;
-    if (d->n != 3 || !name_ok(d->items[1]) || !name_ok(d->items[2])) return fail(err, es, "Machine %s: field %s expects (%s label map)", mc->name, field, field);
+    if ((ptol < 0 && d->n != 3) || !name_ok(d->items[1]) || !name_ok(d->items[2])) return fail(err, es, "Machine %s: field %s expects (%s label map)", mc->name, field, field);
     if (*np >= 16) return fail(err, es, "Machine %s: field %s: too many", mc->name, field);
     int mp = dc_find_map(m, d->items[2]->text);
     if (mp < 0) return fail(err, es, "Machine %s: field %s names no declared map (%s)", mc->name, field, d->items[2]->text);
     if (m->map[mp].from != mc->states) return fail(err, es, "Machine %s: field %s map %s does not start at the state carrier", mc->name, field, d->items[2]->text);
     if (!is_obs && m->map[mp].to != mc->states) return fail(err, es, "Machine %s: field Action map %s does not end at the state carrier", mc->name, d->items[2]->text);
     for (size_t i = 0; i < *np; i++) if (!strcmp(ports[i].label, d->items[1]->text)) return fail(err, es, "Machine %s: field %s label %s repeated", mc->name, field, d->items[1]->text);
-    snprintf(ports[*np].label, DC_MAX_NAME, "%s", d->items[1]->text); ports[*np].map = mp; (*np)++;
+    snprintf(ports[*np].label, DC_MAX_NAME, "%s", d->items[1]->text); ports[*np].map = mp; ports[*np].tol = ptol; (*np)++;
     return 0;
 }
 
@@ -266,16 +280,92 @@ static int admit_derive(DcModule *m, const Sx *d, char *err, size_t es) {
     m->nder++; return 0;
 }
 
+/* ---- M2 value carriers, rational literals and graded tolerances ---- */
+int dc_sx_rat(const Sx *v, DcRat *out) {
+    if (!v) return -1;
+    if (v->kind == SX_SYM) return dc_rat_parse(v->text, out);
+    if (v->kind == SX_LIST && v->n == 3 && sx_is_sym(v->items[0], "Rat") && v->items[1]->kind == SX_SYM && v->items[2]->kind == SX_SYM) {
+        DcRat a, b; int ovf = 0;
+        if (dc_rat_parse(v->items[1]->text, &a) || dc_rat_parse(v->items[2]->text, &b) || b.n <= 0 || a.d != 1 || b.d != 1) return -1;
+        *out = dc_rat(a.n, b.n, &ovf); return ovf ? -1 : 0;
+    }
+    return -1;
+}
+static Sx *rat_sx(DcRat r) {
+    char b[32]; Sx *l = sx_list(); sx_push(l, sx_sym("Rat"));
+    snprintf(b, sizeof b, "%lld", (long long)r.n); sx_push(l, sx_sym(b));
+    snprintf(b, sizeof b, "%lld", (long long)r.d); sx_push(l, sx_sym(b)); return l;
+}
+int dc_value_carrier(DcModule *m, const char *name) {
+    if (strcmp(name, "Rational01") && strcmp(name, "Rational")) return -1;
+    for (size_t i = 0; i < m->ncar; i++) if (m->car[i].value && !strcmp(m->car[i].name, name)) return (int)i;
+    if (m->ncar >= sizeof m->car / sizeof m->car[0]) return -1;
+    DcCarrier *c = &m->car[m->ncar]; memset(c, 0, sizeof *c);
+    snprintf(c->name, sizeof c->name, "%s", name); c->value = 1; return (int)m->ncar++;
+}
+/* Adds a rational value in canonical (Rat n d) form; Rational01 values must lie in [0,1]. */
+int dc_value_add(DcCarrier *c, const Sx *v) {
+    DcRat r; if (dc_sx_rat(v, &r)) return -1;
+    if (!strcmp(c->name, "Rational01") && (r.n < 0 || r.n > r.d)) return -1;
+    Sx *k = rat_sx(r); int at = dc_carrier_index(c, k);
+    if (at >= 0) { sx_free(k); return at; }
+    if (c->n >= 4096) { sx_free(k); return -1; }
+    Sx **e = realloc(c->elems, (c->n + 1) * sizeof *e); if (!e) { sx_free(k); return -1; }
+    c->elems = e; c->elems[c->n] = k; return (int)c->n++;
+}
+DcRat dc_tol_dist(const DcModule *m, int tol, int i, int j, int *ovf) {
+    const DcTol *t = &m->tol[tol]; DcRat z = {0, 1}, one = {1, 1};
+    switch (t->kind) {
+    case DC_TOL_TRIVIAL: return z;
+    case DC_TOL_DISCRETE: return i == j ? z : one;
+    case DC_TOL_ONE_MINUS_ABS: {
+        DcRat a, b; const DcCarrier *c = &m->car[t->on];
+        if (dc_sx_rat(c->elems[i], &a) || dc_sx_rat(c->elems[j], &b)) { *ovf = 1; return z; }
+        return dc_rat_abs(dc_rat_sub(a, b, ovf)); }
+    case DC_TOL_SYM_TABLE: return dc_rat_sub(one, t->table[(size_t)i * m->car[t->on].n + j], ovf);
+    }
+    return z;
+}
+
 static int admit_tol(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n != 4 || !name_ok(d->items[1])) return -2;
     const char *nm = d->items[1]->text;
     const Sx *on = d->items[2], *body = d->items[3];
-    if (!sx_head_is(body, "Trivial") || body->n != 1) return -2;   /* only Trivial is in M0 */
+    DcTolKind kind;
+    if (sx_head_is(body, "Trivial") && body->n == 1) kind = DC_TOL_TRIVIAL;
+    else if (sx_head_is(body, "Discrete") && body->n == 1) kind = DC_TOL_DISCRETE;
+    else if (sx_head_is(body, "OneMinusAbsoluteDifference") && body->n == 1) kind = DC_TOL_ONE_MINUS_ABS;
+    else if (sx_head_is(body, "SymmetricTable") && body->n >= 2) kind = DC_TOL_SYM_TABLE;
+    else return -2;
     if (dc_find_tol(m, nm) >= 0) return fail(err, es, "Tolerance %s: duplicate name", nm);
     if (m->ntol >= 16) return fail(err, es, "Tolerance %s: too many", nm);
-    int c = (sx_head_is(on, "On") && on->n == 2 && name_ok(on->items[1])) ? dc_find_carrier(m, on->items[1]->text) : -1;
+    int c = -1;
+    if (sx_head_is(on, "On") && on->n == 2 && name_ok(on->items[1])) {
+        c = dc_find_carrier(m, on->items[1]->text);
+        if (c < 0 && kind == DC_TOL_ONE_MINUS_ABS) c = dc_value_carrier(m, on->items[1]->text);
+    }
     if (c < 0) return fail(err, es, "Tolerance %s: field On names no declared carrier", nm);
-    DcTol *t = &m->tol[m->ntol++]; snprintf(t->name, sizeof t->name, "%s", nm); t->on = c; t->trivial = 1;
+    if (kind == DC_TOL_ONE_MINUS_ABS && !m->car[c].value) return fail(err, es, "Tolerance %s: OneMinusAbsoluteDifference needs a rational carrier", nm);
+    DcRat *tab = NULL;
+    if (kind == DC_TOL_SYM_TABLE) {
+        size_t n = m->car[c].n; tab = calloc(n ? n * n : 1, sizeof *tab); char *set = calloc(n ? n * n : 1, 1);
+        if (!tab || !set) { free(tab); free(set); return fail(err, es, "Tolerance %s: out of memory", nm); }
+        int bad = 0; DcRat diag = {1, 1};
+        for (size_t k = 1; k < body->n && !bad; k++) {
+            const Sx *e = body->items[k]; DcRat v;
+            if (sx_head_is(e, "Diagonal") && e->n == 2) { if (dc_sx_rat(e->items[1], &diag)) bad = 1; continue; }
+            if (e->kind != SX_LIST || e->n != 3 || dc_sx_rat(e->items[2], &v)) { bad = 1; break; }
+            int a = dc_carrier_index(&m->car[c], e->items[0]), b = dc_carrier_index(&m->car[c], e->items[1]);
+            if (a < 0 || b < 0 || a == b || v.n < 0 || v.n > v.d || set[(size_t)a * n + b]) { bad = 1; break; }
+            tab[(size_t)a * n + b] = tab[(size_t)b * n + a] = v; set[(size_t)a * n + b] = set[(size_t)b * n + a] = 1;
+        }
+        for (size_t a = 0; a < n && !bad; a++) for (size_t b = 0; b < n; b++)
+            if (a == b) tab[a * n + b] = diag; else if (!set[a * n + b]) bad = 2;
+        free(set);
+        if (bad) { free(tab); return fail(err, es, bad == 2 ? "Tolerance %s: SymmetricTable misses a pair" : "Tolerance %s: malformed SymmetricTable entry", nm); }
+    }
+    DcTol *t = &m->tol[m->ntol++]; memset(t, 0, sizeof *t); snprintf(t->name, sizeof t->name, "%s", nm);
+    t->on = c; t->kind = kind; t->trivial = kind == DC_TOL_TRIVIAL; t->table = tab;
     return 0;
 }
 
@@ -366,6 +456,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
 void dc_module_free(DcModule *m) {
     for (size_t i = 0; i < m->ncar; i++) { for (size_t j = 0; j < m->car[i].n; j++) sx_free(m->car[i].elems[j]); free(m->car[i].elems); }
     for (size_t i = 0; i < m->nmap; i++) free(m->map[i].table);
+    for (size_t i = 0; i < m->ntol; i++) free(m->tol[i].table);
     for (size_t i = 0; i < m->nabs; i++) sx_free(m->abs[i].source);
     for (size_t i = 0; i < m->nder; i++) sx_free(m->der[i].request);
     sx_free(m->source);
