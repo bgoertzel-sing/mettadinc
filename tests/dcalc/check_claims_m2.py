@@ -46,6 +46,16 @@ def witness(env):
             if isinstance(p, list) and p[0] == 'Part': w = R.find(p, 'Witness') or w
     return w[1] if w else None
 
+ENVS = {}
+def row_defect(cid):
+    e = ENVS.get(cid); return iv(R.find(e, 'Value')[1]) if e is not None else None
+def extra_defect(row, req):
+    """Runs one request not in the fixture (appended to a copy) and returns its defect."""
+    src = open(fixture_of(row), encoding='utf-8').read() + '\n!(dc.run %s %s)\n' % (row['module'], req)
+    os.makedirs(OUT, exist_ok=True); tmp = os.path.join(OUT, 'extra-%s.metta' % row['module'])
+    open(tmp, 'w').write(src); rc, out, lines = run_fixture(tmp); line = lines.get((row['module'], req))
+    return iv(R.find(R.parse(line.split(' => ', 1)[1])[0], 'Value')[1]) if line else None
+
 def oracle_value(key, env, res):
     """Reads an oracle key off the producer's result (never off the oracle)."""
     val = R.find(env, 'Value')[1]
@@ -57,8 +67,14 @@ def oracle_value(key, env, res):
         b = R.find(witness(env), 'LengthBound'); return num(b[1]) if b else None
     if key in ('packets.d_UV', 'packets.d_UV_disc_9_10', 'counterexamples.restriction.full'):
         v = iv(val); return num(v) if key.endswith('full') else v
-    if key == 'packets.defects_posterior_only':
-        return [iv(val, k) for k in ('Current', 'Update', 'Behavioral')] + [iv(val, 'DiscountedBehavioral')]
+    # Cross-row keys: the oracle records several claims under one key; each part is read
+    # off the producer's own result for the row that makes that claim.
+    if key == 'packets.defects_posterior_only':     # P03 gives the three defects, P04 the discounted one
+        return [iv(val, k) for k in ('Current', 'Update', 'Behavioral')] + [row_defect('P04')]
+    if key == 'counterexamples.horizon_index.correct':   # H05-H07 give h = 0, 1, 2; h = 3 is one extra request
+        return [num(row_defect(c)) for c in ('H05', 'H06', 'H07')] + [num(extra_defect(res, '(CheckBehavioral Merge01 (Horizon (Steps 3)))'))]
+    if key == 'small_fixtures.descent_converse':    # H09 behavioral defect, H10 update defect
+        return {'behavioral': row_defect('H09'), 'update': row_defect('H10')}
     if key == 'counterexamples.pseudometric_zero':
         return 'dnow 0 without literal decoder' if iv(val) == '0' and R.find(val, 'Equality') == ['Equality', 'Observer'] else None
     if key == 'small_fixtures.chain_six_witness_length':
@@ -93,6 +109,13 @@ def replay_row(cid):
 def main():
     rows = m2_table(); fails = []; cache = {}; n_pass = 0
     if len(rows) != 36: fails.append('M2 table has %d rows, expected 36' % len(rows))
+    for cid in M2_IDS:                              # first pass: every row's result, for cross-row keys
+        row = rows.get(cid)
+        if not row: continue
+        path = fixture_of(row)
+        if path not in cache: cache[path] = run_fixture(path)
+        line = cache[path][2].get((row['module'], row['request']))
+        ENVS[cid] = R.parse(line.split(' => ', 1)[1])[0] if line else None
     for cid in M2_IDS:
         row = rows.get(cid)
         if not row: fails.append('row %s missing' % cid); continue
