@@ -93,11 +93,12 @@ static Sx *word_witness(const DcModule *m, const DcView *v, const int *enc, int 
     const DcCarrier *S = &m->car[v->states], *O = &m->car[v->obs_car[qk]];
     Sx *w = dc_form("Word", NULL);
     for (int k = 0; k < len; k++) sx_push(w, dc_form("Do", dc_sym(v->act_label[word[k]]), NULL));
-    Sx *r = dc_form("WordWitness", dc_form("Pair", sx_copy(S->elems[x]), sx_copy(S->elems[y]), NULL),
-                    dc_form("Codes", sx_copy(m->car[codecar].elems[enc[x]]), sx_copy(m->car[codecar].elems[enc[y]]), NULL),
-                    w, dc_form("Query", dc_sym(v->obs_label[qk]), NULL),
-                    dc_form("Left", sx_copy(O->elems[v->obs[qk][px]]), NULL), dc_form("Right", sx_copy(O->elems[v->obs[qk][py]]), NULL),
-                    dc_form("LengthBound", dc_int((long)(n - zero_classes(v, d0))), NULL), NULL);
+    /* enc == NULL: a machine-level witness (BehavioralTolerance), no Codes field. */
+    Sx *r = dc_form("WordWitness", dc_form("Pair", sx_copy(S->elems[x]), sx_copy(S->elems[y]), NULL), NULL);
+    if (enc) sx_push(r, dc_form("Codes", sx_copy(m->car[codecar].elems[enc[x]]), sx_copy(m->car[codecar].elems[enc[y]]), NULL));
+    sx_push(r, w); sx_push(r, dc_form("Query", dc_sym(v->obs_label[qk]), NULL));
+    sx_push(r, dc_form("Left", sx_copy(O->elems[v->obs[qk][px]]), NULL)); sx_push(r, dc_form("Right", sx_copy(O->elems[v->obs[qk][py]]), NULL));
+    sx_push(r, dc_form("LengthBound", dc_int((long)(n - zero_classes(v, d0))), NULL));
     free(dist); free(par); free(pact); free(qu); free(word);
     return r;
 }
@@ -330,4 +331,57 @@ Sx *dc_req_induce_graded(DcRun *run, const Sx *q, int slot) {
         dc_form("Checks", dc_sym("Current"), dc_sym("Update"), dc_sym("Congruence"), NULL), fib, NULL), NULL);
     res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, dc_claim_of(q, eq), subj, dc_form("Value", val, NULL), ev, NULL, &sc);
     gctx_free(&c); return res;
+}
+
+/* ---- BehavioralTolerance (Def 4.1, Thm 4.2, Prop 4.10) ----
+ * The kernel alpha = 1 - d_beh of a deterministic machine at discount g and horizon h,
+ * enclosed by a two-sided certificate: a word test from below for every pair at positive
+ * distance, and a (layered) prefixpoint from above.  The engine is exact, so Precision is
+ * met with an exact kernel. */
+Sx *dc_req_beh_tol(DcRun *run, const Sx *q) {
+    DcModule *m = run->m; const char *h = "BehavioralTolerance";
+    if (q->n < 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "%s: field machine missing or not a name", h);
+    const char *nm = q->items[1]->text; int mi = dc_find_machine(m, nm);
+    if (mi < 0) return dc_declared_unsupported(m, nm) ? dc_unsupported(m, "%s: Machine %s is outside the M2 fragment", h, nm)
+                                                      : dc_invalid(m, "%s: field machine names no declared machine (%s)", h, nm);
+    int horizon = -1, sh = 0, sg = 0, sp = 0; DcRat g = R1, prec = RZ; char gtxt[48] = "";
+    for (size_t i = 2; i < q->n; i++) {
+        const Sx *f = q->items[i];
+        if (sx_head_is(f, "Horizon") && f->n == 2 && !sh) {
+            if (sx_is_sym(f->items[1], "AllFiniteWords")) { sh = 1; continue; }
+            if (sx_head_is(f->items[1], "Steps") && f->items[1]->n == 2) {
+                DcRat t; if (!dc_sx_rat(f->items[1]->items[1], &t) && t.d == 1 && t.n >= 0 && t.n <= 4096) { horizon = (int)t.n; sh = 1; continue; } } }
+        if (sx_head_is(f, "Discount") && f->n == 2 && !sg && !dc_sx_rat(f->items[1], &g) && g.n > 0 && dc_rat_cmp(g, R1) <= 0) {
+            dc_rat_str(g, gtxt, sizeof gtxt); sg = 1; continue; }
+        if (sx_head_is(f, "Precision") && f->n == 2 && !sp && !dc_sx_rat(f->items[1], &prec) && prec.n >= 0 && dc_rat_cmp(prec, R1) <= 0) { sp = 1; continue; }
+        if (sx_head_is(f, "Budget")) return dc_unsupported(m, "%s: a Budget is outside the M2 table engine (it computes exactly)", h);
+        return dc_invalid(m, "%s: field %zu is not (Discount g), (Horizon (Steps h)|AllFiniteWords) or (Precision p) with valid values", h, i - 1);
+    }
+    if (m->mach[mi].nmerge) return dc_unsupported(m, "%s: a machine with Merge ports is outside the M2 fragment", h);
+    DcView v; dc_view_of_machine(m, mi, &v); size_t n = v.n, N = n ? n * n : 1;
+    if (n > 256) { dc_view_free(&v); return dc_unsupported(m, "%s: more than 256 states is outside the M2 table engine", h); }
+    DcRat *d0 = calloc(N, sizeof *d0), *br = calloc(N, sizeof *br), *bb = calloc(N, sizeof *bb); int ovf = 0;
+    if (dc_g_seed(m, &v, d0) | dc_g_beh_ref(&v, d0, g, horizon, br) | dc_g_beh_bfs(&v, d0, g, horizon, bb)) {
+        free(d0); free(br); free(bb); dc_view_free(&v); return dc_unsupported(m, "%s: a rational left the 64-bit exact range", h); }
+    int rep = 1;
+    for (size_t i = 0; i < n * n; i++) if (dc_rat_cmp(br[i], bb[i])) rep = 0;
+    if (horizon < 0 && !prefix_ok(&v, d0, bb, g)) rep = 0;
+    const DcCarrier *S = &m->car[v.states];
+    Sx *ent = dc_form("Entries", NULL), *ev = dc_form("Evidence", NULL);
+    for (size_t x = 0; x < n; x++) for (size_t y = 0; y < n; y++)
+        sx_push(ent, dc_form("Entry", sx_copy(S->elems[x]), sx_copy(S->elems[y]), rsym(dc_rat_sub(R1, bb[x * n + y], &ovf)), NULL));
+    size_t nw = 0;
+    for (size_t x = 0; x < n; x++) for (size_t y = x + 1; y < n; y++)
+        if (!dc_rat_is_zero(bb[x * n + y])) { sx_push(ev, dc_form("Witness", word_witness(m, &v, NULL, -1, d0, g, horizon, (int)x, (int)y), NULL)); nw++; }
+    sx_push(ev, prefixpoint(m, &v, bb, g, horizon));
+    const char *eq = equality_of(m, &v);
+    Sx *val = dc_form("Value", dc_form("ToleranceResult",
+        dc_form("Tolerance", dc_form("Kernel", dc_form("On", dc_sym(S->name), NULL), ent, NULL), NULL),
+        dc_form("Certificate", dc_form("Kind", dc_sym("TwoSided"), NULL),
+                dc_form("Lower", dc_form("WordTests", dc_int((long)nw), NULL), NULL),
+                dc_form("Upper", dc_sym(horizon >= 0 ? "LayeredPrefixpoint" : "Prefixpoint"), NULL), NULL), NULL), NULL);
+    DcScope sc = {"M2-GradedDeterministic", horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt); sc.policy = NULL;
+    Sx *subj = dc_form("Subject", dc_form("Machine", dc_sym(m->mach[mi].name), NULL), NULL);
+    Sx *res = dc_envelope_scoped(m, ovf ? VERDICT_HOLDS : VERDICT_HOLDS, rep && !ovf, dc_claim_of(q, eq), subj, val, ev, NULL, &sc);
+    free(d0); free(br); free(bb); dc_view_free(&v); return res;
 }

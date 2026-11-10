@@ -190,7 +190,7 @@ CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin', 'InduceApprox') + 
 def is_graded(M, req):
     if isinstance(req, str) and req in M.der: req = M.der[req]
     if not isinstance(req, list) or not req: return False
-    return req[0] in GRADED_HEADS + CRISP_M2_HEADS or (req[0] in REP_HEADS + ('InduceExact',) and len(req) >= 2 and graded_rep(M, req[1]))
+    return req[0] in GRADED_HEADS + CRISP_M2_HEADS + ('BehavioralTolerance',) or (req[0] in REP_HEADS + ('InduceExact',) and len(req) >= 2 and graded_rep(M, req[1]))
 
 # ---- part 2: independent recomputation and the replay of one graded result ----
 class Ctx:
@@ -701,12 +701,83 @@ def replay_kernels(M, req, env, st):
             need(show(evd) == show(['Evidence', ['Certificate', ['Kind', 'rule'], ['Rule', 'Transitivity'], relt(on, T) if rel else table(on, T)]]), 'certificate differs')
     return 'ok'
 
+class MCtx(Ctx):
+    """Machine-level context (BehavioralTolerance): no representation, no codes."""
+    def __init__(self, M, mn, g=Q(1), h=None):
+        mc = M.mach[mn]; self.M, self.r, self.g, self.h = M, None, g, h
+        self.S = [key(s) for s in M.car[mc['states']]]
+        self.obs = [(lab, M.map[mp]['f'], t) for lab, mp, t in mc['obs']]
+        self.act = [(lab, M.map[mp]['f']) for lab, mp in mc['act']]
+        self.raw = {key(s): s for s in M.car[mc['states']]}
+        self.merge = []; self.e = None; self.dq = None; S = self.S; self.states = mc['states']
+        self.d0 = {(x, y): max([dist(M, t, f[x], f[y]) for _, f, t in self.obs] or [Q(0)]) for x in S for y in S}
+        self.beh = self.iterate(h)
+        self.eq = 'Observer' if any(t and not separated(M, t) for _, _, t in self.obs) else 'Literal'
+
+def check_mword(C, w, horizon):
+    """A machine-level WordWitness: g^|w| * d(o_j T_w x, o_j T_w y) attains d_beh(x, y) > 0."""
+    need(isinstance(w, list) and w[0] == 'WordWitness' and len(w) == 7, 'machine WordWitness expected')
+    P, W, Qy, L, R, LB = w[1:]
+    need(P[0] == 'Pair' and W[0] == 'Word' and Qy[0] == 'Query' and L[0] == 'Left' and R[0] == 'Right', 'malformed WordWitness')
+    nK = sum(1 for i, x in enumerate(C.S) if not any(C.d0[y, x] == 0 for y in C.S[:i]))
+    need(LB == ['LengthBound', str(len(C.S) - nK)], 'LengthBound differs from n - |X/K_O|')
+    need(len(W) - 1 <= len(C.S) - nK, 'witness word longer than n - |X/K_O|')
+    x, y = key(P[1]), key(P[2]); need(x in C.S and y in C.S, 'witness pair not states')
+    acts = dict(C.act); a, b = x, y; n = 0
+    for st in W[1:]:
+        need(st[0] == 'Do' and st[1] in acts, 'witness word names no action'); a, b = acts[st[1]][a], acts[st[1]][b]; n += 1
+    need(horizon is None or n <= horizon, 'witness word longer than the horizon')
+    ob = [o for o in C.obs if o[0] == Qy[1]]; need(ob, 'witness query names no observation')
+    lab, f, t = ob[0]
+    need(same_val(L[1], f[a]) and same_val(R[1], f[b]), 'witness answers differ from the recomputed answers')
+    need(C.g ** n * dist(C.M, t, f[a], f[b]) == C.beh[x, y] > 0, 'witness test does not attain the behavioral distance')
+    return (x, y)
+
+def replay_beh_tol(M, req, env, st):
+    need(len(req) >= 2 and isinstance(req[1], str) and req[1] in M.mach, 'BehavioralTolerance names no machine')
+    h, g = None, Q(1)
+    for f in req[2:]:
+        need(isinstance(f, list) and len(f) == 2, 'malformed request field')
+        if f[0] == 'Horizon':
+            if f[1] != 'AllFiniteWords': need(f[1][0] == 'Steps', 'Horizon needs Steps'); h = int(f[1][1]); need(h >= 0, 'negative horizon')
+        elif f[0] == 'Discount': g = rat(f[1]); need(0 < g <= 1, 'discount outside (0,1]')
+        elif f[0] == 'Precision': need(0 <= rat(f[1]) <= 1, 'precision outside [0,1]')
+        else: raise GFail('unknown request field %s' % show(f))
+    need(st == 'Checked', 'a behavioral tolerance is Checked')
+    C = MCtx(M, req[1], g, h)
+    heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
+    need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s' % heads)
+    need(show(find(env, 'Claim')) == show(['Claim', req, ['Equality', C.eq]]), 'Claim differs from the request and equality')
+    exp_b = ['Binding', ['Module', M.name], ['Digest', ('str', M.digest)], ['Subject', ['Machine', req[1]]],
+             ['Source', 'None'], ['Target', 'None'], ['Interface', ['Tolerance', 'Exact']]]
+    need(show(find(env, 'Binding')) == show(exp_b), 'Binding differs from the recomputed binding %s' % show(exp_b))
+    exp_s = ['Scope', ['Profile', M.profile], ['Fragment', 'M2-GradedDeterministic'], ['InitialStates', 'AllDeclared'],
+             ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded' if h is None else ['Steps', str(h)]],
+             ['Discount', rs(g)], ['PolicyClass', 'None']]
+    need(show(find(env, 'Scope')) == show(exp_s), 'Scope differs from the recomputed scope %s' % show(exp_s))
+    need(find(env, 'Assumptions') == ['Assumptions'], 'graded table results carry no assumptions')
+    need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M2-ExactReplay'], ['Replayed', 'True'], ['Ground', 'Replayed']]),
+         'Assurance differs from the recomputed assurance')
+    on = C.states; pos = [(x, y) for i, x in enumerate(C.S) for y in C.S[i + 1:] if C.beh[x, y] > 0]
+    exp_v = ['ToleranceResult',
+             ['Tolerance', ['Kernel', ['On', on], ['Entries'] + [['Entry', a, b, rs(1 - C.beh[key(a), key(b)])] for a in M.car[on] for b in M.car[on]]]],
+             ['Certificate', ['Kind', 'TwoSided'], ['Lower', ['WordTests', str(len(pos))]],
+              ['Upper', 'LayeredPrefixpoint' if h is not None else 'Prefixpoint']]]
+    need(show(find(env, 'Value')[1]) == show(exp_v), 'Value differs from the recomputed tolerance')
+    evd = find(env, 'Evidence')[1:]
+    need(len(evd) == len(pos) + 1, 'evidence must be one word test per positive pair and one kernel')
+    got = [check_mword(C, e[1], h) for e in evd[:-1] if e[0] == 'Witness']
+    need(got == pos, 'word tests do not cover exactly the pairs at positive distance')
+    check_kernel(C, evd[-1], h)
+    return 'ok'
+
 def replay(M, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
     dname = None
     if isinstance(req, str): need(req in M.der, 'unknown Derive %s' % req); dname = req; req = M.der[req]
     if req[0] == 'Refine': return replay_refine(M, req, env, st, dname)
+    if req[0] == 'BehavioralTolerance': return replay_beh_tol(M, req, env, st)
     if req[0] == 'SamePartition': return replay_same(M, req, env, st)
     if req[0] == 'WeakestWithin': return replay_weakest(M, req, env, st, dname)
     if req[0] == 'InduceApprox': return replay_approx(M, req, env, st, dname)

@@ -35,6 +35,7 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
     if (!strcmp(h, "PathClosure") || !strcmp(h, "Bracket") || !strcmp(h, "Delta") || !strcmp(h, "Threshold") || !strcmp(h, "CheckTransitive"))
         return dc_req_kernels(r, q, h, slot);
     if (!strcmp(h, "Refine")) return dc_req_refine(r, q, slot);
+    if (!strcmp(h, "BehavioralTolerance")) return dc_req_beh_tol(r, q);
     if (!strcmp(h, "SamePartition")) return dc_req_same_partition(r, q);
     if (!strcmp(h, "WeakestWithin")) return dc_req_weakest(r, q, slot);
     if (!strcmp(h, "InduceApprox")) return dc_req_induce_approx(r, q, slot);
