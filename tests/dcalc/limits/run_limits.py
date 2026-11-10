@@ -14,10 +14,11 @@ R = importlib.util.module_from_spec(spec); spec.loader.exec_module(R)
 DCALC = os.environ.get('DCALC', os.path.join(ROOT, 'build/dcalc/dcalc'))
 OVF = 'integer overflow or out-of-range literal in Add/Mul'
 FIN = 'field Within is not a finite non-negative number'
+RAT = 'CheckUpdates Within: expected a rational in [0,1], found '
 EXPECT = {
     'too_many': [('InvalidInput', 'too many representations')],
     'exactly_full': [('Checked', None), ('Checked', None)],
-    'zero_reprs': [('InvalidInput', 'names no declared representation (R0)')],
+    'zero_reprs': [('InvalidInput', 'undeclared name R0 (expected Representation)')],
     'composite': [('Checked', '(Kind Quotient)'), ('Checked', '(Kind Quotient)'),
                   ('Checked', '(Kind Homomorphism)'), ('Checked', '(Kind Homomorphism)')],
     'interfaces': [('InvalidInput', 'interfaces differ: Source has no observation extra'),
@@ -29,10 +30,12 @@ EXPECT = {
     'overflow_add': [('InvalidInput', OVF)],
     'overflow_mul': [('InvalidInput', OVF)],
     'overflow_literal': [('InvalidInput', OVF)],
-    'bounds': [('InvalidInput', FIN + ' (nan)'), ('InvalidInput', FIN + ' (inf)'),
-               ('InvalidInput', FIN + ' (-inf)'), ('InvalidInput', FIN + ' (1e999)'),
-               ('InvalidInput', FIN + ' (-1)'), ('Checked', None),
-               ('Checked', None), ('Checked', None)],
+    # M1: Within is registry type rat01 (an integer or (Rat p q)); admission
+    # refuses every other spelling before evaluation, as check_fixtures.py does.
+    'bounds': [('InvalidInput', RAT + 'nan'), ('InvalidInput', RAT + 'inf'),
+               ('InvalidInput', RAT + '-inf'), ('InvalidInput', RAT + '1e999'),
+               ('InvalidInput', RAT + '-1'), ('Checked', None),
+               ('InvalidInput', RAT + '0x0'), ('InvalidInput', RAT + '0x1p-1074')],
 }
 
 def main():

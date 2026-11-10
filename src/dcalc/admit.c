@@ -607,7 +607,7 @@ static const Sx *find_var(const Sx *x, const char *v) {
 static void check_hygiene(Ctx *c, const Sx *item) {
     DcStrSet bound = {0}, used = {0};
     bound_vars(item, &bound); collect_vars(item, &used);
-    qsort(used.v, used.n, sizeof *used.v, cmp_str);
+    if (used.n) qsort(used.v, used.n, sizeof *used.v, cmp_str);
     for (size_t i = 0; i < used.n; i++)
         if (!dc_ss_has(&bound, used.v[i])) cerr(c, find_var(item, used.v[i]), "unbound variable %s", used.v[i]);
     dc_ss_free(&bound); dc_ss_free(&used);
@@ -959,7 +959,7 @@ static void check_run(DcAdmission *a, const Sx *form) {
 
 /* Admit the modules of several parsed files as one universe (check_fixtures.py
  * main: imports resolve across every file of the package). */
-size_t dc_admit_files(const Sx *const *alls, const char *const *fnames, size_t nf, DcAdmission *a) {
+static size_t admit_files(const Sx *const *alls, const char *const *fnames, size_t nf, DcAdmission *a, int runs) {
     char b[512], s[51];
     memset(a, 0, sizeof *a);
     for (size_t fi = 0; fi < nf; fi++) {
@@ -990,7 +990,7 @@ size_t dc_admit_files(const Sx *const *alls, const char *const *fnames, size_t n
         for (size_t k = 0; k < m->ndecl; k++) if (m->decls[k].own) check_declaration(a, m, &m->decls[k]);
         check_module_rules(a, m);
     }
-    for (size_t fi = 0; fi < nf; fi++) {
+    for (size_t fi = 0; runs && fi < nf; fi++) {
         const Sx *all = alls[fi]; a->fname = fnames[fi];
         for (size_t i = 0; i + 1 < all->n; i++)
             if (sx_is_sym(all->items[i], "!")) { check_run(a, all->items[i + 1]); i++; }
@@ -999,8 +999,21 @@ size_t dc_admit_files(const Sx *const *alls, const char *const *fnames, size_t n
     return a->diag.n;
 }
 
+size_t dc_admit_files(const Sx *const *alls, const char *const *fnames, size_t nf, DcAdmission *a) {
+    return admit_files(alls, fnames, nf, a, 1);
+}
 size_t dc_admit_file(const Sx *all, const char *fname, DcAdmission *a) {
-    return dc_admit_files(&all, &fname, 1, a);
+    return admit_files(&all, &fname, 1, a, 1);
+}
+/* Modules only: run forms are left to dc_admit_run, one at a time, so a bad
+ * run does not make the other runs of its module InvalidInput. */
+size_t dc_admit_modules(const Sx *all, const char *fname, DcAdmission *a) {
+    return admit_files(&all, &fname, 1, a, 0);
+}
+size_t dc_admit_run(DcAdmission *a, const Sx *run) {
+    size_t before = a->diag.n;
+    check_run(a, run);
+    return a->diag.n - before;
 }
 
 void dc_admission_free(DcAdmission *a) {

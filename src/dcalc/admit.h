@@ -43,6 +43,10 @@ typedef struct {
 /* Admit every (DC.Module ...) form of a parsed file and check its run forms.
  * Returns the number of diagnostics (0 = admitted). */
 size_t dc_admit_file(const Sx *all, const char *fname, DcAdmission *out);
+/* Modules of one file without its run forms; then check one (dc.run M request) form,
+ * returning the number of diagnostics it added (they are appended to a->diag). */
+size_t dc_admit_modules(const Sx *all, const char *fname, DcAdmission *out);
+size_t dc_admit_run(DcAdmission *a, const Sx *run);
 /* Several files as one universe: imports resolve across all of them. */
 size_t dc_admit_files(const Sx *const *alls, const char *const *fnames, size_t nf, DcAdmission *out);
 /* Number of diagnostics that belong to module mn. */
