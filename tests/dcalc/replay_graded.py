@@ -15,7 +15,7 @@ def need(c, msg):
     if not c: raise GFail(msg)
 
 VALUE_TYPES = ('Rational01', 'Rational')
-GRADED_HEADS = ('Defects', 'MeasureUpdates', 'MeasureBehavioral', 'CheckBehavioral')
+GRADED_HEADS = ('Defects', 'MeasureUpdates', 'MeasureBehavioral', 'CheckBehavioral', 'MeasureTrace', 'CheckTrace')
 REP_HEADS = ('MeasureNow', 'CheckNow', 'CheckUpdates')
 KN = ('Current', 'Update', 'Behavioral')
 HEADS = ['Status', 'Claim', 'Binding', 'Scope', 'Value', 'Evidence', 'Assumptions', 'Assurance']
@@ -232,6 +232,10 @@ class Ctx:
             act = max([Q(0)] + [max(Q(0), self.dq[f[x], f[y]] - self.dq[x, y]) for _, f in self.act for x in S for y in S])
             return max([act] + [max(Q(0), self.dq[self.mg(f, a, b), self.mg(f, a2, b2)] - max(self.dq[a, a2], self.dq[b, b2]))
                                 for _, f in self.merge for a in S for b in S for a2 in S for b2 in S])
+        if k == 'Trace':
+            # Def 4.4(4), deterministic, discrete value tolerances: the largest undiscounted
+            # horizon-h behavioral distance between two states with equal codes.
+            return max([Q(0)] + [self.beh[x, y] for x in S for y in S if self.e[x] == self.e[y]])
         return max([max(Q(0), self.beh[x, y] - self.dq[x, y]) for x in S for y in S])
 
 def rs(q): return str(q.numerator) if q.denominator == 1 else '%d/%d' % (q.numerator, q.denominator)
@@ -263,7 +267,10 @@ def check_word(C, w, k, d, horizon):
     ob = [o for o in C.obs if o[0] == Qy[1]]; need(ob, 'witness query names no observation')
     lab, f, t = ob[0]
     need(same_val(L[1], f[a]) and same_val(R[1], f[b]), 'witness answers differ from the recomputed answers')
-    lower = C.g ** n * dist(C.M, t, f[a], f[b]) - C.dq[x, y]
+    if k == 'Trace':
+        need(C.e[x] == C.e[y], 'a trace witness pair must have equal codes')
+        lower = dist(C.M, t, f[a], f[b])
+    else: lower = C.g ** n * dist(C.M, t, f[a], f[b]) - C.dq[x, y]
     need(lower == d and d > 0, 'witness bound %s does not attain the defect %s' % (rs(lower), rs(d)))
 
 def check_update_witness(C, w, d):
@@ -301,16 +308,17 @@ def check_kernel(C, c, horizon):
 
 # ---- part 3: the envelope and the replay of one graded result ----
 def opts(req):
-    w, h, g = Q(0), None, Q(1)
+    w, h, g, pol = Q(0), None, Q(1), None
     for f in req[2:]:
         need(isinstance(f, list) and len(f) == 2, 'malformed request field')
         if f[0] == 'Within': w = rat(f[1])
         elif f[0] == 'Horizon': need(f[1][0] == 'Steps', 'Horizon needs Steps'); h = int(f[1][1]); need(h >= 0, 'negative horizon')
         elif f[0] == 'Discount': g = rat(f[1]); need(0 < g <= 1, 'discount outside (0,1]')
+        elif f[0] == 'Policies': need(pol is None and f[1] in ('Words', 'ObservationBased'), 'Policies must be Words or ObservationBased'); pol = f[1]
         else: raise GFail('unknown request field %s' % show(f))
-    return w, h, g
+    return w, h, g, pol
 
-def envelope_ok(M, req, env, st, C, h, g):
+def envelope_ok(M, req, env, st, C, h, g, pc='None'):
     heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
     need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s' % heads)
     need(show(find(env, 'Claim')) == show(['Claim', req, ['Equality', C.eq]]), 'Claim differs from the request and equality')
@@ -322,7 +330,7 @@ def envelope_ok(M, req, env, st, C, h, g):
     need(show(find(env, 'Binding')) == show(exp_b), 'Binding differs from the recomputed binding %s' % show(exp_b))
     exp_s = ['Scope', ['Profile', M.profile], ['Fragment', 'M2-GradedDeterministic'], ['InitialStates', 'AllDeclared'],
              ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded' if h is None else ['Steps', str(h)]],
-             ['Discount', rs(g)], ['PolicyClass', 'None']]
+             ['Discount', rs(g)], ['PolicyClass', pc]]
     need(show(find(env, 'Scope')) == show(exp_s), 'Scope differs from the recomputed scope %s' % show(exp_s))
     need(find(env, 'Assumptions') == ['Assumptions'], 'graded table results carry no assumptions')
     ground = 'Witness' if st == 'Refuted' else 'Replayed'
@@ -331,9 +339,9 @@ def envelope_ok(M, req, env, st, C, h, g):
 
 def evidence_ok(C, k, d, items, h):
     """items: the evidence entries for one defect kind."""
-    if k == 'Behavioral':
+    if k in ('Behavioral', 'Trace'):
         if d > 0:
-            need(len(items) == 2 and items[0][0] == 'Witness', 'a positive behavioral defect needs a witness and a kernel')
+            need(len(items) == 2 and items[0][0] == 'Witness', 'a positive %s defect needs a witness and a kernel' % k.lower())
             check_word(C, items[0][1], k, d, h); items = items[1:]
         need(len(items) == 1, 'behavioral evidence must end in one kernel certificate'); check_kernel(C, items[0], h)
         return
@@ -705,13 +713,16 @@ def replay(M, req, env):
     if req[0] == 'InduceExact': return replay_induce(M, req, env, st, dname)
     if req[0] in KERNEL_HEADS: return replay_kernels(M, req, env, st)
     hd = req[0]; need(len(req) >= 2 and req[1] in M.rep, 'request names no graded representation')
-    w, h, g = opts(req)
+    w, h, g, pol = opts(req)
     is_def, is_check = hd == 'Defects', hd.startswith('Check')
     if not is_check: need(w == 0 and not any(f[0] == 'Within' for f in req[2:]), 'Within on a measurement')
-    k = 'Current' if 'Now' in hd else 'Update' if 'Updates' in hd else 'Behavioral'
-    if not is_def and k != 'Behavioral': need(h is None and g == 1, 'Horizon/Discount on a non-behavioral claim')
+    k = 'Current' if 'Now' in hd else 'Update' if 'Updates' in hd else 'Trace' if 'Trace' in hd else 'Behavioral'
+    if not is_def and k not in ('Behavioral', 'Trace'): need(h is None and g == 1, 'Horizon/Discount on a non-behavioral claim')
+    need(pol is None or k == 'Trace', 'Policies on a non-trace claim')
+    if k == 'Trace': need(not any(f[0] == 'Discount' for f in req[2:]), 'a trace claim takes no Discount')
     C = Ctx(M, req[1], g, h)
-    envelope_ok(M, req, env, st, C, h, g)
+    if k == 'Trace': need(all(v in (0, 1) for v in C.d0.values()), 'trace replay needs discrete value tolerances')
+    envelope_ok(M, req, env, st, C, h, g, (pol or 'Words') if k == 'Trace' else 'None')
     val, evd = find(env, 'Value')[1], find(env, 'Evidence')[1:]
     if is_def:
         ds = [C.defect(x) for x in KN]

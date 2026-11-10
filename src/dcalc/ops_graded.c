@@ -8,14 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct { DcRat within; char wtxt[48]; int horizon; DcRat g; char gtxt[48]; } GOpts;
+typedef struct { DcRat within; char wtxt[48]; int horizon; DcRat g; char gtxt[48]; char ptxt[24]; } GOpts;
 static const DcRat RZ = {0, 1}, R1 = {1, 1};
 
 static Sx *rsym(DcRat r) { char b[48]; dc_rat_str(r, b, sizeof b); return dc_sym(b); }
 static Sx *interval(DcRat r) { return dc_form("Defect", dc_form("Interval", rsym(r), rsym(r), NULL), NULL); }
 
 static Sx *gopts(const DcModule *m, const Sx *q, const char *req, GOpts *o) {
-    o->within = RZ; snprintf(o->wtxt, sizeof o->wtxt, "0"); o->horizon = -1; o->g = R1; o->gtxt[0] = 0;
+    o->within = RZ; snprintf(o->wtxt, sizeof o->wtxt, "0"); o->horizon = -1; o->g = R1; o->gtxt[0] = 0; o->ptxt[0] = 0;
     for (size_t i = 2; i < q->n; i++) {
         const Sx *f = q->items[i];
         if (sx_head_is(f, "Within") && f->n == 2 && !dc_sx_rat(f->items[1], &o->within) && o->within.n >= 0) {
@@ -24,6 +24,8 @@ static Sx *gopts(const DcModule *m, const Sx *q, const char *req, GOpts *o) {
             DcRat h; if (!dc_sx_rat(f->items[1]->items[1], &h) && h.d == 1 && h.n >= 0 && h.n <= 4096) { o->horizon = (int)h.n; continue; } }
         if (sx_head_is(f, "Discount") && f->n == 2 && !dc_sx_rat(f->items[1], &o->g) && o->g.n > 0 && dc_rat_cmp(o->g, R1) <= 0) {
             dc_rat_str(o->g, o->gtxt, sizeof o->gtxt); continue; }
+        if (sx_head_is(f, "Policies") && f->n == 2 && (sx_is_sym(f->items[1], "Words") || sx_is_sym(f->items[1], "ObservationBased")) && !o->ptxt[0]) {
+            snprintf(o->ptxt, sizeof o->ptxt, "%s", f->items[1]->text); continue; }
         return dc_invalid(m, "%s: field %zu is not (Within b), (Horizon (Steps h)) or (Discount g) with valid values", req, i - 1);
     }
     return NULL;
@@ -112,8 +114,8 @@ static Sx *prefixpoint(const DcModule *m, const DcView *v, const DcRat *D, DcRat
 }
 
 /* ---- part 2: contexts, measurements, evidence, the request ---- */
-typedef enum { GK_NOW = 0, GK_UPD, GK_BEH } GKind;
-static const char *GKN[3] = {"Current", "Update", "Behavioral"};
+typedef enum { GK_NOW = 0, GK_UPD, GK_BEH, GK_TRACE } GKind;
+static const char *GKN[4] = {"Current", "Update", "Behavioral", "Trace"};
 typedef struct { DcRat d; int x, y, a; int x2, y2, mp; } GRes;   /* mp >= 0: a Merge witness (x,y) vs (x2,y2) */
 typedef struct { const DcModule *m; int ri; DcView v; size_t n; DcRat *d0, *dq, *bref, *bbfs; int agree; } GCtx;
 
@@ -173,6 +175,13 @@ static GRes g_measure(GCtx *c, GKind k) {
         GRes mr = merge_defect(c);
         if (dc_rat_cmp(mr.d, r.d) > 0) r = mr;
     }
+    else if (k == GK_TRACE) {
+        /* Def 4.4(4), deterministic, discrete value tolerances: the largest undiscounted
+         * horizon-h behavioral distance between two states with the same code. */
+        const int *enc = c->m->map[c->m->rep[c->ri].encode].table; size_t n = c->n;
+        for (size_t x = 0; x < n; x++) for (size_t y = 0; y < n; y++)
+            if (enc[x] == enc[y] && dc_rat_cmp(c->bbfs[x * n + y], r.d) > 0) { r.d = c->bbfs[x * n + y]; r.x = (int)x; r.y = (int)y; }
+    }
     else r.d = dc_g_excess(c->n, c->bbfs, c->dq, &r.x, &r.y);
     return r;
 }
@@ -183,7 +192,7 @@ static void g_evidence(GCtx *c, GKind k, GRes r, const GOpts *o, Sx *dst, int *r
     const int *enc = m->map[R->encode].table; int cc = m->map[R->encode].to;
     const DcCarrier *S = &m->car[c->v.states], *C = &m->car[cc];
     *rep = 1;
-    if (k == GK_BEH) {
+    if (k == GK_BEH || k == GK_TRACE) {
         *rep = c->agree && (o->horizon >= 0 || prefix_ok(&c->v, c->d0, c->bbfs, o->g));
         if (!dc_rat_is_zero(r.d)) sx_push(dst, dc_form("Witness", word_witness(m, &c->v, enc, cc, c->d0, o->g, o->horizon, r.x, r.y), NULL));
         sx_push(dst, prefixpoint(m, &c->v, c->bbfs, o->g, o->horizon));
@@ -217,19 +226,28 @@ Sx *dc_req_graded(DcRun *run, const Sx *q, const char *h) {
     if (ri < 0) return e;
     GOpts o; if ((e = gopts(m, q, h, &o))) return e;
     int is_def = !strcmp(h, "Defects"), is_check = !strncmp(h, "Check", 5);
-    GKind k = strstr(h, "Now") ? GK_NOW : strstr(h, "Updates") ? GK_UPD : GK_BEH;
+    GKind k = strstr(h, "Now") ? GK_NOW : strstr(h, "Updates") ? GK_UPD : strstr(h, "Trace") ? GK_TRACE : GK_BEH;
     for (size_t i = 2; i < q->n; i++) {
+        if (sx_head_is(q->items[i], "Policies") && k != GK_TRACE) return dc_invalid(m, "%s: (Policies P) applies to trace claims only", h);
+        if (k == GK_TRACE && sx_head_is(q->items[i], "Discount")) return dc_invalid(m, "%s: a trace claim takes no Discount (trace laws are undiscounted)", h);
         if (sx_head_is(q->items[i], "Within") && !is_check) return dc_invalid(m, "%s: (Within b) belongs to a check, not a measurement", h);
-        if (!sx_head_is(q->items[i], "Within") && k != GK_BEH && !is_def) return dc_invalid(m, "%s: Horizon and Discount apply to behavioral claims only", h);
+        if (!sx_head_is(q->items[i], "Within") && k != GK_BEH && k != GK_TRACE && !is_def) return dc_invalid(m, "%s: Horizon and Discount apply to behavioral claims only", h);
     }
-    if (m->mach[m->rep[ri].machine].nmerge && (is_def || k == GK_BEH))
+    if (m->mach[m->rep[ri].machine].nmerge && (is_def || k == GK_BEH || k == GK_TRACE))
         return dc_unsupported(m, "%s: behavioral claims on a machine with Merge ports are outside the M2 fragment", h);
     if (m->mach[m->rep[ri].machine].nmerge && m->car[m->mach[m->rep[ri].machine].states].n > 32)
         return dc_unsupported(m, "%s: merge congruence over more than 32 states is outside the M2 table engine", h);
     GCtx c;
     if (gctx_init(&c, m, ri, &o)) { gctx_free(&c); return dc_unsupported(m, "%s: a rational left the 64-bit exact range", h); }
+    if (k == GK_TRACE)
+        for (size_t i = 0; i < c.n * c.n; i++)
+            if (!dc_rat_is_zero(c.d0[i]) && dc_rat_cmp(c.d0[i], R1)) {
+                gctx_free(&c);
+                return dc_unsupported(m, "%s: a trace defect under graded value tolerances is outside the M2 fragment (Def 4.4 gives the deterministic formula for discrete value tolerances)", h);
+            }
     const char *eq = equality_of(m, &c.v);
     DcScope sc = {"M2-GradedDeterministic", o.horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", o.gtxt);
+    sc.policy = k == GK_TRACE ? (o.ptxt[0] ? o.ptxt : "Words") : NULL;
     Sx *subj = dc_form("Subject", dc_form("Representation", dc_sym(m->rep[ri].name), NULL),
                        dc_form("Machine", dc_sym(m->mach[m->rep[ri].machine].name), NULL), NULL);
     Sx *ev = dc_form("Evidence", NULL), *val; int rep = 1; DcVerdict vd = VERDICT_HOLDS;

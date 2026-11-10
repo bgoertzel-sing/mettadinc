@@ -82,7 +82,7 @@ Sx *dc_envelope_scoped(const DcModule *m, DcVerdict v, int replays, Sx *claim, S
                        dc_form("ReachableStates", dc_sym("AllDeclared"), NULL),
                        sc && sc->horizon >= 0 ? dc_form("Horizon", dc_form("Steps", dc_int(sc->horizon), NULL), NULL) : dc_form("Horizon", dc_sym("Unbounded"), NULL),
                        dc_form("Discount", dc_sym(sc && sc->discount[0] ? sc->discount : "1"), NULL),
-                       dc_form("PolicyClass", dc_sym("None"), NULL), NULL));
+                       dc_form("PolicyClass", dc_sym(sc && sc->policy ? sc->policy : "None"), NULL), NULL));
     sx_push(r, value ? value : dc_form("Value", NULL));
     sx_push(r, evidence ? evidence : dc_form("Evidence", NULL));
     sx_push(r, dc_form("Assumptions", NULL));

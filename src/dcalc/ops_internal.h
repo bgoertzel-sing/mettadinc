@@ -36,7 +36,7 @@ Sx *dc_form(const char *head, ...);   /* NULL-terminated children */
 Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subject,
                 Sx *value, Sx *evidence, const char *reason);
 /* M2 scope of a graded claim: horizon -1 = Unbounded; discount "p/q" ("" = 1). */
-typedef struct { const char *fragment; int horizon; char discount[32]; } DcScope;
+typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
 Sx *dc_envelope_scoped(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subject,
                 Sx *value, Sx *evidence, const char *reason, const DcScope *sc);
 Sx *dc_invalid(const DcModule *m, const char *fmt, ...);

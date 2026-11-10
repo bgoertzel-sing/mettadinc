@@ -38,7 +38,8 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
     if (!strcmp(h, "SamePartition")) return dc_req_same_partition(r, q);
     if (!strcmp(h, "WeakestWithin")) return dc_req_weakest(r, q, slot);
     if (!strcmp(h, "InduceApprox")) return dc_req_induce_approx(r, q, slot);
-    if (!strcmp(h, "Defects") || !strcmp(h, "MeasureUpdates") || !strcmp(h, "MeasureBehavioral") || !strcmp(h, "CheckBehavioral"))
+    if (!strcmp(h, "Defects") || !strcmp(h, "MeasureUpdates") || !strcmp(h, "MeasureBehavioral") || !strcmp(h, "CheckBehavioral")
+        || !strcmp(h, "MeasureTrace") || !strcmp(h, "CheckTrace"))
         return dc_req_graded(r, q, h);
     if ((!strcmp(h, "MeasureNow") || !strcmp(h, "CheckNow") || !strcmp(h, "CheckUpdates")) && q->n >= 2 && q->items[1]->kind == SX_SYM) {
         int ri = dc_find_repr(r->m, q->items[1]->text);

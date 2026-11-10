@@ -27,6 +27,12 @@ CASES = {
  'refine_three.metta': {
   'RefineThree Split': ('Checked', '(Value (Refinement (Representation Split) (Partition (Block P) (Block Q) (Block R)) (Ledger (Under Uniform) (Before 5/9) (After 1/3))))'),
  },
+ 'trace_four.metta': {
+  'TraceFour (MeasureTrace Q (Horizon (Steps 1)))': ('Checked', '(Value (DefectMeasurement (Defect (Interval 0 0)) (Kind Trace) (Equality Literal)))'),
+  'TraceFour (MeasureTrace Q (Horizon (Steps 2)))': ('Checked', '(Value (DefectMeasurement (Defect (Interval 1 1)) (Kind Trace) (Equality Literal)))'),
+  'TraceFour (CheckTrace Q (Horizon (Steps 1)))': ('Checked', '(Value (DefectCheck (Defect (Interval 0 0)) (Bound 0) (Kind Trace) (Equality Literal)))'),
+  'TraceFour (CheckTrace Q (Policies ObservationBased))': ('Refuted', '(Value (DefectCheck (Defect (Interval 1 1)) (Bound 0) (Kind Trace) (Equality Literal)))'),
+ },
  'then_eight.metta': {
   'ThenEight SecondChecked': ('Checked', '(Value (CheckedAbstractionMap (Kind Quotient) (Surjective True)))'),
   'ThenEight Composed': ('Checked', '(Value (ComposedArrow (Source Concrete) (Target Codes) (Kind Quotient)))'),
