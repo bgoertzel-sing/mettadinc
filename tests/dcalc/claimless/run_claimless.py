@@ -16,6 +16,15 @@ CASES = {
   'GradedFour Increase': ('Checked', '(Value (Delta (From 1/2) (To 47/80) (Increase 7/80)))'),
   'GradedFour Thresholded': ('Checked', '(Value (Relation (On Point) (Pairs (Pair A A) (Pair A B) (Pair A C) (Pair B A) (Pair B B) (Pair B C) (Pair C A) (Pair C B) (Pair C C) (Pair C D) (Pair D C) (Pair D D))))'),
  },
+ 'weak_three.metta': {
+  'WeakThree Split': ('Checked', '(Value (Refinement (Representation Split) (Partition (Block P) (Block Q) (Block R)) (Ledger (Under Uniform) (Before 1/3) (After 1/3))))'),
+  'WeakThree Tight': ('Checked', '(Value (WeakestPartition (Representation Tight) (Partition (Block P Q) (Block R)) (Weakness 5/9) (Defect (Interval 1/10 1/10)) (Bound 1/10) (Kind Behavioral) (Under Uniform) (Optimality Checked)))'),
+  'WeakThree Loose': ('Checked', '(Value (WeakestPartition (Representation Loose) (Partition (Block P Q R)) (Weakness 1) (Defect (Interval 3/10 3/10)) (Bound 3/10) (Kind Behavioral) (Under Uniform) (Optimality Checked)))'),
+  'WeakThree TightMachine': ('Checked', '(Value (ApproximateAbstraction (Machine (Output TightMachine Machine)) (States 2) (Selector (Choose pick)) (Representatives (Class 0 (Block P Q) Q) (Class 1 (Block R) R)) (Radius 1/10) (Defect (Interval 1/10 1/10)) (Bound Unbounded) (AbstractionMap (Kind Graded) (Defect 1/10))))'),
+ },
+ 'refine_three.metta': {
+  'RefineThree Split': ('Checked', '(Value (Refinement (Representation Split) (Partition (Block P) (Block Q) (Block R)) (Ledger (Under Uniform) (Before 5/9) (After 1/3))))'),
+ },
 }
 
 def term_at(s, i):
