@@ -2,9 +2,11 @@
  * Used by the dcalc CLI and by the CeTTa native module (dcalc:run).
  * The check order is defined here once:
  *   1. binding validation on the raw source            -> InvalidInput
- *   2. admission: construct outside M0 ("[M0]" errors) -> Unsupported
- *                 malformed declaration                -> InvalidInput
- *   3. dc_run: profile gate, then the M0 requests. */
+ *   2. M1 admission (admit.c, registry-driven): a diagnostic -> InvalidInput,
+ *      profile or library outside the first release           -> Unsupported
+ *   3. M0 admission: construct outside M0 ("[M0]" errors) -> Unsupported
+ *                    malformed declaration                -> InvalidInput
+ *   4. dc_run: profile gate, then the M0 requests. */
 #ifndef DCALC_API_H
 #define DCALC_API_H
 #include "sexp.h"
@@ -16,4 +18,8 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *module, cons
 /* Text form: source and request as s-expression text; returns the printed
  * envelope (caller frees). Parse errors give an InvalidInput envelope. */
 char *dc_eval_text(const char *source, const char *basedir, const char *module, const char *request);
+
+/* File name used in admission diagnostics (file:line:col); default "input".
+ * The pointer is kept, not copied. */
+void dc_eval_set_source_name(const char *name);
 #endif

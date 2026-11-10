@@ -1,0 +1,55 @@
+From 133c6eab593a10fd302da2ca5de1b110cbd6c432 Mon Sep 17 00:00:00 2001
+From: ProtoMegaBot2 <protomega2@hive.local>
+Date: Tue, 10 Nov 2026 15:23:43 +0000
+Subject: [PATCH] dcalc: pass the request argument of dcalc:run and
+ dcalc:run-file unevaluated
+
+Type the request (argument 3) as Atom in lib/dcalc.metta and its petta and
+prime spellings. Before, CeTTa evaluated the request before the native
+call, so host code inside it ran (println! in (Within (evil 0))) and the
+core received the reduced form. Now the core gets the request as written
+and refuses it (InvalidInput).
+---
+ lib/dcalc.metta       | 4 ++--
+ lib/petta/dcalc.metta | 4 ++--
+ lib/prime/dcalc.metta | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/lib/dcalc.metta b/lib/dcalc.metta
+index 7c509415..39c070d5 100644
+--- a/lib/dcalc.metta
++++ b/lib/dcalc.metta
+@@ -1,4 +1,4 @@
+ ; MeTTaDinC M0 core as a native module (library_dcalc.c).
+ ; Arguments are data: the request is passed to the core unevaluated.
+-(: dcalc:run (-> %Undefined% %Undefined% %Undefined% %Undefined%))
+-(: dcalc:run-file (-> %Undefined% %Undefined% %Undefined% %Undefined%))
++(: dcalc:run (-> %Undefined% %Undefined% Atom %Undefined%))
++(: dcalc:run-file (-> %Undefined% %Undefined% Atom %Undefined%))
+diff --git a/lib/petta/dcalc.metta b/lib/petta/dcalc.metta
+index 48ad389f..729ad8d2 100644
+--- a/lib/petta/dcalc.metta
++++ b/lib/petta/dcalc.metta
+@@ -2,5 +2,5 @@
+ ; do not edit.  The PeTTa spelling of the library: the same program with the
+ ; HE-only native wrappers spelled as PeTTa calls.
+ 
+-(: dcalc:run (-> %Undefined% %Undefined% %Undefined% %Undefined%))
+-(: dcalc:run-file (-> %Undefined% %Undefined% %Undefined% %Undefined%))
++(: dcalc:run (-> %Undefined% %Undefined% Atom %Undefined%))
++(: dcalc:run-file (-> %Undefined% %Undefined% Atom %Undefined%))
+diff --git a/lib/prime/dcalc.metta b/lib/prime/dcalc.metta
+index 65319885..529a6cc0 100644
+--- a/lib/prime/dcalc.metta
++++ b/lib/prime/dcalc.metta
+@@ -2,5 +2,5 @@
+ ; do not edit.  The Prime spelling of the library: the same program with each
+ ; value handoff spelled as a forcing case.
+ 
+-(: dcalc:run (-> %Undefined% %Undefined% %Undefined% %Undefined%))
+-(: dcalc:run-file (-> %Undefined% %Undefined% %Undefined% %Undefined%))
++(: dcalc:run (-> %Undefined% %Undefined% Atom %Undefined%))
++(: dcalc:run-file (-> %Undefined% %Undefined% Atom %Undefined%))
+-- 
+2.34.1
+

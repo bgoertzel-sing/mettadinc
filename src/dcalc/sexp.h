@@ -12,6 +12,7 @@ typedef struct Sx {
     struct Sx **items;   /* SX_LIST */
     size_t n, cap;
     int line;            /* source line of the opening token */
+    int col;             /* source column (1-based, bytes) of the opening token */
 } Sx;
 
 Sx *sx_sym(const char *s);

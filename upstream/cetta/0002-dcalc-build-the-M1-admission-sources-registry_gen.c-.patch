@@ -1,0 +1,28 @@
+From 8047542b6fd3f9a3319d22f75401930f17650b57 Mon Sep 17 00:00:00 2001
+From: ProtoMegaBot2 <protomega2@hive.local>
+Date: Tue, 10 Nov 2026 14:25:57 +0000
+Subject: [PATCH] dcalc: build the M1 admission sources (registry_gen.c,
+ registry.c, admit.c)
+
+The MeTTaDinC M1 frontend adds three core files that api.c calls; list
+them in DCALC_CORE_SRC so the native module links.
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 35f5073c..d9018bc6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -789,7 +789,7 @@ SRC += src/library_dag.c
+ # MeTTaDinC M0 core (native module "dcalc").  DCALC_DIR is the mettadinc
+ # src/dcalc directory; the default assumes CeTTa is the mettadinc submodule.
+ DCALC_DIR ?= ../src/dcalc
+-DCALC_CORE_SRC = sexp.c sha256.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c
++DCALC_CORE_SRC = sexp.c sha256.c registry_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c
+ SRC += src/library_dcalc.c $(addprefix $(DCALC_DIR)/,$(DCALC_CORE_SRC))
+ CPPFLAGS_DCALC = -I$(DCALC_DIR)
+ SRC += src/u64_index.c
+-- 
+2.34.1
+
