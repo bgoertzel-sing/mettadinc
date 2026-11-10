@@ -22,6 +22,7 @@ typedef struct {
     int *obs[DC_MAX_PORTS];    /* obs[k][i] index in obs_car[k] (valid i only) */
     char act_label[DC_MAX_PORTS][DC_MAX_NAME];
     int *act[DC_MAX_PORTS];    /* act[k][i] state index (valid i only) */
+    int obs_tol[DC_MAX_PORTS]; /* M2: value tolerance of observation k, -1 literal */
 } DcView;
 
 void dc_view_of_machine(const DcModule *m, int mi, DcView *v);
@@ -34,6 +35,10 @@ Sx *dc_int(long v);
 Sx *dc_form(const char *head, ...);   /* NULL-terminated children */
 Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subject,
                 Sx *value, Sx *evidence, const char *reason);
+/* M2 scope of a graded claim: horizon -1 = Unbounded; discount "p/q" ("" = 1). */
+typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+Sx *dc_envelope_scoped(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subject,
+                Sx *value, Sx *evidence, const char *reason, const DcScope *sc);
 Sx *dc_invalid(const DcModule *m, const char *fmt, ...);
 Sx *dc_unsupported(const DcModule *m, const char *fmt, ...);
 /* Boundary 2: union a premise's assumptions into a derived result (ops_core.c). */

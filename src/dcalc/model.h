@@ -4,6 +4,7 @@
  * small integer index into its carrier.  Admission failures name the field. */
 #ifndef DCALC_MODEL_H
 #define DCALC_MODEL_H
+#include "rat.h"
 #include "sexp.h"
 
 #define DC_MAX_NAME 64
@@ -12,6 +13,9 @@ typedef struct {
     char name[DC_MAX_NAME];
     size_t n;            /* number of elements */
     Sx **elems;          /* canonical value of each element */
+    int value;           /* M2: synthesized carrier of a builtin value type (Rational01); grows during admission */
+    int reach_parent;    /* M2: (Reach M (From e ...)): parent carrier + 1, 0 = none */
+    int *sub_idx;        /* M2: sub_idx[i] = index of element i in the parent carrier */
 } DcCarrier;
 
 typedef struct {
@@ -20,7 +24,7 @@ typedef struct {
     int *table;          /* table[i] = index in carrier `to` */
 } DcMap;
 
-typedef struct { char label[DC_MAX_NAME]; int map; } DcPort;
+typedef struct { char label[DC_MAX_NAME]; int map; int tol; /* M2: (Values Tol) index, -1 literal */ } DcPort;
 
 typedef struct {
     char name[DC_MAX_NAME];
@@ -29,6 +33,7 @@ typedef struct {
     DcPort act[16];  size_t nact;
     int graded_obs;      /* an Observe carries (Values Tol): outside M0 */
     int bagged;          /* (Bag ...): nondeterministic, outside M0 */
+    DcPort merge[4]; size_t nmerge;   /* M2: (Merge label map), map from (Product S S) to S */
 } DcMachine;
 
 /* Exact: codes compared literally (default). All: (Codes AllCodes), every code
@@ -51,10 +56,19 @@ typedef struct {
 } DcAbsMap;
 
 typedef struct { char name[DC_MAX_NAME]; Sx *request; } DcDerive;
+/* M2: a finite law on a carrier; only the uniform law is admitted. */
+typedef struct { char name[DC_MAX_NAME]; int on; int uniform; } DcMeas;
 
 /* (Tolerance Name (On C) (Trivial)): identifies every pair of elements of C.
  * Other tolerance bodies are outside M0 and are noted as unsupported. */
-typedef struct { char name[DC_MAX_NAME]; int on; int trivial; } DcTol;
+/* M2 graded bodies: (Discrete), (OneMinusAbsoluteDifference) on rational
+ * values, (SymmetricTable (Diagonal v) (a b (Rat p q)) ...) as a kernel. */
+typedef enum { DC_TOL_TRIVIAL = 0, DC_TOL_DISCRETE, DC_TOL_ONE_MINUS_ABS, DC_TOL_SYM_TABLE } DcTolKind;
+typedef struct {
+    char name[DC_MAX_NAME]; int on; int trivial;
+    DcTolKind kind;
+    DcRat *table;        /* SYM_TABLE: n*n kernel values, row-major; else NULL */
+} DcTol;
 
 typedef struct {
     char name[DC_MAX_NAME];
@@ -67,6 +81,7 @@ typedef struct {
     DcRepr    rep[16];  size_t nrep;
     DcAbsMap  abs[16];  size_t nabs;
     DcDerive  der[32];  size_t nder;
+    DcMeas    meas[16]; size_t nmeas;   /* M2: (Measure Name (On C) (Uniform)) */
     DcTol     tol[16];  size_t ntol;
     int unsupported_decls;   /* declarations outside the M0 fragment */
     char profile_unsupported[2 * DC_MAX_NAME + 64];  /* non-empty: the whole module is outside M0 (reason) */
@@ -85,7 +100,13 @@ int dc_find_repr(const DcModule *m, const char *name);
 int dc_find_abs(const DcModule *m, const char *name);
 int dc_find_derive(const DcModule *m, const char *name);
 int dc_find_tol(const DcModule *m, const char *name);
+int dc_find_meas(const DcModule *m, const char *name);
 int dc_carrier_index(const DcCarrier *c, const Sx *v);  /* -1 if absent */
+/* M2 value carriers and rational literals. */
+int dc_value_carrier(DcModule *m, const char *name);    /* -1 if not a value type */
+int dc_value_add(DcCarrier *c, const Sx *v);            /* index, -1 on error */
+int dc_sx_rat(const Sx *v, DcRat *out);                 /* (Rat p q) or integer; 0 ok */
+DcRat dc_tol_dist(const DcModule *m, int tol, int i, int j, int *ovf);  /* distance in [0,1] */
 /* 1 when name was declared by a declaration outside the M0 fragment. */
 int dc_is_skipped(const DcModule *m, const char *name);
 

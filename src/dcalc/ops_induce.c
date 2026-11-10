@@ -24,6 +24,7 @@ static void quotient_view(const DcModule *m, int ri, const char *id, DcView *v) 
     for (size_t k = 0; k < mc->nobs; k++) {
         snprintf(v->obs_label[k], DC_MAX_NAME, "%s", mc->obs[k].label);
         v->obs_car[k] = m->map[mc->obs[k].map].to;
+        v->obs_tol[k] = mc->obs[k].tol;
         v->obs[k] = calloc(nc ? nc : 1, sizeof(int));
         for (size_t c = 0; c < nc; c++) if (pre[c] >= 0) v->obs[k][c] = m->map[mc->obs[k].map].table[pre[c]];
     }
@@ -43,6 +44,8 @@ Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int slot) {
         if (dc_declared_unsupported(m, nm)) return dc_unsupported(m, "InduceExact: Representation %s is outside the M0 fragment", nm);
         return dc_invalid(m, "InduceExact: field Representation names no declared representation (%s)", nm);
     }
+    if (m->mach[m->rep[ri].machine].graded_obs || m->mach[m->rep[ri].machine].nmerge || (m->rep[ri].tol >= 0 && m->tol[m->rep[ri].tol].kind != DC_TOL_TRIVIAL))
+        return dc_req_induce_graded(r, q, slot);
     if (q->n != 2) return dc_invalid(m, "InduceExact: field 2 is unexpected; InduceExact takes one Representation");
     const DcRepr *rp = &m->rep[ri];
     Sx *subject = dc_form("Subject", dc_form("Representation", dc_sym(rp->name), NULL),

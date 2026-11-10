@@ -31,6 +31,22 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
         return dc_invalid(m, "request: expected (Head args...) or a Derive name");
     const char *h = q->items[0]->text;
     if (m->profile_unsupported[0]) return dc_unsupported(m, "request %s: %s", h, m->profile_unsupported);
+    /* M2: graded heads, and the M0 heads on a graded representation */
+    if (!strcmp(h, "PathClosure") || !strcmp(h, "Bracket") || !strcmp(h, "Delta") || !strcmp(h, "Threshold") || !strcmp(h, "CheckTransitive"))
+        return dc_req_kernels(r, q, h, slot);
+    if (!strcmp(h, "Refine")) return dc_req_refine(r, q, slot);
+    if (!strcmp(h, "BehavioralTolerance")) return dc_req_beh_tol(r, q);
+    if (!strcmp(h, "MinimizeForQueries")) return dc_req_minimize(r, q, slot);
+    if (!strcmp(h, "SamePartition")) return dc_req_same_partition(r, q);
+    if (!strcmp(h, "WeakestWithin")) return dc_req_weakest(r, q, slot);
+    if (!strcmp(h, "InduceApprox")) return dc_req_induce_approx(r, q, slot);
+    if (!strcmp(h, "Defects") || !strcmp(h, "MeasureUpdates") || !strcmp(h, "MeasureBehavioral") || !strcmp(h, "CheckBehavioral")
+        || !strcmp(h, "MeasureTrace") || !strcmp(h, "CheckTrace"))
+        return dc_req_graded(r, q, h);
+    if ((!strcmp(h, "MeasureNow") || !strcmp(h, "CheckNow") || !strcmp(h, "CheckUpdates")) && q->n >= 2 && q->items[1]->kind == SX_SYM) {
+        int ri = dc_find_repr(r->m, q->items[1]->text);
+        if (ri >= 0 && dc_repr_graded(r->m, ri)) return dc_req_graded(r, q, h);
+    }
     if (!strcmp(h, "MeasureNow")) return dc_req_measure_now(r, q);
     if (!strcmp(h, "CheckUpdates")) return dc_req_check_updates(r, q);
     if (!strcmp(h, "CheckNow")) return dc_req_check_now(r, q);

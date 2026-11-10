@@ -25,4 +25,20 @@ Sx *dc_req_check_now(DcRun *r, const Sx *q);
 Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int derive_slot);
 Sx *dc_req_check_abs(DcRun *r, const Sx *q, int derive_slot);
 Sx *dc_req_then(DcRun *r, const Sx *q, int derive_slot);
+/* M2 graded requests (ops_graded.c). */
+int dc_repr_graded(const DcModule *m, int ri);
+Sx *dc_req_graded(DcRun *r, const Sx *q, const char *head);
+Sx *dc_req_beh_tol(DcRun *r, const Sx *q);
+Sx *dc_req_minimize(DcRun *r, const Sx *q, int slot);
+Sx *dc_req_induce_graded(DcRun *r, const Sx *q, int slot);
+/* M2 crisp layer (ops_refine.c). */
+int dc_refine_stable(const DcView *v, int *cls);
+Sx *dc_blocks_sx(const DcCarrier *S, size_t n, const int *cls, const char *head);
+Sx *dc_req_refine(DcRun *r, const Sx *q, int slot);
+Sx *dc_req_same_partition(DcRun *r, const Sx *q);
+/* M2 frontier (ops_weakest.c). */
+Sx *dc_req_weakest(DcRun *r, const Sx *q, int slot);
+Sx *dc_req_induce_approx(DcRun *r, const Sx *q, int slot);
+/* M2 GradedKernels (ops_kernels.c). */
+Sx *dc_req_kernels(DcRun *r, const Sx *q, const char *head, int slot);
 #endif

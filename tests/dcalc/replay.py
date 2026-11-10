@@ -390,17 +390,20 @@ def replay(M, D, req, env):
 
 def main(fixture, output):
     forms = parse(open(fixture, encoding='utf-8', errors='replace').read())
+    import replay_graded as G   # M2: graded results replay through the independent graded checker
     mods = {f[1]: (Module(f), derives(None, f)) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module'}
+    gmods = {f[1]: G.GModule(f) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module'}
     n_ok = n_skip = n_bad = 0
     for line in open(output):
         if ' => ' not in line: continue
         head, env = line.rstrip('\n').split(' => ', 1)
         mname, req = head.split(' ', 1); req = parse(req)[0]; env = parse(env)[0]
         try:
-            M, D = mods[mname]; r = replay(M, D, req, env)
+            M, D = mods[mname]
+            r = G.replay(gmods[mname], req, env) if G.is_graded(gmods[mname], req) else replay(M, D, req, env)
             if r == 'ok': n_ok += 1
             else: n_skip += 1
-        except (Fail, KeyError, IndexError, TypeError, ValueError, AssertionError) as ex:
+        except (Fail, G.GFail, KeyError, IndexError, TypeError, ValueError, AssertionError, ZeroDivisionError) as ex:
             n_bad += 1; print('REPLAY FAIL %s %s: %s' % (mname, show(req), ex))
     print('replay: %d replayed, %d not Checked/Refuted, %d failed' % (n_ok, n_skip, n_bad))
     return 1 if n_bad else 0
