@@ -33,4 +33,6 @@ int dc_refine_stable(const DcView *v, int *cls);
 Sx *dc_blocks_sx(const DcCarrier *S, size_t n, const int *cls, const char *head);
 Sx *dc_req_refine(DcRun *r, const Sx *q, int slot);
 Sx *dc_req_same_partition(DcRun *r, const Sx *q);
+/* M2 frontier (ops_weakest.c). */
+Sx *dc_req_weakest(DcRun *r, const Sx *q, int slot);
 #endif

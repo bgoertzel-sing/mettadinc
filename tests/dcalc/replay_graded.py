@@ -133,7 +133,7 @@ def graded_rep(M, rn):
     if not r: return False
     return any(t for _, _, t in M.mach[r['machine']]['obs']) or (r['tol'] is not None and M.tol[r['tol']]['kind'] != 'Trivial')
 
-CRISP_M2_HEADS = ('Refine', 'SamePartition')
+CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin')
 def is_graded(M, req):
     if isinstance(req, str) and req in M.der: req = M.der[req]
     if not isinstance(req, list) or not req: return False
@@ -348,6 +348,56 @@ def replay_same(M, req, env, st):
         need(w[2] == ['Left', sd(cls[x] == cls[y])] and w[3] == ['Right', sd(k[x] == k[y])] and (cls[x] == cls[y]) != (k[x] == k[y]), 'witness pair does not separate the partitions')
     return 'ok'
 
+class MCtx(Ctx):
+    """Behavioral distance of a machine (no representation): seed and Kleene iteration only."""
+    def __init__(self, M, mn, g):
+        mc = M.mach[mn]; self.M, self.g, self.h = M, g, None
+        self.S = [key(s) for s in M.car[mc['states']]]
+        self.obs = [(lab, M.map[mp]['f'], t) for lab, mp, t in mc['obs']]
+        self.act = [(lab, M.map[mp]['f']) for lab, mp in mc['act']]
+        S = self.S
+        self.d0 = {(x, y): max([dist(M, t, f[x], f[y]) for _, f, t in self.obs] or [Q(0)]) for x in S for y in S}
+        self.beh = self.iterate(None)
+
+def all_partitions(s):
+    if not s: yield []; return
+    for p in all_partitions(s[1:]):
+        for i in range(len(p)): yield p[:i] + [[s[0]] + p[i]] + p[i + 1:]
+        yield [[s[0]]] + p
+
+def replay_weakest(M, req, env, st, dname):
+    need(st == 'Checked', 'WeakestWithin is Checked'); mn = req[1]; need(mn in M.mach, 'WeakestWithin names no machine')
+    f = {x[0]: x for x in req[2:] if isinstance(x, list) and len(x) == 2}
+    need(len(f) == len(req) - 2 and set(f) <= {'Within', 'Kind', 'Discount', 'Under', 'Search'}, 'bad WeakestWithin fields')
+    need(f['Kind'][1] == 'Behavioral' and f['Search'][1] == 'Exhaustive', 'only Behavioral / Exhaustive replay')
+    bound, g, law = rat(f['Within'][1]), rat(f['Discount'][1]) if 'Discount' in f else Q(1), f['Under'][1]
+    st_car = M.mach[mn]['states']; need(M.meas.get(law) == st_car, 'law is not a uniform law on the states')
+    C = MCtx(M, mn, g); S = C.S; n = len(S); raw = M.car[st_car]
+    diam = lambda P: max([C.beh[x, y] for B in P for x in B for y in B] or [Q(0)])
+    wk = lambda P: sum(Q(len(B), n) ** 2 for B in P)
+    parts = list(all_partitions(S)); best = max(wk(P) for P in parts if diam(P) <= bound)
+    heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
+    need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s' % heads)
+    need(show(find(env, 'Claim')) == show(['Claim', req, ['Equality', 'Literal']]), 'Claim differs')
+    need(show(find(env, 'Binding')) == show(['Binding', ['Module', M.name], ['Digest', ('str', M.digest)], ['Subject', ['Machine', mn]],
+         ['Source', mn], ['Target', mn], ['Interface', ['Tolerance', 'Exact']]]), 'Binding differs')
+    need(show(find(env, 'Scope')) == show(['Scope', ['Profile', M.profile], ['Fragment', 'M2-GradedDeterministic'], ['InitialStates', 'AllDeclared'],
+         ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded'], ['Discount', rs(g)], ['PolicyClass', 'None']]), 'Scope differs')
+    need(find(env, 'Assumptions') == ['Assumptions'], 'no assumptions')
+    need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M2-ExactReplay'], ['Replayed', 'True'], ['Ground', 'Replayed']]), 'Assurance differs')
+    v = find(env, 'Value')[1]; need(v[0] == 'WeakestPartition', 'WeakestPartition expected')
+    P = [[key(x) for x in B[1:]] for B in find(v, 'Partition')[1:]]
+    need(sorted(x for B in P for x in B) == sorted(S) and all(B for B in P), 'reported partition is not a partition of the states')
+    need(diam(P) <= bound, 'reported partition exceeds the bound')
+    need(wk(P) == best, 'reported weakness %s is not the optimum %s' % (rs(wk(P)), rs(best)))
+    rest = [x for x in v[1:] if x[0] != 'Partition']
+    need(show(rest) == show([['Representation', dname or '?'], ['Weakness', rs(best)], ['Defect', IV(diam(P))], ['Bound', rs(bound)],
+         ['Kind', 'Behavioral'], ['Under', law], ['Optimality', 'Checked']]), 'Value fields differ from the recomputation')
+    evd = find(env, 'Evidence'); need(len(evd) == 3, 'two certificates expected')
+    need(show(evd[1]) == show(['Certificate', ['Kind', 'ExhaustiveSearch'], ['Family', 'AllPartitions'], ['Count', str(len(parts))]]), 'search certificate differs')
+    C.h = None; check_kernel(C, evd[2], None)
+    return 'ok'
+
 def replay(M, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
@@ -355,6 +405,7 @@ def replay(M, req, env):
     if isinstance(req, str): need(req in M.der, 'unknown Derive %s' % req); dname = req; req = M.der[req]
     if req[0] == 'Refine': return replay_refine(M, req, env, st, dname)
     if req[0] == 'SamePartition': return replay_same(M, req, env, st)
+    if req[0] == 'WeakestWithin': return replay_weakest(M, req, env, st, dname)
     hd = req[0]; need(len(req) >= 2 and req[1] in M.rep, 'request names no graded representation')
     w, h, g = opts(req)
     is_def, is_check = hd == 'Defects', hd.startswith('Check')

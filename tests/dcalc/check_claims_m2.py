@@ -85,6 +85,9 @@ def oracle_value(key, env, res):
         return [[tup(x) for x in B[1:]] for B in R.find(val, 'Partition')[1:]]
     if key in ('small_fixtures.eight_state_ledger', 'small_fixtures.packet_ledger'):
         L = R.find(val, 'Ledger'); return [R.find(L, 'Before')[1], R.find(L, 'After')[1]]
+    if key == 'packets.frontier.1':   # the oracle writes packets E, U, V, B (spec Example 4.3): first letters
+        P = [[x[0] for x in B[1:]] for B in R.find(val, 'Partition')[1:]]
+        return [iv(val), R.find(val, 'Weakness')[1], P]
     raise KeyError('no extractor yet for oracle key ' + key)
 
 def fixture_of(row):
