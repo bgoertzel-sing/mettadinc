@@ -265,6 +265,17 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 if (ok == 3) { sx_free(v); free(mp->table); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, j - 1); }
                 int b = ok ? (T->value ? dc_value_add(T, v) : dc_carrier_index(T, v)) : -1; sx_free(v);
                 if (b < 0) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu gives a value outside carrier %s", nm, j - 1, T->name); }
+                /* spec 5.4: every input matches exactly one case; overlapping cases are
+                 * rejected even when they agree (source order never decides a value) */
+                for (size_t j2 = j + 1; j2 < body->n; j2++) {
+                    const Sx *r2 = body->items[j2]; Env e2 = {0};
+                    if (r2->kind != SX_LIST || r2->n != 2) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu is not a pair", nm, j2 - 1); }
+                    if (match(r2->items[0], F->elems[i], &e2)) {
+                        char *xs = sx_print(F->elems[i]);
+                        fail(err, es, "Map %s: input %s matches Cases rows %zu and %zu; overlapping cases are rejected", nm, xs, j - 1, j2 - 1);
+                        free(xs); free(mp->table); return -1;
+                    }
+                }
                 mp->table[i] = b; break;
             }
         }
