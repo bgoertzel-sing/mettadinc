@@ -178,8 +178,11 @@ def same_val(a, b):
     return key(a) == b
 
 def check_word(C, w, k, d, horizon):
-    need(isinstance(w, list) and w[0] == 'WordWitness' and len(w) == 7, 'WordWitness expected')
-    P, Cd, W, Qy, L, R = w[1:]
+    need(isinstance(w, list) and w[0] == 'WordWitness' and len(w) == 8, 'WordWitness expected')
+    P, Cd, W, Qy, L, R, LB = w[1:]
+    nK = sum(1 for i, x in enumerate(C.S) if not any(C.d0[y, x] == 0 for y in C.S[:i]))
+    need(LB == ['LengthBound', str(len(C.S) - nK)], 'LengthBound differs from n - |X/K_O| = %d' % (len(C.S) - nK))
+    need(len(W) - 1 <= len(C.S) - nK, 'witness word longer than n - |X/K_O|')
     need(P[0] == 'Pair' and Cd[0] == 'Codes' and W[0] == 'Word' and Qy[0] == 'Query' and L[0] == 'Left' and R[0] == 'Right', 'malformed WordWitness')
     x, y = key(P[1]), key(P[2]); need(x in C.S and y in C.S, 'witness pair not states')
     need(same_val(Cd[1], C.e[x]) and same_val(Cd[2], C.e[y]), 'witness codes differ from the encoding')

@@ -54,6 +54,13 @@ static const char *equality_of(const DcModule *m, const DcView *v) {
     return "Literal";
 }
 
+/* |X/K_O|: classes of the zero set of the seed (an equivalence: d0 is a pseudometric).
+ * A shortest separating word is at most n - |X/K_O| long (E03). */
+static size_t zero_classes(const DcView *v, const DcRat *d0) {
+    size_t n = v->n, c = 0;
+    for (size_t x = 0; x < n; x++) { int seen = 0; for (size_t y = 0; y < x && !seen; y++) if (dc_rat_is_zero(d0[y * n + x])) seen = 1; if (!seen) c++; }
+    return c;
+}
 /* WordWitness for pair (x,y): a shortest word to the pair attaining g^k d0 (horizon-bounded). */
 static Sx *word_witness(const DcModule *m, const DcView *v, const int *enc, int codecar, const DcRat *d0, DcRat g, int horizon, int x, int y) {
     size_t n = v->n, N = n * n; int ovf = 0;
@@ -87,7 +94,8 @@ static Sx *word_witness(const DcModule *m, const DcView *v, const int *enc, int 
     Sx *r = dc_form("WordWitness", dc_form("Pair", sx_copy(S->elems[x]), sx_copy(S->elems[y]), NULL),
                     dc_form("Codes", sx_copy(m->car[codecar].elems[enc[x]]), sx_copy(m->car[codecar].elems[enc[y]]), NULL),
                     w, dc_form("Query", dc_sym(v->obs_label[qk]), NULL),
-                    dc_form("Left", sx_copy(O->elems[v->obs[qk][px]]), NULL), dc_form("Right", sx_copy(O->elems[v->obs[qk][py]]), NULL), NULL);
+                    dc_form("Left", sx_copy(O->elems[v->obs[qk][px]]), NULL), dc_form("Right", sx_copy(O->elems[v->obs[qk][py]]), NULL),
+                    dc_form("LengthBound", dc_int((long)(n - zero_classes(v, d0))), NULL), NULL);
     free(dist); free(par); free(pact); free(qu); free(word);
     return r;
 }
