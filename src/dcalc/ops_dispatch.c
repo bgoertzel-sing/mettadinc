@@ -32,6 +32,8 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
     const char *h = q->items[0]->text;
     if (m->profile_unsupported[0]) return dc_unsupported(m, "request %s: %s", h, m->profile_unsupported);
     /* M2: graded heads, and the M0 heads on a graded representation */
+    if (!strcmp(h, "Refine")) return dc_req_refine(r, q, slot);
+    if (!strcmp(h, "SamePartition")) return dc_req_same_partition(r, q);
     if (!strcmp(h, "Defects") || !strcmp(h, "MeasureUpdates") || !strcmp(h, "MeasureBehavioral") || !strcmp(h, "CheckBehavioral"))
         return dc_req_graded(r, q, h);
     if ((!strcmp(h, "MeasureNow") || !strcmp(h, "CheckNow") || !strcmp(h, "CheckUpdates")) && q->n >= 2 && q->items[1]->kind == SX_SYM) {

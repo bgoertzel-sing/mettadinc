@@ -81,6 +81,10 @@ def oracle_value(key, env, res):
         return len(R.find(witness(env), 'Word')) - 1
     if key == 'counterexamples.non_surjective_homomorphism':
         return R.find(val, 'Kind')[1] == 'Homomorphism' and R.find(val, 'Surjective')[1] == 'False'
+    if key == 'eight_state.repair_blocks':
+        return [[tup(x) for x in B[1:]] for B in R.find(val, 'Partition')[1:]]
+    if key in ('small_fixtures.eight_state_ledger', 'small_fixtures.packet_ledger'):
+        L = R.find(val, 'Ledger'); return [R.find(L, 'Before')[1], R.find(L, 'After')[1]]
     raise KeyError('no extractor yet for oracle key ' + key)
 
 def fixture_of(row):

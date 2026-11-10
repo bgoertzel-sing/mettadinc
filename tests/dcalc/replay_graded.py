@@ -30,9 +30,11 @@ class GModule:
         self.name = form[1]; self.digest = hashlib.sha256(show(form).encode()).hexdigest()
         pf = find(form, 'Profile'); self.profile = pf[1] if pf and len(pf) == 2 else 'Crisp'
         self.car, self.map, self.tol, self.mach, self.rep = {}, {}, {}, {}, {}
+        self.meas, self.der = {}, {}
         decls = [d for d in form[2:] if isinstance(d, list) and d]
         for h, fn in (('Carrier', self.carrier), ('Tolerance', self.toldecl), ('Map', self.mapdecl),
-                      ('Machine', self.machine), ('Representation', self.repdecl)):
+                      ('Machine', self.machine), ('Representation', self.repdecl),
+                      ('Measure', self.measdecl), ('Derive', self.derdecl)):
             for d in decls:
                 if d[0] != h: continue
                 try: fn(d)
@@ -100,6 +102,12 @@ class GModule:
             else: return                              # Merge, Bag, ...: outside this checker
         self.mach[d[1]] = m
 
+    def measdecl(self, d):
+        if len(d) == 4 and d[3] == ['Uniform'] and d[2][0] == 'On' and d[2][1] in self.car: self.meas[d[1]] = d[2][1]
+
+    def derdecl(self, d):
+        if len(d) == 3: self.der[d[1]] = d[2]
+
     def repdecl(self, d):
         co, mach, e = find(d, 'Codes'), find(d, 'Of')[1], find(d, 'Encode')[1]
         need(mach in self.mach and self.map[e]['from'] == self.mach[mach]['states'], 'bad representation')
@@ -125,9 +133,11 @@ def graded_rep(M, rn):
     if not r: return False
     return any(t for _, _, t in M.mach[r['machine']]['obs']) or (r['tol'] is not None and M.tol[r['tol']]['kind'] != 'Trivial')
 
+CRISP_M2_HEADS = ('Refine', 'SamePartition')
 def is_graded(M, req):
+    if isinstance(req, str) and req in M.der: req = M.der[req]
     if not isinstance(req, list) or not req: return False
-    return req[0] in GRADED_HEADS or (req[0] in REP_HEADS and len(req) >= 2 and graded_rep(M, req[1]))
+    return req[0] in GRADED_HEADS + CRISP_M2_HEADS or (req[0] in REP_HEADS and len(req) >= 2 and graded_rep(M, req[1]))
 
 # ---- part 2: independent recomputation and the replay of one graded result ----
 class Ctx:
@@ -265,9 +275,86 @@ def evidence_ok(C, k, d, items, h):
     elif k == 'Current': need(it[0] == 'Witness', 'current witness expected'); check_word(C, it[1], k, d, 0)
     else: need(it[0] == 'Witness', 'update witness expected'); check_update_witness(C, it[1], d)
 
+def refine(C):
+    """P0 = ker q ∩ K_O, then the coarsest stable refinement; labels are block minima."""
+    S = C.S; p0 = {}
+    for i, x in enumerate(S): p0[x] = next((p0[y] for y in S[:i] if C.d0[y, x] == 0 and C.dq[y, x] == 0), x)
+    cls, rounds = dict(p0), 0
+    while True:
+        sig = {x: (cls[x],) + tuple(cls[f[x]] for _, f in C.act) for x in S}; nx = {}
+        for i, x in enumerate(S): nx[x] = next((nx[y] for y in S[:i] if sig[y] == sig[x]), x)
+        if nx == cls: return p0, cls, rounds
+        cls, rounds = nx, rounds + 1
+
+def blocks(raw, S, cls, head):
+    return [head] + [['Block'] + [raw[i] for i, x in enumerate(S) if cls[x] == b] for b in S if cls[b] == b]
+def weak(S, cls):
+    return sum(Q(sum(1 for x in S if cls[x] == b)) ** 2 for b in S if cls[b] == b) / len(S) ** 2
+
+def envelope_gen(M, req, env, st, rn, subj, eq):
+    heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
+    need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s' % heads)
+    need(show(find(env, 'Claim')) == show(['Claim', req, ['Equality', eq]]), 'Claim differs from the request')
+    r = M.rep[rn]
+    exp_b = ['Binding', ['Module', M.name], ['Digest', ('str', M.digest)], subj, ['Source', r['machine']],
+             ['Target', M.map[r['encode']]['to']], ['Interface', ['Tolerance', r['tol'] if r['tol'] is not None else 'Exact']]]
+    need(show(find(env, 'Binding')) == show(exp_b), 'Binding differs from the recomputed binding %s' % show(exp_b))
+    exp_s = ['Scope', ['Profile', M.profile], ['Fragment', 'M2-GradedDeterministic'], ['InitialStates', 'AllDeclared'],
+             ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded'], ['Discount', '1'], ['PolicyClass', 'None']]
+    need(show(find(env, 'Scope')) == show(exp_s), 'Scope differs from the recomputed scope')
+    need(find(env, 'Assumptions') == ['Assumptions'], 'graded table results carry no assumptions')
+    ground = 'Witness' if st == 'Refuted' else 'Replayed'
+    need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M2-ExactReplay'], ['Replayed', 'True'], ['Ground', ground]]),
+         'Assurance differs from the recomputed assurance')
+
+def replay_refine(M, req, env, st, dname):
+    need(st == 'Checked', 'a refinement is Checked'); rn = req[1]; need(rn in M.rep, 'Refine names no representation')
+    law, pres, until = None, False, False
+    for f in req[2:]:
+        if f == ['Preserve', 'Encoding']: pres = True
+        elif f == ['Until', 'Stable']: until = True
+        elif isinstance(f, list) and len(f) == 2 and f[0] == 'Under': law = f[1]
+        else: raise GFail('unknown Refine field %s' % show(f))
+    need(pres and until, 'Refine needs (Preserve Encoding) (Until Stable)')
+    C = Ctx(M, rn); st_car = M.mach[C.r['machine']]['states']; raw = M.car[st_car]
+    if law is not None: need(M.meas.get(law) == st_car, 'law %s is not a uniform law on the states' % law)
+    p0, cls, rounds = refine(C)
+    exp = ['Refinement', ['Representation', dname or '?'], blocks(raw, C.S, cls, 'Partition')]
+    if law is not None: exp.append(['Ledger', ['Under', law], ['Before', rs(weak(C.S, p0))], ['After', rs(weak(C.S, cls))]])
+    envelope_gen(M, req, env, st, rn, ['Subject', ['Representation', rn], ['Machine', C.r['machine']]], 'Literal')
+    need(show(find(env, 'Value')[1]) == show(exp), 'Value differs from the recomputed %s' % show(exp))
+    exp_e = ['Evidence', ['Certificate', ['Kind', 'StablePartition'], blocks(raw, C.S, p0, 'Initial'), ['Rounds', str(rounds)]]]
+    need(show(find(env, 'Evidence')) == show(exp_e), 'certificate differs from the recomputed stable partition')
+    return 'ok'
+
+def replay_same(M, req, env, st):
+    need(len(req) == 3, 'SamePartition takes two fields'); o, rn = req[1], req[2]
+    need(isinstance(o, list) and len(o) == 3 and o[0] == 'Output' and o[2] == 'Representation' and o[1] in M.der, 'bad Output')
+    rq = M.der[o[1]]; need(rq[0] == 'Refine', 'Output names no refinement')
+    Cr = Ctx(M, rq[1]); _, cls, _ = refine(Cr); need(rn in M.rep, 'SamePartition names no representation')
+    r2 = M.rep[rn]; need(r2['machine'] == Cr.r['machine'], 'the two partitions are on different machines')
+    e = M.map[r2['encode']]['f']; S = Cr.S; raw = M.car[M.mach[r2['machine']]['states']]; k = {}
+    for i, x in enumerate(S): k[x] = next((k[y] for y in S[:i] if e[y] == e[x]), x)
+    same = all((cls[x] == cls[y]) == (k[x] == k[y]) for x in S for y in S)
+    need(st == ('Checked' if same else 'Refuted'), 'status disagrees with the recomputed partitions')
+    envelope_gen(M, req, env, st, rn, ['Subject', ['Partition', o[1]], ['Representation', rn], ['Machine', r2['machine']]], 'Literal')
+    need(show(find(env, 'Value')[1]) == show(['Verdict', ['Holds', 'True' if same else 'False']]), 'Value differs')
+    evd = find(env, 'Evidence')
+    if same:
+        need(show(evd) == show(['Evidence', ['Certificate', ['Kind', 'rule'], ['Rule', 'SamePartition'], blocks(raw, S, k, 'Blocks')]]), 'certificate differs')
+    else:
+        w = find(evd, 'Witness')[1]; need(w[0] == 'PartitionWitness', 'PartitionWitness expected')
+        x, y = key(w[1][1]), key(w[1][2]); sd = lambda b: 'Same' if b else 'Different'
+        need(w[2] == ['Left', sd(cls[x] == cls[y])] and w[3] == ['Right', sd(k[x] == k[y])] and (cls[x] == cls[y]) != (k[x] == k[y]), 'witness pair does not separate the partitions')
+    return 'ok'
+
 def replay(M, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
+    dname = None
+    if isinstance(req, str): need(req in M.der, 'unknown Derive %s' % req); dname = req; req = M.der[req]
+    if req[0] == 'Refine': return replay_refine(M, req, env, st, dname)
+    if req[0] == 'SamePartition': return replay_same(M, req, env, st)
     hd = req[0]; need(len(req) >= 2 and req[1] in M.rep, 'request names no graded representation')
     w, h, g = opts(req)
     is_def, is_check = hd == 'Defects', hd.startswith('Check')
