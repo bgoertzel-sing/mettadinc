@@ -79,6 +79,56 @@ static void car_drop(DcCarrier *c) {
     c->elems = NULL; c->n = 0;
 }
 
+/* ---- M2: forward-closed subsets (Carrier C (Of T) (Reach M (From e ...))) ----
+ * The states of M reachable from the listed elements under every action of M,
+ * in parent order.  Maps on the parent are used on C by restriction. */
+static int admit_reach(DcModule *m, DcCarrier *c, const char *nm, const Sx *body, char *err, size_t es) {
+    if (strcmp(m->profile, "Graded")) return -2;
+    const Sx *fr = body->n == 3 ? body->items[2] : NULL;
+    int mi = body->n == 3 && name_ok(body->items[1]) ? dc_find_machine(m, body->items[1]->text) : -1;
+    if (mi < 0 || !sx_head_is(fr, "From") || fr->n < 2) return fail(err, es, "Carrier %s: expected (Reach Machine (From e ...)) after the machine is declared", nm);
+    const DcMachine *mc = &m->mach[mi]; const DcCarrier *P = &m->car[mc->states]; size_t n = P->n;
+    int *in = calloc(n ? n : 1, sizeof(int)), *qu = malloc((n ? n : 1) * sizeof(int)); size_t h = 0, t = 0;
+    for (size_t k = 1; k < fr->n; k++) {
+        int i = dc_carrier_index(P, fr->items[k]);
+        if (i < 0) { char *x = sx_print(fr->items[k]); fail(err, es, "Carrier %s: Reach start %s is not a state of %s", nm, x, mc->name); free(x); free(in); free(qu); return -1; }
+        if (!in[i]) { in[i] = 1; qu[t++] = i; }
+    }
+    while (h < t) { int x = qu[h++]; for (size_t a = 0; a < mc->nact; a++) { int y = m->map[mc->act[a].map].table[x]; if (!in[y]) { in[y] = 1; qu[t++] = y; } } }
+    c->n = t; c->elems = calloc(t ? t : 1, sizeof(Sx *)); c->sub_idx = malloc((t ? t : 1) * sizeof(int));
+    size_t k = 0; for (size_t i = 0; i < n; i++) if (in[i]) { c->elems[k] = sx_copy(P->elems[i]); c->sub_idx[k++] = (int)i; }
+    c->reach_parent = mc->states + 1; free(in); free(qu);
+    m->ncar++; return 0;
+}
+/* A map on the parent of a Reach carrier, restricted to it (same name).  With
+ * to_sub set (an action) its values must stay inside the subset: an update that
+ * leaves its carrier is InvalidInput.  Returns the map index, -1 on error. */
+static int restrict_map(DcModule *m, int mp, int sc, int to_sub, char *err, size_t es) {
+    const DcCarrier *C = &m->car[sc];
+    if (m->map[mp].from == sc || !C->reach_parent || C->reach_parent - 1 != m->map[mp].from) return mp;
+    int par = C->reach_parent - 1, tsub = to_sub && m->map[mp].to == par;
+    for (size_t i = 0; i < m->nmap; i++)
+        if (!strcmp(m->map[i].name, m->map[mp].name) && m->map[i].from == sc && m->map[i].to == (tsub ? sc : m->map[mp].to)) return (int)i;
+    if (m->nmap >= sizeof m->map / sizeof m->map[0]) { fail(err, es, "Map %s: too many maps after restriction to %s", m->map[mp].name, C->name); return -1; }
+    int *tab = malloc((C->n ? C->n : 1) * sizeof(int));
+    for (size_t i = 0; i < C->n; i++) {
+        int v = m->map[mp].table[C->sub_idx[i]];
+        if (tsub) {
+            int j = -1; for (size_t k = 0; k < C->n; k++) if (C->sub_idx[k] == v) { j = (int)k; break; }
+            if (j < 0) {
+                char *x = sx_print(C->elems[i]), *y = sx_print(m->car[par].elems[v]);
+                fail(err, es, "Map %s: the update sends %s to %s, which leaves carrier %s", m->map[mp].name, x, y, C->name);
+                free(x); free(y); free(tab); return -1;
+            }
+            v = j;
+        }
+        tab[i] = v;
+    }
+    char nmb[DC_MAX_NAME]; memcpy(nmb, m->map[mp].name, DC_MAX_NAME);
+    DcMap *r = &m->map[m->nmap]; memset(r, 0, sizeof *r); memcpy(r->name, nmb, DC_MAX_NAME);
+    r->from = sc; r->to = tsub ? sc : m->map[mp].to; r->table = tab; return (int)m->nmap++;
+}
+
 static int admit_carrier(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n < 4 || !name_ok(d->items[1])) return fail(err, es, "[M0] Carrier: expected (Carrier Name (Of T) (Enum ...)|(Product ...))");
     const char *nm = d->items[1]->text;
@@ -87,6 +137,7 @@ static int admit_carrier(DcModule *m, const Sx *d, char *err, size_t es) {
     const Sx *body = d->items[3];
     DcCarrier *c = &m->car[m->ncar];
     memset(c, 0, sizeof *c); snprintf(c->name, sizeof c->name, "%s", nm);
+    if (sx_head_is(body, "Reach")) return admit_reach(m, c, nm, body, err, es);
     if (sx_head_is(body, "Enum")) {
         c->n = body->n - 1; c->elems = calloc(c->n ? c->n : 1, sizeof(Sx *));
         for (size_t i = 0; i < c->n; i++) {
@@ -261,6 +312,7 @@ static int admit_ports(DcModule *m, DcMachine *mc, const Sx *d, int is_obs, char
     if (*np >= 16) return fail(err, es, "Machine %s: field %s: too many", mc->name, field);
     int mp = dc_find_map(m, d->items[2]->text);
     if (mp < 0) return fail(err, es, "Machine %s: field %s names no declared map (%s)", mc->name, field, d->items[2]->text);
+    if ((mp = restrict_map(m, mp, mc->states, !is_obs, err, es)) < 0) return -1;
     if (m->map[mp].from != mc->states) return fail(err, es, "Machine %s: field %s map %s does not start at the state carrier", mc->name, field, d->items[2]->text);
     if (!is_obs && m->map[mp].to != mc->states) return fail(err, es, "Machine %s: field Action map %s does not end at the state carrier", mc->name, d->items[2]->text);
     for (size_t i = 0; i < *np; i++) if (!strcmp(ports[i].label, d->items[1]->text)) return fail(err, es, "Machine %s: field %s label %s repeated", mc->name, field, d->items[1]->text);
@@ -332,6 +384,7 @@ static int admit_repr(DcModule *m, const Sx *d, char *err, size_t es) {
         return fail(err, es, "Representation %s: field Of names no declared machine (%s)", nm, of && of->n == 2 && of->items[1]->kind == SX_SYM ? of->items[1]->text : "?");
     if (!en || en->n != 2 || !name_ok(en->items[1]) || (r->encode = dc_find_map(m, en->items[1]->text)) < 0)
         return fail(err, es, "Representation %s: field Encode names no declared map (%s)", nm, en && en->n == 2 && en->items[1]->kind == SX_SYM ? en->items[1]->text : "?");
+    if ((r->encode = restrict_map(m, r->encode, m->mach[r->machine].states, 0, err, es)) < 0) return -1;
     if (m->map[r->encode].from != m->mach[r->machine].states)
         return fail(err, es, "Representation %s: field Encode map does not start at the states of %s", nm, m->mach[r->machine].name);
     r->codes = DC_CODES_EXACT; r->tol = -1;
@@ -565,7 +618,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
 }
 
 void dc_module_free(DcModule *m) {
-    for (size_t i = 0; i < m->ncar; i++) { for (size_t j = 0; j < m->car[i].n; j++) sx_free(m->car[i].elems[j]); free(m->car[i].elems); }
+    for (size_t i = 0; i < m->ncar; i++) { for (size_t j = 0; j < m->car[i].n; j++) sx_free(m->car[i].elems[j]); free(m->car[i].elems); free(m->car[i].sub_idx); }
     for (size_t i = 0; i < m->nmap; i++) free(m->map[i].table);
     for (size_t i = 0; i < m->ntol; i++) free(m->tol[i].table);
     for (size_t i = 0; i < m->nabs; i++) sx_free(m->abs[i].source);

@@ -31,6 +31,7 @@ class GModule:
         pf = find(form, 'Profile'); self.profile = pf[1] if pf and len(pf) == 2 else 'Crisp'
         self.car, self.map, self.tol, self.mach, self.rep = {}, {}, {}, {}, {}
         self.meas, self.der = {}, {}
+        self.sub = {}          # Reach carrier -> parent carrier
         self.uses = set(x for d in form[2:] if isinstance(d, list) and d and d[0] == 'Use' for x in d[1:])
         decls = [d for d in form[2:] if isinstance(d, list) and d]
         for h, fn in (('Carrier', self.carrier), ('Tolerance', self.toldecl), ('Map', self.mapdecl),
@@ -38,6 +39,13 @@ class GModule:
                       ('Measure', self.measdecl), ('Derive', self.derdecl)):
             for d in decls:
                 if d[0] != h: continue
+                try: fn(d)
+                except (KeyError, IndexError, TypeError, ValueError, ZeroDivisionError, GFail): pass
+        # M2: Reach carriers need their machine, so they come after the first machine pass;
+        # machines and representations on them are admitted in a second pass.
+        for h, fn in (('Carrier', self.reach), ('Machine', self.machine), ('Representation', self.repdecl)):
+            for d in decls:
+                if d[0] != h or (h == 'Machine' and d[1] in self.mach) or (h == 'Representation' and d[1] in self.rep): continue
                 try: fn(d)
                 except (KeyError, IndexError, TypeError, ValueError, ZeroDivisionError, GFail): pass
 
@@ -48,6 +56,23 @@ class GModule:
             els = [['Tuple']]
             for f in b[1:]: els = [e + [v] for e in els for v in self.car[f]]
             self.car[d[1]] = els
+
+    def reach(self, d):
+        b = d[3]
+        if b[0] != 'Reach' or self.profile != 'Graded' or d[1] in self.car: return
+        mc = self.mach[b[1]]; need(b[2][0] == 'From', 'Reach needs From')
+        st = self.car[mc['states']]; keys = [key(x) for x in st]; seen = set(); todo = []
+        for x in b[2][1:]: need(key(x) in keys, 'Reach start off the states'); seen.add(key(x)); todo.append(key(x))
+        while todo:
+            x = todo.pop()
+            for _, mp in mc['act']:
+                y = self.map[mp]['f'][x]
+                if y not in seen: seen.add(y); todo.append(y)
+        self.car[d[1]] = [x for x in st if key(x) in seen]; self.sub[d[1]] = mc['states']
+
+    def on(self, mp, states):
+        """A map usable on the states: declared on them, or on the parent of a Reach carrier (by restriction)."""
+        return self.map[mp]['from'] == states or self.sub.get(states) == self.map[mp]['from']
 
     def toldecl(self, d):
         on, b = d[2][1], d[3]
@@ -101,11 +126,15 @@ class GModule:
                 t = None
                 if len(x) == 4: need(x[3][0] == 'Values' and x[3][1] in self.tol, 'bad Values'); t = x[3][1]
                 else: need(len(x) == 3 and isinstance(x[2], str), 'bad Observe')
-                need(self.map[x[2]]['from'] == m['states'], 'observation off the states')
+                need(self.on(x[2], m['states']), 'observation off the states')
                 need(t is None or self.tol[t]['on'] == self.map[x[2]]['to'], 'tolerance off the observation')
                 m['obs'].append((x[1], x[2], t))
             elif x[0] == 'Action':
-                need(len(x) == 3 and self.map[x[2]]['from'] == m['states'] and self.map[x[2]]['to'] == m['states'], 'bad Action')
+                par = self.sub.get(m['states'])
+                need(len(x) == 3 and self.on(x[2], m['states']) and self.map[x[2]]['to'] in (m['states'], par), 'bad Action')
+                if par and self.map[x[2]]['to'] == par:
+                    inside = set(key(s_) for s_ in self.car[m['states']])
+                    need(all(self.map[x[2]]['f'][k_] in inside for k_ in inside), 'update leaves carrier %s' % m['states'])
                 m['act'].append((x[1], x[2]))
             elif x[0] == 'Merge' and self.profile == 'Graded':
                 mp = self.map[x[2]]; st = self.car[m['states']]
@@ -122,7 +151,7 @@ class GModule:
 
     def repdecl(self, d):
         co, mach, e = find(d, 'Codes'), find(d, 'Of')[1], find(d, 'Encode')[1]
-        need(mach in self.mach and self.map[e]['from'] == self.mach[mach]['states'], 'bad representation')
+        need(mach in self.mach and self.on(e, self.mach[mach]['states']), 'bad representation')
         t = co[1] if co else None
         need(t is None or (t in self.tol and self.tol[t]['on'] == self.map[e]['to']), 'bad Codes')
         self.rep[d[1]] = {'machine': mach, 'encode': e, 'tol': t}

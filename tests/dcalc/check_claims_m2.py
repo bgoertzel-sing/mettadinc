@@ -56,6 +56,14 @@ def extra_defect(row, req):
     open(tmp, 'w').write(src); rc, out, lines = run_fixture(tmp); line = lines.get((row['module'], req))
     return iv(R.find(R.parse(line.split(' => ', 1)[1])[0], 'Value')[1]) if line else None
 
+def variant_defect(row, old, new, req):
+    """Runs req on a copy of the fixture with one declaration changed (old -> new, exactly once)."""
+    src = open(fixture_of(row), encoding='utf-8').read()
+    if src.count(old) != 1: raise KeyError('variant text %s not found once' % old)
+    os.makedirs(OUT, exist_ok=True); tmp = os.path.join(OUT, 'variant-%s.metta' % row['module'])
+    open(tmp, 'w').write(src.replace(old, new)); rc, out, lines = run_fixture(tmp); line = lines.get((row['module'], req))
+    return iv(R.find(R.parse(line.split(' => ', 1)[1])[0], 'Value')[1]) if line else None
+
 def oracle_value(key, env, res):
     """Reads an oracle key off the producer's result (never off the oracle)."""
     val = R.find(env, 'Value')[1]
@@ -94,6 +102,8 @@ def oracle_value(key, env, res):
         w = witness(env); return [[x[0] for x in w[2][1:]], [x[0] for x in w[3][1:]], w[4][1][0], w[4][2][0]]
     if key == 'gauge_policy_merge.merge_only_classes':
         return len(R.find(val, 'Partition')) - 1
+    if key == 'counterexamples.restriction.singletons':   # H04 is the subset {a}; {b} is the same fixture with (From b)
+        return [num(iv(val)), num(variant_defect(res, '(Reach SharpView (From a))', '(Reach SharpView (From b))', res['request']))]
     raise KeyError('no extractor yet for oracle key ' + key)
 
 def fixture_of(row):

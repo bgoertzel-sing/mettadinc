@@ -14,6 +14,8 @@ typedef struct {
     size_t n;            /* number of elements */
     Sx **elems;          /* canonical value of each element */
     int value;           /* M2: synthesized carrier of a builtin value type (Rational01); grows during admission */
+    int reach_parent;    /* M2: (Reach M (From e ...)): parent carrier + 1, 0 = none */
+    int *sub_idx;        /* M2: sub_idx[i] = index of element i in the parent carrier */
 } DcCarrier;
 
 typedef struct {
