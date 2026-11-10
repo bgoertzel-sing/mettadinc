@@ -35,8 +35,14 @@ DcStatus dc_assure(DcVerdict v, int evidence_replays) {
     return dc_assure_grounded(v, g, 0);
 }
 
+/* M2: the scoped envelope.  sc == NULL is the M0 scope, so M0/M1 output stays
+ * byte-identical; graded requests name their fragment, horizon and discount. */
 Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subject,
                 Sx *value, Sx *evidence, const char *reason) {
+    return dc_envelope_scoped(m, v, replays, claim, subject, value, evidence, reason, NULL);
+}
+Sx *dc_envelope_scoped(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subject,
+                Sx *value, Sx *evidence, const char *reason, const DcScope *sc) {
     DcStatus st = dc_assure(v, replays);
     /* review 2 F5: fill the binding from the subject instead of placeholders.
      * Representation subjects bind Source = machine, Target = code carrier and
@@ -71,16 +77,16 @@ Sx *dc_envelope(const DcModule *m, DcVerdict v, int replays, Sx *claim, Sx *subj
      * machines from every declared state, unbounded horizon, no discount,
      * no policy quantifier. */
     sx_push(r, dc_form("Scope", dc_form("Profile", dc_sym(m && m->profile[0] ? m->profile : "Crisp"), NULL),
-                       dc_form("Fragment", dc_sym("M0-EnumeratedDeterministic"), NULL),
+                       dc_form("Fragment", dc_sym(sc ? sc->fragment : "M0-EnumeratedDeterministic"), NULL),
                        dc_form("InitialStates", dc_sym("AllDeclared"), NULL),
                        dc_form("ReachableStates", dc_sym("AllDeclared"), NULL),
-                       dc_form("Horizon", dc_sym("Unbounded"), NULL),
-                       dc_form("Discount", dc_sym("1"), NULL),
+                       sc && sc->horizon >= 0 ? dc_form("Horizon", dc_form("Steps", dc_int(sc->horizon), NULL), NULL) : dc_form("Horizon", dc_sym("Unbounded"), NULL),
+                       dc_form("Discount", dc_sym(sc && sc->discount[0] ? sc->discount : "1"), NULL),
                        dc_form("PolicyClass", dc_sym("None"), NULL), NULL));
     sx_push(r, value ? value : dc_form("Value", NULL));
     sx_push(r, evidence ? evidence : dc_form("Evidence", NULL));
     sx_push(r, dc_form("Assumptions", NULL));
-    sx_push(r, dc_form("Assurance", dc_form("Policy", dc_sym("M0-ExactReplay"), NULL),
+    sx_push(r, dc_form("Assurance", dc_form("Policy", dc_sym(sc ? "M2-ExactReplay" : "M0-ExactReplay"), NULL),
                        dc_form("Replayed", dc_sym(replays ? "True" : "False"), NULL),
                        dc_form("Ground", dc_sym(dc_ground_name(!replays || v > VERDICT_FAILS ? GROUND_NONE : (v == VERDICT_FAILS ? GROUND_WITNESS : GROUND_REPLAYED))), NULL), NULL));
     if (reason) sx_push(r, dc_form("Reason", sx_str(reason), NULL));
@@ -157,6 +163,7 @@ void dc_view_of_machine(const DcModule *m, int mi, DcView *v) {
     for (size_t k = 0; k < mc->nobs; k++) {
         snprintf(v->obs_label[k], DC_MAX_NAME, "%s", mc->obs[k].label);
         v->obs_car[k] = m->map[mc->obs[k].map].to;
+        v->obs_tol[k] = mc->obs[k].tol;
         v->obs[k] = malloc(v->n * sizeof(int)); memcpy(v->obs[k], m->map[mc->obs[k].map].table, v->n * sizeof(int));
     }
     for (size_t k = 0; k < mc->nact; k++) {

@@ -24,6 +24,7 @@ static void quotient_view(const DcModule *m, int ri, const char *id, DcView *v) 
     for (size_t k = 0; k < mc->nobs; k++) {
         snprintf(v->obs_label[k], DC_MAX_NAME, "%s", mc->obs[k].label);
         v->obs_car[k] = m->map[mc->obs[k].map].to;
+        v->obs_tol[k] = mc->obs[k].tol;
         v->obs[k] = calloc(nc ? nc : 1, sizeof(int));
         for (size_t c = 0; c < nc; c++) if (pre[c] >= 0) v->obs[k][c] = m->map[mc->obs[k].map].table[pre[c]];
     }
