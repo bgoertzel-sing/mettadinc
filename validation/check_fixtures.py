@@ -828,6 +828,107 @@ def check_manifest(modules, runs):
 
 # ---------------------------------------------------------------- main
 
+# M1 (guide 2.3, phases 4-5): linear patterns, an acyclic map-call graph, no
+# derivation cycles, and Enum elements of the carrier's element type.
+def _atoms(x, out):
+    if isinstance(x, str): out.append(x)
+    elif isinstance(x, list):
+        for y in x: _atoms(y, out)
+    return out
+
+
+def _pattern_vars(x, out):
+    if isinstance(x, str) and x.startswith("$"): out.append(x)
+    elif isinstance(x, list):
+        for y in x: _pattern_vars(y, out)
+    return out
+
+
+def _find_cycle(graph):
+    state, path = {}, []
+    def visit(n):
+        state[n] = 1; path.append(n)
+        for m in sorted(graph.get(n, ())):
+            if state.get(m) == 1: return path[path.index(m):] + [m]
+            if m not in state:
+                c = visit(m)
+                if c: return c
+        state[n] = 2; path.pop(); return None
+    for n in sorted(graph):
+        if n not in state:
+            c = visit(n)
+            if c: return c
+    return None
+
+
+def _resolve_type(mod, t, seen=()):
+    d = mod.decls.get(t) if isinstance(t, str) else None
+    if d and d[0] == "Type" and t not in seen and len(d[1]) > 2:
+        return _resolve_type(mod, d[1][2], seen + (t,))
+    return t
+
+
+def _element_ok(mod, t, e):
+    t = _resolve_type(mod, t)
+    if isinstance(e, str) and mod.decls.get(e, (None,))[0] == "Const":
+        c = mod.decls[e][1]
+        return len(c) > 2 and show(_resolve_type(mod, c[2])) == show(t)
+    if t == "Symbol":
+        return isinstance(e, str) and not is_num(e) and not e.startswith(("$", '"'))
+    if t in ("Nat", "Int", "Bit"):
+        if not is_num(e): return False
+        return t == "Int" or (int(e) >= 0 and (t != "Bit" or int(e) <= 1))
+    if t == "Bool":
+        return e in ("True", "False")
+    if t in ("Rational", "Rational01"):
+        if is_num(e): v = (int(e), 1)
+        elif isinstance(e, list) and len(e) == 3 and e[0] == "Rat" and is_num(e[1]) and is_num(e[2]) and int(e[2]) > 0:
+            v = (int(e[1]), int(e[2]))
+        else: return False
+        return t == "Rational" or 0 <= v[0] <= v[1]
+    if isinstance(t, list) and len(t) == 2 and t[0] == "BitVector" and is_num(t[1]):
+        return is_num(e) and 0 <= int(e) < 2 ** int(t[1])
+    if isinstance(t, list) and t and t[0] == "Tuple":
+        return (isinstance(e, list) and len(e) == len(t) and e[0] == "Tuple"
+                and all(_element_ok(mod, a, b) for a, b in zip(t[1:], e[1:])))
+    return False
+
+
+def check_module_rules(mod):
+    own = {n: (k, it) for n, (k, it) in mod.decls.items() if it in mod.form[2:]}
+    maps = {n for n, (k, _) in mod.decls.items() if k == "Map"}
+    derives = {n for n, (k, _) in mod.decls.items() if k == "Derive"}
+    calls, deps = {}, {}
+    for n, (k, it) in own.items():
+        where = f"{mod.fname}:{mod.name}.{n}"
+        if k == "Map":
+            for x in it[2:]:
+                if not (isinstance(x, list) and x): continue
+                if x[0] == "Cases":
+                    for c in x[1:]:
+                        vs = _pattern_vars(c[0], []) if isinstance(c, list) and c else []
+                        if len(vs) != len(set(vs)):
+                            err(where, f"nonlinear pattern {show(c[0])[:60]}")
+                if x[0] == "Body" and len(x) > 1 and isinstance(x[1], list):
+                    if len(x[1]) != len(set(x[1])):
+                        err(where, f"nonlinear Body binders {show(x[1])}")
+                if x[0] in ("From", "To"): continue
+                calls.setdefault(n, set()).update(a for a in _atoms(x, []) if a in maps)
+        elif k == "Derive":
+            deps[n] = {a for a in _atoms(it[2:], []) if a in derives}
+        elif k == "Carrier":
+            of = [x for x in it[2:] if isinstance(x, list) and len(x) == 2 and x[0] == "Of"]
+            for x in it[2:]:
+                if of and isinstance(x, list) and x and x[0] == "Enum":
+                    for e in x[1:]:
+                        if not _element_ok(mod, of[0][1], e):
+                            err(where, f"Enum element {show(e)[:40]} is neither a symbol of a symbol-typed carrier "
+                                       f"nor a constant of {show(of[0][1])}")
+    for g, what in ((calls, "map-call"), (deps, "derivation")):
+        c = _find_cycle(g)
+        if c: err(f"{mod.fname}:{mod.name}", f"{what} cycle {' -> '.join(c)}")
+
+
 def main():
     quiet = "--quiet" in sys.argv
     modules, runs, files = {}, {}, sorted(f for f in os.listdir(FIXDIR) if f.endswith(".metta"))
@@ -852,6 +953,7 @@ def main():
         for name, (kind, item) in list(m.decls.items()):
             if item in m.form[2:]:
                 check_declaration(m, name, kind, item)
+        check_module_rules(m)
     nruns = 0
     for f, forms in parsed.items():
         for kind, form in forms:
