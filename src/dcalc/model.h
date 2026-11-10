@@ -53,6 +53,8 @@ typedef struct {
 } DcAbsMap;
 
 typedef struct { char name[DC_MAX_NAME]; Sx *request; } DcDerive;
+/* M2: a finite law on a carrier; only the uniform law is admitted. */
+typedef struct { char name[DC_MAX_NAME]; int on; int uniform; } DcMeas;
 
 /* (Tolerance Name (On C) (Trivial)): identifies every pair of elements of C.
  * Other tolerance bodies are outside M0 and are noted as unsupported. */
@@ -76,6 +78,7 @@ typedef struct {
     DcRepr    rep[16];  size_t nrep;
     DcAbsMap  abs[16];  size_t nabs;
     DcDerive  der[32];  size_t nder;
+    DcMeas    meas[16]; size_t nmeas;   /* M2: (Measure Name (On C) (Uniform)) */
     DcTol     tol[16];  size_t ntol;
     int unsupported_decls;   /* declarations outside the M0 fragment */
     char profile_unsupported[2 * DC_MAX_NAME + 64];  /* non-empty: the whole module is outside M0 (reason) */
@@ -94,6 +97,7 @@ int dc_find_repr(const DcModule *m, const char *name);
 int dc_find_abs(const DcModule *m, const char *name);
 int dc_find_derive(const DcModule *m, const char *name);
 int dc_find_tol(const DcModule *m, const char *name);
+int dc_find_meas(const DcModule *m, const char *name);
 int dc_carrier_index(const DcCarrier *c, const Sx *v);  /* -1 if absent */
 /* M2 value carriers and rational literals. */
 int dc_value_carrier(DcModule *m, const char *name);    /* -1 if not a value type */

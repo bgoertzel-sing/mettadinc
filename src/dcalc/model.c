@@ -270,6 +270,19 @@ static int admit_abs(DcModule *m, const Sx *d, char *err, size_t es) {
     m->nabs++; return 0;
 }
 
+int dc_find_meas(const DcModule *m, const char *s) { for (size_t i = 0; i < m->nmeas; i++) if (!strcmp(m->meas[i].name, s)) return (int)i; return -1; }
+/* M2: (Measure Name (On C) (Uniform)); other laws stay outside the fragment (-2). */
+static int admit_meas(DcModule *m, const Sx *d, char *err, size_t es) {
+    if (d->n != 4 || !name_ok(d->items[1]) || !sx_head_is(d->items[3], "Uniform") || d->items[3]->n != 1) return -2;
+    const char *nm = d->items[1]->text; const Sx *on = d->items[2];
+    if (dc_find_meas(m, nm) >= 0) return fail(err, es, "Measure %s: duplicate name", nm);
+    if (m->nmeas >= sizeof m->meas / sizeof m->meas[0]) return fail(err, es, "Measure %s: too many", nm);
+    int c = sx_head_is(on, "On") && on->n == 2 && name_ok(on->items[1]) ? dc_find_carrier(m, on->items[1]->text) : -1;
+    if (c < 0) return -2;
+    if (m->car[c].n == 0) return fail(err, es, "Measure %s: the uniform law needs a nonempty carrier", nm);
+    DcMeas *u = &m->meas[m->nmeas++]; memset(u, 0, sizeof *u);
+    snprintf(u->name, sizeof u->name, "%s", nm); u->on = c; u->uniform = 1; return 0;
+}
 static int admit_derive(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n != 3 || !name_ok(d->items[1])) return fail(err, es, "Derive: expected (Derive Name Request)");
     const char *nm = d->items[1]->text;
@@ -432,6 +445,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
         else if (!strcmp(h, "AbstractionMap")) rc = admit_abs(m, d, err, es);
         else if (!strcmp(h, "Derive")) rc = admit_derive(m, d, err, es);
         else if (!strcmp(h, "Tolerance")) rc = admit_tol(m, d, err, es);
+        else if (!strcmp(h, "Measure")) rc = admit_meas(m, d, err, es);
         else rc = -2;
         if (rc == -1 && (strstr(err, "[M0]") || refers_to_skipped(m, err))) rc = -2;
         if (rc == -2 && !strcmp(h, "Import")) {
