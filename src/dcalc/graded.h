@@ -19,4 +19,6 @@ int dc_g_beh_bfs(const DcView *v, const DcRat *d0, DcRat g, int horizon, DcRat *
 DcRat dc_g_excess(size_t n, const DcRat *a, const DcRat *b, int *px, int *py);
 /* delta_upd = max_a max_{x,x'} (dq(Ta x,Ta x') - dq(x,x'))+ with the argmax pair and action. */
 DcRat dc_g_update_defect(const DcView *v, const DcRat *dq, int *px, int *py, int *pa);
+/* Clock-rate screen (Prop 4.8): returns max_a sup_x dq(x,T_a x); sup/mean per action. */
+DcRat dc_g_clock_rates(const DcView *v, const DcRat *dq, DcRat *sup, DcRat *mean, int *ovf);
 #endif

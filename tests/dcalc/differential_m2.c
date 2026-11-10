@@ -16,7 +16,7 @@ static unsigned rnd(unsigned k) { st = st * 6364136223846793005ULL + 14426950408
 int main(int argc, char **argv) {
     unsigned long long seed = argc > 1 ? strtoull(argv[1], 0, 10) : 20261110ULL;
     long count = argc > 2 ? atol(argv[2]) : 5000; int maxn = argc > 3 ? atoi(argv[3]) : 7;
-    st = seed; long bad = 0, ovf = 0, crisp = 0, crispbad = 0, done = 0;
+    st = seed; long bad = 0, ovf = 0, crisp = 0, crispbad = 0, done = 0, clk = 0, clkbad = 0;
     DcRat gs[4] = {{1, 1}, {1, 2}, {9, 10}, {2, 3}};
     for (long t = 0; t < count; t++) {
         DcView v; memset(&v, 0, sizeof v);
@@ -41,11 +41,17 @@ int main(int argc, char **argv) {
                     if (dc_rat_is_zero(b[i * n + j]) != (cls[i] == cls[j])) { if (crispbad < 5) printf("REFINE DISAGREE machine %ld\n", t); crispbad++; i = n; break; }
             }
         }
+        /* Clock-rate screen (Prop 4.8): d0 is a (pseudo)metric here, so the update
+         * defect of d0 is at most 2 max_a sup_x d0(x, T_a x). */
+        { int co = 0, px, py, pa; DcRat sup[4], mean[4];
+          DcRat s = dc_g_clock_rates(&v, d0, sup, mean, &co), u = dc_g_update_defect(&v, d0, &px, &py, &pa);
+          if (!co) { clk++; if (dc_rat_cmp(u, dc_rat_add(s, s, &co)) > 0 || co) { if (clkbad < 5) printf("CLOCK-RATE BOUND VIOLATED machine %ld\n", t); clkbad++; } } }
         for (size_t a = 0; a < v.nact; a++) free(v.act[a]);
         free(d0); free(r); free(b);
     }
     printf("differential_m2: seed %llu, %ld random machines with 2..%d states and 1..3 actions; %ld compared, %ld outside the 64-bit range (both engines report it); "
-           "reference vs pair-graph: %ld disagreements; crisp refine vs zero set: %ld compared, %ld disagreements\n",
-           seed, count, maxn, done, ovf, bad, crisp, crispbad);
-    return bad || crispbad ? 1 : 0;
+           "reference vs pair-graph: %ld disagreements; crisp refine vs zero set: %ld compared, %ld disagreements; "
+           "clock-rate screen (update defect <= 2 max sup rate): %ld checked, %ld violations\n",
+           seed, count, maxn, done, ovf, bad, crisp, crispbad, clk, clkbad);
+    return bad || crispbad || clkbad ? 1 : 0;
 }

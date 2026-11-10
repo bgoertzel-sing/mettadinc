@@ -90,3 +90,23 @@ DcRat dc_g_update_defect(const DcView *v, const DcRat *dq, int *px, int *py, int
         }
     return best;
 }
+
+/* Clock-rate screen (spec Prop 4.8).  For each action a: the sup rate
+ * s_a = max_x dq(x, T_a x) and the uniform mean rate r_a = (1/n) sum_x dq(x, T_a x).
+ * When dq is a metric, d(Tx,Ty) <= d(Tx,x) + d(x,y) + d(y,Ty), so the update
+ * defect is at most 2 max_a s_a.  Returns max_a s_a; fills sup[a] and mean[a]
+ * when non-NULL.  Iterates states exactly as dc_g_update_defect does. */
+DcRat dc_g_clock_rates(const DcView *v, const DcRat *dq, DcRat *sup, DcRat *mean, int *ovf) {
+    size_t n = v->n; DcRat best = ZERO;
+    for (size_t a = 0; a < v->nact; a++) {
+        DcRat s = ZERO, sum = ZERO;
+        for (size_t x = 0; x < n; x++) {
+            DcRat d = dq[x * n + (size_t)v->act[a][x]];
+            s = dc_rat_max(s, d); sum = dc_rat_add(sum, d, ovf);
+        }
+        if (sup) sup[a] = s;
+        if (mean) mean[a] = n ? dc_rat_div(sum, dc_rat((int64_t)n, 1, ovf), ovf) : ZERO;
+        best = dc_rat_max(best, s);
+    }
+    return best;
+}
