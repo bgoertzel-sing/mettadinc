@@ -254,6 +254,56 @@ Sx *dc_req_refine(DcRun *run, const Sx *q, int slot) {
     return dc_envelope_scoped(m, VERDICT_HOLDS, rep, dc_claim_of(q, "Literal"), subj, dc_form("Value", val, NULL), ev, NULL, &sc);
 }
 
+/* (MinimizeForQueries Machine [(Under Law)] [(Budget ..)]): the behavioral equivalence of
+ * the observation queries, P_beh = meet over words w and queries j of ker(o_j o T_w)
+ * (spec Thm 4.2(3)), computed by a splitting tree (Def 4.11) whose root splits X by the
+ * queries; the tree is cross-checked against the round refinement of K_O. */
+Sx *dc_req_minimize(DcRun *run, const Sx *q, int slot) {
+    DcModule *m = run->m; const char *h = "MinimizeForQueries";
+    if (q->n < 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "%s: field machine missing or not a name", h);
+    const char *nm = q->items[1]->text; int mi = dc_find_machine(m, nm);
+    if (mi < 0) return dc_declared_unsupported(m, nm) ? dc_unsupported(m, "%s: Machine %s is outside the M2 fragment", h, nm)
+                                                      : dc_invalid(m, "%s: field machine names no declared machine (%s)", h, nm);
+    int law = -1;
+    for (size_t i = 2; i < q->n; i++) {
+        const Sx *f = q->items[i];
+        if (sx_head_is(f, "Under") && f->n == 2 && f->items[1]->kind == SX_SYM && law < 0) {
+            law = dc_find_meas(m, f->items[1]->text);
+            if (law < 0) return dc_declared_unsupported(m, f->items[1]->text) ? dc_unsupported(m, "%s: law %s is outside the M2 fragment", h, f->items[1]->text)
+                                                                             : dc_invalid(m, "%s: field Under names no declared law (%s)", h, f->items[1]->text);
+            continue;
+        }
+        if (sx_head_is(f, "Budget")) return dc_unsupported(m, "%s: a Budget is outside the M2 table engine (it computes exactly)", h);
+        return dc_invalid(m, "%s: field %zu is not (Under Law) or (Budget ..)", h, i - 1);
+    }
+    if (m->mach[mi].nmerge) return dc_unsupported(m, "%s: a machine with Merge ports is outside the M2 fragment (use Refine, which closes under merge congruence)", h);
+    if (law >= 0 && m->meas[law].on != m->mach[mi].states) return dc_invalid(m, "%s: law %s is not on the state carrier", h, m->meas[law].name);
+    DcView v; dc_view_of_machine(m, mi, &v); size_t n = v.n, N = n ? n * n : 1;
+    if (n > 256) { dc_view_free(&v); return dc_unsupported(m, "%s: more than 256 states is outside the M2 table engine", h); }
+    DcRat *d0 = calloc(N, sizeof *d0), *zq = calloc(N, sizeof *zq);
+    int *p0 = malloc((n ? n : 1) * sizeof *p0), *cls = malloc((n ? n : 1) * sizeof *cls), *tc = malloc((n ? n : 1) * sizeof *tc), ovf = 0;
+    if (dc_g_seed(m, &v, d0)) ovf = 1;
+    initial_blocks(n, d0, zq, p0); memcpy(cls, p0, n * sizeof *cls);
+    refine_stable_m(&v, NULL, cls);
+    Sx *tree = split_tree(m, &v, NULL, mi, NULL, tc);
+    int rep = tree != NULL, *chk = malloc((n ? n : 1) * sizeof *chk);
+    for (size_t i = 0; i < n && rep; i++) if (tc[i] != cls[i]) rep = 0;
+    if (rep && refine_round(&v, NULL, cls, chk)) rep = 0;
+    const DcCarrier *S = &m->car[v.states];
+    Sx *val = dc_form("Refinement", dc_form("Representation", dc_sym(slot >= 0 ? m->der[slot].name : "?"), NULL),
+                      dc_blocks_sx(S, n, cls, "Partition"), NULL);
+    if (law >= 0)
+        sx_push(val, dc_form("Ledger", dc_form("Under", dc_sym(m->meas[law].name), NULL),
+                             dc_form("Before", rs(weakness_uniform(n, p0, &ovf)), NULL),
+                             dc_form("After", rs(weakness_uniform(n, cls, &ovf)), NULL), NULL));
+    Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SplittingTree"), NULL), tree ? tree : dc_form("Tree", NULL), NULL), NULL);
+    free(chk); free(tc); free(d0); free(zq); free(p0); free(cls); dc_view_free(&v);
+    if (ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "%s: a rational left the 64-bit exact range", h); }
+    DcScope sc = {"M2-GradedDeterministic", -1, ""}; sc.policy = NULL;
+    Sx *subj = dc_form("Subject", dc_form("Machine", dc_sym(m->mach[mi].name), NULL), NULL);
+    return dc_envelope_scoped(m, VERDICT_HOLDS, rep, dc_claim_of(q, "Literal"), subj, dc_form("Value", val, NULL), ev, NULL, &sc);
+}
+
 /* (SamePartition (Output D Representation) Rep2): the Partition of a Checked
  * Refinement equals the kernel of Rep2's encoding (E07). */
 static int blocks_to_cls(const DcCarrier *S, const Sx *P, int *cls) {

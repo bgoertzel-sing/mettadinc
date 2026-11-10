@@ -190,7 +190,7 @@ CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin', 'InduceApprox') + 
 def is_graded(M, req):
     if isinstance(req, str) and req in M.der: req = M.der[req]
     if not isinstance(req, list) or not req: return False
-    return req[0] in GRADED_HEADS + CRISP_M2_HEADS + ('BehavioralTolerance',) or (req[0] in REP_HEADS + ('InduceExact',) and len(req) >= 2 and graded_rep(M, req[1]))
+    return req[0] in GRADED_HEADS + CRISP_M2_HEADS + ('BehavioralTolerance', 'MinimizeForQueries') or (req[0] in REP_HEADS + ('InduceExact',) and len(req) >= 2 and graded_rep(M, req[1]))
 
 # ---- part 2: independent recomputation and the replay of one graded result ----
 class Ctx:
@@ -450,6 +450,45 @@ def replay_refine(M, req, env, st, dname):
     need(show(find(env, 'Value')[1]) == show(exp), 'Value differs from the recomputed %s' % show(exp))
     evd = find(env, 'Evidence'); need(len(evd) == 2, 'refinement evidence is one certificate')
     check_split_tree(C, evd[1], cls, True)
+    return 'ok'
+
+def replay_minimize(M, req, env, st, dname):
+    """MinimizeForQueries: the coarsest stable refinement of K_O (Thm 4.2(3)), recomputed here
+    by signature rounds, and its splitting tree checked structurally (Def 4.11)."""
+    need(st == 'Checked', 'a refinement is Checked')
+    need(len(req) >= 2 and isinstance(req[1], str) and req[1] in M.mach, 'MinimizeForQueries names no machine')
+    need(not M.mach[req[1]].get('merge'), 'MinimizeForQueries on a Merge machine is outside M2')
+    law = None
+    for f in req[2:]:
+        if isinstance(f, list) and len(f) == 2 and f[0] == 'Under' and law is None: law = f[1]
+        else: raise GFail('unknown MinimizeForQueries field %s' % show(f))
+    C = MCtx(M, req[1]); S = C.S; raw = M.car[C.states]
+    if law is not None: need(M.meas.get(law) == C.states, 'law %s is not a uniform law on the states' % law)
+    p0 = {}
+    for i, x in enumerate(S): p0[x] = next((p0[y] for y in S[:i] if C.d0[y, x] == 0), x)
+    cls = dict(p0)
+    while True:
+        sig = {x: (cls[x],) + tuple(cls[f[x]] for _, f in C.act) for x in S}; nx = {}
+        for i, x in enumerate(S): nx[x] = next((nx[y] for y in S[:i] if sig[y] == sig[x]), x)
+        if nx == cls: break
+        cls = nx
+    exp = ['Refinement', ['Representation', dname or '?'], blocks(raw, S, cls, 'Partition')]
+    if law is not None: exp.append(['Ledger', ['Under', law], ['Before', rs(weak(S, p0))], ['After', rs(weak(S, cls))]])
+    heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
+    need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s' % heads)
+    need(show(find(env, 'Claim')) == show(['Claim', req, ['Equality', 'Literal']]), 'Claim differs from the request')
+    exp_b = ['Binding', ['Module', M.name], ['Digest', ('str', M.digest)], ['Subject', ['Machine', req[1]]],
+             ['Source', 'None'], ['Target', 'None'], ['Interface', ['Tolerance', 'Exact']]]
+    need(show(find(env, 'Binding')) == show(exp_b), 'Binding differs from the recomputed binding %s' % show(exp_b))
+    exp_s = ['Scope', ['Profile', M.profile], ['Fragment', 'M2-GradedDeterministic'], ['InitialStates', 'AllDeclared'],
+             ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded'], ['Discount', '1'], ['PolicyClass', 'None']]
+    need(show(find(env, 'Scope')) == show(exp_s), 'Scope differs from the recomputed scope')
+    need(find(env, 'Assumptions') == ['Assumptions'], 'graded table results carry no assumptions')
+    need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M2-ExactReplay'], ['Replayed', 'True'], ['Ground', 'Replayed']]),
+         'Assurance differs from the recomputed assurance')
+    need(show(find(env, 'Value')[1]) == show(exp), 'Value differs from the recomputed %s' % show(exp))
+    evd = find(env, 'Evidence'); need(len(evd) == 2, 'refinement evidence is one certificate')
+    check_split_tree(C, evd[1], cls, False)
     return 'ok'
 
 def replay_same(M, req, env, st):
@@ -825,6 +864,7 @@ def replay(M, req, env):
     if isinstance(req, str): need(req in M.der, 'unknown Derive %s' % req); dname = req; req = M.der[req]
     if req[0] == 'Refine': return replay_refine(M, req, env, st, dname)
     if req[0] == 'BehavioralTolerance': return replay_beh_tol(M, req, env, st)
+    if req[0] == 'MinimizeForQueries': return replay_minimize(M, req, env, st, dname)
     if req[0] == 'SamePartition': return replay_same(M, req, env, st)
     if req[0] == 'WeakestWithin': return replay_weakest(M, req, env, st, dname)
     if req[0] == 'InduceApprox': return replay_approx(M, req, env, st, dname)

@@ -29,6 +29,7 @@ Sx *dc_req_then(DcRun *r, const Sx *q, int derive_slot);
 int dc_repr_graded(const DcModule *m, int ri);
 Sx *dc_req_graded(DcRun *r, const Sx *q, const char *head);
 Sx *dc_req_beh_tol(DcRun *r, const Sx *q);
+Sx *dc_req_minimize(DcRun *r, const Sx *q, int slot);
 Sx *dc_req_induce_graded(DcRun *r, const Sx *q, int slot);
 /* M2 crisp layer (ops_refine.c). */
 int dc_refine_stable(const DcView *v, int *cls);

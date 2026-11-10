@@ -38,6 +38,9 @@ CASES = {
   'TraceFour (BehavioralTolerance M (Horizon (Steps 1)))': ('Checked', '(Value (ToleranceResult (Tolerance (Kernel (On S) (Entries (Entry A A 1) (Entry A B 1) (Entry A C 0) (Entry A D 0) (Entry B A 1) (Entry B B 1) (Entry B C 0) (Entry B D 0) (Entry C A 0) (Entry C B 0) (Entry C C 1) (Entry C D 0) (Entry D A 0) (Entry D B 0) (Entry D C 0) (Entry D D 1)))) (Certificate (Kind TwoSided) (Lower (WordTests 5)) (Upper LayeredPrefixpoint))))'),
   'TraceFour (BehavioralTolerance M)': ('Checked', '(Value (ToleranceResult (Tolerance (Kernel (On S) (Entries (Entry A A 1) (Entry A B 0) (Entry A C 0) (Entry A D 0) (Entry B A 0) (Entry B B 1) (Entry B C 0) (Entry B D 0) (Entry C A 0) (Entry C B 0) (Entry C C 1) (Entry C D 0) (Entry D A 0) (Entry D B 0) (Entry D C 0) (Entry D D 1)))) (Certificate (Kind TwoSided) (Lower (WordTests 6)) (Upper Prefixpoint))))'),
  },
+ 'min_pairs.metta': {
+  'MinPairs (MinimizeForQueries M)': ('Checked', '(Value (Refinement (Representation ?) (Partition (Block A B) (Block C D) (Block E))))'),
+ },
  'then_eight.metta': {
   'ThenEight SecondChecked': ('Checked', '(Value (CheckedAbstractionMap (Kind Quotient) (Surjective True)))'),
   'ThenEight Composed': ('Checked', '(Value (ComposedArrow (Source Concrete) (Target Codes) (Kind Quotient)))'),
