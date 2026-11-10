@@ -31,6 +31,7 @@ class GModule:
         pf = find(form, 'Profile'); self.profile = pf[1] if pf and len(pf) == 2 else 'Crisp'
         self.car, self.map, self.tol, self.mach, self.rep = {}, {}, {}, {}, {}
         self.meas, self.der = {}, {}
+        self.uses = set(x for d in form[2:] if isinstance(d, list) and d and d[0] == 'Use' for x in d[1:])
         decls = [d for d in form[2:] if isinstance(d, list) and d]
         for h, fn in (('Carrier', self.carrier), ('Tolerance', self.toldecl), ('Map', self.mapdecl),
                       ('Machine', self.machine), ('Representation', self.repdecl),
@@ -65,7 +66,11 @@ class GModule:
 
     def mapdecl(self, d):
         fr, to, body = d[2][1], d[3][1], d[4]
-        if not isinstance(fr, str): return          # inline Product source: not in this checker yet
+        if isinstance(fr, list):                    # inline (Product A B): a carrier named by its printed form
+            need(self.profile == 'Graded' and fr[0] == 'Product' and len(fr) == 3, 'inline source outside M2')
+            k_ = show(fr)
+            if k_ not in self.car: self.car[k_] = [['Tuple', a, b] for a in self.car[fr[1]] for b in self.car[fr[2]]]
+            fr = k_
         src, val = self.car[fr], to in VALUE_TYPES
         f = {}
         if body[0] == 'Table':
@@ -75,6 +80,9 @@ class GModule:
                 for pat, rhs in body[1:]:
                     env = {}
                     if match(pat, s, env): f[key(s)] = ev(rhs, env); break
+        elif body[0] == 'Body' and len(body) == 3 and self.profile == 'Graded' and 'FiniteSets' in self.uses:
+            var = body[1][0]
+            for s_ in src: f[key(s_)] = set_eval(body[2], var, s_)
         else: return
         need(all(key(s) in f for s in src), 'map %s not total' % d[1])
         if val:
@@ -99,7 +107,11 @@ class GModule:
             elif x[0] == 'Action':
                 need(len(x) == 3 and self.map[x[2]]['from'] == m['states'] and self.map[x[2]]['to'] == m['states'], 'bad Action')
                 m['act'].append((x[1], x[2]))
-            else: return                              # Merge, Bag, ...: outside this checker
+            elif x[0] == 'Merge' and self.profile == 'Graded':
+                mp = self.map[x[2]]; st = self.car[m['states']]
+                need(self.car[mp['from']] == [['Tuple', a, b] for a in st for b in st] and mp['to'] == m['states'], 'Merge map off (Product S S) -> S')
+                m.setdefault('merge', []).append((x[1], x[2]))
+            else: return                              # Bag, ...: outside this checker
         self.mach[d[1]] = m
 
     def measdecl(self, d):
@@ -114,6 +126,16 @@ class GModule:
         t = co[1] if co else None
         need(t is None or (t in self.tol and self.tol[t]['on'] == self.map[e]['to']), 'bad Codes')
         self.rep[d[1]] = {'machine': mach, 'encode': e, 'tol': t}
+
+RECEIPTS = {'Empty': frozenset(), 'UOnly': frozenset('u'), 'VOnly': frozenset('v'), 'Both': frozenset('uv')}
+def set_eval(b, var, val):
+    """FiniteSets Body: the variable, literals, GetTuple, ReceiptUnion (union of receipt sets, spec Example 4.3)."""
+    if isinstance(b, str): return val if b == var else b
+    if b[0] == 'GetTuple': t = set_eval(b[1], var, val); need(t[0] == 'Tuple', 'GetTuple on a non-tuple'); return t[1 + int(b[2])]
+    if b[0] == 'ReceiptUnion':
+        u = RECEIPTS[set_eval(b[1], var, val)] | RECEIPTS[set_eval(b[2], var, val)]
+        return next(k for k, v in RECEIPTS.items() if v == u)
+    raise GFail('Body operator %s outside FiniteSets' % b[0])
 
 def dist(M, t, a, b):
     if t is None: return Q(0) if a == b else Q(1)
@@ -131,7 +153,7 @@ def separated(M, t):
 def graded_rep(M, rn):
     r = M.rep.get(rn) if isinstance(rn, str) else None
     if not r: return False
-    return any(t for _, _, t in M.mach[r['machine']]['obs']) or (r['tol'] is not None and M.tol[r['tol']]['kind'] != 'Trivial')
+    return any(t for _, _, t in M.mach[r['machine']]['obs']) or bool(M.mach[r['machine']].get('merge')) or (r['tol'] is not None and M.tol[r['tol']]['kind'] != 'Trivial')
 
 CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin', 'InduceApprox')
 def is_graded(M, req):
@@ -147,12 +169,16 @@ class Ctx:
         self.S = [key(s) for s in M.car[mc['states']]]
         self.obs = [(lab, M.map[mp]['f'], t) for lab, mp, t in mc['obs']]
         self.act = [(lab, M.map[mp]['f']) for lab, mp in mc['act']]
+        self.raw = {key(s): s for s in M.car[mc['states']]}
+        self.merge = [(lab, M.map[mp]['f']) for lab, mp in mc.get('merge', [])]
         e = M.map[r['encode']]['f']; self.e = e
         S = self.S
         self.d0 = {(x, y): max([dist(M, t, f[x], f[y]) for _, f, t in self.obs] or [Q(0)]) for x in S for y in S}
         self.dq = {(x, y): dist(M, r['tol'], e[x], e[y]) for x in S for y in S}
         self.beh = self.iterate(h)
         self.eq = 'Observer' if any(t and not separated(M, t) for _, _, t in self.obs) else 'Literal'
+
+    def mg(self, f, a, b): return key(f[key(['Tuple', self.raw[a], self.raw[b]])])
 
     def step(self, D):
         return {(x, y): max([self.d0[x, y]] + [self.g * D[f[x], f[y]] for _, f in self.act]) for (x, y) in D}
@@ -172,7 +198,9 @@ class Ctx:
         S = self.S
         if k == 'Current': return max([max(Q(0), self.d0[x, y] - self.dq[x, y]) for x in S for y in S])
         if k == 'Update':
-            return max([Q(0)] + [max(Q(0), self.dq[f[x], f[y]] - self.dq[x, y]) for _, f in self.act for x in S for y in S])
+            act = max([Q(0)] + [max(Q(0), self.dq[f[x], f[y]] - self.dq[x, y]) for _, f in self.act for x in S for y in S])
+            return max([act] + [max(Q(0), self.dq[self.mg(f, a, b), self.mg(f, a2, b2)] - max(self.dq[a, a2], self.dq[b, b2]))
+                                for _, f in self.merge for a in S for b in S for a2 in S for b2 in S])
         return max([max(Q(0), self.beh[x, y] - self.dq[x, y]) for x in S for y in S])
 
 def rs(q): return str(q.numerator) if q.denominator == 1 else '%d/%d' % (q.numerator, q.denominator)
@@ -208,6 +236,16 @@ def check_word(C, w, k, d, horizon):
     need(lower == d and d > 0, 'witness bound %s does not attain the defect %s' % (rs(lower), rs(d)))
 
 def check_update_witness(C, w, d):
+    if isinstance(w, list) and w and w[0] == 'MergeWitness':
+        need(len(w) == 6 and [x[0] for x in w[1:]] == ['Merge', 'Left', 'Right', 'Results', 'Codes'], 'malformed MergeWitness')
+        mg = dict(C.merge); need(w[1][1] in mg, 'merge witness names no Merge port'); f = mg[w[1][1]]
+        a, b, a2, b2 = key(w[2][1]), key(w[2][2]), key(w[3][1]), key(w[3][2])
+        need(all(x in C.S for x in (a, b, a2, b2)), 'merge witness off the states')
+        u, v = C.mg(f, a, b), C.mg(f, a2, b2)
+        need(key(w[4][1]) == u and key(w[4][2]) == v, 'merge witness results differ from the recomputed merge')
+        need(same_val(w[5][1], C.e[u]) and same_val(w[5][2], C.e[v]), 'merge witness codes differ')
+        need(C.dq[u, v] - max(C.dq[a, a2], C.dq[b, b2]) == d and d > 0, 'merge witness does not attain the defect')
+        return
     need(isinstance(w, list) and w[0] == 'UpdateWitness' and len(w) == 5, 'UpdateWitness expected')
     x, y = key(w[1][1]), key(w[1][2]); acts = dict(C.act)
     need(w[2][0] == 'Do' and w[2][1] in acts, 'update witness names no action'); f = acts[w[2][1]]
@@ -281,7 +319,8 @@ def refine(C):
     for i, x in enumerate(S): p0[x] = next((p0[y] for y in S[:i] if C.d0[y, x] == 0 and C.dq[y, x] == 0), x)
     cls, rounds = dict(p0), 0
     while True:
-        sig = {x: (cls[x],) + tuple(cls[f[x]] for _, f in C.act) for x in S}; nx = {}
+        sig = {x: (cls[x],) + tuple(cls[f[x]] for _, f in C.act)
+                  + tuple(cls[C.mg(f, x, y)] for _, f in C.merge for y in S) + tuple(cls[C.mg(f, y, x)] for _, f in C.merge for y in S) for x in S}; nx = {}
         for i, x in enumerate(S): nx[x] = next((nx[y] for y in S[:i] if sig[y] == sig[x]), x)
         if nx == cls: return p0, cls, rounds
         cls, rounds = nx, rounds + 1

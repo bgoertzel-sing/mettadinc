@@ -115,15 +115,76 @@ static int admit_carrier(DcModule *m, const Sx *d, char *err, size_t es) {
     m->ncar++; return 0;
 }
 
+/* ---- M2: inline Product sources, Body maps over FiniteSets, Merge ports ---- */
+static int uses_lib(const DcModule *m, const char *lib) {
+    const Sx *src = m->source;
+    for (size_t i = 2; src && i < src->n; i++) {
+        const Sx *d = src->items[i];
+        if (sx_head_is(d, "Use")) for (size_t k = 1; k < d->n; k++) if (sx_is_sym(d->items[k], lib)) return 1;
+    }
+    return 0;
+}
+/* (Product A B) written inline in a Map's From field: a carrier named by its printed form. */
+static int product_carrier(DcModule *m, const Sx *prod, char *err, size_t es) {
+    char *nm = sx_print(prod); int at = nm ? dc_find_carrier(m, nm) : -1;
+    if (!nm) { fail(err, es, "inline Product: out of memory"); return -1; }
+    if (at >= 0) { free(nm); return at; }
+    int a = prod->n == 3 && name_ok(prod->items[1]) ? dc_find_carrier(m, prod->items[1]->text) : -1;
+    int b = prod->n == 3 && name_ok(prod->items[2]) ? dc_find_carrier(m, prod->items[2]->text) : -1;
+    if (strlen(nm) >= DC_MAX_NAME || a < 0 || b < 0) { fail(err, es, "Map: inline carrier %s must be a binary Product of declared carriers", nm); free(nm); return -1; }
+    size_t na = m->car[a].n, nb = m->car[b].n, total = na * nb;
+    if (total > 4096 || m->ncar >= sizeof m->car / sizeof m->car[0]) { fail(err, es, "[M0] inline carrier %s: too large for the table engine", nm); free(nm); return -1; }
+    DcCarrier *c = &m->car[m->ncar]; memset(c, 0, sizeof *c); snprintf(c->name, sizeof c->name, "%s", nm); free(nm);
+    c->n = total; c->elems = calloc(total ? total : 1, sizeof(Sx *));
+    for (size_t t = 0; t < total; t++) {
+        Sx *tu = sx_list(); sx_push(tu, sx_sym("Tuple"));
+        sx_push(tu, sx_copy(m->car[a].elems[t / nb])); sx_push(tu, sx_copy(m->car[b].elems[t % nb]));
+        c->elems[t] = tu;
+    }
+    return (int)m->ncar++;
+}
+/* FiniteSets reading of packet symbols (spec Example 4.3): E = {}, U = {u}, V = {v}, B = {u, v}. */
+static const char *RECEIPT[4] = {"Empty", "UOnly", "VOnly", "Both"};
+static int receipt_bits(const Sx *v) {
+    if (!v || v->kind != SX_SYM) return -1;
+    for (int i = 0; i < 4; i++) if (!strcmp(v->text, RECEIPT[i])) return i;
+    return -1;
+}
+/* Body expressions: the bound variable, literals, (GetTuple e i), (ReceiptUnion a b).
+ * *ok: 1 fine, 0 ill-formed, 2 an operator outside the M2 Body fragment. */
+static Sx *eval_set_body(const Sx *b, const char *var, const Sx *val, int *ok) {
+    if (b->kind == SX_SYM) {
+        if (!strcmp(b->text, var)) return sx_copy(val);
+        if (b->text[0] == '$' && *ok == 1) *ok = 0;
+        return sx_copy(b);
+    }
+    if (sx_head_is(b, "GetTuple") && b->n == 3) {
+        Sx *t = eval_set_body(b->items[1], var, val, ok), *r; long i;
+        if (parse_int(b->items[2], &i) == 1 && sx_head_is(t, "Tuple") && i >= 0 && (size_t)i + 1 < t->n) r = sx_copy(t->items[i + 1]);
+        else { if (*ok == 1) *ok = 0; r = sx_sym("?"); }
+        sx_free(t); return r;
+    }
+    if (sx_head_is(b, "ReceiptUnion") && b->n == 3) {
+        Sx *x = eval_set_body(b->items[1], var, val, ok), *y = eval_set_body(b->items[2], var, val, ok);
+        int bx = receipt_bits(x), by = receipt_bits(y); sx_free(x); sx_free(y);
+        if (bx < 0 || by < 0) { if (*ok == 1) *ok = 0; return sx_sym("?"); }
+        return sx_sym(RECEIPT[bx | by]);
+    }
+    *ok = 2; return sx_sym("?");
+}
+
 static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n != 5 || !name_ok(d->items[1])) return fail(err, es, "[M0] Map: expected (Map name (From C) (To C) (Table|Cases ...))");
     const char *nm = d->items[1]->text;
     if (dc_find_map(m, nm) >= 0) return fail(err, es, "Map %s: duplicate name", nm);
     if (m->nmap >= 64) return fail(err, es, "Map %s: too many maps", nm);
     const Sx *fr = d->items[2], *to = d->items[3], *body = d->items[4];
-    if (!sx_head_is(fr, "From") || fr->n != 2 || !name_ok(fr->items[1])) return fail(err, es, "[M0] Map %s: field From", nm);
+    int fprod = -1;
+    if (sx_head_is(fr, "From") && fr->n == 2 && sx_head_is(fr->items[1], "Product") && !strcmp(m->profile, "Graded")) {
+        fprod = product_carrier(m, fr->items[1], err, es); if (fprod < 0) return -1; }
+    if (fprod < 0 && (!sx_head_is(fr, "From") || fr->n != 2 || !name_ok(fr->items[1]))) return fail(err, es, "[M0] Map %s: field From", nm);
     if (!sx_head_is(to, "To") || to->n != 2 || !name_ok(to->items[1])) return fail(err, es, "[M0] Map %s: field To", nm);
-    int f = dc_find_carrier(m, fr->items[1]->text), t = dc_find_carrier(m, to->items[1]->text);
+    int f = fprod >= 0 ? fprod : dc_find_carrier(m, fr->items[1]->text), t = dc_find_carrier(m, to->items[1]->text);
     if (t < 0 && !strcmp(m->profile, "Graded")) t = dc_value_carrier(m, to->items[1]->text);
     if (f < 0) return fail(err, es, "Map %s: field From names no declared carrier (%s)", nm, fr->items[1]->text);
     if (t < 0) return fail(err, es, "Map %s: field To names no declared carrier (%s)", nm, to->items[1]->text);
@@ -155,6 +216,21 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 if (b < 0) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu gives a value outside carrier %s", nm, j - 1, T->name); }
                 mp->table[i] = b; break;
             }
+        }
+    } else if (sx_head_is(body, "Body") && body->n == 3 && !strcmp(m->profile, "Graded") && uses_lib(m, "FiniteSets")
+               && body->items[1]->kind == SX_LIST && body->items[1]->n == 1 && body->items[1]->items[0]->kind == SX_SYM
+               && body->items[1]->items[0]->text[0] == '$') {
+        const char *var = body->items[1]->items[0]->text;
+        for (size_t i = 0; i < F->n; i++) {
+            int ok = 1; Sx *v = eval_set_body(body->items[2], var, F->elems[i], &ok);
+            int b = ok == 1 ? dc_carrier_index(T, v) : -1;
+            if (ok == 2) { sx_free(v); free(mp->table); return fail(err, es, "[M0] Map %s: Body uses an operator outside the M2 FiniteSets fragment", nm); }
+            if (b < 0) {
+                char *xs = sx_print(F->elems[i]), *vs = sx_print(v);
+                fail(err, es, "Map %s: Body sends %s to %s, which is not in carrier %s", nm, xs, vs, T->name);
+                free(xs); free(vs); sx_free(v); free(mp->table); return -1;
+            }
+            sx_free(v); mp->table[i] = b;
         }
     } else { free(mp->table); return fail(err, es, "[M0] Map %s: only Table and Cases maps are in the M0 deterministic fragment", nm); }
     for (size_t i = 0; i < F->n; i++) if (mp->table[i] < 0) {
@@ -192,6 +268,26 @@ static int admit_ports(DcModule *m, DcMachine *mc, const Sx *d, int is_obs, char
     return 0;
 }
 
+/* M2: (Merge label map) on a Graded machine; map goes from the product of the
+ * states with themselves (in carrier order) to the states. */
+static int admit_merge(DcModule *m, DcMachine *mc, const Sx *d, char *err, size_t es) {
+    if (strcmp(m->profile, "Graded")) return -2;
+    if (d->n != 3 || !name_ok(d->items[1]) || !name_ok(d->items[2])) return fail(err, es, "Machine %s: field Merge expects (Merge label map)", mc->name);
+    if (mc->nmerge >= sizeof mc->merge / sizeof mc->merge[0]) return fail(err, es, "Machine %s: field Merge: too many", mc->name);
+    int mp = dc_find_map(m, d->items[2]->text);
+    if (mp < 0) return fail(err, es, "Machine %s: field Merge names no declared map (%s)", mc->name, d->items[2]->text);
+    const DcCarrier *S = &m->car[mc->states], *P = &m->car[m->map[mp].from]; size_t n = S->n;
+    int ok = P->n == n * n && m->map[mp].to == mc->states;
+    for (size_t t = 0; ok && t < P->n; t++) {
+        const Sx *e = P->elems[t];
+        ok = sx_head_is(e, "Tuple") && e->n == 3 && sx_equal(e->items[1], S->elems[t / n]) && sx_equal(e->items[2], S->elems[t % n]);
+    }
+    if (!ok) return fail(err, es, "Machine %s: Merge map %s is not from (Product %s %s) to %s", mc->name, d->items[2]->text, S->name, S->name, S->name);
+    for (size_t i = 0; i < mc->nmerge; i++) if (!strcmp(mc->merge[i].label, d->items[1]->text)) return fail(err, es, "Machine %s: field Merge label %s repeated", mc->name, d->items[1]->text);
+    DcPort *p = &mc->merge[mc->nmerge++]; snprintf(p->label, DC_MAX_NAME, "%s", d->items[1]->text); p->map = mp; p->tol = -1;
+    return 0;
+}
+
 static int admit_machine(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n < 3 || !name_ok(d->items[1])) return fail(err, es, "Machine: expected (Machine Name (States C) ...)");
     const char *nm = d->items[1]->text;
@@ -207,6 +303,7 @@ static int admit_machine(DcModule *m, const Sx *d, char *err, size_t es) {
         if (sx_head_is(f, "States")) continue;
         if (sx_head_is(f, "Observe")) { { int prc = admit_ports(m, mc, f, 1, err, es); if (prc) return prc; } }
         else if (sx_head_is(f, "Action")) { { int prc = admit_ports(m, mc, f, 0, err, es); if (prc) return prc; } }
+        else if (sx_head_is(f, "Merge")) { int prc = admit_merge(m, mc, f, err, es); if (prc) return prc; }
         else return fail(err, es, "[M0] Machine %s: field %s is outside the M0 deterministic fragment", nm, f->kind == SX_LIST && f->n ? f->items[0]->text : "?");
     }
     m->nmach++; return 0;

@@ -31,6 +31,7 @@ typedef struct {
     DcPort act[16];  size_t nact;
     int graded_obs;      /* an Observe carries (Values Tol): outside M0 */
     int bagged;          /* (Bag ...): nondeterministic, outside M0 */
+    DcPort merge[4]; size_t nmerge;   /* M2: (Merge label map), map from (Product S S) to S */
 } DcMachine;
 
 /* Exact: codes compared literally (default). All: (Codes AllCodes), every code

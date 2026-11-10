@@ -10,7 +10,8 @@
 
 /* One round: nx[i] = the first j <= i with cls[j] == cls[i] and, for every
  * action, cls[Ta j] == cls[Ta i].  Labels are block minima, so they stay canonical. */
-static int refine_round(const DcView *v, const int *cls, int *nx) {
+typedef struct { const int *t[4]; size_t n; } DcMerges;   /* merge tables, index a*n+b */
+static int refine_round(const DcView *v, const DcMerges *mg, const int *cls, int *nx) {
     size_t n = v->n; int changed = 0;
     for (size_t i = 0; i < n; i++) {
         nx[i] = (int)i;
@@ -18,6 +19,9 @@ static int refine_round(const DcView *v, const int *cls, int *nx) {
             if (cls[j] != cls[i]) continue;
             int ok = 1;
             for (size_t a = 0; a < v->nact && ok; a++) if (cls[v->act[a][j]] != cls[v->act[a][i]]) ok = 0;
+            /* merge congruence, one argument at a time (enough for an equivalence) */
+            for (size_t p = 0; mg && p < mg->n && ok; p++) for (size_t y = 0; y < n && ok; y++)
+                if (cls[mg->t[p][j * n + y]] != cls[mg->t[p][i * n + y]] || cls[mg->t[p][y * n + j]] != cls[mg->t[p][y * n + i]]) ok = 0;
             if (ok) { nx[i] = (int)j; break; }
         }
         if (nx[i] != cls[i]) changed = 1;
@@ -33,11 +37,12 @@ static void initial_blocks(size_t n, const DcRat *d0, const DcRat *dq, int *cls)
     }
 }
 /* Coarsest stable refinement of cls in place; returns the number of strict rounds. */
-int dc_refine_stable(const DcView *v, int *cls) {
+static int refine_stable_m(const DcView *v, const DcMerges *mg, int *cls) {
     size_t n = v->n; int *nx = malloc((n ? n : 1) * sizeof *nx), rounds = 0;
-    while (refine_round(v, cls, nx)) { memcpy(cls, nx, n * sizeof *cls); rounds++; }
+    while (refine_round(v, mg, cls, nx)) { memcpy(cls, nx, n * sizeof *cls); rounds++; }
     free(nx); return rounds;
 }
+int dc_refine_stable(const DcView *v, int *cls) { return refine_stable_m(v, NULL, cls); }
 /* Weakness under the uniform law: sum over blocks of (|B|/n)^2. */
 static DcRat weakness_uniform(size_t n, const int *cls, int *ovf) {
     DcRat w = {0, 1};
@@ -89,7 +94,9 @@ Sx *dc_req_refine(DcRun *run, const Sx *q, int slot) {
     int *p0 = malloc((n ? n : 1) * sizeof *p0), *cls = malloc((n ? n : 1) * sizeof *cls), ovf = 0;
     if (dc_g_seed(m, &v, d0) || dc_g_codes(m, ri, dq)) ovf = 1;
     initial_blocks(n, d0, dq, p0); memcpy(cls, p0, n * sizeof *cls);
-    int rounds = dc_refine_stable(&v, cls);
+    DcMerges mg; memset(&mg, 0, sizeof mg);
+    for (size_t p = 0; p < m->mach[R->machine].nmerge; p++) mg.t[mg.n++] = m->map[m->mach[R->machine].merge[p].map].table;
+    int rounds = refine_stable_m(&v, &mg, cls);
     const DcCarrier *S = &m->car[v.states];
     Sx *val = dc_form("Refinement", dc_form("Representation", dc_sym(slot >= 0 ? m->der[slot].name : "?"), NULL),
                       dc_blocks_sx(S, n, cls, "Partition"), NULL);
@@ -100,7 +107,7 @@ Sx *dc_req_refine(DcRun *run, const Sx *q, int slot) {
     Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("StablePartition"), NULL),
                      dc_blocks_sx(S, n, p0, "Initial"), dc_form("Rounds", dc_int(rounds), NULL), NULL), NULL);
     /* self-check before reporting: the result is stable and refines P0 */
-    int *chk = malloc((n ? n : 1) * sizeof *chk), rep = !refine_round(&v, cls, chk);
+    int *chk = malloc((n ? n : 1) * sizeof *chk), rep = !refine_round(&v, &mg, cls, chk);
     for (size_t i = 0; i < n && rep; i++) if (p0[cls[i]] != p0[i]) rep = 0;
     free(chk); free(d0); free(dq); free(p0); free(cls); dc_view_free(&v);
     if (ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "Refine: a rational left the 64-bit exact range"); }

@@ -90,6 +90,10 @@ def oracle_value(key, env, res):
         return [iv(val), R.find(val, 'Weakness')[1], P]
     if key == 'packets.induced_defect_E_UVB':
         return iv(val)
+    if key == 'merge.congruence_witness':   # packets written E, U, V, B (first letters), as in the oracle
+        w = witness(env); return [[x[0] for x in w[2][1:]], [x[0] for x in w[3][1:]], w[4][1][0], w[4][2][0]]
+    if key == 'gauge_policy_merge.merge_only_classes':
+        return len(R.find(val, 'Partition')) - 1
     raise KeyError('no extractor yet for oracle key ' + key)
 
 def fixture_of(row):

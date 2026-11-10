@@ -34,7 +34,7 @@ static int need_repr(const DcModule *m, const Sx *q, const char *req, Sx **out) 
     if (ri >= 0) {
         /* M2: a graded machine or a non-trivial code tolerance needs the graded engine; the literal M0 path must not answer it */
         const DcRepr *rp = &m->rep[ri];
-        if (m->mach[rp->machine].graded_obs || (rp->tol >= 0 && m->tol[rp->tol].kind != DC_TOL_TRIVIAL)) {
+        if (m->mach[rp->machine].graded_obs || m->mach[rp->machine].nmerge || (rp->tol >= 0 && m->tol[rp->tol].kind != DC_TOL_TRIVIAL)) {
             *out = dc_unsupported(m, "%s: Representation %s needs the graded engine", req, nm); return -1; }
         return ri;
     }

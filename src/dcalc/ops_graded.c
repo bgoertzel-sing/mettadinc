@@ -114,12 +114,12 @@ static Sx *prefixpoint(const DcModule *m, const DcView *v, const DcRat *D, DcRat
 /* ---- part 2: contexts, measurements, evidence, the request ---- */
 typedef enum { GK_NOW = 0, GK_UPD, GK_BEH } GKind;
 static const char *GKN[3] = {"Current", "Update", "Behavioral"};
-typedef struct { DcRat d; int x, y, a; } GRes;
+typedef struct { DcRat d; int x, y, a; int x2, y2, mp; } GRes;   /* mp >= 0: a Merge witness (x,y) vs (x2,y2) */
 typedef struct { const DcModule *m; int ri; DcView v; size_t n; DcRat *d0, *dq, *bref, *bbfs; int agree; } GCtx;
 
 int dc_repr_graded(const DcModule *m, int ri) {
     const DcRepr *R = &m->rep[ri];
-    return m->mach[R->machine].graded_obs || (R->tol >= 0 && m->tol[R->tol].kind != DC_TOL_TRIVIAL);
+    return m->mach[R->machine].graded_obs || m->mach[R->machine].nmerge || (R->tol >= 0 && m->tol[R->tol].kind != DC_TOL_TRIVIAL);
 }
 
 /* Unbounded Prefixpoint: D >= d0 and D >= g * D o (Ta x Ta) everywhere. */
@@ -148,10 +148,31 @@ static int gctx_init(GCtx *c, const DcModule *m, int ri, const GOpts *o) {
     return 0;
 }
 
+/* Merge congruence (P10): for a Merge port m and pairs a~a', b~b',
+ * defect = max (dq(m(a,b), m(a',b')) - max(dq(a,a'), dq(b,b')))+. */
+static GRes merge_defect(GCtx *c) {
+    GRes r = {RZ, -1, -1, -1, -1, -1, -1};
+    const DcMachine *mc = &c->m->mach[c->m->rep[c->ri].machine]; size_t n = c->n; int ovf = 0;
+    for (size_t p = 0; p < mc->nmerge; p++) {
+        const int *t = c->m->map[mc->merge[p].map].table;
+        for (size_t a = 0; a < n; a++) for (size_t b = 0; b < n; b++)
+            for (size_t a2 = 0; a2 < n; a2++) for (size_t b2 = 0; b2 < n; b2++) {
+                DcRat pre = dc_rat_max(c->dq[a * n + a2], c->dq[b * n + b2]);
+                DcRat e = dc_rat_sub(c->dq[(size_t)t[a * n + b] * n + t[a2 * n + b2]], pre, &ovf);
+                if (dc_rat_cmp(e, r.d) > 0) { r.d = e; r.x = (int)a; r.y = (int)b; r.x2 = (int)a2; r.y2 = (int)b2; r.mp = (int)p; }
+            }
+    }
+    return r;
+}
+
 static GRes g_measure(GCtx *c, GKind k) {
-    GRes r = {RZ, -1, -1, -1};
+    GRes r = {RZ, -1, -1, -1, -1, -1, -1};
     if (k == GK_NOW) r.d = dc_g_excess(c->n, c->d0, c->dq, &r.x, &r.y);
-    else if (k == GK_UPD) r.d = dc_g_update_defect(&c->v, c->dq, &r.x, &r.y, &r.a);
+    else if (k == GK_UPD) {
+        r.d = dc_g_update_defect(&c->v, c->dq, &r.x, &r.y, &r.a);
+        GRes mr = merge_defect(c);
+        if (dc_rat_cmp(mr.d, r.d) > 0) r = mr;
+    }
     else r.d = dc_g_excess(c->n, c->bbfs, c->dq, &r.x, &r.y);
     return r;
 }
@@ -173,6 +194,16 @@ static void g_evidence(GCtx *c, GKind k, GRes r, const GOpts *o, Sx *dst, int *r
         return;
     }
     if (k == GK_NOW) { sx_push(dst, dc_form("Witness", word_witness(m, &c->v, enc, cc, c->d0, R1, 0, r.x, r.y), NULL)); return; }
+    if (r.mp >= 0) {
+        const DcPort *mp = &m->mach[R->machine].merge[r.mp]; const int *t = m->map[mp->map].table; size_t n = c->n;
+        int u = t[(size_t)r.x * n + r.y], w = t[(size_t)r.x2 * n + r.y2];
+        sx_push(dst, dc_form("Witness", dc_form("MergeWitness", dc_form("Merge", dc_sym(mp->label), NULL),
+            dc_form("Left", sx_copy(S->elems[r.x]), sx_copy(S->elems[r.y]), NULL),
+            dc_form("Right", sx_copy(S->elems[r.x2]), sx_copy(S->elems[r.y2]), NULL),
+            dc_form("Results", sx_copy(S->elems[u]), sx_copy(S->elems[w]), NULL),
+            dc_form("Codes", sx_copy(C->elems[enc[u]]), sx_copy(C->elems[enc[w]]), NULL), NULL), NULL));
+        return;
+    }
     int tx = c->v.act[r.a][r.x], ty = c->v.act[r.a][r.y];
     sx_push(dst, dc_form("Witness", dc_form("UpdateWitness",
         dc_form("Pair", sx_copy(S->elems[r.x]), sx_copy(S->elems[r.y]), NULL),
@@ -191,6 +222,10 @@ Sx *dc_req_graded(DcRun *run, const Sx *q, const char *h) {
         if (sx_head_is(q->items[i], "Within") && !is_check) return dc_invalid(m, "%s: (Within b) belongs to a check, not a measurement", h);
         if (!sx_head_is(q->items[i], "Within") && k != GK_BEH && !is_def) return dc_invalid(m, "%s: Horizon and Discount apply to behavioral claims only", h);
     }
+    if (m->mach[m->rep[ri].machine].nmerge && (is_def || k == GK_BEH))
+        return dc_unsupported(m, "%s: behavioral claims on a machine with Merge ports are outside the M2 fragment", h);
+    if (m->mach[m->rep[ri].machine].nmerge && m->car[m->mach[m->rep[ri].machine].states].n > 32)
+        return dc_unsupported(m, "%s: merge congruence over more than 32 states is outside the M2 table engine", h);
     GCtx c;
     if (gctx_init(&c, m, ri, &o)) { gctx_free(&c); return dc_unsupported(m, "%s: a rational left the 64-bit exact range", h); }
     const char *eq = equality_of(m, &c.v);
