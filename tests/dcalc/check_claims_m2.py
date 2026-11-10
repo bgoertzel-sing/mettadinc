@@ -104,6 +104,11 @@ def oracle_value(key, env, res):
         return len(R.find(val, 'Partition')) - 1
     if key == 'counterexamples.restriction.singletons':   # H04 is the subset {a}; {b} is the same fixture with (From b)
         return [num(iv(val)), num(variant_defect(res, '(Reach SharpView (From a))', '(Reach SharpView (From b))', res['request']))]
+    if key in ('closure.before', 'closure.after', 'closure.increase'):
+        return R.find(val, {'closure.before': 'From', 'closure.after': 'To', 'closure.increase': 'Increase'}[key])[1]
+    if key == 'closure.closed_AC':
+        ent = R.find(R.find(R.find(R.find(env, 'Evidence'), 'Certificate'), 'Kernel'), 'Entries')
+        return next(e[3] for e in ent[1:] if e[1] == 'A' and e[2] == 'C')
     raise KeyError('no extractor yet for oracle key ' + key)
 
 def fixture_of(row):

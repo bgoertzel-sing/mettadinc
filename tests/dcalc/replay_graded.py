@@ -29,6 +29,7 @@ class GModule:
     def __init__(self, form):
         self.name = form[1]; self.digest = hashlib.sha256(show(form).encode()).hexdigest()
         pf = find(form, 'Profile'); self.profile = pf[1] if pf and len(pf) == 2 else 'Crisp'
+        self.form = form
         self.car, self.map, self.tol, self.mach, self.rep = {}, {}, {}, {}, {}
         self.meas, self.der = {}, {}
         self.sub = {}          # Reach carrier -> parent carrier
@@ -184,7 +185,8 @@ def graded_rep(M, rn):
     if not r: return False
     return any(t for _, _, t in M.mach[r['machine']]['obs']) or bool(M.mach[r['machine']].get('merge')) or (r['tol'] is not None and M.tol[r['tol']]['kind'] != 'Trivial')
 
-CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin', 'InduceApprox')
+KERNEL_HEADS = ('PathClosure', 'Bracket', 'Delta', 'Threshold', 'CheckTransitive')
+CRISP_M2_HEADS = ('Refine', 'SamePartition', 'WeakestWithin', 'InduceApprox') + KERNEL_HEADS
 def is_graded(M, req):
     if isinstance(req, str) and req in M.der: req = M.der[req]
     if not isinstance(req, list) or not req: return False
@@ -598,6 +600,99 @@ def replay_induce(M, req, env, st, dname):
     need(sorted(seen) == sorted(S) and len(set(map(str, fc))) == len(fc), 'fibers do not partition the states by code')
     return 'ok'
 
+# ---- GradedKernels (G01-G04), recomputed from the source ----
+def luk(a, b): return max(Q(0), a + b - 1)
+def kernel_of(M, x):
+    """(carrier, {(a, b): value}) of a SymmetricTable tolerance or (Output D Kernel) of a PathClosure."""
+    if isinstance(x, str):
+        need(x in M.tol and M.tol[x]['kind'] == 'SymmetricTable', 'kernel %s is not a SymmetricTable' % x)
+        return M.tol[x]['on'], dict(M.tol[x]['k'])
+    need(isinstance(x, list) and len(x) == 3 and x[0] == 'Output' and x[2] == 'Kernel' and x[1] in M.der, 'bad kernel operand')
+    d = M.der[x[1]]; need(d[0] == 'PathClosure' and d[2] == ['Algebra', 'Lukasiewicz01'], 'Kernel output from no PathClosure')
+    on, K = kernel_of(M, d[1]); return on, closure(M, on, K)
+def closure(M, on, K):
+    els = [key(e) for e in M.car[on]]; K = dict(K)
+    for k in els:
+        for i in els:
+            for j in els: K[i, j] = max(K[i, j], luk(K[i, k], K[k, j]))
+    return K
+def relation_of(M, x):
+    need(isinstance(x, list) and len(x) == 3 and x[0] == 'Output' and x[2] == 'Relation' and x[1] in M.der, 'bad relation operand')
+    d = M.der[x[1]]; need(d[0] == 'Threshold' and d[2][0] == 'AtLeast', 'Relation output from no Threshold')
+    on, K = kernel_of(M, d[1]); r = rat(d[2][1]); return on, {p for p, v in K.items() if v >= r}
+def bracket_of(M, d):
+    need(d[0] == 'Bracket' and d[2][0] == 'Under', 'not a Bracket')
+    pl = [f for f in M.form[2:] if isinstance(f, list) and f[:2] == ['PairLaw', d[2][1]]]
+    need(len(pl) == 1 and pl[0][2][0] == 'Independent' and pl[0][3] == ['Diagonal', 'Included'], 'unsupported pair law')
+    on, K = kernel_of(M, d[1]); need(all(M.meas.get(l) == on for l in pl[0][2][1:]), 'pair law not uniform on the kernel carrier')
+    tot = sum(K.values()); return tot / len(K), tot, len(K)
+def first_bad(els, T, rel):
+    for i in els:
+        for j in els:
+            for k in els:
+                if (rel and (i, j) in T and (j, k) in T and (i, k) not in T) or (not rel and T[i, k] < luk(T[i, j], T[j, k])): return i, j, k
+    return None
+def replay_kernels(M, req, env, st):
+    h = req[0]; heads = [x[0] if isinstance(x, list) and x else None for x in env[1:]]
+    need(env[0] == 'Result' and heads == HEADS, 'envelope fields %s' % heads)
+    need('GradedKernels' in M.uses, 'module does not use GradedKernels')
+    need(show(find(env, 'Claim')) == show(['Claim', req, ['Equality', 'Literal']]), 'Claim differs')
+    need(show(find(env, 'Binding')) == show(['Binding', ['Module', M.name], ['Digest', ('str', M.digest)], ['Subject', ['Operand', req[1]]],
+         ['Source', 'None'], ['Target', 'None'], ['Interface', ['Tolerance', 'Exact']]]), 'Binding differs')
+    need(show(find(env, 'Scope')) == show(['Scope', ['Profile', M.profile], ['Fragment', 'M2-GradedDeterministic'], ['InitialStates', 'AllDeclared'],
+         ['ReachableStates', 'AllDeclared'], ['Horizon', 'Unbounded'], ['Discount', '1'], ['PolicyClass', 'None']]), 'Scope differs')
+    need(find(env, 'Assumptions') == ['Assumptions'], 'no assumptions')
+    need(show(find(env, 'Assurance')) == show(['Assurance', ['Policy', 'M2-ExactReplay'], ['Replayed', 'True'],
+         ['Ground', 'Witness' if st == 'Refuted' else 'Replayed']]), 'Assurance differs')
+    val, evd = find(env, 'Value')[1], find(env, 'Evidence')
+    def table(on, K): return ['Kernel', ['On', on], ['Entries'] + [['Entry', a, b, rs(K[key(a), key(b)])] for a in M.car[on] for b in M.car[on]]]
+    def relt(on, T): return ['Relation', ['On', on], ['Pairs'] + [['Pair', a, b] for a in M.car[on] for b in M.car[on] if (key(a), key(b)) in T]]
+    if h == 'PathClosure':
+        need(st == 'Checked' and req[2] == ['Algebra', 'Lukasiewicz01'], 'PathClosure is Checked over Lukasiewicz01')
+        on, K0 = kernel_of(M, req[1]); K = closure(M, on, K0)
+        need(show(val) == show(table(on, K)), 'closed kernel differs from the recomputation')
+        c = evd[1]; need(len(evd) == 2 and c[:3] == ['Certificate', ['Kind', 'PathClosure'], ['Algebra', 'Lukasiewicz01']], 'closure certificate expected')
+        raised = c[3]; need(raised[0] == 'Raised', 'Raised expected'); got = set()
+        for e in raised[1:]:
+            a, b, v, P = key(e[1]), key(e[2]), rat(e[3]), [key(x) for x in e[4][1:]]
+            need(v == K[a, b] and v > K0[a, b] and P[0] == a and P[-1] == b, 'raised entry wrong')
+            acc = Q(1)
+            for x, y in zip(P, P[1:]): acc = luk(acc, K0[x, y])
+            need(acc == v, 'path does not attain the raised value'); got.add((a, b))
+        need(got == {p for p in K if K[p] > K0[p]}, 'raised entries incomplete')
+    elif h == 'Bracket':
+        need(st == 'Checked', 'a bracket is Checked'); mean, tot, n = bracket_of(M, req)
+        need(show(val) == show(['Bracket', ['Mean', rs(mean)], ['Under', req[2][1]], ['Pairs', str(n)]]), 'Bracket value differs')
+        need(show(evd) == show(['Evidence', ['Certificate', ['Kind', 'rule'], ['Rule', 'UniformMean'], ['Sum', rs(tot)]]]), 'bracket certificate differs')
+    elif h == 'Delta':
+        need(st == 'Checked', 'Delta is Checked'); xs = []
+        for f, hd in ((req[1], 'From'), (req[2], 'To')):
+            need(f[0] == hd and f[1][0] == 'Output' and f[1][2] == 'Value' and f[1][1] in M.der, 'bad Delta operand'); xs.append(bracket_of(M, M.der[f[1][1]])[0])
+        need(show(val) == show(['Delta', ['From', rs(xs[0])], ['To', rs(xs[1])], ['Increase', rs(xs[1] - xs[0])]]), 'Delta value differs')
+        need(show(evd) == show(['Evidence', ['Certificate', ['Kind', 'rule'], ['Rule', 'Difference']]]), 'Delta certificate differs')
+    elif h == 'Threshold':
+        need(st == 'Checked', 'Threshold is Checked'); on, K = kernel_of(M, req[1]); r = rat(req[2][1])
+        need(show(val) == show(relt(on, {p for p, v in K.items() if v >= r})), 'Relation differs')
+        need(show(evd) == show(['Evidence', ['Certificate', ['Kind', 'rule'], ['Rule', 'Threshold'], ['AtLeast', rs(r)]]]), 'Threshold certificate differs')
+    else:
+        x = req[1]; rel = isinstance(x, list) and x[2:] == ['Relation']
+        on, T = relation_of(M, x) if rel else kernel_of(M, x)
+        alg = 'Boolean' if rel else 'Lukasiewicz01'
+        if len(req) == 3: need(req[2] == ['Algebra', 'Boolean'] if rel else req[2][1] in ('Lukasiewicz', 'Lukasiewicz01'), 'algebra does not fit the operand')
+        bad = first_bad([key(e) for e in M.car[on]], T, rel)
+        need(st == ('Refuted' if bad else 'Checked'), 'transitivity status differs')
+        need(show(val) == show(['Verdict', ['Holds', 'False' if bad else 'True'], ['Algebra', alg]]), 'Verdict differs')
+        if bad:
+            w = find(evd, 'Witness')[1]; need(w[0] == 'TransitivityWitness', 'TransitivityWitness expected')
+            i, j, k = [key(e) for e in w[1][1:]]
+            vals = [str(int(p in T)) for p in ((i, j), (j, k), (i, k))] if rel else [rs(T[p]) for p in ((i, j), (j, k), (i, k))]
+            need(w[2] == ['Values'] + vals, 'witness values differ')
+            ok = ((i, j) in T and (j, k) in T and (i, k) not in T) if rel else T[i, k] < luk(T[i, j], T[j, k])
+            need(ok, 'witness triple is transitive')
+        else:
+            need(show(evd) == show(['Evidence', ['Certificate', ['Kind', 'rule'], ['Rule', 'Transitivity'], relt(on, T) if rel else table(on, T)]]), 'certificate differs')
+    return 'ok'
+
 def replay(M, req, env):
     st = find(env, 'Status')[1]
     if st not in ('Checked', 'Refuted'): return 'skip'
@@ -608,6 +703,7 @@ def replay(M, req, env):
     if req[0] == 'WeakestWithin': return replay_weakest(M, req, env, st, dname)
     if req[0] == 'InduceApprox': return replay_approx(M, req, env, st, dname)
     if req[0] == 'InduceExact': return replay_induce(M, req, env, st, dname)
+    if req[0] in KERNEL_HEADS: return replay_kernels(M, req, env, st)
     hd = req[0]; need(len(req) >= 2 and req[1] in M.rep, 'request names no graded representation')
     w, h, g = opts(req)
     is_def, is_check = hd == 'Defects', hd.startswith('Check')
