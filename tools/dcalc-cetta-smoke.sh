@@ -19,12 +19,19 @@ S=$ROOT/build/cetta-dcalc
 PIN=$($G ls-tree HEAD cetta | awk '{print $3}')
 [ -n "$PIN" ] || { echo "no cetta submodule pin"; exit 2; }
 if [ "${DCALC_CETTA_FRESH:-0}" = 1 ]; then rm -rf "$S"; fi
+# Re-create the scratch tree when the pin or the patch set changed since it was
+# made (patches are only applied on a fresh clone; a stale tree links old sources).
+PSET=$( (echo "$PIN"; cat "$ROOT"/upstream/cetta/*.patch) | sha256sum | awk '{print $1}')
+if [ -d "$S" ] && [ "$(cat "$S/.dcalc-patchset" 2>/dev/null)" != "$PSET" ]; then
+  echo "cetta scratch is stale (pin or upstream/cetta patch set changed): re-creating"; rm -rf "$S"
+fi
 if [ ! -d "$S/.git" ] && [ ! -f "$S/.git" ]; then
   mkdir -p build
   $G clone -q --no-checkout cetta "$S" || exit 2
   (cd "$S" && $G checkout -q --detach "$PIN" &&
    $G -c user.name=dcalc -c user.email=dcalc@local am -q "$ROOT"/upstream/cetta/*.patch) \
      || { echo "patch does not apply to $PIN"; exit 1; }
+  echo "$PSET" > "$S/.dcalc-patchset"
 fi
 # Private copy of the core so CeTTa's .o/.d files never land in src/dcalc.
 rm -rf "$S/dcalc-core" && mkdir -p "$S/dcalc-core" && cp src/dcalc/*.c src/dcalc/*.h "$S/dcalc-core/"
