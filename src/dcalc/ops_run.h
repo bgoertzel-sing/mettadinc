@@ -25,4 +25,7 @@ Sx *dc_req_check_now(DcRun *r, const Sx *q);
 Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int derive_slot);
 Sx *dc_req_check_abs(DcRun *r, const Sx *q, int derive_slot);
 Sx *dc_req_then(DcRun *r, const Sx *q, int derive_slot);
+/* M2 graded requests (ops_graded.c). */
+int dc_repr_graded(const DcModule *m, int ri);
+Sx *dc_req_graded(DcRun *r, const Sx *q, const char *head);
 #endif
