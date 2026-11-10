@@ -67,6 +67,7 @@ int main(int argc, char **argv) {
     if (!src) { fprintf(stderr, "dcalc: cannot read %s\n", argv[1]); return 2; }
     char basedir[1024]; snprintf(basedir, sizeof basedir, "%s", argv[1]);
     char *slash = strrchr(basedir, '/'); if (slash) *slash = 0; else snprintf(basedir, sizeof basedir, ".");
+    { const char *b = strrchr(argv[1], '/'); dc_eval_set_source_name(b ? b + 1 : argv[1]); }
     const char *err = NULL; int line = 0;
     Sx *all = sx_parse_all(src, &err, &line); free(src);
     if (!all) { fprintf(stderr, "dcalc: parse error line %d: %s\n", line, err); return 2; }

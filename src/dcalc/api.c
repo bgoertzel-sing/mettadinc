@@ -19,9 +19,12 @@ static Sx *bare(const char *status, const char *mod, const char *reason) {
 /* M1 admission (admit.c, registry-driven): 0 admitted, 1 InvalidInput, 2 outside
  * the first release (Unsupported); why gets the first diagnostic of module mn or
  * of this run form, or the release reason. */
+static const char *g_source_name = "input";
+void dc_eval_set_source_name(const char *name) { g_source_name = name && *name ? name : "input"; }
+
 static int m1_admission(const Sx *all, const char *mn, const Sx *req, char *why, size_t wn) {
     DcAdmission a; int rc = 0;
-    dc_admit_modules(all, "input", &a);
+    dc_admit_modules(all, g_source_name, &a);
     Sx *run = sx_list(); sx_push(run, sx_sym("dc.run")); sx_push(run, sx_sym(mn)); sx_push(run, sx_copy(req));
     size_t before = a.diag.n;
     dc_admit_run(&a, run);
