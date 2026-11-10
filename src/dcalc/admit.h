@@ -48,6 +48,8 @@ size_t dc_admit_files(const Sx *const *alls, const char *const *fnames, size_t n
 /* Number of diagnostics that belong to module mn. */
 size_t dc_admit_module_ndiag(const DcAdmission *a, const char *mn);
 DcAModule *dc_admit_find(DcAdmission *a, const char *name);
+/* NULL if the module lies inside the first-release manifest, else the reason (in buf). */
+const char *dc_admit_unsupported(const DcAModule *m, char *buf, size_t n);
 void dc_admission_free(DcAdmission *a);
 
 /* string sets */

@@ -25,7 +25,7 @@ static char *slurp(const char *path) {
 /* dcalc --admit FILE...: M1 admission only.  The files form one universe
  * (imports resolve across them, as in check_fixtures.py).  Output:
  *   registry <digest>
- *   module <Name> <Admitted|InvalidInput> <ndiag>     (one per module)
+ *   module <Name> <Admitted|Unsupported|InvalidInput> <ndiag> [reason]  (one per module)
  *   diag <file:line:col: where: message>             (in order)
  * Exit 1 if any diagnostic, 0 otherwise.  Nothing is evaluated. */
 static int admit_mode(int nf, char **paths) {
@@ -46,7 +46,9 @@ static int admit_mode(int nf, char **paths) {
     size_t nd = dc_admit_files((const Sx *const *)alls, names, (size_t)nf, &a);
     for (size_t i = 0; i < a.nmod; i++) {
         size_t k = dc_admit_module_ndiag(&a, a.mods[i].name);
-        printf("module %s %s %zu\n", a.mods[i].name, k ? "InvalidInput" : "Admitted", k);
+        char why[256]; const char *u = k ? NULL : dc_admit_unsupported(&a.mods[i], why, sizeof why);
+        if (u) printf("module %s Unsupported 0 %s\n", a.mods[i].name, u);
+        else printf("module %s %s %zu\n", a.mods[i].name, k ? "InvalidInput" : "Admitted", k);
     }
     for (size_t i = 0; i < a.diag.n; i++) printf("diag %s\n", a.diag.v[i].msg);
     dc_admission_free(&a);

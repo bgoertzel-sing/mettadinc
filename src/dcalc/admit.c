@@ -1016,3 +1016,23 @@ void dc_admission_free(DcAdmission *a) {
     free(a->diag.v);
     memset(a, 0, sizeof *a);
 }
+
+/* First-release capability manifest (registry first_release): NULL when the
+ * module's profile coordinates and libraries all lie inside the release,
+ * else a reason, written to buf. */
+const char *dc_admit_unsupported(const DcAModule *m, char *buf, size_t n) {
+    const Sx *fr = reg_section("first_release");
+    struct { const char *key, *val, *what; } co[] = {
+        { "dynamics", m->dynamics, "Dynamics" }, { "values", m->values, "Values" }, { "carriers", m->carriers, "Carriers" } };
+    for (int i = 0; i < 3; i++)
+        if (!co[i].val || !dc_reg_list_has(dc_reg_get(fr, co[i].key), co[i].val)) {
+            snprintf(buf, n, "Profile %s %s is outside the first release", co[i].what, co[i].val ? co[i].val : "None");
+            return buf;
+        }
+    for (size_t i = 0; i < m->libraries.n; i++)
+        if (!dc_reg_list_has(dc_reg_get(fr, "libraries"), m->libraries.v[i])) {
+            snprintf(buf, n, "library %s is outside the first release", m->libraries.v[i]);
+            return buf;
+        }
+    return NULL;
+}
