@@ -21,6 +21,8 @@ CASES = {
   'WeakThree Tight': ('Checked', '(Value (WeakestPartition (Representation Tight) (Partition (Block P Q) (Block R)) (Weakness 5/9) (Defect (Interval 1/10 1/10)) (Bound 1/10) (Kind Behavioral) (Under Uniform) (Optimality Checked)))'),
   'WeakThree Loose': ('Checked', '(Value (WeakestPartition (Representation Loose) (Partition (Block P Q R)) (Weakness 1) (Defect (Interval 3/10 3/10)) (Bound 3/10) (Kind Behavioral) (Under Uniform) (Optimality Checked)))'),
   'WeakThree TightMachine': ('Checked', '(Value (ApproximateAbstraction (Machine (Output TightMachine Machine)) (States 2) (Selector (Choose pick)) (Representatives (Class 0 (Block P Q) Q) (Class 1 (Block R) R)) (Radius 1/10) (Defect (Interval 1/10 1/10)) (Bound Unbounded) (AbstractionMap (Kind Graded) (Defect 1/10))))'),
+  'WeakThree (MeasureUpdates Coarse)': ('Checked', '(Value (DefectMeasurement (Defect (Interval 0 0)) (Kind Update) (Equality Literal)))'),
+  'WeakThree (MeasureNow Coarse)': ('Checked', '(Value (DefectMeasurement (Defect (Interval 1/5 1/5)) (Kind Current) (Equality Literal)))'),
  },
  'refine_three.metta': {
   'RefineThree Split': ('Checked', '(Value (Refinement (Representation Split) (Partition (Block P) (Block Q) (Block R)) (Ledger (Under Uniform) (Before 5/9) (After 1/3))))'),

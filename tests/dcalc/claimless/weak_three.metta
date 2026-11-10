@@ -3,6 +3,8 @@
 ;; Behavioral distances P-Q 1/10, Q-R 1/5, P-R 3/10; all 5 partitions (Bell(3)) searched.
 ;; Within 1/10 -> {P,Q}{R}, weakness (4+1)/9 = 5/9; within 3/10 -> one block, weakness 1.
 ;; InduceApprox with pick P->Q: classes {P,Q}->Q, {R}->R; step keeps 0->0, 1->1.
+;; Coarse code P->0, Q,R->1: Q,R share a code but obs differ by 1/5 -> Current 1/5;
+;; step keeps Q,R fixed and code pairs never get farther -> Update defect 0.
 (DC.Module WeakThree
   (Profile Graded)
   (Carrier S (Of Symbol) (Enum P Q R))
@@ -26,3 +28,5 @@
 !(dc.run WeakThree Tight)
 !(dc.run WeakThree Loose)
 !(dc.run WeakThree TightMachine)
+!(dc.run WeakThree (MeasureUpdates Coarse))
+!(dc.run WeakThree (MeasureNow Coarse))
