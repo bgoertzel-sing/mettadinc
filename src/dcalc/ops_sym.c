@@ -789,10 +789,15 @@ static int sym_split(DcBddMgr *bm, DcBdd *cl, int *ncl, DcBdd f) {   /* 1 split,
     return did;
 }
 
-static int sym_refine(DcBddMgr *bm, const SymMod *S, const SMach *M, const SymVal *av, SymVal *ob, const DcBdd *xv,
-                      STest *T, int *ntp, DcBdd *cl, int *nclp, char *err, size_t es) {   /* 0 ok, -1 overflow, -2 invalid */
-    int nt = 0, ncl = 1, rc = 0; cl[0] = 1;
-    for (int p = 0; p < M->nobs && !rc; p++) {
+/* Resumable refinement (Lemma 4.17): T[0..nt0) and cl[0..ncl0) are a stable partition for
+ * the observation ports < p0 (ncl0 == 0: start from scratch).  Ports >= p0 are the added
+ * queries; their bits split the old classes and the closure continues from there. */
+static int sym_refine_from(DcBddMgr *bm, const SymMod *S, const SMach *M, const SymVal *av, SymVal *ob, const DcBdd *xv,
+                           STest *T, int *ntp, DcBdd *cl, int *nclp, int p0, int nt0, int ncl0, char *err, size_t es) {
+    int nt = nt0, ncl = ncl0, rc = 0;
+    if (!ncl) { ncl = 1; cl[0] = 1; nt = 0; p0 = 0; }
+    for (int p = 0; p < p0; p++) if (sym_apply(bm, S, M->obs[p].map, xv, &ob[p], err, es)) return -2;
+    for (int p = p0; p < M->nobs && !rc; p++) {
         if (sym_apply(bm, S, M->obs[p].map, xv, &ob[p], err, es)) return -2;
         for (int k = 0; k < ob[p].w && !rc; k++) {
             int sp = sym_split(bm, cl, &ncl, ob[p].b[k]);
@@ -810,6 +815,10 @@ static int sym_refine(DcBddMgr *bm, const SymMod *S, const SMach *M, const SymVa
             T[nt++] = t;
         }
     *ntp = nt; *nclp = ncl; return rc;
+}
+static int sym_refine(DcBddMgr *bm, const SymMod *S, const SMach *M, const SymVal *av, SymVal *ob, const DcBdd *xv,
+                      STest *T, int *ntp, DcBdd *cl, int *nclp, char *err, size_t es) {   /* 0 ok, -1 overflow, -2 invalid */
+    return sym_refine_from(bm, S, M, av, ob, xv, T, ntp, cl, nclp, 0, 0, 0, err, es);
 }
 
 /* Proof obligation for a symbolic refinement, on two copies x, y of the word:
@@ -1282,4 +1291,19 @@ Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     if (!strcmp(head, "MinimizeForQueries")) return sym_policy(sym_req_minimize(r, &S, q, slot));
     if (!strcmp(head, "CheckNow") || !strcmp(head, "CheckBehavioral")) return sym_policy(sym_req_repr(r, &S, q, head));
     return dc_unsupported(r->m, "request %s: symbolic engine not built yet (M3 in progress; module read: %d carriers, %d maps, %d machines)", head, S.ncar, S.nmap, S.nmach);
+}
+
+/* ---- transport rules (spec Table 7, remove queries or actions) ----
+ * Checked upper bounds stand; a witness stands only if its labels avoid the removed one;
+ * "coarsest" does not transport and becomes "sufficient"; anything else is recomputed. */
+typedef enum { SYM_TR_STANDS, SYM_TR_SUFFICIENT, SYM_TR_RECOMPUTE, SYM_TR_DROPPED } SymTr;
+static SymTr sym_transport_remove(const char *kind, const Sx *labels, const char *removed) {
+    if (!strcmp(kind, "UpperBound")) return SYM_TR_STANDS;
+    if (!strcmp(kind, "Coarsest")) return SYM_TR_SUFFICIENT;
+    if (!strcmp(kind, "Witness")) {
+        if (labels && labels->kind == SX_LIST)
+            for (size_t i = 1; i < labels->n; i++) if (sx_is_sym(labels->items[i], removed)) return SYM_TR_DROPPED;
+        return SYM_TR_STANDS;
+    }
+    return SYM_TR_RECOMPUTE;
 }
