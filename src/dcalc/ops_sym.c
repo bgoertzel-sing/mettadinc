@@ -598,6 +598,14 @@ static int sym_prove(Cnf *c, int goal, char *dg, char *why, size_t ws) {
         if (r != 0 || !strstr(buf, "s VERIFIED UNSAT")) { snprintf(why, ws, "cake_lpr did not verify the proof (exit %d)", r); goto done; }
         if (file_sha(cf, dg2) || strcmp(dg, dg2)) { snprintf(why, ws, "CNF changed during checking"); goto done; }
         rc = 1;
+        /* review 1 F4b: keep the checked artifacts, content-addressed by the CNF sha256,
+         * so an independent replay can re-run the checker on them. */
+        const char *ps = penv("DCALC_PROOF_STORE");
+        if (ps) {
+            char sa[800], sb[800]; mkdir(ps, 0700);
+            snprintf(sa, sizeof sa, "%.700s/%.64s.cnf", ps, dg); snprintf(sb, sizeof sb, "%.700s/%.64s.lrat", ps, dg);
+            if (rename(cf, sa) || rename(lf, sb)) { rc = -1; snprintf(why, ws, "cannot store the proof in DCALC_PROOF_STORE"); }
+        }
     }
 done:
     if (!penv("DCALC_PROOF_KEEP")) { unlink(cf); unlink(lf); unlink(of); rmdir(d); }

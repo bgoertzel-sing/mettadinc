@@ -12,7 +12,7 @@ plain integers, and replays from each envelope's own data:
     B_j A_a = sum K_a[j][l] B_l are replayed by multiplication;
   - Proof forms: checker cake_lpr, LRAT, and the pinned generator version.
 Called from replay.py for modules whose Profile has (Carriers Symbolic)."""
-import re
+import re, os, hashlib, subprocess
 from replay import find, show, Fail, need
 
 GEN_PIN = 'm3.1'   # obligation generator version this replay accepts (spec 15.3)
@@ -110,6 +110,15 @@ def proofs_ok(cert):
     g = find(p, 'Generator'); need(g == ['Generator', 'dcalc-symgen', GEN_PIN], 'obligation generator version %s is not the pinned %s' % (show(g), GEN_PIN))
     shas = [find(p, 'CnfSha256')] if find(p, 'CnfSha256') else [find(x, 'CnfSha256') for x in (find(p, 'Proofs') or ['Proofs'])[1:]]
     need(shas and all(s and re.fullmatch(r'[0-9a-f]{64}', sval(s[1])) for s in shas), 'every proof must name the sha256 of its CNF')
+    store = os.environ.get('DCALC_PROOF_STORE')
+    if store:   # review 1 F4b: re-check every proof with the independent checker
+        cake = os.environ.get('DCALC_CAKE_LPR'); need(bool(cake), 'DCALC_PROOF_STORE set but DCALC_CAKE_LPR is not')
+        for x in shas:
+            h = sval(x[1]); cnf, lrat = os.path.join(store, h + '.cnf'), os.path.join(store, h + '.lrat')
+            need(os.path.isfile(cnf) and os.path.isfile(lrat), 'proof %s... not in DCALC_PROOF_STORE' % h[:12])
+            need(hashlib.sha256(open(cnf, 'rb').read()).hexdigest() == h, 'stored CNF %s... does not hash to its name' % h[:12])
+            r = subprocess.run([cake, cnf, lrat], capture_output=True, text=True, timeout=300)
+            need(r.returncode == 0 and 's VERIFIED UNSAT' in r.stdout, 'cake_lpr does not verify stored proof %s...' % h[:12])
 
 def scope_of(S, bp):
     c = S.car[find(bp, 'On')[1]]
