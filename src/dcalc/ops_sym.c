@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L   /* mkdtemp, fork/exec for the proof backend */
 /* M3: symbolic carriers (BitVector words as BDD variables), term maps as
  * per-bit BDD vectors, signature refinement, cone of influence, reachability
  * with words, and symbolic block-partition admission.  Nothing is tabulated. */
@@ -7,6 +8,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define SYM_MAXW 64
 /* A compiled term value: either a constant (w = -1, k) or w BDD bits (bit 0 first). */
@@ -152,6 +158,123 @@ static int sym_ceval(const Sx *t, const char *var, uint64_t x, int W, uint64_t *
         *v = (h[0] == 'A' ? (a & b) : h[0] == 'O' ? (a | b) : (a ^ b)) & cmask(ww); *w = ww; return 0; }
     if (!strcmp(h, "Eq") && n == 3) { EV(1, a, wa); EV(2, b, wb); if (wa >= 0 && wb >= 0 && wa != wb) return -1; *v = a == b; *w = (wa < 0 && wb < 0) ? -1 : 1; return 0; }
 #undef EV
+    return -1;
+}
+
+/* ---- part 6a: independent Tseitin bit-blaster (proof path; never reads the BDDs) ----
+ * Variables 1..W are the word bits x0..x_{W-1}; W+1 is the constant true (unit clause).
+ * Gates are numbered in creation order, so every gate depends only on lower variables;
+ * gate definitions are kept so an assignment can be computed for self-checks. */
+typedef struct { int nv, tru, bad; int *cl; size_t n, cap, ncl; int *gd; size_t gcap; } Cnf;
+static void cnf_lit(Cnf *c, int l) {
+    if (c->n == c->cap) { size_t nc = c->cap ? 2 * c->cap : 4096; int *t = realloc(c->cl, nc * sizeof *t); if (!t) { c->bad = 1; return; } c->cl = t; c->cap = nc; }
+    c->cl[c->n++] = l;
+}
+static void cnf_add(Cnf *c, int a, int b, int d) { cnf_lit(c, a); if (b) cnf_lit(c, b); if (d) cnf_lit(c, d); cnf_lit(c, 0); c->ncl++; }
+static void cnf_free(Cnf *c) { free(c->cl); free(c->gd); memset(c, 0, sizeof *c); }
+static int cnf_init(Cnf *c, int W) { memset(c, 0, sizeof *c); c->nv = W + 1; c->tru = W + 1; cnf_add(c, c->tru, 0, 0); return c->bad ? -1 : 0; }
+static int cnf_gate(Cnf *c, int op, int a, int b) {
+    int g = ++c->nv;
+    if ((size_t)(3 * g + 3) > c->gcap) { size_t nc = c->gcap ? 2 * c->gcap : 3 * 4096; while (nc < (size_t)(3 * g + 3)) nc *= 2;
+        int *t = realloc(c->gd, nc * sizeof *t); if (!t) { c->bad = 1; return g; } c->gd = t; c->gcap = nc; }
+    c->gd[3 * g] = op; c->gd[3 * g + 1] = a; c->gd[3 * g + 2] = b; return g;
+}
+static int cnf_and(Cnf *c, int a, int b) {
+    int T = c->tru;
+    if (a == -T || b == -T || a == -b) return -T;
+    if (a == T || a == b) return b;
+    if (b == T) return a;
+    int g = cnf_gate(c, 1, a, b); cnf_add(c, -g, a, 0); cnf_add(c, -g, b, 0); cnf_add(c, g, -a, -b); return g;
+}
+static int cnf_or(Cnf *c, int a, int b) { return -cnf_and(c, -a, -b); }
+static int cnf_xor(Cnf *c, int a, int b) {
+    int T = c->tru;
+    if (a == T) return -b;
+    if (a == -T) return b;
+    if (b == T) return -a;
+    if (b == -T) return a;
+    if (a == b) return -T;
+    if (a == -b) return T;
+    int g = cnf_gate(c, 2, a, b);
+    cnf_add(c, -g, a, b); cnf_add(c, -g, -a, -b); cnf_add(c, g, -a, b); cnf_add(c, g, a, -b); return g;
+}
+/* val[1..nv]: the assignment forced by word (self-check only). */
+static void cnf_assign(const Cnf *c, uint64_t word, unsigned char *val) {
+    int W = c->tru - 1;
+    for (int v = 1; v <= W; v++) val[v] = (word >> (v - 1)) & 1;
+    val[c->tru] = 1;
+#define LV(l) ((l) > 0 ? val[(l)] : !val[-(l)])
+    for (int g = c->tru + 1; g <= c->nv; g++) {
+        int a = c->gd[3 * g + 1], b = c->gd[3 * g + 2];
+        val[g] = c->gd[3 * g] == 1 ? (LV(a) && LV(b)) : (LV(a) != LV(b));
+    }
+#undef LV
+}
+static int cnf_sat_by(const Cnf *c, const unsigned char *val) {   /* every clause satisfied */
+    int sat = 0;
+    for (size_t i = 0; i < c->n; i++) {
+        int l = c->cl[i];
+        if (!l) { if (!sat) return 0; sat = 0; continue; }
+        if (l > 0 ? val[l] : !val[-l]) sat = 1;
+    }
+    return 1;
+}
+
+typedef struct { int w; uint64_t k; int b[SYM_MAXW]; } CVal;
+typedef struct { Cnf *c; const char *var; const int *xv; int W; } CCtx;
+static void cwiden(CCtx *x, CVal *v, int w) {
+    if (v->w >= 0) return;
+    uint64_t k = v->k; v->w = w;
+    for (int i = 0; i < w; i++) v->b[i] = ((k >> i) & 1) ? x->c->tru : -x->c->tru;
+}
+static int cbool(CCtx *x, CVal *v) {
+    if (v->w < 0) { if (v->k > 1) return -1; cwiden(x, v, 1); }
+    return v->w == 1 ? 0 : -1;
+}
+static int cnf_term(CCtx *x, const Sx *t, CVal *o) {
+    Cnf *c = x->c; uint64_t i, j; CVal a, b;
+    if (t->kind == SX_SYM) {
+        if (!strcmp(t->text, x->var)) { o->w = x->W; memcpy(o->b, x->xv, (size_t)x->W * sizeof(int)); return 0; }
+        if (lit_of(t, &o->k)) { o->w = -1; return 0; }
+        return -1;
+    }
+    if (t->kind != SX_LIST || !t->n || t->items[0]->kind != SX_SYM) return -1;
+    const char *h = t->items[0]->text; size_t n = t->n;
+#define CT(k, v) if (cnf_term(x, t->items[k], &v)) return -1
+#define IX(k, v, lim) (lit_of(t->items[k], &v) && v < (uint64_t)(lim))
+    if (!strcmp(h, "BitAt") && n == 3) { CT(1, a); if (a.w < 0 || !IX(2, i, a.w)) return -1; o->w = 1; o->b[0] = a.b[i]; return 0; }
+    if (!strcmp(h, "Slice") && n == 4) { CT(1, a); if (a.w < 0 || !IX(2, i, a.w) || !IX(3, j, a.w) || j < i) return -1;
+        o->w = (int)(j - i + 1); for (uint64_t k = i; k <= j; k++) o->b[k - i] = a.b[k]; return 0; }
+    if (!strcmp(h, "SwapBits") && n == 4) { CT(1, a); if (a.w < 0 || !IX(2, i, a.w) || !IX(3, j, a.w)) return -1;
+        *o = a; o->b[i] = a.b[j]; o->b[j] = a.b[i]; return 0; }
+    if (!strcmp(h, "RotateRange") && n == 4) { CT(1, a); if (a.w < 0 || !IX(2, i, a.w) || !IX(3, j, a.w) || j < i) return -1;
+        *o = a; for (uint64_t k = i + 1; k <= j; k++) o->b[k] = a.b[k - 1]; o->b[i] = a.b[j]; return 0; }
+    if (!strcmp(h, "SetBit") && n == 4) { CT(1, a); CT(3, b); if (a.w < 0 || !IX(2, i, a.w) || cbool(x, &b)) return -1;
+        *o = a; o->b[i] = b.b[0]; return 0; }
+    if (!strcmp(h, "Parity") && n == 2) { CT(1, a); if (a.w < 0) return -1;
+        int p = -c->tru; for (int k = 0; k < a.w; k++) p = cnf_xor(c, p, a.b[k]); o->w = 1; o->b[0] = p; return 0; }
+    if (!strcmp(h, "IsZero") && n == 2) { CT(1, a); if (a.w < 0) { o->w = -1; o->k = a.k == 0; return 0; }
+        int z = c->tru; for (int k = 0; k < a.w; k++) z = cnf_and(c, z, -a.b[k]); o->w = 1; o->b[0] = z; return 0; }
+    if (!strcmp(h, "Not") && n == 2) { CT(1, a); if (cbool(x, &a)) return -1; o->w = 1; o->b[0] = -a.b[0]; return 0; }
+    if ((!strcmp(h, "And") || !strcmp(h, "Or") || !strcmp(h, "Xor")) && n == 3) {
+        CT(1, a); CT(2, b); if (a.w < 0 && b.w < 0) return -1;
+        cwiden(x, &a, b.w); cwiden(x, &b, a.w); if (a.w != b.w) return -1;
+        o->w = a.w;
+        for (int k = 0; k < a.w; k++) o->b[k] = h[0] == 'A' ? cnf_and(c, a.b[k], b.b[k]) : h[0] == 'O' ? cnf_or(c, a.b[k], b.b[k]) : cnf_xor(c, a.b[k], b.b[k]);
+        return 0;
+    }
+    if (!strcmp(h, "Eq") && n == 3) {
+        CT(1, a); CT(2, b);
+        if (a.w < 0 && b.w < 0) { o->w = -1; o->k = a.k == b.k; return 0; }
+        int w = a.w >= 0 ? a.w : b.w; CVal *cv = a.w < 0 ? &a : b.w < 0 ? &b : NULL;
+        o->w = 1;
+        if (cv && w < 64 && (cv->k >> w)) { o->b[0] = -c->tru; return 0; }
+        cwiden(x, &a, w); cwiden(x, &b, w); if (a.w != b.w) return -1;
+        int e = c->tru; for (int k = 0; k < w; k++) e = cnf_and(c, e, -cnf_xor(c, a.b[k], b.b[k]));
+        o->b[0] = e; return 0;
+    }
+#undef CT
+#undef IX
     return -1;
 }
 
@@ -416,6 +539,113 @@ static int sym_replay(const SymMod *S, const SMach *M, const Sx *bp, const RNode
     return 0;
 }
 
+/* ---- part 6b: checked proofs (CNF -> CaDiCaL LRAT -> cake_lpr), bound to the CNF sha256 ---- */
+static const char *penv(const char *k) { const char *v = getenv(k); return v && *v ? v : NULL; }
+static int file_sha(const char *path, char *dg) {
+    FILE *f = fopen(path, "rb"); if (!f) return -1;
+    fseek(f, 0, SEEK_END); long n = ftell(f); rewind(f);
+    char *b = malloc(n > 0 ? (size_t)n : 1); if (!b) { fclose(f); return -1; }
+    size_t got = fread(b, 1, (size_t)n, f); fclose(f);
+    if (got != (size_t)n) { free(b); return -1; }
+    dc_sha256_hex(b, got, dg); free(b); return 0;
+}
+static int sym_run(char *const argv[], const char *out) {
+    pid_t p = fork();
+    if (p < 0) return -1;
+    if (p == 0) {
+        int fd = open(out ? out : "/dev/null", O_WRONLY | O_CREAT | O_TRUNC, 0600);
+        if (fd >= 0) { dup2(fd, 1); dup2(fd, 2); close(fd); }
+        execv(argv[0], argv); _exit(127);
+    }
+    int st; if (waitpid(p, &st, 0) < 0) return -1;
+    return WIFEXITED(st) ? WEXITSTATUS(st) : -1;
+}
+/* Asserts goal (the negated obligation) and asks for a checked refutation.
+ * 1: UNSAT, proof replayed by cake_lpr on the hashed CNF; 0: solver says SAT;
+ * -1: no backend or a pipeline failure (why).  dg receives the CNF sha256. */
+static int sym_prove(Cnf *c, int goal, char *dg, char *why, size_t ws) {
+    const char *cad = penv("DCALC_CADICAL"), *cake = penv("DCALC_CAKE_LPR"), *dir = penv("DCALC_PROOF_DIR");
+    dg[0] = 0;
+    if (!cad || !cake) { snprintf(why, ws, "no proof backend configured (DCALC_CADICAL, DCALC_CAKE_LPR)"); return -1; }
+    cnf_add(c, goal, 0, 0);
+    if (c->bad) { snprintf(why, ws, "out of memory building the CNF"); return -1; }
+    char d[512], cf[600], lf[600], of[600];
+    snprintf(d, sizeof d, "%s/dcalc-proof-XXXXXX", dir ? dir : "/tmp");
+    if (!mkdtemp(d)) { snprintf(why, ws, "cannot create a proof directory"); return -1; }
+    snprintf(cf, sizeof cf, "%s/ob.cnf", d); snprintf(lf, sizeof lf, "%s/ob.lrat", d); snprintf(of, sizeof of, "%s/check.out", d);
+    int rc = -1; FILE *f = fopen(cf, "w");
+    if (!f) { snprintf(why, ws, "cannot write the CNF"); goto done; }
+    fprintf(f, "p cnf %d %zu\n", c->nv, c->ncl);
+    for (size_t i = 0; i < c->n; i++) { if (c->cl[i]) fprintf(f, "%d ", c->cl[i]); else fputs("0\n", f); }
+    if (fclose(f) || file_sha(cf, dg)) { snprintf(why, ws, "cannot write the CNF"); goto done; }
+    {
+        char *av[] = { (char *)cad, "-q", "--no-binary", "--lrat", cf, lf, NULL };
+        int r = sym_run(av, NULL);
+        if (r == 10) { rc = 0; snprintf(why, ws, "solver found the obligation satisfiable"); goto done; }
+        if (r != 20) { snprintf(why, ws, "solver exit %d", r); goto done; }
+    }
+    {
+        char *av[] = { (char *)cake, cf, lf, NULL };
+        int r = sym_run(av, of); char buf[4096] = {0}, dg2[65];
+        FILE *o = fopen(of, "rb"); if (o) { size_t k = fread(buf, 1, sizeof buf - 1, o); buf[k] = 0; fclose(o); }
+        if (r != 0 || !strstr(buf, "s VERIFIED UNSAT")) { snprintf(why, ws, "cake_lpr did not verify the proof (exit %d)", r); goto done; }
+        if (file_sha(cf, dg2) || strcmp(dg, dg2)) { snprintf(why, ws, "CNF changed during checking"); goto done; }
+        rc = 1;
+    }
+done:
+    if (!penv("DCALC_PROOF_KEEP")) { unlink(cf); unlink(lf); unlink(of); rmdir(d); }
+    return rc;
+}
+
+static int cnf_map(Cnf *c, const SymMod *S, int mi, const int *vec, CVal *o) {
+    const SMap *mp = &S->map[mi]; CCtx x = { c, mp->var->text, vec, S->car[mp->from].width };
+    if (cnf_term(&x, mp->body, o)) return -1;
+    cwiden(&x, o, S->car[mp->to].width);
+    return o->w == S->car[mp->to].width ? 0 : -1;
+}
+static int cnf_block(Cnf *c, const Sx *b, const int *vec, int W, int *lit) {
+    const Sx *bd = b->items[2]; CCtx x = { c, bd->items[1]->items[0]->text, vec, W }; CVal v;
+    if (cnf_term(&x, bd->items[2], &v) || cbool(&x, &v)) return -1;
+    *lit = v.b[0]; return 0;
+}
+/* goal = C(x) and (some universal obligation fails at x).  Membership is concrete. */
+static int sym_cnf_partition(Cnf *c, const SymMod *S, const SMach *M, const Sx *bp, const RNode *nd, int nn, int *goal) {
+    int W = S->car[M->states].width, xv[SYM_MAXW], nb = 0, Bl[SYM_MAXB]; const Sx *bl[SYM_MAXB]; uint64_t rp[SYM_MAXB];
+    for (int i = 0; i < W; i++) xv[i] = i + 1;
+    if (cnf_init(c, W)) return -1;
+    int T = c->tru, C = T, viol = -T, U = -T;
+    if (nd) { C = -T; for (int k = 0; k < nn; k++) { int e = T; for (int i = 0; i < W; i++) e = cnf_and(c, e, ((nd[k].w >> i) & 1) ? xv[i] : -xv[i]); C = cnf_or(c, C, e); } }
+    for (size_t k = 2; k < bp->n; k++) {
+        const Sx *b = bp->items[k];
+        if (!sx_head_is(b, "Block")) continue;
+        if (nb == SYM_MAXB || !lit_of(b->items[3], &rp[nb]) || cnf_block(c, b, xv, W, &Bl[nb])) return -1;
+        bl[nb++] = b;
+    }
+    for (int i = 0; i < nb; i++) U = cnf_or(c, U, Bl[i]);
+    viol = cnf_or(c, viol, -U);
+    for (int i = 0; i < nb; i++) for (int j = i + 1; j < nb; j++) viol = cnf_or(c, viol, cnf_and(c, Bl[i], Bl[j]));
+    for (int p = 0; p < M->nobs; p++) {
+        CVal ob; if (cnf_map(c, S, M->obs[p].map, xv, &ob)) return -1;
+        for (int i = 0; i < nb; i++) {
+            uint64_t t; if (cmap(S, M->obs[p].map, rp[i], &t)) return -1;
+            int diff = -T; for (int k = 0; k < ob.w; k++) diff = cnf_or(c, diff, ((t >> k) & 1) ? -ob.b[k] : ob.b[k]);
+            viol = cnf_or(c, viol, cnf_and(c, Bl[i], diff));
+        }
+    }
+    for (int a = 0; a < M->nact; a++) {
+        CVal y; if (cnf_map(c, S, M->act[a].map, xv, &y)) return -1;
+        for (size_t k = 2; k < bp->n; k++) {
+            const Sx *sc = bp->items[k]; int i = -1, j = -1, by;
+            if (!sx_head_is(sc, "Successor") || sc->n != 4 || strcmp(sc->items[1]->text, M->act[a].name)) continue;
+            for (int t = 0; t < nb; t++) { if (!strcmp(bl[t]->items[1]->text, sc->items[2]->text)) i = t; if (!strcmp(bl[t]->items[1]->text, sc->items[3]->text)) j = t; }
+            if (i < 0 || j < 0 || cnf_block(c, bl[j], y.b, W, &by)) return -1;
+            viol = cnf_or(c, viol, cnf_and(c, Bl[i], -by));
+        }
+    }
+    *goal = cnf_and(c, C, viol);
+    return c->bad ? -1 : 0;
+}
+
 /* A decision-diagram answer alone is a candidate (spec 6.2): until its obligations
  * are replayed by a checked proof it is Conditional on the trusted backend. */
 static void sym_set_conditional(Sx *res, const char *digest) {
@@ -487,8 +717,22 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
         if (nd) sx_push(val, dc_form("ReachScope", dc_sym(cn), sym_reach_words(nd, nn, R), NULL));
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SymbolicPartitionCandidate"), NULL),
                          dc_form("ObligationDigest", sx_str(dg), NULL), dc_form("BddNodes", dc_sym(nb), NULL), NULL), NULL);
-        res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, "decision-diagram answer; obligations not yet replayed by a checked proof", &sc);
-        sym_set_conditional(res, dg);
+        Cnf cn; int goal, pr = -1; char pdg[65] = "", why[160] = "proof not attempted";
+        memset(&cn, 0, sizeof cn);
+        if (sym_cnf_partition(&cn, S, M, bp, nd, nn, &goal) == 0) pr = sym_prove(&cn, goal, pdg, why, sizeof why);
+        else snprintf(why, sizeof why, "CNF generation failed");
+        cnf_free(&cn);
+        if (pr == 0) { sx_free(val); sx_free(ev); sx_free(claim); sx_free(subj); free(nd);
+            return dc_unsupported(m, "CheckBlockPartition: decision diagrams and SAT solver disagree (%s)", why); }
+        if (pr == 1) {
+            sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
+                                          dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), NULL));
+            res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, NULL, &sc);
+        } else {
+            char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
+            res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, rs, &sc);
+            sym_set_conditional(res, dg);
+        }
     }
     free(nd);
     return res;
