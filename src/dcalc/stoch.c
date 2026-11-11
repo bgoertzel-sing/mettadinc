@@ -112,7 +112,15 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                     if (!l || mi < 0 || M->nobs == 4 || s->map[mi].from != M->states) return st_err(err, es, "bad Observe in machine", nm);
                     snprintf(M->ol[M->nobs], ST_NM, "%s", l); M->om[M->nobs++] = mi;
                 } else if (sx_head_is(f, "Action")) {
-                    int ki = st_keri(s, t);
+                    int ki = st_keri(s, t), mpi = ki < 0 ? st_mapi(s, t) : -1;
+                    if (ki < 0 && mpi >= 0 && s->map[mpi].from == M->states && s->map[mpi].to == M->states && s->nker < ST_MAXD) {
+                        /* V03: a deterministic Map used as an action is the 0/1 kernel of that map */
+                        StKer *K = &s->ker[s->nker]; memset(K, 0, sizeof *K); snprintf(K->name, ST_NM, "%s", t);
+                        K->from = K->to = M->states; int ovf0 = 0;
+                        for (int x = 0; x < s->car[M->states].n; x++) for (int y = 0; y < s->car[M->states].n; y++)
+                            K->p[x][y] = dc_rat(y == s->map[mpi].tab[x] ? 1 : 0, 1, &ovf0);
+                        ki = s->nker++;
+                    }
                     if (!l || ki < 0 || M->nact == 4 || s->ker[ki].from != M->states || s->ker[ki].to != M->states) return st_err(err, es, "bad Action (kernel on the states) in machine", nm);
                     snprintf(M->al[M->nact], ST_NM, "%s", l); M->ak[M->nact++] = ki;
                 }
@@ -123,8 +131,8 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
             StRepr *P = &s->rep[s->nrep]; snprintf(P->name, ST_NM, "%s", nm);
             P->mach = st_machi(s, st_name(st_field(d, "Of"), 1)); P->enc = st_mapi(s, st_name(st_field(d, "Encode"), 1));
             if (P->mach < 0 || P->enc < 0) return st_err(err, es, "representation needs (Of Machine) (Encode map):", nm);
-            if (s->map[P->enc].from != s->mach[P->mach].states || s->map[P->enc].to != s->mach[P->mach].states)
-                return st_err(err, es, "representation encoding must map the states to themselves:", nm);
+            if (s->map[P->enc].from != s->mach[P->mach].states)   /* the image may be another carrier (V01: fitness classes) */
+                return st_err(err, es, "representation encoding must start at the machine states:", nm);
             s->nrep++;
         }
         else if (!strcmp(h, "LinearArrow")) {
@@ -450,6 +458,57 @@ static void st_grade(const StMod *s, const StLin *L, DcRat *lam, DcRat *rho, int
     }
 }
 
+/* ---- V01/V02: encoding classes and their lumping refinement ---- */
+static int st_encclass(const StMap *E, int n, int *blk) {
+    int k = 0;
+    for (int x = 0; x < n; x++) { blk[x] = -1; for (int y = 0; y < x && blk[x] < 0; y++) if (E->tab[y] == E->tab[x]) blk[x] = blk[y]; if (blk[x] < 0) blk[x] = k++; }
+    return k;
+}
+static int st_refine(const StMod *s, const StMach *M, int *blk, int nb, int *rounds, int *ovf) {
+    int n = s->car[M->states].n, nb2, b2[ST_MAXE]; *rounds = 0;
+    for (;;) {
+        nb2 = 0;
+        for (int x = 0; x < n; x++) {
+            b2[x] = -1;
+            for (int y = 0; y < x && b2[x] < 0; y++) {
+                if (blk[y] != blk[x]) continue;
+                int same = 1;
+                for (int a = 0; a < M->nact && same; a++)
+                    for (int b = 0; b < nb && same; b++)
+                        if (dc_rat_cmp(st_blockmass(&s->ker[M->ak[a]], n, blk, x, b, ovf), st_blockmass(&s->ker[M->ak[a]], n, blk, y, b, ovf))) same = 0;
+                if (same) b2[x] = b2[y];
+            }
+            if (b2[x] < 0) b2[x] = nb2++;
+        }
+        (*rounds)++; memcpy(blk, b2, sizeof(int) * (size_t)n);
+        if (nb2 == nb) return nb;
+        nb = nb2;
+    }
+}
+/* ---- V04: expected proposals of a keyed archive until a target genotype is proposed.
+ * The archive only grows (one incumbent per key), so E(A) = (1 + sum_{A'} w E(A')) / (1 - w_self). */
+static const StKer *g_hk; static int g_hn, g_ht, g_hkey[ST_MAXE], g_hnodes;
+static int st_hit(int *arc, int nk, DcRat *out, int *ovf) {
+    int k = 0; for (int b = 0; b < nk; b++) k += arc[b] >= 0;
+    if (++g_hnodes > 200000) return -1;
+    DcRat self = dc_rat(0, 1, ovf), acc = dc_rat(0, 1, ovf), inv = dc_rat(1, k, ovf);
+    for (int b = 0; b < nk; b++) {
+        int p = arc[b]; if (p < 0) continue;
+        for (int c = 0; c < g_hn; c++) {
+            if (dc_rat_is_zero(g_hk->p[p][c]) || c == g_ht) continue;
+            DcRat w = dc_rat_mul(inv, g_hk->p[p][c], ovf);
+            if (arc[g_hkey[c]] >= 0) { self = dc_rat_add(self, w, ovf); continue; }
+            DcRat e; arc[g_hkey[c]] = c; int rc = st_hit(arc, nk, &e, ovf); arc[g_hkey[c]] = -1;
+            if (rc) return rc;
+            acc = dc_rat_add(acc, dc_rat_mul(w, e, ovf), ovf);
+        }
+    }
+    DcRat one = dc_rat(1, 1, ovf);
+    if (!dc_rat_cmp(self, one)) return -2;
+    *out = dc_rat_div(dc_rat_add(one, acc, ovf), dc_rat_sub(one, self, ovf), ovf);
+    return *ovf ? -1 : 0;
+}
+
 /* ---- request dispatch ---- */
 static Sx *st_rsx(DcRat a) { return a.d == 1 ? dc_int((long)a.n) : dc_form("Rat", dc_int((long)a.n), dc_int((long)a.d), NULL); }
 static Sx *st_blocks(const StCar *c, const int *blk, int nb) {
@@ -504,6 +563,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
     if (!strcmp(head, "CheckBehavioral") || !strcmp(head, "MeasureBehavioral") || !strcmp(head, "CheckTrace")) {
         int pi = st_repi(&S, a1); if (pi < 0) return dc_invalid(m, "%s: %s names no representation", head, a1 ? a1 : "?");
         const StRepr *P = &S.rep[pi]; const StMach *M = &S.mach[P->mach]; const StCar *C = &S.car[M->states]; const StMap *E = &S.map[P->enc];
+        if (E->to != M->states) return dc_invalid(m, "%s: representation %s encodes into %s, not into the machine states", head, a1, S.car[E->to].name);
         if (!strcmp(head, "CheckTrace")) {
             static StSpan B; st_span(&S, M, &B, &ovf);
             if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
@@ -582,6 +642,77 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             dc_form("ComposedResidual", dc_form("Lambda", st_rsx(lc), NULL), dc_form("Rho", st_rsx(rc), NULL), NULL), NULL), NULL);
         if (!sound) return dc_unsupported(m, "Then: composed residual exceeds the composition bound (internal check)");
         return st_env(m, VERDICT_HOLDS, q, "LinearArrow", C->name, val, ev, NULL);
+    }
+    if (!strcmp(head, "CheckUpdates") || !strcmp(head, "Refine")) {   /* V01, V02 */
+        int pi = st_repi(&S, a1); if (pi < 0) return dc_invalid(m, "%s: %s names no representation", head, a1 ? a1 : "?");
+        const StRepr *P = &S.rep[pi]; const StMach *M = &S.mach[P->mach]; const StCar *C = &S.car[M->states]; const StMap *E = &S.map[P->enc];
+        int n = C->n, blk[ST_MAXE], nb = st_encclass(E, n, blk), rounds;
+        if (!strcmp(head, "Refine")) {
+            for (size_t i = 2; i < q->n; i++) {
+                const Sx *o = q->items[i];
+                if (!(sx_head_is(o, "Preserve") && o->n == 2 && sx_is_sym(o->items[1], "Encoding")) && !(sx_head_is(o, "Until") && o->n == 2 && sx_is_sym(o->items[1], "Stable")))
+                    return dc_invalid(m, "Refine: expected (Preserve Encoding) and (Until Stable)");
+            }
+            nb = st_refine(&S, M, blk, nb, &rounds, &ovf);
+            if (ovf) return dc_unsupported(m, "Refine: rational overflow (int64)");
+            Sx *val = dc_form("Value", dc_form("Refinement", st_blocks(C, blk, nb), dc_form("Classes", dc_int(nb), NULL), NULL), NULL);
+            Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("StrongLumping"), NULL), dc_form("From", dc_sym("Encoding"), NULL), dc_form("Rounds", dc_int(rounds), NULL), NULL), NULL);
+            return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, ev, NULL);
+        }
+        int wa = -1, wx = -1, wy = -1, wb = -1; DcRat mx = dc_rat(0, 1, &ovf), my = mx;
+        for (int a = 0; a < M->nact && wa < 0; a++) for (int x = 0; x < n && wa < 0; x++) for (int y = x + 1; y < n && wa < 0; y++) {
+            if (blk[x] != blk[y]) continue;
+            for (int pass = 0; pass < 2 && wa < 0; pass++) for (int b = 0; b < nb && wa < 0; b++) {   /* prefer mass escaping to another class */
+                if ((pass == 0) != (b != blk[x])) continue;
+                DcRat u = st_blockmass(&S.ker[M->ak[a]], n, blk, x, b, &ovf), v = st_blockmass(&S.ker[M->ak[a]], n, blk, y, b, &ovf);
+                if (dc_rat_cmp(u, v)) { wa = a; wx = x; wy = y; wb = b; mx = u; my = v; }
+            }
+        }
+        if (ovf) return dc_unsupported(m, "CheckUpdates: rational overflow (int64)");
+        Sx *val = dc_form("Value", dc_form("UpdatesStable", dc_sym(wa < 0 ? "True" : "False"), NULL), NULL);
+        Sx *ev;
+        if (wa < 0) ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("EncodingLumpable"), NULL), NULL), NULL);
+        else {
+            const char *lab = E->name; int rx = 0;
+            for (int j = 0; j < M->nobs; j++) if (M->om[j] == P->enc) lab = M->ol[j];
+            while (blk[rx] != wb) rx++;
+            ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("UpdateWitness"), NULL),
+                dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[wy]), NULL), dc_form("Action", dc_sym(M->al[wa]), NULL),
+                dc_form("Class", dc_form(lab, dc_sym(S.car[E->to].el[E->tab[rx]]), NULL), NULL),
+                dc_form("Masses", st_rsx(mx), st_rsx(my), NULL), NULL), NULL);
+        }
+        return st_env(m, wa < 0 ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
+    }
+    if (!strcmp(head, "ExpectedProposals")) {   /* V04 */
+        const Sx *d = NULL, *src = m->source;
+        for (size_t i = 2; i < src->n && !d; i++) if (sx_head_is(src->items[i], "Archive") && st_name(src->items[i], 1) && a1 && !strcmp(st_name(src->items[i], 1), a1)) d = src->items[i];
+        if (!d) return dc_invalid(m, "ExpectedProposals: %s names no archive", a1 ? a1 : "?");
+        int mi = st_machi(&S, st_name(st_field(d, "Machine"), 1));
+        const Sx *pc = st_field(d, "ParentChoice"), *kf = st_field(d, "Key"), *ko = kf && kf->n == 2 ? kf->items[1] : NULL;
+        const Sx *un = q->n == 3 ? q->items[2] : NULL, *hi = sx_head_is(un, "Until") && un->n == 2 ? un->items[1] : NULL;
+        if (mi < 0 || !pc || !sx_is_sym(pc->n == 2 ? pc->items[1] : NULL, "Uniform") || !ko || !sx_head_is(hi, "Hits") || hi->n != 2)
+            return dc_invalid(m, "ExpectedProposals: expected an archive with (Machine M) (Key K) (Start s) (ParentChoice Uniform) and (Until (Hits s))");
+        const StMach *M = &S.mach[mi]; const StCar *C = &S.car[M->states]; int n = C->n, nk = -1, rounds;
+        if (M->nact != 1) return dc_unsupported(m, "ExpectedProposals: archive machine must have exactly one action");
+        if (sx_head_is(ko, "Output") && ko->n == 3 && sx_is_sym(ko->items[2], "Representation")) {
+            const Sx *rq = NULL;
+            for (size_t i = 2; i < src->n && !rq; i++) { const Sx *e = src->items[i];
+                if (sx_head_is(e, "Derive") && e->n == 3 && st_name(e, 1) && st_name(ko, 1) && !strcmp(st_name(e, 1), st_name(ko, 1))) rq = e->items[2]; }
+            int pi = sx_head_is(rq, "Refine") ? st_repi(&S, st_name(rq, 1)) : -1;
+            if (pi < 0 || S.mach[S.rep[pi].mach].states != M->states) return dc_invalid(m, "ExpectedProposals: key must be (Output D Representation) with D a Refine over the archive states");
+            nk = st_refine(&S, &S.mach[S.rep[pi].mach], g_hkey, st_encclass(&S.map[S.rep[pi].enc], n, g_hkey), &rounds, &ovf);
+        } else if (ko->kind == SX_SYM && st_mapi(&S, ko->text) >= 0 && S.map[st_mapi(&S, ko->text)].from == M->states) nk = st_encclass(&S.map[st_mapi(&S, ko->text)], n, g_hkey);
+        if (nk < 0) return dc_invalid(m, "ExpectedProposals: unknown key");
+        int st0 = st_el(C, st_field(d, "Start") && st_field(d, "Start")->n == 2 ? st_field(d, "Start")->items[1] : NULL), tg = st_el(C, hi->items[1]);
+        if (st0 < 0 || tg < 0) return dc_invalid(m, "ExpectedProposals: start and target must be states of %s", M->name);
+        g_hk = &S.ker[M->ak[0]]; g_hn = n; g_ht = tg; g_hnodes = 0;
+        int arc[ST_MAXE]; for (int b = 0; b < nk; b++) arc[b] = -1;
+        arc[g_hkey[st0]] = st0; DcRat e = dc_rat(0, 1, &ovf); int rc = st0 == tg ? 0 : st_hit(arc, nk, &e, &ovf);
+        if (rc == -2) return st_env(m, VERDICT_FAILS, q, "Archive", a1, dc_form("Value", dc_form("Reachable", dc_sym("False"), NULL), NULL), dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ArchiveClosed"), NULL), NULL), NULL), NULL);
+        if (rc || ovf) return dc_unsupported(m, "ExpectedProposals: rational overflow (int64) or archive state limit");
+        Sx *val = dc_form("Value", dc_form("ExpectedProposals", st_rsx(e), NULL), dc_form("Until", dc_form("Hits", dc_sym(C->el[tg]), NULL), NULL), NULL);
+        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ArchiveHittingTime"), NULL), dc_form("Keys", dc_int(nk), NULL), dc_form("ArchiveStates", dc_int(g_hnodes), NULL), NULL), NULL);
+        return st_env(m, VERDICT_HOLDS, q, "Archive", a1, val, ev, NULL);
     }
     if (!strcmp(head, "PositiveRealization")) {
         int mi = st_machi(&S, a1); if (mi < 0) return dc_invalid(m, "%s: %s names no machine", head, a1 ? a1 : "?");

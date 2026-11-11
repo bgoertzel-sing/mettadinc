@@ -1035,7 +1035,7 @@ void dc_admission_free(DcAdmission *a) {
  * else a reason, written to buf. */
 /* M4 opt-in: Dynamics Stochastic and the stochastic libraries are admitted
  * beyond the first release; every other first-release gap still answers. */
-static const char *const M4_LIBS[] = { "Linear", NULL };
+static const char *const M4_LIBS[] = { "Linear", "Search", NULL };
 static int m4_allowed(const char *key, const char *val) {
     if (!val) return 0;
     if (!strcmp(key, "dynamics")) return !strcmp(val, "Stochastic");
