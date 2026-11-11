@@ -392,7 +392,9 @@ def main(fixture, output):
     forms = parse(open(fixture, encoding='utf-8', errors='replace').read())
     import replay_graded as G   # M2: graded results replay through the independent graded checker
     mods = {f[1]: (Module(f), derives(None, f)) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module'}
-    gmods = {f[1]: G.GModule(f) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module'}
+    import replay_sym as SY   # M3: symbolic modules replay through the independent symbolic checker
+    smods = {f[1]: SY.SymM(f) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module' and SY.is_symbolic(f)}
+    gmods = {f[1]: G.GModule(f) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module' and f[1] not in smods}
     n_ok = n_skip = n_bad = 0
     for line in open(output):
         if ' => ' not in line: continue
@@ -400,7 +402,8 @@ def main(fixture, output):
         mname, req = head.split(' ', 1); req = parse(req)[0]; env = parse(env)[0]
         try:
             M, D = mods[mname]
-            r = G.replay(gmods[mname], req, env) if G.is_graded(gmods[mname], req) else replay(M, D, req, env)
+            if mname in smods: r = SY.replay(smods[mname], D, M.digest, req, env)
+            else: r = G.replay(gmods[mname], req, env) if G.is_graded(gmods[mname], req) else replay(M, D, req, env)
             if r == 'ok': n_ok += 1
             else: n_skip += 1
         except (Fail, G.GFail, KeyError, IndexError, TypeError, ValueError, AssertionError, ZeroDivisionError) as ex:
@@ -409,4 +412,7 @@ def main(fixture, output):
     return 1 if n_bad else 0
 
 if __name__ == '__main__':
+    # replay_sym/replay_graded do 'from replay import Fail': alias this module so they
+    # raise the same Fail class main() catches (review 1 F6), not a second import's.
+    sys.modules.setdefault('replay', sys.modules['__main__'])
     sys.exit(main(sys.argv[1], sys.argv[2]))

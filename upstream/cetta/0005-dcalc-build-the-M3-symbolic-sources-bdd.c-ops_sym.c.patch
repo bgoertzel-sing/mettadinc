@@ -1,0 +1,25 @@
+From ed031e720343dd78c117ff904de78042b2472857 Mon Sep 17 00:00:00 2001
+From: ProtoMegaBot2 <protomega2@hive.local>
+Date: Wed, 11 Nov 2026 18:58:10 +0000
+Subject: [PATCH] dcalc: build the M3 symbolic sources (bdd.c, ops_sym.c)
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 9a25744f..4ce2901c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -789,7 +789,7 @@ SRC += src/library_dag.c
+ # MeTTaDinC M0 core (native module "dcalc").  DCALC_DIR is the mettadinc
+ # src/dcalc directory; the default assumes CeTTa is the mettadinc submodule.
+ DCALC_DIR ?= ../src/dcalc
+-DCALC_CORE_SRC = rat.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c
++DCALC_CORE_SRC = rat.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c bdd.c ops_sym.c
+ SRC += src/library_dcalc.c $(addprefix $(DCALC_DIR)/,$(DCALC_CORE_SRC))
+ CPPFLAGS_DCALC = -I$(DCALC_DIR)
+ SRC += src/u64_index.c
+-- 
+2.34.1
+

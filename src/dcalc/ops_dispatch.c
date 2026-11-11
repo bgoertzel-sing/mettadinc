@@ -30,6 +30,7 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
     if (q->kind != SX_LIST || q->n == 0 || q->items[0]->kind != SX_SYM)
         return dc_invalid(m, "request: expected (Head args...) or a Derive name");
     const char *h = q->items[0]->text;
+    if (m->symbolic && !m->profile_unsupported[0]) return dc_req_sym(r, q, h, slot);   /* M3 */
     if (m->profile_unsupported[0]) return dc_unsupported(m, "request %s: %s", h, m->profile_unsupported);
     /* M2: graded heads, and the M0 heads on a graded representation */
     if (!strcmp(h, "PathClosure") || !strcmp(h, "Bracket") || !strcmp(h, "Delta") || !strcmp(h, "Threshold") || !strcmp(h, "CheckTransitive"))
