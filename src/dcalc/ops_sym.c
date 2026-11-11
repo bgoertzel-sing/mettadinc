@@ -17,6 +17,8 @@
 #define SYM_MAXW 64
 /* Obligation generator version (spec 15.3: recorded in every certificate it contributes to). */
 #define SYM_GEN_VERSION "m3.1"
+/* Resources of the current symbolic request (spec 6.2: concrete words touched; no enumeration). */
+static long sym_res_words = -1; static size_t sym_res_nodes;
 /* A compiled term value: either a constant (w = -1, k) or w BDD bits (bit 0 first). */
 typedef struct { int w; uint64_t k; DcBdd b[SYM_MAXW]; } SymVal;
 
@@ -702,6 +704,8 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
     }
     rc = sym_check_partition(&E, S, M, av, bp, C, &f, err, sizeof err);
     size_t nodes = dc_bdd_nodes(E.bm); dc_bdd_free(E.bm);
+    sym_res_words = nn + (rc == 0); sym_res_nodes = nodes;
+    for (size_t k = 2; k < bp->n; k++) if (sx_head_is(bp->items[k], "Block")) sym_res_words++;
     if (rc < 0) { free(nd); return rc == -1 ? dc_invalid(m, "CheckBlockPartition: %s", err) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
     /* obligation digest: partition text, machine, scope words */
     char *bt = sx_print(bp); size_t cap = strlen(bt) + 128 + (size_t)nn * 24, len; char *buf = malloc(cap), dg[65];
@@ -1022,6 +1026,7 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     double tot = 0; for (int i = 0; i < ncl; i++) tot += sz[i];
     if (tot != dc_bdd_satcount(bm, 1)) ok = 0;
     size_t nodes = dc_bdd_nodes(bm); dc_bdd_free(bm);
+    sym_res_words = ncl; sym_res_nodes = nodes;
     /* blocks in order of their least word */
     int ord[SYM_MAXCL]; for (int i = 0; i < ncl; i++) ord[i] = i;
     for (int i = 1; i < ncl; i++) for (int j = i; j > 0 && rep[ord[j]] < rep[ord[j - 1]]; j--) { int t = ord[j]; ord[j] = ord[j - 1]; ord[j - 1] = t; }
@@ -1159,6 +1164,7 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
         }
     }
     int failed = dc_bdd_failed(bm); size_t nodes = dc_bdd_nodes(bm); dc_bdd_free(bm);
+    sym_res_words = nfib + (found > 0 ? 2 : 0); sym_res_nodes = nodes;
     if (failed) return dc_unsupported(m, "%s: BDD node limit reached", h);
     if (found < 0) return dc_unsupported(m, "%s: internal check failed (tests do not separate the witness pair)", h);
     DcScope sc = { "M3-SymbolicBitVector", -1, "", NULL };
@@ -1202,11 +1208,17 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
 static Sx *sym_policy(Sx *res) {
     Sx *au = res ? sx_find(res, "Assurance", 1) : NULL, *p = au ? sx_find(au, "Policy", 1) : NULL;
     if (p && p->n == 2) { sx_free(p->items[1]); p->items[1] = dc_sym("M3-SymbolicReplay"); }
+    if (res && sym_res_words >= 0) {
+        char nb[32]; snprintf(nb, sizeof nb, "%zu", sym_res_nodes);
+        sx_push(res, dc_form("Resources", dc_form("ConcreteWords", dc_int(sym_res_words), NULL), dc_form("BddNodes", dc_sym(nb), NULL),
+                             dc_form("EnumeratedCarrier", dc_sym("False"), NULL), NULL));
+    }
     return res;
 }
 
 Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     char err[256]; SymMod S;
+    sym_res_words = -1; sym_res_nodes = 0;
     if (sym_read(r->m->source, &S, err, sizeof err)) return dc_invalid(r->m, "symbolic module: %s", err);
     if (!strcmp(head, "CheckBlockPartition")) return sym_policy(sym_req_partition(r->m, &S, q));
     if (!strcmp(head, "MinimizeForQueries")) return sym_policy(sym_req_minimize(r, &S, q, slot));
