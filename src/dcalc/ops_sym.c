@@ -889,6 +889,107 @@ static Sx *sym_tree(const SMach *M, const STest *T, int nt, const uint64_t *vec,
     return NULL;   /* classes not separated by the tests */
 }
 
+/* ---- linear backend over F2 (spec 6.2: ParityQuotient) ----
+ * A syntactic compiler turns Body terms into F2 matrices (row j = mask of the input bits
+ * whose XOR is output bit j); any non-linear operator or constant offset rejects the map.
+ * The observable space is the closure of the observation rows under r -> r.A_a; its
+ * dimension k gives 2^k classes and W-k unobservable dimensions.  Stability is the matrix
+ * identity B_j.A_a = sum_l K_a[j][l] B_l, replayed by multiplication. */
+typedef struct { int w; uint64_t k; uint64_t row[SYM_MAXW]; unsigned char c[SYM_MAXW]; } LVal;
+static void lwiden(LVal *v, int w) {
+    if (v->w >= 0) return;
+    uint64_t k = v->k; v->w = w;
+    for (int i = 0; i < w; i++) { v->row[i] = 0; v->c[i] = (k >> i) & 1; }
+}
+static int lbool(LVal *v) { if (v->w < 0) { if (v->k > 1) return -1; lwiden(v, 1); } return v->w == 1 ? 0 : -1; }
+static int lin_term(const Sx *t, const char *var, int W, LVal *o) {
+    LVal a, b; uint64_t i, j;
+    memset(o, 0, sizeof *o);
+    if (t->kind == SX_SYM) {
+        if (!strcmp(t->text, var)) { o->w = W; for (int q = 0; q < W; q++) o->row[q] = (uint64_t)1 << q; return 0; }
+        if (lit_of(t, &o->k)) { o->w = -1; return 0; }
+        return -1;
+    }
+    if (t->kind != SX_LIST || !t->n || t->items[0]->kind != SX_SYM) return -1;
+    const char *h = t->items[0]->text; size_t n = t->n;
+#define LT(k, v) if (lin_term(t->items[k], var, W, &v)) return -1
+#define LX(k, v, lim) (lit_of(t->items[k], &v) && v < (uint64_t)(lim))
+    if (!strcmp(h, "BitAt") && n == 3) { LT(1, a); if (a.w < 0 || !LX(2, i, a.w)) return -1; o->w = 1; o->row[0] = a.row[i]; o->c[0] = a.c[i]; return 0; }
+    if (!strcmp(h, "Slice") && n == 4) { LT(1, a); if (a.w < 0 || !LX(2, i, a.w) || !LX(3, j, a.w) || j < i) return -1;
+        o->w = (int)(j - i + 1); for (uint64_t q = i; q <= j; q++) { o->row[q - i] = a.row[q]; o->c[q - i] = a.c[q]; } return 0; }
+    if (!strcmp(h, "SwapBits") && n == 4) { LT(1, a); if (a.w < 0 || !LX(2, i, a.w) || !LX(3, j, a.w)) return -1;
+        *o = a; o->row[i] = a.row[j]; o->row[j] = a.row[i]; o->c[i] = a.c[j]; o->c[j] = a.c[i]; return 0; }
+    if (!strcmp(h, "RotateRange") && n == 4) { LT(1, a); if (a.w < 0 || !LX(2, i, a.w) || !LX(3, j, a.w) || j < i) return -1;
+        *o = a; for (uint64_t q = i + 1; q <= j; q++) { o->row[q] = a.row[q - 1]; o->c[q] = a.c[q - 1]; } o->row[i] = a.row[j]; o->c[i] = a.c[j]; return 0; }
+    if (!strcmp(h, "SetBit") && n == 4) { LT(1, a); LT(3, b); if (a.w < 0 || !LX(2, i, a.w) || lbool(&b)) return -1;
+        *o = a; o->row[i] = b.row[0]; o->c[i] = b.c[0]; return 0; }
+    if (!strcmp(h, "Parity") && n == 2) { LT(1, a); if (a.w < 0) return -1;
+        o->w = 1; for (int q = 0; q < a.w; q++) { o->row[0] ^= a.row[q]; o->c[0] ^= a.c[q]; } return 0; }
+    if (!strcmp(h, "Not") && n == 2) { LT(1, a); if (lbool(&a)) return -1; *o = a; o->c[0] ^= 1; return 0; }
+    if (!strcmp(h, "Xor") && n == 3) { LT(1, a); LT(2, b); if (a.w < 0 && b.w < 0) return -1;
+        lwiden(&a, b.w); lwiden(&b, a.w); if (a.w != b.w) return -1;
+        o->w = a.w; for (int q = 0; q < a.w; q++) { o->row[q] = a.row[q] ^ b.row[q]; o->c[q] = a.c[q] ^ b.c[q]; } return 0; }
+#undef LT
+#undef LX
+    return -1;   /* And, Or, Eq, IsZero, ...: not linear */
+}
+static int lin_map(const SymMod *S, int mi, LVal *o) {
+    const SMap *mp = &S->map[mi];
+    if (lin_term(mp->body, mp->var->text, S->car[mp->from].width, o)) return -1;
+    lwiden(o, S->car[mp->to].width);
+    if (o->w != S->car[mp->to].width) return -1;
+    for (int q = 0; q < o->w; q++) if (o->c[q]) return -1;   /* affine offset: outside the linear backend */
+    /* cross-check against the concrete evaluator */
+    uint64_t x = 0x9E3779B97F4A7C15ULL ^ (uint64_t)mi;
+    for (int t = 0; t < 128; t++) {
+        uint64_t w = (t < 64 ? ((uint64_t)1 << (t % S->car[mp->from].width)) : (x ^= x << 13, x ^= x >> 7, x ^= x << 17)) & cmask(S->car[mp->from].width), y, z = 0;
+        if (cmap(S, mi, w, &y)) return -1;
+        for (int q = 0; q < o->w; q++) if (__builtin_parityll(o->row[q] & w)) z |= (uint64_t)1 << q;
+        if (y != z) return -1;
+    }
+    return 0;
+}
+static uint64_t lin_comp(uint64_t r, const LVal *f) { uint64_t x = 0; for (int j = 0; j < f->w; j++) if ((r >> j) & 1) x ^= f->row[j]; return x; }
+typedef struct { uint64_t B[64], er[64], ec[64]; int piv[64], k; } LBasis;
+static uint64_t lin_reduce(const LBasis *L, uint64_t v, uint64_t *comb) {
+    *comb = 0;
+    while (v) { int p = 63 - __builtin_clzll(v), e = L->piv[p]; if (e < 0) break; v ^= L->er[e]; *comb ^= L->ec[e]; }
+    return v;
+}
+static void lin_add(LBasis *L, uint64_t v) {
+    uint64_t c, r = lin_reduce(L, v, &c);
+    if (!r || L->k == 64) return;
+    int e = L->k; L->B[e] = v; L->er[e] = r; L->ec[e] = c ^ ((uint64_t)1 << e); L->piv[63 - __builtin_clzll(r)] = e; L->k++;
+}
+/* NULL when the machine is not linear; *ok = identities replayed and 2^k == ncl. */
+static Sx *sym_linear(const SymMod *S, const SMach *M, int ncl, int *ok) {
+    static LVal act[8], obs[8]; static LBasis L; int W = S->car[M->states].width; char hb[32];
+    *ok = 0;
+    for (int a = 0; a < M->nact; a++) if (lin_map(S, M->act[a].map, &act[a])) return NULL;
+    for (int p = 0; p < M->nobs; p++) if (lin_map(S, M->obs[p].map, &obs[p])) return NULL;
+    memset(&L, 0, sizeof L); for (int i = 0; i < 64; i++) L.piv[i] = -1;
+    for (int p = 0; p < M->nobs; p++) for (int q = 0; q < obs[p].w; q++) lin_add(&L, obs[p].row[q]);
+    for (int i = 0; i < L.k; i++) for (int a = 0; a < M->nact; a++) lin_add(&L, lin_comp(L.B[i], &act[a]));
+    int rep = 1; Sx *basis = dc_form("Basis", NULL), *trans = dc_form("Transitions", NULL);
+    for (int i = 0; i < L.k; i++) { snprintf(hb, sizeof hb, "%llx", (unsigned long long)L.B[i]); sx_push(basis, dc_form("Row", sx_str(hb), NULL)); }
+    for (int a = 0; a < M->nact; a++) {
+        Sx *K = dc_form("K", NULL);
+        for (int j = 0; j < L.k; j++) {
+            uint64_t v = lin_comp(L.B[j], &act[a]), c, x = 0;
+            if (lin_reduce(&L, v, &c)) rep = 0;
+            for (int l = 0; l < L.k; l++) if ((c >> l) & 1) x ^= L.B[l];   /* replay by multiplication */
+            if (x != v) rep = 0;
+            snprintf(hb, sizeof hb, "%llx", (unsigned long long)c); sx_push(K, sx_str(hb));
+        }
+        sx_push(trans, dc_form("Action", dc_sym(M->act[a].name), K, NULL));
+    }
+    if (L.k > 30 || ((long)1 << L.k) != ncl) rep = 0;
+    *ok = rep;
+    return dc_form("Linear", dc_form("Field", dc_sym("F2"), NULL), dc_form("ObservableDimension", dc_int(L.k), NULL),
+                   dc_form("UnobservableDimension", dc_int(W - L.k), NULL), basis, trans,
+                   dc_form("Replayed", dc_sym(rep ? "True" : "False"), NULL), NULL);
+}
+
 static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     DcModule *m = r->m; const char *h = "MinimizeForQueries", *mn; char err[256];
     if (sname(q, 1, &mn)) return dc_invalid(m, "%s: field machine missing or not a name", h);
@@ -955,6 +1056,8 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
             for (int k = 0; k < ncl; k++) { char rb[32]; snprintf(rb, sizeof rb, "%llu", (unsigned long long)rep[ord[k]]); sx_push(reps, dc_sym(rb)); }
             sx_push(ev->items[1], dc_form("Tree", dc_form("Nodes", dc_int(nodes_t), NULL), dc_form("MaxWord", dc_int(maxw), NULL), tree, NULL));
             sx_push(ev->items[1], reps);
+            int lok; Sx *lin = sym_linear(S, M, ncl, &lok);
+            if (lin) { sx_push(ev->items[1], lin); if (!lok) ok = 0; }
         }
     }
     if (ok && (nt > 63 || !sym_reps_distinct(S, M, T, nt, rep, ncl))) ok = 0;
