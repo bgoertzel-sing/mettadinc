@@ -1186,7 +1186,7 @@ static int sym_replay_pair(const SymMod *S, const SMach *M, int ei, uint64_t x, 
     return ox != oy;
 }
 static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
-    DcModule *m = r->m; const char *rn, *mn, *en; char err[256]; int mi, ei, beh = !strcmp(h, "CheckBehavioral");
+    DcModule *m = r->m; const char *rn, *mn, *en; char err[256]; int mi, ei, meas = !strcmp(h, "MeasureBehavioral"), beh = meas || !strcmp(h, "CheckBehavioral");
     if (sname(q, 1, &rn)) return dc_invalid(m, "%s: field representation missing or not a name", h);
     if (q->n > 2) return dc_unsupported(m, "%s: extra fields are outside the M3 symbolic engine", h);
     const Sx *rd = sfind_decl(S, rn);
@@ -1242,14 +1242,20 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
         snprintf(xb, sizeof xb, "%llu", (unsigned long long)x); snprintf(yb, sizeof yb, "%llu", (unsigned long long)y);
         Sx *wd = dc_form("Word", NULL); for (int k = 0; k < nw; k++) sx_push(wd, dc_sym(M->act[word[k]].name));
         Sx *wit = dc_form("Witness", dc_form("Pair", dc_sym(xb), dc_sym(yb), NULL), wd, dc_form("Observe", dc_sym(M->obs[port].name), NULL), NULL);
-        Sx *val = dc_form("Value", dc_form("Refuted", sx_copy(wit), NULL), NULL);
         int ok = sym_replay_pair(S, M, ei, x, y, word, nw, port);
-        return dc_envelope_scoped(m, VERDICT_FAILS, ok, claim, subj, val, dc_form("Evidence", wit, NULL),
+        /* MeasureBehavioral, crisp observations, discount 1: a replayed separating pair with equal
+         * codes gives defect >= 1, and 1 is the top of the crisp scale, so the interval is [1,1]. */
+        Sx *val = meas ? dc_form("Value", dc_form("DefectMeasurement", dc_form("Defect", dc_form("Interval", dc_int(1), dc_int(1), NULL), NULL),
+                                                  dc_form("Kind", dc_sym("Behavioral"), NULL), dc_form("Equality", dc_sym("Exact"), NULL), sx_copy(wit), NULL), NULL)
+                       : dc_form("Value", dc_form("Refuted", sx_copy(wit), NULL), NULL);
+        return dc_envelope_scoped(m, meas ? VERDICT_HOLDS : VERDICT_FAILS, ok, claim, subj, val, dc_form("Evidence", wit, NULL),
                                   ok ? NULL : "witness did not replay on the concrete evaluator", &sc);
     }
     char buf[512], dg[65]; int bl = snprintf(buf, sizeof buf, "%s|%s|%s|%s|%s", m->digest, h, rn, mn, en);
     dc_sha256_hex(buf, (size_t)bl, dg); snprintf(nb, sizeof nb, "%zu", nodes);
-    Sx *val = dc_form("Value", dc_form("Holds", dc_form("Fibers", dc_int(nfib), NULL), NULL), NULL);
+    Sx *val = meas ? dc_form("Value", dc_form("DefectMeasurement", dc_form("Defect", dc_form("Interval", dc_int(0), dc_int(0), NULL), NULL),
+                                              dc_form("Kind", dc_sym("Behavioral"), NULL), dc_form("Equality", dc_sym("Exact"), NULL), NULL), NULL)
+                   : dc_form("Value", dc_form("Holds", dc_form("Fibers", dc_int(nfib), NULL), NULL), NULL);
     Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym(beh ? "SymbolicBehavioralCandidate" : "SymbolicFiberCandidate"), NULL),
                      dc_form("ObligationDigest", sx_str(dg), NULL), dc_form("BddNodes", dc_sym(nb), NULL), NULL), NULL);
     Cnf cn; int goal, pr = -1; char pdg[65] = "", why[160] = "proof not attempted";
@@ -1290,7 +1296,7 @@ Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     if (sym_read(r->m->source, &S, err, sizeof err)) return dc_invalid(r->m, "symbolic module: %s", err);
     if (!strcmp(head, "CheckBlockPartition")) return sym_policy(sym_req_partition(r->m, &S, q));
     if (!strcmp(head, "MinimizeForQueries")) return sym_policy(sym_req_minimize(r, &S, q, slot));
-    if (!strcmp(head, "CheckNow") || !strcmp(head, "CheckBehavioral")) return sym_policy(sym_req_repr(r, &S, q, head));
+    if (!strcmp(head, "CheckNow") || !strcmp(head, "CheckBehavioral") || !strcmp(head, "MeasureBehavioral")) return sym_policy(sym_req_repr(r, &S, q, head));
     return dc_unsupported(r->m, "request %s: symbolic engine not built yet (M3 in progress; module read: %d carriers, %d maps, %d machines)", head, S.ncar, S.nmap, S.nmach);
 }
 
