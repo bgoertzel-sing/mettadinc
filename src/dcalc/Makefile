@@ -19,7 +19,9 @@ $(BUILD)/m3_incremental: ../../tests/dcalc/m3_incremental.c $(BUILD)/libdcalc.a 
 # M3 negative test 7: sampled clock-rate screen on the forty-bit ZeroMachine (review 1 F3).
 $(BUILD)/screen_m3: ../../tests/dcalc/screen_m3.c $(BUILD)/libdcalc.a $(wildcard *.h) ops_sym.c
 	$(CC) $(CFLAGS) -I. -o $@ $< $(BUILD)/libdcalc.a -lm
-tests: $(BUILD)/m3_incremental $(BUILD)/screen_m3
+$(BUILD)/tv_m3: ../../tests/dcalc/tv_m3.c $(BUILD)/libdcalc.a $(wildcard *.h) ops_sym.c
+	$(CC) $(CFLAGS) -I. -o $@ $< $(BUILD)/libdcalc.a -lm
+tests: $(BUILD)/m3_incremental $(BUILD)/screen_m3 $(BUILD)/tv_m3
 clean:
 	rm -rf $(BUILD)
 .PHONY: all clean tests
