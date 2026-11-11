@@ -60,8 +60,27 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
             s->ncar++;
         } else if (!strcmp(h, "Map")) {
             if (s->nmap == ST_MAXD) return st_err(err, es, "too many maps at", nm);
-            StMap *mp = &s->map[s->nmap]; snprintf(mp->name, ST_NM, "%s", nm);
-            mp->from = st_car(s, st_name(st_field(d, "From"), 1)); mp->to = st_car(s, st_name(st_field(d, "To"), 1));
+            const Sx *ff = st_field(d, "From"), *tf = st_field(d, "To");
+            if (ff && ff->n == 2 && ff->items[1]->kind == SX_LIST) continue;   /* R: product-domain laws are read by the decisions code */
+            StMap *mp = &s->map[s->nmap]; memset(mp, 0, sizeof *mp); snprintf(mp->name, ST_NM, "%s", nm);
+            mp->from = st_car(s, st_name(ff, 1)); mp->to = st_car(s, st_name(tf, 1));
+            if (mp->from >= 0 && tf && tf->n == 2 && tf->items[1]->kind == SX_LIST) {
+                /* structured image (R: rewards-new): a synthetic carrier of the distinct case values */
+                const Sx *cs = st_field(d, "Cases"), *vals[ST_MAXE];
+                if (!cs || s->ncar == ST_MAXD) return st_err(err, es, "structured map needs (Cases ...) and a free carrier slot:", nm);
+                StCar *c = &s->car[s->ncar]; memset(c, 0, sizeof *c); snprintf(c->name, ST_NM, "%.*s#", (int)ST_NM - 2, nm);
+                for (int k = 0; k < ST_MAXE; k++) mp->tab[k] = -1;
+                for (size_t k = 1; k < cs->n; k++) {
+                    const Sx *cc = cs->items[k];
+                    int a = cc->kind == SX_LIST && cc->n == 2 ? st_el(&s->car[mp->from], cc->items[0]) : -1, j = 0;
+                    if (a < 0 || mp->tab[a] >= 0) return st_err(err, es, "bad or duplicate case in map", nm);
+                    while (j < c->n && !sx_equal(vals[j], cc->items[1])) j++;
+                    if (j == c->n) { vals[j] = cc->items[1]; snprintf(c->el[j], ST_NM, "v%d", j); c->n++; }
+                    mp->tab[a] = j;
+                }
+                for (int k = 0; k < s->car[mp->from].n; k++) if (mp->tab[k] < 0) return st_err(err, es, "map is not total:", nm);
+                mp->to = s->ncar++; s->nmap++; continue;
+            }
             const Sx *cs = st_field(d, "Cases");
             if (mp->from < 0 || mp->to < 0 || !cs) return st_err(err, es, "map needs (From C) (To C) (Cases ...):", nm);
             for (int k = 0; k < ST_MAXE; k++) mp->tab[k] = -1;
@@ -509,6 +528,91 @@ static int st_hit(int *arc, int nk, DcRat *out, int *ovf) {
     return *ovf ? -1 : 0;
 }
 
+/* ---- R01-R06: decision models (Use Decisions) ---- */
+static const Sx *st_decl(const Sx *src, const char *head, const char *nm) {
+    for (size_t i = 2; nm && i < src->n; i++) { const Sx *d = src->items[i];
+        if (sx_head_is(d, head) && st_name(d, 1) && !strcmp(st_name(d, 1), nm)) return d; }
+    return NULL;
+}
+static int st_elval(const StCar *T, int j, DcRat *v, int *ovf) {
+    char *e; long long k = strtoll(T->el[j], &e, 10);
+    if (!T->el[j][0] || *e) return -1;
+    *v = dc_rat(k, 1, ovf); return 0;
+}
+static int st_lawx(const Sx *e, const StCar *T, DcRat *out, int *ovf) {
+    for (int j = 0; j < T->n; j++) out[j] = dc_rat(0, 1, ovf);
+    if (sx_head_is(e, "Point") && e->n == 2) { int j = st_el(T, e->items[1]); if (j < 0) return -1; out[j] = dc_rat(1, 1, ovf); return 0; }
+    if (sx_head_is(e, "Coin") && e->n == 2) {
+        DcRat p; int j0 = -1, j1 = -1;
+        for (int j = 0; j < T->n; j++) { if (!strcmp(T->el[j], "0")) j0 = j; if (!strcmp(T->el[j], "1")) j1 = j; }
+        if (j0 < 0 || j1 < 0 || st_rat(e->items[1], &p) || p.n < 0 || dc_rat_cmp(p, dc_rat(1, 1, ovf)) > 0) return -1;
+        out[j1] = p; out[j0] = dc_rat_sub(dc_rat(1, 1, ovf), p, ovf); return 0;
+    }
+    return -1;
+}
+static int st_measure(StMod *s, const Sx *src, const char *nm, int car, DcRat *mu, int *ovf) {
+    const Sx *d = st_decl(src, "Measure", nm), *ms = d ? st_field(d, "Masses") : NULL;
+    if (!ms || car < 0 || st_car(s, st_name(st_field(d, "On"), 1)) != car) return -1;
+    const StCar *C = &s->car[car]; int got[ST_MAXE] = {0}; DcRat sum = dc_rat(0, 1, ovf);
+    for (int x = 0; x < C->n; x++) mu[x] = dc_rat(0, 1, ovf);
+    for (size_t k = 1; k < ms->n; k++) { const Sx *e = ms->items[k]; DcRat w;
+        int x = e->kind == SX_LIST && e->n == 2 ? st_el(C, e->items[0]) : -1;
+        if (x < 0 || got[x] || st_rat(e->items[1], &w) || w.n < 0) return -1;
+        got[x] = 1; mu[x] = w; sum = dc_rat_add(sum, w, ovf); }
+    return dc_rat_cmp(sum, dc_rat(1, 1, ovf)) ? -1 : 0;
+}
+typedef struct { int sc, ac, tc; DcRat law[ST_MAXE][ST_MAXE][ST_MAXE], er[ST_MAXE][ST_MAXE]; } StDM;
+static int st_dm(StMod *s, const Sx *src, const char *nm, StDM *D, char *why, size_t ws, int *ovf) {
+    const Sx *d = st_decl(src, "DecisionModel", nm);
+    if (!d) { snprintf(why, ws, "%s names no decision model", nm ? nm : "?"); return -1; }
+    D->sc = st_car(s, st_name(st_field(d, "States"), 1)); D->ac = st_car(s, st_name(st_field(d, "Actions"), 1)); D->tc = -1;
+    const Sx *mp = st_decl(src, "Map", st_name(st_field(d, "RewardLaw"), 1));
+    const Sx *ff = mp ? st_field(mp, "From") : NULL, *tf = mp ? st_field(mp, "To") : NULL;
+    const Sx *pr = ff && ff->n == 2 ? ff->items[1] : NULL, *lw = tf && tf->n == 2 ? tf->items[1] : NULL;
+    if (D->sc < 0 || D->ac < 0 || !sx_head_is(pr, "Product") || pr->n != 3 || st_car(s, st_name(pr, 1)) != D->sc || st_car(s, st_name(pr, 2)) != D->ac
+        || !sx_head_is(lw, "Law") || lw->n != 2 || (D->tc = st_car(s, st_name(lw, 1))) < 0) {
+        snprintf(why, ws, "decision model %s needs (States S) (Actions A) and a RewardLaw map (From (Product S A)) (To (Law T))", nm); return -1; }
+    const StCar *SC = &s->car[D->sc], *AC = &s->car[D->ac], *TC = &s->car[D->tc];
+    static int seen[ST_MAXE][ST_MAXE]; memset(seen, 0, sizeof seen);
+    const Sx *bd = st_field(mp, "Body"), *cs = st_field(mp, "Cases");
+    for (int x = 0; x < SC->n; x++) for (int a = 0; a < AC->n; a++)
+        if (bd && bd->n == 3 && !st_lawx(bd->items[2], TC, D->law[x][a], ovf)) seen[x][a] = 1;
+    for (size_t k = 1; cs && k < cs->n; k++) { const Sx *c = cs->items[k];
+        const Sx *t = c->kind == SX_LIST && c->n == 2 ? c->items[0] : NULL;
+        int x = sx_head_is(t, "Tuple") && t->n == 3 ? st_el(SC, t->items[1]) : -1, a = x >= 0 ? st_el(AC, t->items[2]) : -1;
+        if (a < 0 || seen[x][a] || st_lawx(c->items[1], TC, D->law[x][a], ovf)) { snprintf(why, ws, "bad or duplicate case in the reward law of %s", nm); return -1; }
+        seen[x][a] = 1; }
+    for (int x = 0; x < SC->n; x++) for (int a = 0; a < AC->n; a++) {
+        if (!seen[x][a]) { snprintf(why, ws, "reward law of %s is not total", nm); return -1; }
+        D->er[x][a] = dc_rat(0, 1, ovf);
+        for (int t = 0; t < TC->n; t++) { DcRat v; if (dc_rat_is_zero(D->law[x][a][t])) continue;
+            if (st_elval(TC, t, &v, ovf)) { snprintf(why, ws, "reward outcomes of %s must be integers", nm); return -1; }
+            D->er[x][a] = dc_rat_add(D->er[x][a], dc_rat_mul(D->law[x][a][t], v, ovf), ovf); }
+    }
+    return *ovf ? -1 : 0;
+}
+static void st_avg(const StMod *s, const StDM *D, const DcRat *mu, DcRat av[][ST_MAXE], int *ovf) {
+    for (int a = 0; a < s->car[D->ac].n; a++) for (int t = 0; t < s->car[D->tc].n; t++) {
+        av[a][t] = dc_rat(0, 1, ovf);
+        for (int x = 0; x < s->car[D->sc].n; x++) av[a][t] = dc_rat_add(av[a][t], dc_rat_mul(mu[x], D->law[x][a][t], ovf), ovf);
+    }
+}
+static Sx *st_avg_sx(const StMod *s, const StDM *D, DcRat av[][ST_MAXE], int *ovf) {
+    const StCar *AC = &s->car[D->ac], *TC = &s->car[D->tc]; Sx *r = dc_form("Averaged", NULL);
+    for (int a = 0; a < AC->n; a++) {
+        Sx *lw = dc_form("Law", NULL); DcRat mean = dc_rat(0, 1, ovf), v;
+        for (int t = 0; t < TC->n; t++) { sx_push(lw, dc_form(TC->el[t], st_rsx(av[a][t]), NULL));
+            if (!st_elval(TC, t, &v, ovf)) mean = dc_rat_add(mean, dc_rat_mul(av[a][t], v, ovf), ovf); }
+        sx_push(r, dc_form(AC->el[a], lw, dc_form("Mean", st_rsx(mean), NULL), NULL));
+    }
+    return r;
+}
+
+static const Sx *st_opt(const Sx *q, const char *h) {
+    for (size_t i = 1; q && q->kind == SX_LIST && i < q->n; i++) if (sx_head_is(q->items[i], h) && q->items[i]->n == 2) return q->items[i];
+    return NULL;
+}
+
 /* ---- request dispatch ---- */
 static Sx *st_rsx(DcRat a) { return a.d == 1 ? dc_int((long)a.n) : dc_form("Rat", dc_int((long)a.n), dc_int((long)a.d), NULL); }
 static Sx *st_blocks(const StCar *c, const int *blk, int nb) {
@@ -713,6 +817,93 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         Sx *val = dc_form("Value", dc_form("ExpectedProposals", st_rsx(e), NULL), dc_form("Until", dc_form("Hits", dc_sym(C->el[tg]), NULL), NULL), NULL);
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ArchiveHittingTime"), NULL), dc_form("Keys", dc_int(nk), NULL), dc_form("ArchiveStates", dc_int(g_hnodes), NULL), NULL), NULL);
         return st_env(m, VERDICT_HOLDS, q, "Archive", a1, val, ev, NULL);
+    }
+    /* ---- R01-R06 handlers (Use Decisions) ---- */
+    if (!strcmp(head, "CheckEqual") || !strcmp(head, "AverageModel")) {   /* R01, R02 */
+        int one = !strcmp(head, "AverageModel"), ns = one ? 1 : 2;
+        const Sx *sides[2] = { one ? q : (q->n == 3 ? q->items[1] : NULL), !one && q->n == 3 ? q->items[2] : NULL };
+        static StDM DD[2]; static DcRat AV[2][ST_MAXE][ST_MAXE]; DcRat mu[ST_MAXE]; char why[200] = "";
+        for (int k = 0; k < ns; k++) {
+            const Sx *e = sides[k], *u = st_opt(e, "Under");
+            if (!sx_head_is(e, "AverageModel") || e->n != 3) return dc_invalid(m, "%s: expected (AverageModel D (Under P))", head);
+            if (st_dm(&S, m->source, st_name(e, 1), &DD[k], why, sizeof why, &ovf)) return ovf ? dc_unsupported(m, "%s: rational overflow (int64)", head) : dc_invalid(m, "%s: %s", head, why);
+            if (!u || st_measure(&S, m->source, st_name(u, 1), DD[k].sc, mu, &ovf)) return dc_invalid(m, "%s: (Under P) must name a probability Measure on the states of %s", head, st_name(e, 1));
+            st_avg(&S, &DD[k], mu, AV[k], &ovf);
+        }
+        if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
+        if (one) {
+            Sx *val = dc_form("Value", st_avg_sx(&S, &DD[0], AV[0], &ovf), NULL);
+            Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("PriorAverage"), NULL), dc_form("Prior", dc_sym(st_name(st_opt(q, "Under"), 1)), NULL), NULL), NULL);
+            return st_env(m, VERDICT_HOLDS, q, "DecisionModel", st_name(q, 1), val, ev, NULL);
+        }
+        int eq = DD[0].ac == DD[1].ac && DD[0].tc == DD[1].tc, wa = -1;
+        for (int a = 0; eq && a < S.car[DD[0].ac].n; a++) for (int t = 0; t < S.car[DD[0].tc].n; t++) if (dc_rat_cmp(AV[0][a][t], AV[1][a][t])) { eq = 0; wa = a; break; }
+        Sx *val = dc_form("Value", dc_form("Equal", dc_sym(eq ? "True" : "False"), NULL), st_avg_sx(&S, &DD[0], AV[0], &ovf), st_avg_sx(&S, &DD[1], AV[1], &ovf), NULL);
+        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym(eq ? "ExactLawEquality" : "LawDifference"), NULL), NULL), NULL);
+        if (wa >= 0) sx_push(ev->items[1], dc_form("Action", dc_sym(S.car[DD[0].ac].el[wa]), NULL));
+        return st_env(m, eq ? VERDICT_HOLDS : VERDICT_FAILS, q, "DecisionModel", st_name(sides[0], 1), val, ev, NULL);
+    }
+    if (!strcmp(head, "InduceExact")) {   /* R03 */
+        int pi = st_repi(&S, a1); if (pi < 0) return dc_invalid(m, "%s: %s names no representation", head, a1 ? a1 : "?");
+        const StRepr *P = &S.rep[pi]; const StMach *M = &S.mach[P->mach]; const StCar *C = &S.car[M->states];
+        int n = C->n, blk[ST_MAXE], nb = st_encclass(&S.map[P->enc], n, blk), wx = -1, wy = -1, wj = -1, rounds;
+        for (int j = 0; j < M->nobs && wj < 0; j++) for (int x = 0; x < n && wj < 0; x++) for (int y = x + 1; y < n && wj < 0; y++)
+            if (blk[x] == blk[y] && S.map[M->om[j]].tab[x] != S.map[M->om[j]].tab[y]) { wx = x; wy = y; wj = j; }
+        int b2[ST_MAXE]; memcpy(b2, blk, sizeof b2); int nb2 = wj < 0 ? st_refine(&S, M, b2, nb, &rounds, &ovf) : nb;
+        if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
+        int ok = wj < 0 && nb2 == nb;
+        Sx *val = dc_form("Value", dc_form("Exact", dc_sym(ok ? "True" : "False"), NULL), NULL), *ev;
+        if (wj >= 0) ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ObservationWitness"), NULL),
+            dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[wy]), NULL), dc_form("Observation", dc_sym(M->ol[wj]), NULL), NULL), NULL);
+        else ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym(ok ? "EncodingLumpable" : "LumpingSplit"), NULL), dc_form("Classes", dc_int(nb), dc_int(nb2), NULL), NULL), NULL);
+        return st_env(m, ok ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
+    }
+    if (!strcmp(head, "OptimizePolicy") || !strcmp(head, "EvaluatePolicy")) {   /* R04, R05, R06 */
+        static StDM D; DcRat mu[ST_MAXE]; char why[200] = ""; const Sx *u = st_opt(q, "Under");
+        if (st_dm(&S, m->source, a1, &D, why, sizeof why, &ovf)) return ovf ? dc_unsupported(m, "%s: rational overflow (int64)", head) : dc_invalid(m, "%s: %s", head, why);
+        if (!u || st_measure(&S, m->source, st_name(u, 1), D.sc, mu, &ovf)) return dc_invalid(m, "%s: (Under P) must name a probability Measure on the states of %s", head, a1);
+        const StCar *SC = &S.car[D.sc], *AC = &S.car[D.ac]; int n = SC->n;
+        DcRat base = dc_rat(0, 1, &ovf); int ba = 0;   /* uninformed optimum */
+        for (int a = 0; a < AC->n; a++) { DcRat v = dc_rat(0, 1, &ovf);
+            for (int x = 0; x < n; x++) v = dc_rat_add(v, dc_rat_mul(mu[x], D.er[x][a], &ovf), &ovf);
+            if (a == 0 || dc_rat_cmp(v, base) > 0) { base = v; ba = a; } }
+        (void)ba;
+        if (!strcmp(head, "OptimizePolicy")) {
+            int blk[ST_MAXE], nb = n; const Sx *th = st_opt(q, "Through");
+            for (int x = 0; x < n; x++) blk[x] = x;
+            if (th) { int pi = st_repi(&S, st_name(th, 1));
+                if (pi < 0 || S.mach[S.rep[pi].mach].states != D.sc) return dc_invalid(m, "%s: (Through R) must name a representation over the states of %s", head, a1);
+                nb = st_encclass(&S.map[S.rep[pi].enc], n, blk); }
+            DcRat tot = dc_rat(0, 1, &ovf); int pol[ST_MAXE];
+            for (int b = 0; b < nb; b++) { DcRat best = dc_rat(0, 1, &ovf); pol[b] = -1;
+                for (int a = 0; a < AC->n; a++) { DcRat v = dc_rat(0, 1, &ovf);
+                    for (int x = 0; x < n; x++) if (blk[x] == b) v = dc_rat_add(v, dc_rat_mul(mu[x], D.er[x][a], &ovf), &ovf);
+                    if (pol[b] < 0 || dc_rat_cmp(v, best) > 0) { best = v; pol[b] = a; } }
+                tot = dc_rat_add(tot, best, &ovf); }
+            if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
+            Sx *pl = dc_form("Policy", NULL);
+            for (int x = 0; x < n; x++) sx_push(pl, dc_form(SC->el[x], dc_sym(AC->el[pol[blk[x]]]), NULL));
+            Sx *val = dc_form("Value", dc_form("Optimum", st_rsx(tot), NULL), pl, NULL);
+            Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ExhaustiveClassPolicy"), NULL), dc_form("Classes", dc_int(nb), NULL), NULL), NULL);
+            return st_env(m, VERDICT_HOLDS, q, "DecisionModel", a1, val, ev, NULL);
+        }
+        const Sx *wf = st_opt(q, "With"), *om = wf ? st_decl(m->source, "ObservationMethod", st_name(wf, 1)) : NULL;
+        int ki = om ? st_keri(&S, st_name(st_field(om, "Channel"), 1)) : -1; DcRat cost;
+        const Sx *cf = om ? st_field(om, "Cost") : NULL;
+        if (ki < 0 || S.ker[ki].from != D.sc || !cf || cf->n != 2 || st_rat(cf->items[1], &cost) || cost.n < 0)
+            return dc_invalid(m, "%s: (With O) must name an ObservationMethod with (Channel K) on the states of %s and (Cost c >= 0)", head, a1);
+        const StKer *K = &S.ker[ki]; const StCar *RC = &S.car[K->to]; DcRat gross = dc_rat(0, 1, &ovf); Sx *pl = dc_form("Policy", NULL);
+        for (int r = 0; r < RC->n; r++) { DcRat best = dc_rat(0, 1, &ovf); int bp = -1;
+            for (int a = 0; a < AC->n; a++) { DcRat v = dc_rat(0, 1, &ovf);
+                for (int x = 0; x < n; x++) v = dc_rat_add(v, dc_rat_mul(dc_rat_mul(mu[x], K->p[x][r], &ovf), D.er[x][a], &ovf), &ovf);
+                if (bp < 0 || dc_rat_cmp(v, best) > 0) { best = v; bp = a; } }
+            gross = dc_rat_add(gross, best, &ovf); sx_push(pl, dc_form(RC->el[r], dc_sym(AC->el[bp]), NULL)); }
+        DcRat net = dc_rat_sub(gross, cost, &ovf), gain = dc_rat_sub(net, base, &ovf);
+        if (ovf) { sx_free(pl); return dc_unsupported(m, "%s: rational overflow (int64)", head); }
+        Sx *val = dc_form("Value", dc_form("NetValue", st_rsx(net), NULL), dc_form("Gross", st_rsx(gross), NULL), dc_form("Cost", st_rsx(cost), NULL),
+            dc_form("GainOverUninformed", st_rsx(gain), NULL), pl, NULL);
+        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("BayesOptimalReadingPolicy"), NULL), dc_form("Uninformed", st_rsx(base), NULL), NULL), NULL);
+        return st_env(m, VERDICT_HOLDS, q, "DecisionModel", a1, val, ev, NULL);
     }
     if (!strcmp(head, "PositiveRealization")) {
         int mi = st_machi(&S, a1); if (mi < 0) return dc_invalid(m, "%s: %s names no machine", head, a1 ? a1 : "?");
