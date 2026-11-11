@@ -412,4 +412,7 @@ def main(fixture, output):
     return 1 if n_bad else 0
 
 if __name__ == '__main__':
+    # replay_sym/replay_graded do 'from replay import Fail': alias this module so they
+    # raise the same Fail class main() catches (review 1 F6), not a second import's.
+    sys.modules.setdefault('replay', sys.modules['__main__'])
     sys.exit(main(sys.argv[1], sys.argv[2]))
