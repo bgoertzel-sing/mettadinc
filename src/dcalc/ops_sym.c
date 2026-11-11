@@ -1277,7 +1277,8 @@ static Sx *sym_policy(Sx *res) {
     if (p && p->n == 2) { sx_free(p->items[1]); p->items[1] = dc_sym("M3-SymbolicReplay"); }
     if (res && sym_res_words >= 0) {
         char nb[32]; snprintf(nb, sizeof nb, "%zu", sym_res_nodes);
-        sx_push(res, dc_form("Resources", dc_form("ConcreteWords", dc_int(sym_res_words), NULL), dc_form("BddNodes", dc_sym(nb), NULL),
+        Sx *evd = sx_find(res, "Evidence", 1);   /* envelope fields are fixed (HEADS); Resources rides in Evidence */
+        if (evd) sx_push(evd, dc_form("Resources", dc_form("ConcreteWords", dc_int(sym_res_words), NULL), dc_form("BddNodes", dc_sym(nb), NULL),
                              dc_form("CrossCheckWords", dc_int(sym_res_xcheck), NULL), dc_form("EnumeratedCarrier", dc_sym("False"), NULL), NULL));
     }
     return res;
