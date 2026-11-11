@@ -15,6 +15,8 @@
 #include <sys/wait.h>
 
 #define SYM_MAXW 64
+/* Obligation generator version (spec 15.3: recorded in every certificate it contributes to). */
+#define SYM_GEN_VERSION "m3.1"
 /* A compiled term value: either a constant (w = -1, k) or w BDD bits (bit 0 first). */
 typedef struct { int w; uint64_t k; DcBdd b[SYM_MAXW]; } SymVal;
 
@@ -726,7 +728,7 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
             return dc_unsupported(m, "CheckBlockPartition: decision diagrams and SAT solver disagree (%s)", why); }
         if (pr == 1) {
             sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
-                                          dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), NULL));
+                                          dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
             res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, NULL, &sc);
         } else {
             char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
@@ -899,7 +901,7 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     Sx *res;
     if (pr == 1) {
         sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
-                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), NULL));
+                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
         res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), subj, val, ev, NULL, &sc);
     } else {
         char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
@@ -1016,7 +1018,7 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
     Sx *res;
     if (pr == 1) {
         sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
-                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), NULL));
+                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
         res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, NULL, &sc);
     } else {
         char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
