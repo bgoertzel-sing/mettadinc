@@ -996,6 +996,61 @@ static Sx *sym_linear(const SymMod *S, const SMach *M, int ncl, int *ok) {
                    dc_form("Replayed", dc_sym(rep ? "True" : "False"), NULL), NULL);
 }
 
+/* ---- syntactic cone-of-influence pass ----
+ * Each Body term is read as per-output-bit masks of the input bits it mentions (no
+ * evaluation).  The cone is the least set containing the bits read by the observations
+ * and closed under: bit j kept and action a  =>  every bit that a's output bit j reads. */
+typedef struct { int w; uint64_t m[SYM_MAXW]; } MVal;
+static int sup_term(const Sx *t, const char *var, int W, MVal *o) {
+    MVal a, b; uint64_t i, j, k;
+    memset(o, 0, sizeof *o);
+    if (t->kind == SX_SYM) {
+        if (!strcmp(t->text, var)) { o->w = W; for (int q = 0; q < W; q++) o->m[q] = (uint64_t)1 << q; return 0; }
+        if (lit_of(t, &k)) { o->w = -1; return 0; }
+        return -1;
+    }
+    if (t->kind != SX_LIST || !t->n || t->items[0]->kind != SX_SYM) return -1;
+    const char *h = t->items[0]->text; size_t n = t->n;
+#define ST(q, v) if (sup_term(t->items[q], var, W, &v)) return -1
+#define SX_(q, v, lim) (lit_of(t->items[q], &v) && v < (uint64_t)(lim))
+    if (!strcmp(h, "BitAt") && n == 3) { ST(1, a); if (a.w < 0 || !SX_(2, i, a.w)) return -1; o->w = 1; o->m[0] = a.m[i]; return 0; }
+    if (!strcmp(h, "Slice") && n == 4) { ST(1, a); if (a.w < 0 || !SX_(2, i, a.w) || !SX_(3, j, a.w) || j < i) return -1;
+        o->w = (int)(j - i + 1); for (uint64_t q = i; q <= j; q++) o->m[q - i] = a.m[q]; return 0; }
+    if (!strcmp(h, "SwapBits") && n == 4) { ST(1, a); if (a.w < 0 || !SX_(2, i, a.w) || !SX_(3, j, a.w)) return -1;
+        *o = a; o->m[i] = a.m[j]; o->m[j] = a.m[i]; return 0; }
+    if (!strcmp(h, "RotateRange") && n == 4) { ST(1, a); if (a.w < 0 || !SX_(2, i, a.w) || !SX_(3, j, a.w) || j < i) return -1;
+        *o = a; for (uint64_t q = i + 1; q <= j; q++) o->m[q] = a.m[q - 1]; o->m[i] = a.m[j]; return 0; }
+    if (!strcmp(h, "SetBit") && n == 4) { ST(1, a); ST(3, b); if (a.w < 0 || !SX_(2, i, a.w)) return -1;
+        *o = a; o->m[i] = b.w < 0 ? 0 : b.m[0]; return 0; }
+    if ((!strcmp(h, "Parity") || !strcmp(h, "IsZero") || !strcmp(h, "Not")) && n == 2) { ST(1, a);
+        o->w = 1; for (int q = 0; q < a.w; q++) o->m[0] |= a.m[q]; return 0; }
+    if ((!strcmp(h, "And") || !strcmp(h, "Or") || !strcmp(h, "Xor")) && n == 3) { ST(1, a); ST(2, b);
+        int w = a.w >= 0 ? a.w : b.w; if (w < 0) { o->w = -1; return 0; }
+        o->w = w; for (int q = 0; q < w; q++) o->m[q] = (a.w >= 0 ? a.m[q] : 0) | (b.w >= 0 ? b.m[q] : 0); return 0; }
+    if (!strcmp(h, "Eq") && n == 3) { ST(1, a); ST(2, b);
+        o->w = 1; for (int q = 0; q < a.w; q++) o->m[0] |= a.m[q]; for (int q = 0; q < b.w; q++) o->m[0] |= b.m[q]; return 0; }
+#undef ST
+#undef SX_
+    return -1;
+}
+static int sup_map(const SymMod *S, int mi, MVal *o) {
+    const SMap *mp = &S->map[mi];
+    if (sup_term(mp->body, mp->var->text, S->car[mp->from].width, o)) return -1;
+    if (o->w < 0) { o->w = S->car[mp->to].width; for (int q = 0; q < o->w; q++) o->m[q] = 0; }
+    return o->w == S->car[mp->to].width ? 0 : -1;
+}
+static Sx *sym_cone(const SymMod *S, const SMach *M) {
+    static MVal act[8]; MVal ob; uint64_t cone = 0, prev; int W = S->car[M->states].width;
+    for (int p = 0; p < M->nobs; p++) { if (sup_map(S, M->obs[p].map, &ob)) return NULL; for (int q = 0; q < ob.w; q++) cone |= ob.m[q]; }
+    for (int a = 0; a < M->nact; a++) if (sup_map(S, M->act[a].map, &act[a])) return NULL;
+    do { prev = cone;
+        for (int a = 0; a < M->nact; a++) for (int j = 0; j < W; j++) if ((cone >> j) & 1) cone |= act[a].m[j];
+    } while (cone != prev);
+    Sx *bits = dc_form("Dropped", NULL); int kept = 0;
+    for (int j = 0; j < W; j++) { if ((cone >> j) & 1) kept++; else sx_push(bits, dc_int(j)); }
+    return dc_form("Cone", dc_form("Pass", dc_sym("Syntactic"), NULL), dc_form("Kept", dc_int(kept), NULL), dc_form("Width", dc_int(W), NULL), bits, NULL);
+}
+
 static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     DcModule *m = r->m; const char *h = "MinimizeForQueries", *mn; char err[256];
     if (sname(q, 1, &mn)) return dc_invalid(m, "%s: field machine missing or not a name", h);
@@ -1063,6 +1118,7 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
             for (int k = 0; k < ncl; k++) { char rb[32]; snprintf(rb, sizeof rb, "%llu", (unsigned long long)rep[ord[k]]); sx_push(reps, dc_sym(rb)); }
             sx_push(ev->items[1], dc_form("Tree", dc_form("Nodes", dc_int(nodes_t), NULL), dc_form("MaxWord", dc_int(maxw), NULL), tree, NULL));
             sx_push(ev->items[1], reps);
+            Sx *cone = sym_cone(S, M); if (cone) sx_push(ev->items[1], cone);
             int lok; Sx *lin = sym_linear(S, M, ncl, &lok);
             if (lin) { sx_push(ev->items[1], lin); if (!lok) ok = 0; }
         }
