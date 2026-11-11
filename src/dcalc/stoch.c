@@ -344,6 +344,37 @@ static int st_behav(const StMod *s, const StMach *M, DcRat gamma, DcRat (*d)[ST_
     return -2;
 }
 
+static Sx *st_rsx(DcRat a);
+/* Signed-minimum certificate (Table 1): the basis restricted to the pivot
+ * columns is nonsingular (the echelon copy is triangular there).  The replay
+ * recomputes that minor's determinant from the basis vectors themselves by
+ * exact elimination, independently of the echelon copy. */
+static DcRat st_minor_det(const StSpan *B, int *ovf) {
+    static DcRat a[ST_MAXE][ST_MAXE];
+    int k = B->dim;
+    for (int i = 0; i < k; i++) for (int j = 0; j < k; j++) a[i][j] = B->v[i][B->piv[j]];
+    DcRat det = dc_rat(1, 1, ovf);
+    for (int c = 0; c < k; c++) {
+        int p = -1;
+        for (int r = c; r < k && p < 0; r++) if (!dc_rat_is_zero(a[r][c])) p = r;
+        if (p < 0) return dc_rat(0, 1, ovf);
+        if (p != c) { for (int j = 0; j < k; j++) { DcRat t = a[c][j]; a[c][j] = a[p][j]; a[p][j] = t; } det = dc_rat_sub(dc_rat(0, 1, ovf), det, ovf); }
+        det = dc_rat_mul(det, a[c][c], ovf);
+        for (int r = c + 1; r < k; r++) {
+            if (dc_rat_is_zero(a[r][c])) continue;
+            DcRat f = dc_rat_div(a[r][c], a[c][c], ovf);
+            for (int j = c; j < k; j++) a[r][j] = dc_rat_sub(a[r][j], dc_rat_mul(f, a[c][j], ovf), ovf);
+        }
+    }
+    return det;
+}
+static Sx *st_minor_sx(const StSpan *B, const StCar *C, int *ovf) {
+    Sx *cols = dc_form("Columns", NULL);
+    for (int j = 0; j < B->dim; j++) sx_push(cols, dc_sym(C->el[B->piv[j]]));
+    DcRat det = st_minor_det(B, ovf);
+    return dc_form("Minor", cols, dc_form("Determinant", st_rsx(det), NULL), NULL);
+}
+
 /* ---- S07: linear arrows and positive realization ----
  * A linear arrow L : Source -> Target is checked by exact intertwining
  * K_a L = L K'_a for every action label a, observation preservation
@@ -434,6 +465,8 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             return st_env(m, VERDICT_HOLDS, q, "Machine", a1, val, ev, NULL);
         }
         Sx *val = dc_form("Value", dc_form("MinimalLinear", dc_form("Dimension", dc_int(B.dim), NULL), NULL), NULL);
+        sx_push(ev->items[1], st_minor_sx(&B, C, &ovf));
+        if (ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "%s: rational overflow (int64)", head); }
         return st_env(m, VERDICT_HOLDS, q, "Machine", a1, val, ev, NULL);
     }
     if (!strcmp(head, "CheckBehavioral") || !strcmp(head, "MeasureBehavioral") || !strcmp(head, "CheckTrace")) {
@@ -492,6 +525,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         Sx *val = dc_form("Value", dc_form("PositiveDimension", dc_form("Interval", dc_int(B.dim), dc_int(upper), NULL), NULL), NULL);
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SignedMinimumAndReplayedCandidate"), NULL),
             dc_form("SignedMinimum", dc_int(B.dim), NULL), dc_form("LumpedQuotient", dc_int(lumped), NULL), NULL), NULL);
+        sx_push(ev->items[1], st_minor_sx(&B, &S.car[S.mach[mi].states], &ovf));
         if (li >= 0) sx_push(ev->items[1], dc_form("Candidate", dc_sym(S.lin[li].name), dc_sym(cok ? "Replayed" : "Rejected"), dc_form("States", dc_int(cdim), NULL), NULL));
         if (li >= 0 && !cok) sx_push(ev->items[1], dc_form("Failure", dc_sym(why), NULL));
         return st_env(m, VERDICT_HOLDS, q, "Machine", a1, val, ev, NULL);
