@@ -80,17 +80,6 @@ for k, v in forg.items():
     fp = os.path.join(OUT, 'neg4c-%s.out' % k); open(fp, 'w').write(v)
     rc4c[k] = replay_rc(fp) if v != txt else -1
 report('neg 4c: forged sizes/proofs/successors/tests refused by replay', all(r > 0 for r in rc4c.values()), ' '.join('%s=%d' % kv for kv in sorted(rc4c.items())))
-# replay canaries (review 1 F6): each forgery of the fixture output must be counted as a replay failure
-import re as _re
-def forge(tag, f):
-    t2 = f(txt); assert t2 != txt, tag
-    q = os.path.join(OUT, 'canary-%s.out' % tag); open(q, 'w').write(t2); return replay_rc(q)
-canaries = [('size', lambda t: t.replace('(Size 274877906943)', '(Size 5)', 1)),
-            ('dropproof', lambda t: _re.sub(r' \(Proof \(Obligation Stability [0-9]+\) \(CnfSha256 "[0-9a-f]+"\)\)', '', t, count=1)),
-            ('succ', lambda t: t.replace('(Successor inject Z10 Z11) (Successor inject Z11 Z10)) (Invariant', '(Successor inject Z10 Z10) (Successor inject Z11 Z10)) (Invariant', 1)),
-            ('tests', lambda t: t.replace('(Test (Word inject swap) (Observe x0 0))', '(Test (Word inject inject) (Observe x0 0))', 1))]
-bad = [tag for tag, f in canaries if forge(tag, f) == 0]
-report('replay canaries: forged size/proof count/successor/tests rejected', not bad, 'accepted: %s' % (' '.join(bad) or 'none'))
 # neg 5: a source mutation that restores a bug must change the verdict (here the rotate range drags x1 into the tail)
 rb = '(RotateRange $x 2 39)'; assert src.count(rb) == 1
 v5 = run(src.replace(rb, '(RotateRange $x 1 39)'), 'neg5-rotate-bug').get(('FortyBits', 'OnReach'))
