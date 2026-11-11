@@ -856,6 +856,39 @@ static int sym_reps_distinct(const SymMod *S, const SMach *M, const STest *T, in
     return 1;
 }
 
+/* Splitting tree (Def 4.11) over the kept tests: each internal node is the first test that
+ * splits its classes (values computed concretely on the representatives); leaves are the
+ * classes with their concrete representatives. */
+static int sym_test_vec(const SymMod *S, const SMach *M, const STest *T, int nt, const uint64_t *rep, int ncl, uint64_t *vec) {
+    for (int i = 0; i < ncl; i++) {
+        vec[i] = 0;
+        for (int t = 0; t < nt; t++) {
+            uint64_t x = rep[i], o;
+            for (int k = 0; k < T[t].nw; k++) if (cmap(S, M->act[T[t].word[k]].map, x, &x)) return -1;
+            if (cmap(S, M->obs[T[t].port].map, x, &o)) return -1;
+            if ((o >> T[t].bit) & 1) vec[i] |= (uint64_t)1 << t;
+        }
+    }
+    return 0;
+}
+static Sx *sym_tree(const SMach *M, const STest *T, int nt, const uint64_t *vec, const uint64_t *rep, const int *ids, int n, int *nodes, int *maxw) {
+    char b[32];
+    if (n == 1) { snprintf(b, sizeof b, "%llu", (unsigned long long)rep[ids[0]]); return dc_form("Leaf", dc_form("Rep", dc_sym(b), NULL), NULL); }
+    for (int t = 0; t < nt; t++) {
+        int z[SYM_MAXCL], o[SYM_MAXCL], nz = 0, no = 0;
+        for (int k = 0; k < n; k++) { if ((vec[ids[k]] >> t) & 1) o[no++] = ids[k]; else z[nz++] = ids[k]; }
+        if (!nz || !no) continue;
+        Sx *l = sym_tree(M, T, nt, vec, rep, z, nz, nodes, maxw), *r = l ? sym_tree(M, T, nt, vec, rep, o, no, nodes, maxw) : NULL;
+        if (!l || !r) { sx_free(l); return NULL; }
+        Sx *w = dc_form("Word", NULL); for (int k = 0; k < T[t].nw; k++) sx_push(w, dc_sym(M->act[T[t].word[k]].name));
+        if (T[t].nw > *maxw) *maxw = T[t].nw;
+        snprintf(b, sizeof b, "%d", T[t].bit); (*nodes)++;
+        return dc_form("Split", w, dc_form("Observe", dc_sym(M->obs[T[t].port].name), dc_sym(b), NULL),
+                       dc_form("Zero", l, NULL), dc_form("One", r, NULL), NULL);
+    }
+    return NULL;   /* classes not separated by the tests */
+}
+
 static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     DcModule *m = r->m; const char *h = "MinimizeForQueries", *mn; char err[256];
     if (sname(q, 1, &mn)) return dc_invalid(m, "%s: field machine missing or not a name", h);
@@ -913,6 +946,17 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
                      dc_form("ObligationDigest", sx_str(dg), NULL), dc_form("BddNodes", dc_sym(nb), NULL), NULL), NULL);
     DcScope sc = { "M3-SymbolicBitVector", -1, "", NULL };
     Sx *subj = dc_form("Subject", dc_form("Machine", dc_sym(mn), NULL), NULL);
+    {   /* splitting tree with concrete representatives */
+        static uint64_t vec[SYM_MAXCL]; int nodes_t = 0, maxw = 0; Sx *tree = NULL;
+        if (nt <= 63 && !sym_test_vec(S, M, T, nt, rep, ncl, vec)) tree = sym_tree(M, T, nt, vec, rep, ord, ncl, &nodes_t, &maxw);
+        if (!tree) ok = 0;
+        else {
+            Sx *reps = dc_form("Representatives", NULL);
+            for (int k = 0; k < ncl; k++) { char rb[32]; snprintf(rb, sizeof rb, "%llu", (unsigned long long)rep[ord[k]]); sx_push(reps, dc_sym(rb)); }
+            sx_push(ev->items[1], dc_form("Tree", dc_form("Nodes", dc_int(nodes_t), NULL), dc_form("MaxWord", dc_int(maxw), NULL), tree, NULL));
+            sx_push(ev->items[1], reps);
+        }
+    }
     if (ok && (nt > 63 || !sym_reps_distinct(S, M, T, nt, rep, ncl))) ok = 0;
     if (!ok) return dc_envelope_scoped(m, VERDICT_HOLDS, 0, dc_claim_of(q, "Literal"), subj, val, ev, "self-check of the refinement failed", &sc);
     Cnf cn; int goal, pr = -1; char pdg[65] = "", why[160] = "proof not attempted";
