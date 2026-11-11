@@ -19,6 +19,7 @@
 #define SYM_GEN_VERSION "m3.1"
 /* Resources of the current symbolic request (spec 6.2: concrete words touched; no enumeration). */
 static long sym_res_words = -1; static size_t sym_res_nodes;
+static long sym_res_xcheck;   /* sample words evaluated by internal cross-checks (not part of any answer) */
 /* A compiled term value: either a constant (w = -1, k) or w BDD bits (bit 0 first). */
 typedef struct { int w; uint64_t k; DcBdd b[SYM_MAXW]; } SymVal;
 
@@ -947,6 +948,7 @@ static int lin_map(const SymMod *S, int mi, LVal *o) {
     uint64_t x = 0x9E3779B97F4A7C15ULL ^ (uint64_t)mi;
     for (int t = 0; t < 128; t++) {
         uint64_t w = (t < 64 ? ((uint64_t)1 << (t % S->car[mp->from].width)) : (x ^= x << 13, x ^= x >> 7, x ^= x << 17)) & cmask(S->car[mp->from].width), y, z = 0;
+        sym_res_xcheck++;
         if (cmap(S, mi, w, &y)) return -1;
         for (int q = 0; q < o->w; q++) if (__builtin_parityll(o->row[q] & w)) z |= (uint64_t)1 << q;
         if (y != z) return -1;
@@ -1211,14 +1213,14 @@ static Sx *sym_policy(Sx *res) {
     if (res && sym_res_words >= 0) {
         char nb[32]; snprintf(nb, sizeof nb, "%zu", sym_res_nodes);
         sx_push(res, dc_form("Resources", dc_form("ConcreteWords", dc_int(sym_res_words), NULL), dc_form("BddNodes", dc_sym(nb), NULL),
-                             dc_form("EnumeratedCarrier", dc_sym("False"), NULL), NULL));
+                             dc_form("CrossCheckWords", dc_int(sym_res_xcheck), NULL), dc_form("EnumeratedCarrier", dc_sym("False"), NULL), NULL));
     }
     return res;
 }
 
 Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     char err[256]; SymMod S;
-    sym_res_words = -1; sym_res_nodes = 0;
+    sym_res_words = -1; sym_res_nodes = 0; sym_res_xcheck = 0;
     if (sym_read(r->m->source, &S, err, sizeof err)) return dc_invalid(r->m, "symbolic module: %s", err);
     if (!strcmp(head, "CheckBlockPartition")) return sym_policy(sym_req_partition(r->m, &S, q));
     if (!strcmp(head, "MinimizeForQueries")) return sym_policy(sym_req_minimize(r, &S, q, slot));
