@@ -145,6 +145,19 @@ def replay_partition(S, req, env, st):
         else: need(ob in failing(S, mach, bp, x, W, insc(x)), '%s witness %d does not fail' % (ob, x))
         return 'ok'
     cert = find(find(env, 'Evidence'), 'Certificate'); proofs_ok(cert)
+    need((find(cert, 'Blocks') or ['Blocks'])[1:] == blocks_of(bp), 'certificate Blocks differ from the declared partition')
+    need({(x[1], x[2]): x[3] for x in (find(cert, 'SuccessorMap') or ['SuccessorMap'])[1:]} == succ_of(bp), 'certificate SuccessorMap differs from the declared one')
+    nb = len(blocks_of(bp)); na = len(S.mach[mach]['act'])
+    obl = [tuple(find(q, 'Obligation')[1:]) for q in (find(find(cert, 'Proof'), 'Proofs') or ['Proofs'])[1:]]
+    want = {'Coverage': 1, 'Disjointness': nb * (nb - 1) // 2, 'Constancy': nb, 'Stability': nb * na}
+    got = {}
+    for o in obl: got[o[0]] = got.get(o[0], 0) + 1
+    need(len(obl) == len(set(obl)) and got == want, 'need one proof per obligation %s, got %s' % (want, got))
+    if sc is not None:
+        rs = find(find(env, 'Value'), 'ReachScope'); need(rs is not None, 'Checked reach-scoped partition without ReachScope')
+        on = S.car[find(bp, 'On')[1]]['reach']
+        for w in find(rs, 'Words')[1:]: need(S.run(on[0], on[1], find(w, 'Path')[1:]) == int(w[1]), 'ReachScope word does not reach %s' % w[1])
+        need(sorted(int(w[1]) for w in find(rs, 'Words')[1:]) == sorted(sc), 'ReachScope words are not the reach set')
     if sc is not None:   # finite scope: recheck every obligation on every word, and the reach words
         inv = find(cert, 'Invariant'); need(inv and sorted(int(w) for w in find(inv, 'Words')[1:]) == sorted(sc), 'Invariant is not the reach set')
         for w in find(cert, 'ReachWords')[1][1:]:
@@ -223,5 +236,14 @@ def replay(S, D, digest, req, env):
         need(len(reps) == ncl == len(set(reps)) and nodes == int(find(tr, 'Nodes')[1]) == ncl - 1, 'tree leaves/nodes disagree with the classes')
         need(sorted(reps) == sorted(int(r) for r in find(cert, 'Representatives')[1:]), 'representatives differ from the tree leaves')
         if find(cert, 'Linear'): replay_linear(S, mach, find(cert, 'Linear'), ncl)
+        pb = find(find(find(env, 'Value'), 'Refinement'), 'Partition')[1:]
+        need(len(pb) == ncl and sorted(int(find(x, 'Rep')[1]) for x in pb) == sorted(reps), 'Value partition reps differ from the tree leaves')
+        sz = [int(find(x, 'Size')[1]) for x in pb]
+        need(all(z >= 1 for z in sz) and sum(sz) == 1 << S.W(mach), 'block sizes do not add up to the carrier 2^%d' % S.W(mach))
+        def splits(t, acc):
+            if t[0] == 'Split': acc.add((repr(t[1]), repr(t[2]))); splits(t[3][1], acc); splits(t[4][1], acc)
+            return acc
+        tests = {(repr(find(t, 'Word')), repr(find(t, 'Observe'))) for t in (find(cert, 'Tests') or ['Tests'])[1:]}
+        need(tests == splits(tr[3], set()), 'Tests list differs from the tree splits')
         return 'ok'
     raise Fail('symbolic request %s has no replay' % h)
