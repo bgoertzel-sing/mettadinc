@@ -57,6 +57,13 @@ cd docs/e0 && sha256sum -c SHA256SUMS
 
 1. Adopt the bundles' proposed registry patches before M0.
 2. Cetta "green" means no regression against E0's frozen baseline at Cetta commit 12da03b4. (Since the pin moved to 4c285a97, by hive task t-2026-11-06-mettadinc-cetta-pin-latest, the frozen baseline is "green at 4c285a97 with build overrides (see [docs/CETTA-LATEST.md](docs/CETTA-LATEST.md))".)
-3. Use CUDD 3.0.0 for M3. (Note, t-2026-11-11-mettadinc-m3: M3 as delivered uses a small in-tree ROBDD, `src/dcalc/bdd.c`,
-   behind the narrow interface that MILESTONES §2.5 allows ("CUDD or Sylvan, or a small in-tree implementation"), so there is
-   no external dependency (open question 5). This differs from decision 3 and is flagged for Ben to confirm or revert.)
+3. Use CUDD 3.0.0 for M3.
+   *Deviation (kept after the M3 review, t-2026-11-11-mettadinc-m3-tv-suite):* M3 uses a small in-tree ROBDD,
+   [`src/dcalc/bdd.c`](src/dcalc/bdd.c), not CUDD, because:
+   - every Checked answer carries an LRAT proof that cake_lpr replays, so a BDD bug cannot yield a false Checked;
+     the CNF behind each proof is itself checked against an independent semantics by the translation-validation
+     suite (`tests/dcalc/tv_m3.py`, `tests/dcalc/tv_mut.py`, run by `tools/dcalc-run-all.sh`);
+   - the forty-bit run takes about 0.25 s;
+   - CUDD 3.0.0 (2015) is an older external C dependency;
+   - `bdd.c` sits behind the narrow interface of MILESTONES §2.5, so CUDD can be swapped in if a later fixture is too slow.
+   The access-policy mutation gate moves to the milestone that admits Families (M3 review 3).
