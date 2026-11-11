@@ -401,7 +401,11 @@ static Sx *st_blocks(const StCar *c, const int *blk, int nb) {
 static Sx *st_env(DcModule *m, DcVerdict v, const Sx *q, const char *subjk, const char *subjn, Sx *val, Sx *ev, const char *why) {
     DcScope sc = { "M4-Stochastic", -1, "", NULL };
     Sx *subj = dc_form("Subject", dc_form(subjk, dc_sym(subjn), NULL), NULL);
-    return dc_envelope_scoped(m, v, 1, dc_claim_of(q, "Literal"), subj, val, ev, why, &sc);
+    Sx *res = dc_envelope_scoped(m, v, 1, dc_claim_of(q, "Literal"), subj, val, ev, why, &sc);
+    /* same pattern as M3 sym_policy: name the policy that replayed the evidence */
+    Sx *au = res ? sx_find(res, "Assurance", 1) : NULL, *p = au ? sx_find(au, "Policy", 1) : NULL;
+    if (p && p->n == 2) { sx_free(p->items[1]); p->items[1] = dc_sym("M4-StochasticReplay"); }
+    return res;
 }
 Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
     DcModule *m = r->m; char err[256]; static StMod S; int ovf = 0; (void)slot;
@@ -457,7 +461,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("KantorovichFixedPoint"), NULL), NULL), NULL);
         if (wx >= 0) {   /* 1-Lipschitz witness phi = d(x, .) separates enc x from x by the defect (oracle: phi(x)=1/2, phi(y)=0) */
             int y = E->tab[wx];
-            sx_push(ev->items[1], dc_form("Witness", dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[y]), NULL),
+            sx_push(ev->items[1], dc_form("ModalTestWitness", dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[y]), NULL),
                 dc_form("Phi", dc_form(C->el[y], st_rsx(d[wx][y]), NULL), dc_form(C->el[wx], st_rsx(d[wx][wx]), NULL), NULL), NULL));
         }
         if (!strcmp(head, "MeasureBehavioral")) return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, ev, NULL);
