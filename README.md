@@ -5,7 +5,8 @@ MeTTaDinC sublanguage on Cetta
 
 This repository is where MeTTaDinC is to be built on Cetta, following Ben Goertzel's MeTTaDinC documents and the
 milestones M0–M7 of the Cetta work plan. It holds the M0 core: the `dcalc` checker in `src/dcalc/` (C, built and
-tested by `tools/dcalc-run-all.sh`) with its independent replay checker and suites in `tests/dcalc/`; M1–M7 are not
+tested by `tools/dcalc-run-all.sh`) with its independent replay checker and suites in `tests/dcalc/`; M1–M3 are built
+on it (M3's symbolic carriers need the pinned proof backend, see [docs/PROOF-BACKEND.md](docs/PROOF-BACKEND.md)); M4–M7 are not
 implemented yet. Cetta is the git submodule
 `cetta/`, pinned to the plan's commit and unmodified (see "M0 prerequisites" below); fetch it with
 `git submodule update --init`.
@@ -56,4 +57,6 @@ cd docs/e0 && sha256sum -c SHA256SUMS
 
 1. Adopt the bundles' proposed registry patches before M0.
 2. Cetta "green" means no regression against E0's frozen baseline at Cetta commit 12da03b4. (Since the pin moved to 4c285a97, by hive task t-2026-11-06-mettadinc-cetta-pin-latest, the frozen baseline is "green at 4c285a97 with build overrides (see [docs/CETTA-LATEST.md](docs/CETTA-LATEST.md))".)
-3. Use CUDD 3.0.0 for M3.
+3. Use CUDD 3.0.0 for M3. (Note, t-2026-11-11-mettadinc-m3: M3 as delivered uses a small in-tree ROBDD, `src/dcalc/bdd.c`,
+   behind the narrow interface that MILESTONES §2.5 allows ("CUDD or Sylvan, or a small in-tree implementation"), so there is
+   no external dependency (open question 5). This differs from decision 3 and is flagged for Ben to confirm or revert.)

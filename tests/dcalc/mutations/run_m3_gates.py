@@ -52,9 +52,16 @@ os.makedirs(OUT, exist_ok=True); other = os.path.join(OUT, 'other.cnf'); open(ot
 fake = os.path.join(OUT, 'fake_cadical.sh')
 open(fake, 'w').write('#!/bin/sh\n# pin check (--version) goes to the real solver; proofs are for another formula\n[ "$1" = --version ] && exec "%s" --version\n# proof for another formula, written where the real proof belongs\nexec "%s" -q --no-binary --lrat "%s" "$5"\n' % (os.environ['DCALC_CADICAL'], os.environ['DCALC_CADICAL'], other))
 os.chmod(fake, os.stat(fake).st_mode | stat.S_IXUSR)
-v3 = run(src, 'neg3-other-proof', dict(os.environ, DCALC_CADICAL=fake))
+# the sha pins (printed by tools/dcalc-proof-backend.sh) would refuse the fake binary before any proof;
+# clear them here so the checker path is exercised, and test the pin refusal separately below
+env3 = {k: v for k, v in os.environ.items() if k not in ('DCALC_CADICAL_SHA256', 'DCALC_CAKE_LPR_SHA256')}
+v3 = run(src, 'neg3-other-proof', dict(env3, DCALC_CADICAL=fake))
 ok3 = all(st(v3.get(('FortyBits', r))) != 'Checked' for r in ('(CheckNow KeepX0)', 'ZeroQuotient', 'ParityQuotient', 'OnReach'))
 report('neg 3: proof log for a different formula never Checked', ok3 and has(v3.get(('FortyBits', 'OnReach')), 'cake_lpr did not verify'))
+if os.environ.get('DCALC_CADICAL_SHA256'):
+    v3p = run(src, 'neg3-pinned', dict(os.environ, DCALC_CADICAL=fake))
+    ok3p = all(st(v3p.get(('FortyBits', r))) != 'Checked' for r in ('(CheckNow KeepX0)', 'ZeroQuotient', 'ParityQuotient', 'OnReach'))
+    report('neg 3b: with sha pins set, a different solver binary is refused', ok3p and has(v3p.get(('FortyBits', 'OnReach')), 'sha256 differs'))
 # neg 4: a certificate naming another generator version is refused by the independent replay (replay.py)
 def replay_rc(path):
     return subprocess.run([sys.executable, 'replay.py', FIX, path], capture_output=True, text=True, cwd=TD, timeout=120).returncode
@@ -100,27 +107,16 @@ report('neg 8: four-class encoding refuted, behavioral defect 1', st(c8) == 'Ref
 # seed, 10^6 uniform 40-bit words, rate of coordinate i = share of samples where flipping bit i
 # changes the observation signature over all action words of length <= 3.  Every tail bit must
 # read zero; the coordinates it keeps give the four-class encoding refuted in neg 8.
-def screen(n=10**6, seed=20261111, depth=3):
-    import itertools, numpy as np
-    M40, TM = (1 << 40) - 1, ((1 << 38) - 1) << 2
-    rng = np.random.default_rng(seed); x0 = rng.integers(0, 1 << 40, size=n, dtype=np.uint64)
-    def swap(x): b0, b1 = x & np.uint64(1), (x >> np.uint64(1)) & np.uint64(1); return (x & np.uint64(M40 ^ 3)) | (b0 << np.uint64(1)) | b1
-    def rot(x):
-        t = (x >> np.uint64(2)) & np.uint64((1 << 38) - 1); t = ((t << np.uint64(1)) | (t >> np.uint64(37))) & np.uint64((1 << 38) - 1)
-        return (x & np.uint64(3)) | (t << np.uint64(2))
-    def inj(x): z = ((x & np.uint64(TM)) == 0).astype(np.uint64); return x ^ (z << np.uint64(1))
-    acts = (swap, rot, inj); words = [w for d in range(depth + 1) for w in itertools.product(range(3), repeat=d)]
-    def changed(x, y):   # True where some action word of length <= depth separates x and y at x0
-        ch = np.zeros(x.shape, dtype=bool)
-        for w in words:
-            u, v = x, y
-            for a in w: u, v = acts[a](u), acts[a](v)
-            ch |= ((u ^ v) & np.uint64(1)).astype(bool)
-        return ch
-    return [float(changed(x0, x0 ^ np.uint64(1 << i)).mean()) for i in range(40)]
-rates = screen(); kept = [i for i, r in enumerate(rates) if r > 0]
-report('neg 7: 1e6-sample screen zeroes every tail bit; its encoding is refuted', kept == [0, 1] and st(c8) == 'Refuted' and has(m8, r'\(Defect \(Interval 1 1\)\)'),
-       'kept %s, max tail rate %g' % (kept, max(rates[2:])))
+# The screen is the C program screen_m3 (built by `make tests`; no numpy), which samples
+# the exact symbolic partition: flipping bit i changes the behavioral class.
+scr = os.path.join(ROOT, 'build/dcalc/screen_m3')
+r7 = subprocess.run([scr, FIX], capture_output=True, text=True, cwd=ROOT, timeout=300) if os.path.exists(scr) else None
+o7 = r7.stdout if r7 else ''
+m7 = re.search(r'kept((?: x\d+\(\d+\))*);', o7); kept = [int(k) for k in re.findall(r'x(\d+)\(', m7.group(1))] if m7 else None
+open(os.path.join(OUT, 'neg7-screen.out'), 'w').write(o7 if r7 else 'screen_m3 not built (make -C src/dcalc tests)\n')
+report('neg 7: 1e6-sample screen zeroes every tail bit; its encoding is refuted',
+       bool(r7) and r7.returncode == 0 and 'screen_m3: PASS' in o7 and kept == [0, 1] and st(c8) == 'Refuted' and has(m8, r'\(Defect \(Interval 1 1\)\)'),
+       'kept %s' % kept if r7 else 'screen_m3 missing')
 # neg 9: cone keeps all forty bits of both machines
 report('neg 9: cone of influence keeps all 40 bits', all(has(L.get(('FortyBits', q)), r'\(Cone \(Pass Syntactic\) \(Kept 40\) \(Width 40\) \(Dropped\)\)') for q in ('ZeroQuotient', 'ParityQuotient')))
 # neg 10-11: incrementality

@@ -30,6 +30,17 @@ plus the recorded binary hash.
 Without the backend, `tools/dcalc-run-all.sh` stops with exit 2, and the
 forty-bit rows of check_claims.py would be Conditional (negative test 6).
 
+**Memory limit.** cake_lpr reserves about 8 GB of virtual memory at start. Under a
+`ulimit -v` below that it exits 3, the proof is not verified and every answer that
+needed it degrades to Conditional. Run the gates with `ulimit -v unlimited` (or at
+least 9 GB).
+
+**Gate dependencies.** `tests/dcalc/mutations/run_m3_gates.py` needs only the Python 3
+standard library (no numpy) and the binaries built by `make tests` (including
+`build/dcalc/screen_m3`, which negative gate 7 runs). It works with or without the
+`DCALC_*_SHA256` pins set; with them set it also checks that a different solver
+binary is refused (neg 3b).
+
 ## Build
 
 `tools/dcalc-proof-backend.sh DIR` downloads the two archives, verifies the
