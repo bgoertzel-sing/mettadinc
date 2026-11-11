@@ -22,4 +22,10 @@ char *dc_eval_text(const char *source, const char *basedir, const char *module, 
 /* File name used in admission diagnostics (file:line:col); default "input".
  * The pointer is kept, not copied. */
 void dc_eval_set_source_name(const char *name);
+
+/* M4 opt-in (default 0): when set, modules whose only first-release gap is
+ * Dynamics Stochastic are evaluated by stoch.c instead of answering
+ * Unsupported.  The default keeps the release-1 manifest answers. */
+void dc_eval_set_beyond_release(int on);
+int dc_eval_beyond_release(void);
 #endif

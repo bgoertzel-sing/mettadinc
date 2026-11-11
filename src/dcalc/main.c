@@ -111,6 +111,8 @@ out:
 
 #define MAXM 16
 int main(int argc, char **argv) {
+    /* M4 opt-in: capabilities beyond the first release (default off). */
+    if (argc >= 2 && !strcmp(argv[1], "--beyond-release")) { dc_eval_set_beyond_release(1); argc--; argv++; }
     if (argc >= 3 && !strcmp(argv[1], "--admit")) return admit_mode(argc - 2, argv + 2);
     if (argc >= 4 && !strcmp(argv[1], "--ir")) return ir_mode(argv[2], argc - 3, argv + 3);
     if (argc < 2) { fprintf(stderr, "usage: dcalc FILE.metta | dcalc --admit FILE.metta... | dcalc --ir MODULE FILE.metta...\n"); return 2; }
