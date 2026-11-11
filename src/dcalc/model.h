@@ -84,6 +84,7 @@ typedef struct {
     DcMeas    meas[16]; size_t nmeas;   /* M2: (Measure Name (On C) (Uniform)) */
     DcTol     tol[16];  size_t ntol;
     int unsupported_decls;   /* declarations outside the M0 fragment */
+    int symbolic;            /* M3: (Carriers Symbolic); requests go to ops_sym.c, nothing tabulated */
     char profile_unsupported[2 * DC_MAX_NAME + 64];  /* non-empty: the whole module is outside M0 (reason) */
     char skipped[64][DC_MAX_NAME]; size_t nskip;  /* their names */
     char unsupported_first[2 * DC_MAX_NAME + 32];
