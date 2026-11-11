@@ -64,4 +64,16 @@ b1 = L.get(('SevenState', 'Bisimulation'))
 report('neg 8: trace answered (not Unsupported); bisimulation keeps 7 classes, not 6',
        st(t5) != 'Unsupported' and st(L.get(('SevenState', 'TraceClasses'))) != 'Unsupported' and has(b1, r'\(Classes 7\)') and not has(b1, r'\(Block x y\)'))
 
+
+# ---- V01-V04: evolution_archive.metta (Use Search, beyond release) ----
+EFIX = os.path.join(os.path.dirname(FIX), 'evolution_archive.metta')
+esrc = open(EFIX, encoding='utf-8').read()
+E = run(esrc, 'evolution')
+vrows = [('V01', '(CheckUpdates FitnessOnly)', 'Refuted', r'\(UpdatesStable False\).*\(Kind UpdateWitness\) \(Pair G00 G01\) \(Action mutate\) \(Class \(score 1\)\) \(Masses 0 \(Rat 1 2\)\)'),
+         ('V02', 'Repaired', 'Checked', r'\(Partition \(Block G00\) \(Block G01 G10\) \(Block G11\)\) \(Classes 3\)'),
+         ('V03', 'ControlledClasses', 'Checked', r'\(Classes 4\)'),
+         ('V04', 'Discovery', 'Checked', r'\(ExpectedProposals 5\) \(Until \(Hits G11\)\)')]
+for cid, req, want, pat in vrows:
+    line = E.get(('EvolutionArchive', req)); s_ = st(line)
+    report('%s %s' % (cid, req[:40]), s_ == want and has(line, pat) and has(line, POL), s_)
 sys.exit(1 if fails else 0)
