@@ -112,5 +112,32 @@ mutation('P08 weakness inflated', 'P08', lambda e: setf(val(e), 'Weakness', '3/4
 mutation('P10 merge witness results swapped', 'P10', lambda e: R.find(wit(e), 'Results').reverse())
 mutation('G04 witness triple made transitive', 'G04', lambda e: R.find(wit(e), 'Triple').__setitem__(slice(1, None), [R.find(wit(e), 'Triple')[1]] * 3))
 
+# splitting-tree forgery canaries (M3 order item; review 1 F2): forged Tree / Split in E06's
+# certificate; replay_graded's split-tree check must refuse each one
+def tree_root(e):
+    def walk(x):
+        if isinstance(x, list):
+            if x[:2] == ['Certificate', ['Kind', 'SplittingTree']]: return x
+            for y in x:
+                r = walk(y)
+                if r is not None: return r
+        return None
+    c = walk(e); assert c is not None, 'no SplittingTree certificate'; return c[2][1]
+def t_move(e):
+    c = tree_root(e)[2]; c[3][1].append(c[2][1].pop())
+def t_swap(e):
+    n = tree_root(e); n[2][2], n[3][2] = n[3][2], n[2][2]
+def t_collapse(e):
+    n = tree_root(e); n[2] = ['Leaf', ['Block'] + n[2][2][1][1:] + n[2][3][1][1:]]
+def t_drop_child(e): del tree_root(e)[3]
+def t_drop_leaf(e): del tree_root(e)[3][3]
+def t_word(e): tree_root(e)[2][1][1] = ['Word']
+mutation('E06 tree leaf state moved to sibling', 'E06', t_move)
+mutation('E06 tree leaves swapped across root children', 'E06', t_swap)
+mutation('E06 tree Split collapsed into one leaf', 'E06', t_collapse)
+mutation('E06 tree root child dropped', 'E06', t_drop_child)
+mutation('E06 tree leaf dropped', 'E06', t_drop_leaf)
+mutation('E06 tree Split test word emptied', 'E06', t_word)
+
 print('run_m2_gates: %s (%d failing)' % ('PASS' if not fails else 'FAIL', len(fails)))
 sys.exit(1 if fails else 0)
