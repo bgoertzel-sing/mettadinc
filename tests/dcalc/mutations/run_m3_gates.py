@@ -95,6 +95,32 @@ v8src += '\n!(dc.run FortyBits (CheckBehavioral Keep01))\n!(dc.run FortyBits (Me
 v8 = run(v8src, 'neg8-four-class'); c8 = v8.get(('FortyBits', '(CheckBehavioral Keep01)')); m8 = v8.get(('FortyBits', '(MeasureBehavioral Keep01)'))
 report('neg 8: four-class encoding refuted, behavioral defect 1', st(c8) == 'Refuted' and has(c8, r'\(Replayed True\)')
        and has(m8, r'\(Defect \(Interval 1 1\)\) \(Kind Behavioral\)') and has(m8, r'\(Replayed True\)'), '%s / %s' % (st(c8), st(m8)))
+# neg 7: sampled clock-rate screen (spec M3 negatives; review 1 F3).  The screen itself is a
+# Discovery-library request (FortyBitsScreens, not in release 1), so the harness runs it: fixed
+# seed, 10^6 uniform 40-bit words, rate of coordinate i = share of samples where flipping bit i
+# changes the observation signature over all action words of length <= 3.  Every tail bit must
+# read zero; the coordinates it keeps give the four-class encoding refuted in neg 8.
+def screen(n=10**6, seed=20261111, depth=3):
+    import itertools, numpy as np
+    M40, TM = (1 << 40) - 1, ((1 << 38) - 1) << 2
+    rng = np.random.default_rng(seed); x0 = rng.integers(0, 1 << 40, size=n, dtype=np.uint64)
+    def swap(x): b0, b1 = x & np.uint64(1), (x >> np.uint64(1)) & np.uint64(1); return (x & np.uint64(M40 ^ 3)) | (b0 << np.uint64(1)) | b1
+    def rot(x):
+        t = (x >> np.uint64(2)) & np.uint64((1 << 38) - 1); t = ((t << np.uint64(1)) | (t >> np.uint64(37))) & np.uint64((1 << 38) - 1)
+        return (x & np.uint64(3)) | (t << np.uint64(2))
+    def inj(x): z = ((x & np.uint64(TM)) == 0).astype(np.uint64); return x ^ (z << np.uint64(1))
+    acts = (swap, rot, inj); words = [w for d in range(depth + 1) for w in itertools.product(range(3), repeat=d)]
+    def changed(x, y):   # True where some action word of length <= depth separates x and y at x0
+        ch = np.zeros(x.shape, dtype=bool)
+        for w in words:
+            u, v = x, y
+            for a in w: u, v = acts[a](u), acts[a](v)
+            ch |= ((u ^ v) & np.uint64(1)).astype(bool)
+        return ch
+    return [float(changed(x0, x0 ^ np.uint64(1 << i)).mean()) for i in range(40)]
+rates = screen(); kept = [i for i, r in enumerate(rates) if r > 0]
+report('neg 7: 1e6-sample screen zeroes every tail bit; its encoding is refuted', kept == [0, 1] and st(c8) == 'Refuted' and has(m8, r'\(Defect \(Interval 1 1\)\)'),
+       'kept %s, max tail rate %g' % (kept, max(rates[2:])))
 # neg 9: cone keeps all forty bits of both machines
 report('neg 9: cone of influence keeps all 40 bits', all(has(L.get(('FortyBits', q)), r'\(Cone \(Pass Syntactic\) \(Kept 40\) \(Width 40\) \(Dropped\)\)') for q in ('ZeroQuotient', 'ParityQuotient')))
 # neg 10-11: incrementality
