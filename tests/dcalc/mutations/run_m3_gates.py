@@ -65,6 +65,13 @@ report('neg 5: restored-bug source mutation changes OnReach verdict', st(L.get((
 env6 = {k: v for k, v in os.environ.items() if k not in ('DCALC_CADICAL', 'DCALC_CAKE_LPR')}
 v6 = run(src, 'neg6-no-backend', env6); ss = [st(l) for l in v6.values()]
 report('neg 6: solver/DD verdict without replayed proof never Checked', 'Checked' not in ss and ss.count('Conditional') == 4, ' '.join(sorted(ss)))
+# neg 8: the four-class encoding (keep bits 0 and 1) is refuted with behavioral defect one
+k = src.index('  (Representation KeepX0')
+v8src = src[:k] + '  (Carrier Two (Of (BitVector 2)) (All))\n  (Map keep01 (From Word) (To Two) (Body ($x) (Slice $x 0 1)))\n  (Representation Keep01 (Of ZeroMachine) (Encode keep01))\n' + src[k:]
+v8src += '\n!(dc.run FortyBits (CheckBehavioral Keep01))\n!(dc.run FortyBits (MeasureBehavioral Keep01))\n'
+v8 = run(v8src, 'neg8-four-class'); c8 = v8.get(('FortyBits', '(CheckBehavioral Keep01)')); m8 = v8.get(('FortyBits', '(MeasureBehavioral Keep01)'))
+report('neg 8: four-class encoding refuted, behavioral defect 1', st(c8) == 'Refuted' and has(c8, r'\(Replayed True\)')
+       and has(m8, r'\(Defect \(Interval 1 1\)\) \(Kind Behavioral\)') and has(m8, r'\(Replayed True\)'), '%s / %s' % (st(c8), st(m8)))
 # neg 9: cone keeps all forty bits of both machines
 report('neg 9: cone of influence keeps all 40 bits', all(has(L.get(('FortyBits', q)), r'\(Cone \(Pass Syntactic\) \(Kept 40\) \(Width 40\) \(Dropped\)\)') for q in ('ZeroQuotient', 'ParityQuotient')))
 # neg 10-11: incrementality
