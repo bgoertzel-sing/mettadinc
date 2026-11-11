@@ -611,11 +611,14 @@ static int cnf_block(Cnf *c, const Sx *b, const int *vec, int W, int *lit) {
     *lit = v.b[0]; return 0;
 }
 /* goal = C(x) and (some universal obligation fails at x).  Membership is concrete. */
-static int sym_cnf_partition(Cnf *c, const SymMod *S, const SMach *M, const Sx *bp, const RNode *nd, int nn, int *goal) {
+static int sym_cnf_partition(Cnf *c, const SymMod *S, const SMach *M, const Sx *bp, const RNode *nd, int nn,
+                             int sel, int *nobl, const char **oname, int *goal) {   /* sel < 0: all obligations */
     int W = S->car[M->states].width, xv[SYM_MAXW], nb = 0, Bl[SYM_MAXB]; const Sx *bl[SYM_MAXB]; uint64_t rp[SYM_MAXB];
     for (int i = 0; i < W; i++) xv[i] = i + 1;
     if (cnf_init(c, W)) return -1;
     int T = c->tru, C = T, viol = -T, U = -T;
+    int oi = 0; const char *on = "All";
+#define OBL(name, t) do { int t_ = (t); if (sel < 0 || sel == oi) { viol = cnf_or(c, viol, t_); if (sel >= 0) on = (name); } oi++; } while (0)
     if (nd) { C = -T; for (int k = 0; k < nn; k++) { int e = T; for (int i = 0; i < W; i++) e = cnf_and(c, e, ((nd[k].w >> i) & 1) ? xv[i] : -xv[i]); C = cnf_or(c, C, e); } }
     for (size_t k = 2; k < bp->n; k++) {
         const Sx *b = bp->items[k];
@@ -624,14 +627,14 @@ static int sym_cnf_partition(Cnf *c, const SymMod *S, const SMach *M, const Sx *
         bl[nb++] = b;
     }
     for (int i = 0; i < nb; i++) U = cnf_or(c, U, Bl[i]);
-    viol = cnf_or(c, viol, -U);
-    for (int i = 0; i < nb; i++) for (int j = i + 1; j < nb; j++) viol = cnf_or(c, viol, cnf_and(c, Bl[i], Bl[j]));
+    OBL("Coverage", -U);
+    for (int i = 0; i < nb; i++) for (int j = i + 1; j < nb; j++) OBL("Disjointness", cnf_and(c, Bl[i], Bl[j]));
     for (int p = 0; p < M->nobs; p++) {
         CVal ob; if (cnf_map(c, S, M->obs[p].map, xv, &ob)) return -1;
         for (int i = 0; i < nb; i++) {
             uint64_t t; if (cmap(S, M->obs[p].map, rp[i], &t)) return -1;
             int diff = -T; for (int k = 0; k < ob.w; k++) diff = cnf_or(c, diff, ((t >> k) & 1) ? -ob.b[k] : ob.b[k]);
-            viol = cnf_or(c, viol, cnf_and(c, Bl[i], diff));
+            OBL("Constancy", cnf_and(c, Bl[i], diff));
         }
     }
     for (int a = 0; a < M->nact; a++) {
@@ -641,9 +644,11 @@ static int sym_cnf_partition(Cnf *c, const SymMod *S, const SMach *M, const Sx *
             if (!sx_head_is(sc, "Successor") || sc->n != 4 || strcmp(sc->items[1]->text, M->act[a].name)) continue;
             for (int t = 0; t < nb; t++) { if (!strcmp(bl[t]->items[1]->text, sc->items[2]->text)) i = t; if (!strcmp(bl[t]->items[1]->text, sc->items[3]->text)) j = t; }
             if (i < 0 || j < 0 || cnf_block(c, bl[j], y.b, W, &by)) return -1;
-            viol = cnf_or(c, viol, cnf_and(c, Bl[i], -by));
+            OBL("Stability", cnf_and(c, Bl[i], -by));
         }
     }
+#undef OBL
+    *nobl = oi; *oname = on;
     *goal = cnf_and(c, C, viol);
     return c->bad ? -1 : 0;
 }
@@ -719,16 +724,22 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
         if (nd) sx_push(val, dc_form("ReachScope", dc_sym(cn), sym_reach_words(nd, nn, R), NULL));
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SymbolicPartitionCandidate"), NULL),
                          dc_form("ObligationDigest", sx_str(dg), NULL), dc_form("BddNodes", dc_sym(nb), NULL), NULL), NULL);
-        Cnf cn; int goal, pr = -1; char pdg[65] = "", why[160] = "proof not attempted";
-        memset(&cn, 0, sizeof cn);
-        if (sym_cnf_partition(&cn, S, M, bp, nd, nn, &goal) == 0) pr = sym_prove(&cn, goal, pdg, why, sizeof why);
-        else snprintf(why, sizeof why, "CNF generation failed");
-        cnf_free(&cn);
+        /* one checked proof per obligation (cert format: symbolic partition) */
+        Cnf cn; int goal, pr = 1, nob = 1; char pdg[65] = "", why[160] = "proof not attempted"; Sx *proofs = dc_form("Proofs", NULL);
+        for (int ob = 0; ob < nob && pr == 1; ob++) {
+            const char *on = "?"; int r1;
+            memset(&cn, 0, sizeof cn);
+            if (sym_cnf_partition(&cn, S, M, bp, nd, nn, ob, &nob, &on, &goal) != 0) { pr = -1; snprintf(why, sizeof why, "CNF generation failed"); }
+            else if ((r1 = sym_prove(&cn, goal, pdg, why, sizeof why)) != 1) pr = r1;
+            else sx_push(proofs, dc_form("Proof", dc_form("Obligation", dc_sym(on), dc_int(ob), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), NULL));
+            cnf_free(&cn);
+        }
+        if (pr != 1) { sx_free(proofs); proofs = NULL; }
         if (pr == 0) { sx_free(val); sx_free(ev); sx_free(claim); sx_free(subj); free(nd);
             return dc_unsupported(m, "CheckBlockPartition: decision diagrams and SAT solver disagree (%s)", why); }
         if (pr == 1) {
             sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
-                                          dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
+                                          dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), proofs, dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
             res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, NULL, &sc);
         } else {
             char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
