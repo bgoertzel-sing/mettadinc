@@ -44,4 +44,24 @@ rows = [('S01', 'Bisimulation', 'Checked', r'\(Classes 7\).*\(Kind StrongLumping
 for cid, req, want, pat in rows:
     line = L.get(('SevenState', req)); s = st(line)
     report('%s %s' % (cid, req[:40]), s == want and has(line, pat) and has(line, POL), s)
+# neg 1 (S03, S05): the behavioral refutation carries a modal test witness, never a trace-event/word witness,
+# and the trace check is not refuted because the behavioral one is
+b3, t5 = L.get(('SevenState', 'Behavioral')), L.get(('SevenState', 'Trace'))
+report('neg 1: behavioral refutation uses ModalTestWitness, trace stays Checked',
+       has(b3, r'\(ModalTestWitness ') and not has(b3, r'TraceEventWitness|\(Word ') and st(t5) == 'Checked', st(t5))
+# neg 2 (S07): the positive candidate is never reported as a minimum without the signed lower bound
+p7 = L.get(('SevenState', 'Positive')); m = re.search(r'\(Interval (\d+) (\d+)\).*\(SignedMinimum (\d+)\)', p7 or '')
+report('neg 2: positive interval lower bound = signed minimum', bool(m) and m.group(1) == m.group(3), m.groups() if m else 'no interval')
+# neg 5: negative masses, wrong row sums, float probabilities and duplicate outcome keys are InvalidInput
+ROW = '(Row y (Mass w 1))'; assert src.count(ROW) == 1
+muts = {'negmass': '(Row y (Mass w 2) (Mass p -1))', 'rowsum': '(Row y (Mass w (Rat 1 2)))',
+        'float': '(Row y (Mass w 1.0))', 'dupkey': '(Row y (Mass w (Rat 1 2)) (Mass w (Rat 1 2)))'}
+for k, v in muts.items():
+    V = run(src.replace(ROW, v), 'neg5-' + k); ss = [st(V.get(('SevenState', q))) for q in REQS]
+    report('neg 5: %s -> InvalidInput on every request' % k, ss and all(x == 'InvalidInput' for x in ss), ' '.join(sorted(set(ss))))
+# neg 8: unbounded trace equivalence is not Unsupported here, and the six-class trace partition is not the Markov quotient
+b1 = L.get(('SevenState', 'Bisimulation'))
+report('neg 8: trace answered (not Unsupported); bisimulation keeps 7 classes, not 6',
+       st(t5) != 'Unsupported' and st(L.get(('SevenState', 'TraceClasses'))) != 'Unsupported' and has(b1, r'\(Classes 7\)') and not has(b1, r'\(Block x y\)'))
+
 sys.exit(1 if fails else 0)
