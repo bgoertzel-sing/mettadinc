@@ -85,10 +85,13 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                 const Sx *rw = d->items[k]; if (!sx_head_is(rw, "Row")) continue;
                 int a = rw->n >= 2 ? st_el(&s->car[K->from], rw->items[1]) : -1;
                 if (a < 0 || seen[a]) return st_err(err, es, "bad or duplicate Row in kernel", nm);
-                seen[a] = 1; DcRat sum = dc_rat(0, 1, &ovf);
+                seen[a] = 1; DcRat sum = dc_rat(0, 1, &ovf); int got[ST_MAXE] = {0};
                 for (size_t j = 2; j < rw->n; j++) {
                     const Sx *ms = rw->items[j]; DcRat w;
                     int b = sx_head_is(ms, "Mass") && ms->n == 3 ? st_el(&s->car[K->to], ms->items[1]) : -1;
+                    if (b >= 0 && got[b]) return st_err(err, es, "duplicate outcome key in kernel", nm);
+                    if (b >= 0) got[b] = 1;
+                    if (b >= 0 && ms->items[2]->kind == SX_SYM && strpbrk(ms->items[2]->text, ".eE")) return st_err(err, es, "float probability (use (Rat p q)) in kernel", nm);
                     if (b < 0 || st_rat(ms->items[2], &w) || w.n < 0) return st_err(err, es, "bad Mass (nonnegative rational) in kernel", nm);
                     K->p[a][b] = dc_rat_add(K->p[a][b], w, &ovf); sum = dc_rat_add(sum, w, &ovf);
                 }
