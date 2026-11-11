@@ -578,7 +578,7 @@ static int sym_prove(Cnf *c, int goal, char *dg, char *why, size_t ws) {
     char d[512], cf[600], lf[600], of[600];
     snprintf(d, sizeof d, "%s/dcalc-proof-XXXXXX", dir ? dir : "/tmp");
     if (!mkdtemp(d)) { snprintf(why, ws, "cannot create a proof directory"); return -1; }
-    if (!sym_backend_ok(cad, cake, d)) { snprintf(why, ws, "%s", sym_be_why); rmdir(d); return -1; }
+    if (!sym_backend_ok(cad, cake, d)) { snprintf(why, ws, "%.150s", sym_be_why); rmdir(d); return -1; }
     snprintf(cf, sizeof cf, "%s/ob.cnf", d); snprintf(lf, sizeof lf, "%s/ob.lrat", d); snprintf(of, sizeof of, "%s/check.out", d);
     int rc = -1; FILE *f = fopen(cf, "w");
     if (!f) { snprintf(why, ws, "cannot write the CNF"); goto done; }
