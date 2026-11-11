@@ -6,6 +6,12 @@
 # CETTA_CFLAGS overrides the extra CeTTa CFLAGS; the default (-Wno-error=stringop-overflow
 # -Wno-error=maybe-uninitialized) is what gcc 11.4 / Ubuntu 22.04 needs (review 3 F1).
 set -u
+# M3 proof backend: check_claims (F01/F03/F04/F06 Checked) and m3_gates need the pinned
+# CaDiCaL rel-3.0.1 and cake_lpr 033aad5 via DCALC_CADICAL / DCALC_CAKE_LPR (see
+# docs/PROOF-BACKEND.md). Without them those rows are Conditional by design.
+if [ -z "${DCALC_CADICAL:-}" ] || [ -z "${DCALC_CAKE_LPR:-}" ]; then
+  echo "dcalc-run-all: DCALC_CADICAL and DCALC_CAKE_LPR must name the pinned proof tools (docs/PROOF-BACKEND.md)"; exit 2
+fi
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT" || exit 2
 CC=${CC:-gcc}
@@ -30,6 +36,8 @@ step m2_gates;         $R m2_gates "python3 tests/dcalc/mutations/run_m2_gates.p
 step m2_differential;  $R m2_differential "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/differential_m2.c build/dcalc/libdcalc.a -o build/dcalc/differential_m2 && build/dcalc/differential_m2 20261110 5000 7" || rc=1
 step m2_screen;  $R m2_screen "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/screen_m2.c build/dcalc/libdcalc.a -lm -o build/dcalc/screen_m2 && build/dcalc/screen_m2 20261110" || rc=1
 step m2_claimless;     $R m2_claimless "python3 tests/dcalc/claimless/run_claimless.py > build/m2_claimless.out; r=\$?; tail -1 build/m2_claimless.out; exit \$r" || rc=1
+step m3_incremental;    $R m3_incremental "cd src/dcalc && make -s CC='$CC' tests && cd ../.. && build/dcalc/m3_incremental > build/m3_incremental.out; r=\$?; tail -1 build/m3_incremental.out; exit \$r" || rc=1
+step m3_gates;         $R m3_gates "python3 tests/dcalc/mutations/run_m3_gates.py > build/m3_gates.out; r=\$?; tail -1 build/m3_gates.out; exit \$r" || rc=1
 step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_CETTA=1)"; else $R cetta_smoke "tools/dcalc-cetta-smoke.sh" || rc=1; fi
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"

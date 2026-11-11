@@ -203,28 +203,6 @@ static int cnf_xor(Cnf *c, int a, int b) {
     int g = cnf_gate(c, 2, a, b);
     cnf_add(c, -g, a, b); cnf_add(c, -g, -a, -b); cnf_add(c, g, -a, b); cnf_add(c, g, a, -b); return g;
 }
-/* val[1..nv]: the assignment forced by word (self-check only). */
-static void cnf_assign(const Cnf *c, uint64_t word, unsigned char *val) {
-    int W = c->tru - 1;
-    for (int v = 1; v <= W; v++) val[v] = (word >> (v - 1)) & 1;
-    val[c->tru] = 1;
-#define LV(l) ((l) > 0 ? val[(l)] : !val[-(l)])
-    for (int g = c->tru + 1; g <= c->nv; g++) {
-        int a = c->gd[3 * g + 1], b = c->gd[3 * g + 2];
-        val[g] = c->gd[3 * g] == 1 ? (LV(a) && LV(b)) : (LV(a) != LV(b));
-    }
-#undef LV
-}
-static int cnf_sat_by(const Cnf *c, const unsigned char *val) {   /* every clause satisfied */
-    int sat = 0;
-    for (size_t i = 0; i < c->n; i++) {
-        int l = c->cl[i];
-        if (!l) { if (!sat) return 0; sat = 0; continue; }
-        if (l > 0 ? val[l] : !val[-l]) sat = 1;
-    }
-    return 1;
-}
-
 typedef struct { int w; uint64_t k; int b[SYM_MAXW]; } CVal;
 typedef struct { Cnf *c; const char *var; const int *xv; int W; } CCtx;
 static void cwiden(CCtx *x, CVal *v, int w) {
@@ -565,6 +543,29 @@ static int sym_run(char *const argv[], const char *out) {
     int st; if (waitpid(p, &st, 0) < 0) return -1;
     return WIFEXITED(st) ? WEXITSTATUS(st) : -1;
 }
+/* Pin check (spec 15.3, review 1 F4), once per process: the solver must report
+ * version 3.0.1; the sha256 of both binaries is recorded in every Proof form and,
+ * when DCALC_CADICAL_SHA256 / DCALC_CAKE_LPR_SHA256 are set, must match them.
+ * A failed check means no proof backend: answers stay Conditional. */
+static char sym_sol_sha[65], sym_chk_sha[65], sym_be_why[256];
+static int sym_be_state;   /* 0 unknown, 1 ok, -1 refused */
+static int sym_backend_ok(const char *cad, const char *cake, const char *d) {
+    if (sym_be_state) return sym_be_state > 0;
+    sym_be_state = -1;
+    char vf[600], buf[256] = {0}; snprintf(vf, sizeof vf, "%s/version.out", d);
+    char *av[] = { (char *)cad, "--version", NULL };
+    int r = sym_run(av, vf);
+    FILE *f = fopen(vf, "rb"); if (f) { size_t k = fread(buf, 1, sizeof buf - 1, f); buf[k] = 0; fclose(f); }
+    unlink(vf);
+    if (r != 0 || strncmp(buf, "3.0.1", 5) || (buf[5] && buf[5] != '\n' && buf[5] != ' ')) {
+        snprintf(sym_be_why, sizeof sym_be_why, "solver is not the pinned CaDiCaL 3.0.1 (--version gave '%.20s')", buf); return 0; }
+    if (file_sha(cad, sym_sol_sha) || file_sha(cake, sym_chk_sha)) {
+        snprintf(sym_be_why, sizeof sym_be_why, "cannot hash the solver or checker binary"); return 0; }
+    const char *ps = penv("DCALC_CADICAL_SHA256"), *pc = penv("DCALC_CAKE_LPR_SHA256");
+    if (ps && strcmp(ps, sym_sol_sha)) { snprintf(sym_be_why, sizeof sym_be_why, "solver binary sha256 differs from DCALC_CADICAL_SHA256"); return 0; }
+    if (pc && strcmp(pc, sym_chk_sha)) { snprintf(sym_be_why, sizeof sym_be_why, "checker binary sha256 differs from DCALC_CAKE_LPR_SHA256"); return 0; }
+    sym_be_state = 1; return 1;
+}
 /* Asserts goal (the negated obligation) and asks for a checked refutation.
  * 1: UNSAT, proof replayed by cake_lpr on the hashed CNF; 0: solver says SAT;
  * -1: no backend or a pipeline failure (why).  dg receives the CNF sha256. */
@@ -577,6 +578,7 @@ static int sym_prove(Cnf *c, int goal, char *dg, char *why, size_t ws) {
     char d[512], cf[600], lf[600], of[600];
     snprintf(d, sizeof d, "%s/dcalc-proof-XXXXXX", dir ? dir : "/tmp");
     if (!mkdtemp(d)) { snprintf(why, ws, "cannot create a proof directory"); return -1; }
+    if (!sym_backend_ok(cad, cake, d)) { snprintf(why, ws, "%s", sym_be_why); rmdir(d); return -1; }
     snprintf(cf, sizeof cf, "%s/ob.cnf", d); snprintf(lf, sizeof lf, "%s/ob.lrat", d); snprintf(of, sizeof of, "%s/check.out", d);
     int rc = -1; FILE *f = fopen(cf, "w");
     if (!f) { snprintf(why, ws, "cannot write the CNF"); goto done; }
@@ -757,7 +759,7 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
             return dc_unsupported(m, "CheckBlockPartition: decision diagrams and SAT solver disagree (%s)", why); }
         if (pr == 1) {
             sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
-                                          dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), proofs, dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
+                                          dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("SolverSha256", sx_str(sym_sol_sha), NULL), dc_form("CheckerSha256", sx_str(sym_chk_sha), NULL), proofs, dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
             res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, NULL, &sc);
         } else {
             char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
@@ -1144,7 +1146,7 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     Sx *res;
     if (pr == 1) {
         sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
-                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
+                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("SolverSha256", sx_str(sym_sol_sha), NULL), dc_form("CheckerSha256", sx_str(sym_chk_sha), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
         res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), subj, val, ev, NULL, &sc);
     } else {
         char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
@@ -1268,7 +1270,7 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
     Sx *res;
     if (pr == 1) {
         sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
-                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
+                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("SolverSha256", sx_str(sym_sol_sha), NULL), dc_form("CheckerSha256", sx_str(sym_chk_sha), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), dc_form("Generator", dc_sym("dcalc-symgen"), dc_sym(SYM_GEN_VERSION), NULL), NULL));
         res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, NULL, &sc);
     } else {
         char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
@@ -1304,7 +1306,7 @@ Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
  * Checked upper bounds stand; a witness stands only if its labels avoid the removed one;
  * "coarsest" does not transport and becomes "sufficient"; anything else is recomputed. */
 typedef enum { SYM_TR_STANDS, SYM_TR_SUFFICIENT, SYM_TR_RECOMPUTE, SYM_TR_DROPPED } SymTr;
-static SymTr sym_transport_remove(const char *kind, const Sx *labels, const char *removed) {
+__attribute__((unused)) static SymTr sym_transport_remove(const char *kind, const Sx *labels, const char *removed) {
     if (!strcmp(kind, "UpperBound")) return SYM_TR_STANDS;
     if (!strcmp(kind, "Coarsest")) return SYM_TR_SUFFICIENT;
     if (!strcmp(kind, "Witness")) {

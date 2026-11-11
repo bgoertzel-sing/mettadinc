@@ -49,7 +49,7 @@ report('neg 2: membership needs a reachability word (rep 7)', st(v2) == 'Refuted
 # neg 3: the solver returns a proof of a different formula; the checker runs on the regenerated CNF
 os.makedirs(OUT, exist_ok=True); other = os.path.join(OUT, 'other.cnf'); open(other, 'w').write('p cnf 1 2\n1 0\n-1 0\n')
 fake = os.path.join(OUT, 'fake_cadical.sh')
-open(fake, 'w').write('#!/bin/sh\n# proof for another formula, written where the real proof belongs\nexec "%s" -q --no-binary --lrat "%s" "$5"\n' % (os.environ['DCALC_CADICAL'], other))
+open(fake, 'w').write('#!/bin/sh\n# pin check (--version) goes to the real solver; proofs are for another formula\n[ "$1" = --version ] && exec "%s" --version\n# proof for another formula, written where the real proof belongs\nexec "%s" -q --no-binary --lrat "%s" "$5"\n' % (os.environ['DCALC_CADICAL'], os.environ['DCALC_CADICAL'], other))
 os.chmod(fake, os.stat(fake).st_mode | stat.S_IXUSR)
 v3 = run(src, 'neg3-other-proof', dict(os.environ, DCALC_CADICAL=fake))
 ok3 = all(st(v3.get(('FortyBits', r))) != 'Checked' for r in ('(CheckNow KeepX0)', 'ZeroQuotient', 'ParityQuotient', 'OnReach'))

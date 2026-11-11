@@ -13,6 +13,10 @@ $(BUILD)/libdcalc.a: $(addprefix $(BUILD)/,$(OBJS))
 	$(AR) rcs $@ $^
 $(BUILD)/dcalc: $(BUILD)/main.o $(BUILD)/libdcalc.a
 	$(CC) $(CFLAGS) -o $@ $^
+# M3 incrementality test (spec Lemma 4.17, Table 7); run by run_m3_gates.py neg 10-11.
+$(BUILD)/m3_incremental: ../../tests/dcalc/m3_incremental.c $(BUILD)/libdcalc.a $(wildcard *.h) ops_sym.c
+	$(CC) $(CFLAGS) -I. -o $@ $< $(BUILD)/libdcalc.a -lm
+tests: $(BUILD)/m3_incremental
 clean:
 	rm -rf $(BUILD)
-.PHONY: all clean
+.PHONY: all clean tests
