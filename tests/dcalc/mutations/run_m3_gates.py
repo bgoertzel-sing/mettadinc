@@ -57,6 +57,10 @@ report('neg 3: proof log for a different formula never Checked', ok3 and has(v3.
 # neg 4: a certificate naming another generator version is refused by the replay-side pin
 good = L.get(('FortyBits', 'OnReach')); bad = (good or '').replace('(Generator dcalc-symgen %s)' % GEN, '(Generator dcalc-symgen m3.0)')
 report('neg 4: CNF from another generator version refused', gen_ok(good) and not gen_ok(bad), 'pinned %s' % GEN)
+# neg 5: a source mutation that restores a bug must change the verdict (here the rotate range drags x1 into the tail)
+rb = '(RotateRange $x 2 39)'; assert src.count(rb) == 1
+v5 = run(src.replace(rb, '(RotateRange $x 1 39)'), 'neg5-rotate-bug').get(('FortyBits', 'OnReach'))
+report('neg 5: restored-bug source mutation changes OnReach verdict', st(L.get(('FortyBits', 'OnReach'))) == 'Checked' and st(v5) == 'Refuted', st(v5))
 # neg 6: no backend -> decision-diagram answers stay Conditional
 env6 = {k: v for k, v in os.environ.items() if k not in ('DCALC_CADICAL', 'DCALC_CAKE_LPR')}
 v6 = run(src, 'neg6-no-backend', env6); ss = [st(l) for l in v6.values()]
