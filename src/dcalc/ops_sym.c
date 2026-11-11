@@ -722,8 +722,21 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
     } else {
         Sx *val = dc_form("Value", dc_form("Partition", dc_sym(pn), NULL), NULL);
         if (nd) sx_push(val, dc_form("ReachScope", dc_sym(cn), sym_reach_words(nd, nn, R), NULL));
-        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SymbolicPartitionCandidate"), NULL),
+        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SymbolicPartition"), NULL),
                          dc_form("ObligationDigest", sx_str(dg), NULL), dc_form("BddNodes", dc_sym(nb), NULL), NULL), NULL);
+        {   /* symbolic-partition certificate fields (Table 1): block predicates + representatives, successor map, invariant, reach words */
+            Sx *cert = ev->items[1], *blocks = dc_form("Blocks", NULL), *succ = dc_form("SuccessorMap", NULL);
+            for (size_t k = 2; k < bp->n; k++) {
+                if (sx_head_is(bp->items[k], "Block")) sx_push(blocks, sx_copy(bp->items[k]));
+                else if (sx_head_is(bp->items[k], "Successor")) sx_push(succ, sx_copy(bp->items[k]));
+            }
+            sx_push(cert, blocks); sx_push(cert, succ);
+            if (nd) {
+                Sx *inv = dc_form("Invariant", dc_form("Words", NULL), NULL);
+                for (int k = 0; k < nn; k++) { char wb[32]; snprintf(wb, sizeof wb, "%llu", (unsigned long long)nd[k].w); sx_push(inv->items[1], dc_sym(wb)); }
+                sx_push(cert, inv); sx_push(cert, dc_form("ReachWords", sym_reach_words(nd, nn, R), NULL));
+            }
+        }
         /* one checked proof per obligation (cert format: symbolic partition) */
         Cnf cn; int goal, pr = 1, nob = 1; char pdg[65] = "", why[160] = "proof not attempted"; Sx *proofs = dc_form("Proofs", NULL);
         for (int ob = 0; ob < nob && pr == 1; ob++) {
