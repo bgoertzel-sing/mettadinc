@@ -781,6 +781,55 @@ static int sym_refine(DcBddMgr *bm, const SymMod *S, const SMach *M, const SymVa
     *ntp = nt; *nclp = ncl; return rc;
 }
 
+/* Proof obligation for a symbolic refinement, on two copies x, y of the word:
+ * same value on every kept test  =>  same observation bits and same value of t.a for
+ * every test t and action a.  UNSAT means the test fibers form a congruence that refines
+ * the observations (stability); distinct test vectors on the representatives (checked
+ * concretely) show every class split is forced by a test (coarseness). */
+static int cnf_test(Cnf *c, const SymMod *S, const SMach *M, int pre, const STest *t, const int *vec, int *lit) {
+    int W = S->car[M->states].width, cur[SYM_MAXW]; CVal y;
+    memcpy(cur, vec, (size_t)W * sizeof(int));
+    if (pre >= 0) { if (cnf_map(c, S, M->act[pre].map, cur, &y)) return -1; memcpy(cur, y.b, (size_t)W * sizeof(int)); }
+    for (int k = 0; k < t->nw; k++) { if (cnf_map(c, S, M->act[t->word[k]].map, cur, &y)) return -1; memcpy(cur, y.b, (size_t)W * sizeof(int)); }
+    if (cnf_map(c, S, M->obs[t->port].map, cur, &y) || t->bit >= y.w) return -1;
+    *lit = y.b[t->bit]; return 0;
+}
+static int sym_cnf_minimize(Cnf *c, const SymMod *S, const SMach *M, const STest *T, int nt, int *goal) {
+    int W = S->car[M->states].width, xv[SYM_MAXW], yv[SYM_MAXW], lx, ly;
+    if (cnf_init(c, 2 * W)) return -1;
+    for (int i = 0; i < W; i++) { xv[i] = i + 1; yv[i] = W + i + 1; }
+    int Tr = c->tru, same = Tr, viol = -Tr;
+    for (int i = 0; i < nt; i++) {
+        if (cnf_test(c, S, M, -1, &T[i], xv, &lx) || cnf_test(c, S, M, -1, &T[i], yv, &ly)) return -1;
+        same = cnf_and(c, same, -cnf_xor(c, lx, ly));
+    }
+    for (int p = 0; p < M->nobs; p++) {
+        CVal ox, oy; if (cnf_map(c, S, M->obs[p].map, xv, &ox) || cnf_map(c, S, M->obs[p].map, yv, &oy)) return -1;
+        for (int k = 0; k < ox.w; k++) viol = cnf_or(c, viol, cnf_xor(c, ox.b[k], oy.b[k]));
+    }
+    for (int i = 0; i < nt; i++) for (int a = 0; a < M->nact; a++) {
+        if (cnf_test(c, S, M, a, &T[i], xv, &lx) || cnf_test(c, S, M, a, &T[i], yv, &ly)) return -1;
+        viol = cnf_or(c, viol, cnf_xor(c, lx, ly));
+    }
+    *goal = cnf_and(c, same, viol);
+    return c->bad ? -1 : 0;
+}
+/* concrete: the representatives have pairwise distinct test vectors */
+static int sym_reps_distinct(const SymMod *S, const SMach *M, const STest *T, int nt, const uint64_t *rep, int ncl) {
+    static uint64_t vec[SYM_MAXCL];
+    for (int i = 0; i < ncl; i++) {
+        vec[i] = 0;
+        for (int t = 0; t < nt; t++) {
+            uint64_t x = rep[i], o;
+            for (int k = 0; k < T[t].nw; k++) if (cmap(S, M->act[T[t].word[k]].map, x, &x)) return 0;
+            if (cmap(S, M->obs[T[t].port].map, x, &o)) return 0;
+            if ((o >> T[t].bit) & 1) vec[i] |= (uint64_t)1 << t;
+        }
+        for (int j = 0; j < i; j++) if (vec[j] == vec[i]) return 0;
+    }
+    return 1;
+}
+
 static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     DcModule *m = r->m; const char *h = "MinimizeForQueries", *mn; char err[256];
     if (sname(q, 1, &mn)) return dc_invalid(m, "%s: field machine missing or not a name", h);
@@ -838,10 +887,42 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
                      dc_form("ObligationDigest", sx_str(dg), NULL), dc_form("BddNodes", dc_sym(nb), NULL), NULL), NULL);
     DcScope sc = { "M3-SymbolicBitVector", -1, "", NULL };
     Sx *subj = dc_form("Subject", dc_form("Machine", dc_sym(mn), NULL), NULL);
-    Sx *res = dc_envelope_scoped(m, VERDICT_HOLDS, ok, dc_claim_of(q, "Literal"), subj, val, ev,
-                                 ok ? "decision-diagram answer; obligations not yet replayed by a checked proof" : "self-check of the refinement failed", &sc);
-    if (ok) sym_set_conditional(res, dg);
+    if (ok && (nt > 63 || !sym_reps_distinct(S, M, T, nt, rep, ncl))) ok = 0;
+    if (!ok) return dc_envelope_scoped(m, VERDICT_HOLDS, 0, dc_claim_of(q, "Literal"), subj, val, ev, "self-check of the refinement failed", &sc);
+    Cnf cn; int goal, pr = -1; char pdg[65] = "", why[160] = "proof not attempted";
+    memset(&cn, 0, sizeof cn);
+    if (sym_cnf_minimize(&cn, S, M, T, nt, &goal) == 0) pr = sym_prove(&cn, goal, pdg, why, sizeof why);
+    else snprintf(why, sizeof why, "CNF generation failed");
+    cnf_free(&cn);
+    if (pr == 0) { sx_free(val); sx_free(ev); sx_free(subj);
+        return dc_unsupported(m, "%s: decision diagrams and SAT solver disagree (%s)", h, why); }
+    Sx *res;
+    if (pr == 1) {
+        sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
+                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), NULL));
+        res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), subj, val, ev, NULL, &sc);
+    } else {
+        char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
+        res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), subj, val, ev, rs, &sc);
+        sym_set_conditional(res, dg);
+    }
     return res;
+}
+
+/* CheckNow obligation on two copies: same code and some observation bit differs (UNSAT = holds). */
+static int sym_cnf_now(Cnf *c, const SymMod *S, const SMach *M, int ei, int *goal) {
+    int W = S->car[M->states].width, xv[SYM_MAXW], yv[SYM_MAXW];
+    if (cnf_init(c, 2 * W)) return -1;
+    for (int i = 0; i < W; i++) { xv[i] = i + 1; yv[i] = W + i + 1; }
+    int Tr = c->tru, same = Tr, viol = -Tr; CVal ex, ey;
+    if (cnf_map(c, S, ei, xv, &ex) || cnf_map(c, S, ei, yv, &ey)) return -1;
+    for (int k = 0; k < ex.w; k++) same = cnf_and(c, same, -cnf_xor(c, ex.b[k], ey.b[k]));
+    for (int p = 0; p < M->nobs; p++) {
+        CVal ox, oy; if (cnf_map(c, S, M->obs[p].map, xv, &ox) || cnf_map(c, S, M->obs[p].map, yv, &oy)) return -1;
+        for (int k = 0; k < ox.w; k++) viol = cnf_or(c, viol, cnf_xor(c, ox.b[k], oy.b[k]));
+    }
+    *goal = cnf_and(c, same, viol);
+    return c->bad ? -1 : 0;
 }
 
 /* ---- part 5: CheckNow / CheckBehavioral of a Representation on a symbolic machine ----
@@ -925,8 +1006,23 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
     Sx *val = dc_form("Value", dc_form("Holds", dc_form("Fibers", dc_int(nfib), NULL), NULL), NULL);
     Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym(beh ? "SymbolicBehavioralCandidate" : "SymbolicFiberCandidate"), NULL),
                      dc_form("ObligationDigest", sx_str(dg), NULL), dc_form("BddNodes", dc_sym(nb), NULL), NULL), NULL);
-    Sx *res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, "decision-diagram answer; obligations not yet replayed by a checked proof", &sc);
-    sym_set_conditional(res, dg);
+    Cnf cn; int goal, pr = -1; char pdg[65] = "", why[160] = "proof not attempted";
+    memset(&cn, 0, sizeof cn);
+    if (!beh) { if (sym_cnf_now(&cn, S, M, ei, &goal) == 0) pr = sym_prove(&cn, goal, pdg, why, sizeof why); else snprintf(why, sizeof why, "CNF generation failed"); }
+    else snprintf(why, sizeof why, "behavioral proof obligations not generated in this step");
+    cnf_free(&cn);
+    if (pr == 0) { sx_free(val); sx_free(ev); sx_free(claim); sx_free(subj);
+        return dc_unsupported(m, "%s: decision diagrams and SAT solver disagree (%s)", h, why); }
+    Sx *res;
+    if (pr == 1) {
+        sx_push(ev->items[1], dc_form("Proof", dc_form("Solver", dc_sym("cadical-3.0.1"), NULL), dc_form("Format", dc_sym("LRAT"), NULL),
+                                      dc_form("Checker", dc_sym("cake_lpr-033aad5"), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), NULL));
+        res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, NULL, &sc);
+    } else {
+        char rs[256]; snprintf(rs, sizeof rs, "decision-diagram answer; obligations not yet replayed by a checked proof (%s)", why);
+        res = dc_envelope_scoped(m, VERDICT_HOLDS, 1, claim, subj, val, ev, rs, &sc);
+        sym_set_conditional(res, dg);
+    }
     return res;
 }
 
