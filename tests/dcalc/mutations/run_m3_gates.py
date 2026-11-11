@@ -16,6 +16,7 @@ def report(name, ok, note=''):
 def run(src, tag, env=None):
     os.makedirs(OUT, exist_ok=True); p = os.path.join(OUT, tag + '.metta'); open(p, 'w').write(src)
     r = subprocess.run([DCALC, p], capture_output=True, text=True, timeout=120, env=env)
+    open(os.path.join(OUT, tag + '.out'), 'w').write(r.stdout)
     lines = {}
     for line in r.stdout.splitlines():
         if ' => ' in line: head = line.split(' => ', 1)[0]; mod, req = head.split(' ', 1); lines[(mod, req)] = line
@@ -54,9 +55,20 @@ os.chmod(fake, os.stat(fake).st_mode | stat.S_IXUSR)
 v3 = run(src, 'neg3-other-proof', dict(os.environ, DCALC_CADICAL=fake))
 ok3 = all(st(v3.get(('FortyBits', r))) != 'Checked' for r in ('(CheckNow KeepX0)', 'ZeroQuotient', 'ParityQuotient', 'OnReach'))
 report('neg 3: proof log for a different formula never Checked', ok3 and has(v3.get(('FortyBits', 'OnReach')), 'cake_lpr did not verify'))
-# neg 4: a certificate naming another generator version is refused by the replay-side pin
-good = L.get(('FortyBits', 'OnReach')); bad = (good or '').replace('(Generator dcalc-symgen %s)' % GEN, '(Generator dcalc-symgen m3.0)')
-report('neg 4: CNF from another generator version refused', gen_ok(good) and not gen_ok(bad), 'pinned %s' % GEN)
+# neg 4: a certificate naming another generator version is refused by the independent replay (replay.py)
+def replay_rc(path):
+    return subprocess.run([sys.executable, 'replay.py', FIX, path], capture_output=True, text=True, cwd=TD, timeout=120).returncode
+good_out = os.path.join(OUT, 'fixture.out'); txt = open(good_out).read()
+assert txt.count('(Generator dcalc-symgen %s)' % GEN) >= 1
+bad_out = os.path.join(OUT, 'neg4-generator-m3.0.out'); open(bad_out, 'w').write(txt.replace('(Generator dcalc-symgen %s)' % GEN, '(Generator dcalc-symgen m3.0)'))
+g4, b4 = replay_rc(good_out), replay_rc(bad_out)
+report('neg 4: CNF from another generator version refused by replay', g4 == 0 and b4 != 0, 'replay rc good %d / forged %d' % (g4, b4))
+# neg 4b: a solver that is not the pinned CaDiCaL 3.0.1 is refused before any proof (spec 15.3 pin)
+fake4 = os.path.join(OUT, 'wrong_version_cadical.sh')
+open(fake4, 'w').write('#!/bin/sh\n[ "$1" = --version ] && { echo 1.5.3; exit 0; }\nexec "%s" "$@"\n' % os.environ['DCALC_CADICAL'])
+os.chmod(fake4, os.stat(fake4).st_mode | stat.S_IXUSR)
+v4b = run(src, 'neg4b-wrong-solver', dict(os.environ, DCALC_CADICAL=fake4)); s4b = [st(l) for l in v4b.values()]
+report('neg 4b: solver reporting another version never Checked', 'Checked' not in s4b and has(v4b.get(('FortyBits', 'OnReach')), 'not the pinned CaDiCaL 3.0.1'), ' '.join(sorted(s4b)))
 # neg 5: a source mutation that restores a bug must change the verdict (here the rotate range drags x1 into the tail)
 rb = '(RotateRange $x 2 39)'; assert src.count(rb) == 1
 v5 = run(src.replace(rb, '(RotateRange $x 1 39)'), 'neg5-rotate-bug').get(('FortyBits', 'OnReach'))
