@@ -391,7 +391,7 @@ static int st_obs_same(const StMod *s, const StMach *A, int x, const StMach *B, 
     }
     return 0;
 }
-static int st_check_lin(const StMod *s, const StLin *L, char *why, size_t ws, int *ovf) {
+static int st_check_lin(const StMod *s, const StLin *L, char *why, size_t ws, int *ovf, int inter) {
     const StMach *A = &s->mach[L->src], *B = &s->mach[L->tgt];
     int n = s->car[A->states].n, m = s->car[B->states].n;
     const StCar *CA = &s->car[A->states], *CB = &s->car[B->states];
@@ -410,6 +410,7 @@ static int st_check_lin(const StMod *s, const StLin *L, char *why, size_t ws, in
         int b = -1;
         for (int k = 0; k < B->nact; k++) if (!strcmp(B->al[k], A->al[a])) b = k;
         if (b < 0) { snprintf(why, ws, "target has no action %s", A->al[a]); return 0; }
+        if (!inter) continue;
         const StKer *KA = &s->ker[A->ak[a]], *KB = &s->ker[B->ak[b]];
         for (int x = 0; x < n; x++) for (int z = 0; z < m; z++) {
             DcRat l = dc_rat(0, 1, ovf), r = dc_rat(0, 1, ovf);
@@ -419,6 +420,34 @@ static int st_check_lin(const StMod *s, const StLin *L, char *why, size_t ws, in
         }
     }
     return *ovf ? 0 : 1;
+}
+
+static DcRat st_abs(DcRat a, int *ovf) { return a.n < 0 ? dc_rat_sub(dc_rat(0, 1, ovf), a, ovf) : a; }
+static void st_grade(const StMod *s, const StLin *L, DcRat *lam, DcRat *rho, int *ovf) {
+    const StMach *A = &s->mach[L->src], *B = &s->mach[L->tgt];
+    int n = s->car[A->states].n, m = s->car[B->states].n;
+    *lam = dc_rat(0, 1, ovf); *rho = dc_rat(0, 1, ovf);
+    for (int x = 0; x < n; x++) {
+        DcRat r = dc_rat(0, 1, ovf);
+        for (int z = 0; z < m; z++) r = dc_rat_add(r, st_abs(L->a[x][z], ovf), ovf);
+        *lam = dc_rat_max(*lam, r);
+    }
+    for (int a = 0; a < A->nact; a++) {
+        int b = -1;
+        for (int k = 0; k < B->nact; k++) if (!strcmp(B->al[k], A->al[a])) b = k;
+        if (b < 0) continue;
+        const StKer *KA = &s->ker[A->ak[a]], *KB = &s->ker[B->ak[b]];
+        for (int x = 0; x < n; x++) {
+            DcRat row = dc_rat(0, 1, ovf);
+            for (int z = 0; z < m; z++) {
+                DcRat l = dc_rat(0, 1, ovf), r = dc_rat(0, 1, ovf);
+                for (int t = 0; t < n; t++) if (!dc_rat_is_zero(KA->p[x][t])) l = dc_rat_add(l, dc_rat_mul(KA->p[x][t], L->a[t][z], ovf), ovf);
+                for (int t = 0; t < m; t++) if (!dc_rat_is_zero(L->a[x][t])) r = dc_rat_add(r, dc_rat_mul(L->a[x][t], KB->p[t][z], ovf), ovf);
+                row = dc_rat_add(row, st_abs(dc_rat_sub(l, r, ovf), ovf), ovf);
+            }
+            *rho = dc_rat_max(*rho, row);
+        }
+    }
 }
 
 /* ---- request dispatch ---- */
@@ -505,12 +534,54 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
     }
     if (!strcmp(head, "CheckLinearArrow")) {
         int li = st_lini(&S, a1); if (li < 0) return dc_invalid(m, "%s: %s names no linear arrow", head, a1 ? a1 : "?");
-        char why[200] = ""; int ok = st_check_lin(&S, &S.lin[li], why, sizeof why, &ovf);
+        char why[200] = ""; int ok = st_check_lin(&S, &S.lin[li], why, sizeof why, &ovf, 0); DcRat lam, rho;
+        st_grade(&S, &S.lin[li], &lam, &rho, &ovf);
         if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
-        Sx *val = dc_form("Value", dc_form("LinearArrow", dc_sym(S.lin[li].kind), dc_form("Valid", dc_sym(ok ? "True" : "False"), NULL), NULL), NULL);
-        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ExactIntertwining"), NULL), NULL), NULL);
+        Sx *val = dc_form("Value", dc_form("LinearArrow", dc_sym(S.lin[li].kind), dc_form("Valid", dc_sym(ok ? "True" : "False"), NULL),
+            dc_form("Grade", dc_form("Lambda", st_rsx(lam), NULL), dc_form("Rho", st_rsx(rho), NULL), NULL), NULL), NULL);
+        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("GradedIntertwining"), NULL),
+            dc_form("Residual", dc_sym("max_a max_x sum_z |K_a L - L K'_a|"), NULL), NULL), NULL);
         if (!ok) sx_push(ev->items[1], dc_form("Failure", dc_sym(why), NULL));
         return st_env(m, ok ? VERDICT_HOLDS : VERDICT_FAILS, q, "LinearArrow", a1, val, ev, NULL);
+    }
+    if (!strcmp(head, "Then")) {   /* L03: graded composition of two CheckLinearArrow outputs */
+        int li[2]; const char *dn[2];
+        for (int k = 0; k < 2; k++) {
+            const Sx *o = q->n == 3 ? q->items[1 + k] : NULL; const Sx *rq = NULL;
+            dn[k] = sx_head_is(o, "Output") && o->n == 3 && sx_is_sym(o->items[2], "Value") ? st_name(o, 1) : NULL;
+            for (size_t i = 2; dn[k] && i < m->source->n && !rq; i++) {
+                const Sx *d = m->source->items[i];
+                if (sx_head_is(d, "Derive") && d->n == 3 && st_name(d, 1) && !strcmp(st_name(d, 1), dn[k])) rq = d->items[2];
+            }
+            li[k] = sx_head_is(rq, "CheckLinearArrow") ? st_lini(&S, st_name(rq, 1)) : -1;
+            if (li[k] < 0) return dc_invalid(m, "Then: expected (Output D Value) where D derives (CheckLinearArrow L)");
+        }
+        const StLin *A = &S.lin[li[0]], *Bk = &S.lin[li[1]];
+        if (A->tgt != Bk->src) return dc_invalid(m, "Then: %s targets %s but %s starts at %s", A->name, S.mach[A->tgt].name, Bk->name, S.mach[Bk->src].name);
+        if (S.nlin == ST_MAXD) return dc_unsupported(m, "Then: too many linear arrows");
+        StLin *C = &S.lin[S.nlin]; memset(C, 0, sizeof *C);
+        { char nm[2 * ST_NM + 2]; snprintf(nm, sizeof nm, "%s;%s", A->name, Bk->name); snprintf(C->name, ST_NM, "%.*s", (int)ST_NM - 1, nm); } C->src = A->src; C->tgt = Bk->tgt;
+        snprintf(C->kind, ST_NM, "%s", !strcmp(A->kind, "Positive") && !strcmp(Bk->kind, "Positive") ? "Positive" : "Signed");
+        int n = S.car[S.mach[A->src].states].n, mm = S.car[S.mach[A->tgt].states].n, p = S.car[S.mach[Bk->tgt].states].n;
+        for (int x = 0; x < n; x++) for (int z = 0; z < p; z++) {
+            C->a[x][z] = dc_rat(0, 1, &ovf);
+            for (int t = 0; t < mm; t++) if (!dc_rat_is_zero(A->a[x][t])) C->a[x][z] = dc_rat_add(C->a[x][z], dc_rat_mul(A->a[x][t], Bk->a[t][z], &ovf), &ovf);
+        }
+        DcRat la, ra, lb, rb, lc, rc;
+        st_grade(&S, A, &la, &ra, &ovf); st_grade(&S, Bk, &lb, &rb, &ovf); st_grade(&S, C, &lc, &rc, &ovf);
+        /* composition rule: (lA lB, rA lB + lA rB) -- the residual of A is amplified by B's norm and vice versa */
+        DcRat lam = dc_rat_mul(la, lb, &ovf), rho = dc_rat_add(dc_rat_mul(ra, lb, &ovf), dc_rat_mul(la, rb, &ovf), &ovf);
+        if (ovf) return dc_unsupported(m, "Then: rational overflow (int64)");
+        int sound = dc_rat_cmp(lc, lam) <= 0 && dc_rat_cmp(rc, rho) <= 0, attained = !dc_rat_cmp(rc, rho);
+        Sx *val = dc_form("Value", dc_form("LinearArrow", dc_sym(C->kind), dc_form("Valid", dc_sym("True"), NULL),
+            dc_form("Grade", dc_form("Lambda", st_rsx(lam), NULL), dc_form("Rho", st_rsx(rho), NULL), NULL),
+            dc_form("Attained", dc_sym(attained ? "True" : "False"), NULL), NULL), NULL);
+        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("GradedComposition"), NULL),
+            dc_form("Rule", dc_sym("(lA*lB, rA*lB + lA*rB)"), NULL),
+            dc_form("Factors", dc_form(A->name, st_rsx(la), st_rsx(ra), NULL), dc_form(Bk->name, st_rsx(lb), st_rsx(rb), NULL), NULL),
+            dc_form("ComposedResidual", dc_form("Lambda", st_rsx(lc), NULL), dc_form("Rho", st_rsx(rc), NULL), NULL), NULL), NULL);
+        if (!sound) return dc_unsupported(m, "Then: composed residual exceeds the composition bound (internal check)");
+        return st_env(m, VERDICT_HOLDS, q, "LinearArrow", C->name, val, ev, NULL);
     }
     if (!strcmp(head, "PositiveRealization")) {
         int mi = st_machi(&S, a1); if (mi < 0) return dc_invalid(m, "%s: %s names no machine", head, a1 ? a1 : "?");
@@ -522,7 +593,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         st_span(&S, &S.mach[mi], &B, &ovf);
         int lumped = st_lump(&S, &S.mach[mi], blk, &rounds, &ovf), upper = lumped;   /* the lumped quotient is itself positive */
         if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
-        char why[200] = ""; int cok = li >= 0 ? st_check_lin(&S, &S.lin[li], why, sizeof why, &ovf) : 0;
+        char why[200] = ""; int cok = li >= 0 ? st_check_lin(&S, &S.lin[li], why, sizeof why, &ovf, 1) : 0;
         int cdim = li >= 0 ? S.car[S.mach[S.lin[li].tgt].states].n : 0;
         if (cok && cdim < upper) upper = cdim;
         Sx *val = dc_form("Value", dc_form("PositiveDimension", dc_form("Interval", dc_int(B.dim), dc_int(upper), NULL), NULL), NULL);
