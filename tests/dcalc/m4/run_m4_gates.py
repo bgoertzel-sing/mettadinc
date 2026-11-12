@@ -383,6 +383,31 @@ report('R2-F1: MergeXY Within 1/2 Checked on a replayed Prefixpoint, D(x,y) = 1/
 report('R2-F1: no unregistered DepthTestWitness / ExactFixpoint / DepthTest label in any answer', not any(has(l, r'DepthTestWitness|ExactFixpoint|\(DepthTest ') for l in list(L.values()) + list(CL.values()) + list(WL.values())), '')
 # review 2 F2: the S03 witness has the oracle key's orientation, phi(x) = 1/2, phi(y) = 0
 report('R2-F2: S03 test is canonical: Pair x y, Left 1/2, Right 0', bool(rp3) and rp3 == (Fr(1, 2), Fr(0)), rp3)
+# review 3 F1: CheckBehavioral under a Horizon decides D_h <= Within (default 0) on the depth-h value
+def look(D, mod, rq): return next((l for (mo, r), l in D.items() if mo == mod and ' '.join(r.split()) == rq), None)
+r3s = src + ''.join('\n!(dc.run SevenState %s)' % r for r in ['(CheckBehavioral MergeXY (Horizon (Steps 2)))', '(CheckBehavioral MergeXY (Horizon (Steps 2)) (Within (Rat 1 4)))', '(CheckBehavioral MergeXY (Horizon (Steps 2)) (Within (Rat 1 2)))', '(MeasureBehavioral MergeXY (Precision (Rat 1 100)))', '(MeasureBehavioral MergeXY (Budget (Steps 100)))']) + '\n'
+R3S = run(r3s, 'r3-seven')
+h0 = look(R3S, 'SevenState', '(CheckBehavioral MergeXY (Horizon (Steps 2)))'); h14 = look(R3S, 'SevenState', '(CheckBehavioral MergeXY (Horizon (Steps 2)) (Within (Rat 1 4)))'); h12 = look(R3S, 'SevenState', '(CheckBehavioral MergeXY (Horizon (Steps 2)) (Within (Rat 1 2)))')
+th0 = mt_replay(h0, r3s, ACT, Fr(1)); th14 = mt_replay(h14, r3s, ACT, Fr(1))
+report('R3-F1: MergeXY Horizon 2, default Within 0: Refuted on a replayed depth-2 Test, gap 1/2', st(h0) == 'Refuted' and has(h0, r'\(WithinBound False\)') and bool(th0) and abs(th0[0] - th0[1]) == Fr(1, 2), th0)
+report('R3-F1: MergeXY Horizon 2, Within 1/4: Refuted, gap 1/2 > 1/4', st(h14) == 'Refuted' and bool(th14) and abs(th14[0] - th14[1]) == Fr(1, 2), th14)
+report('R3-F1: MergeXY Horizon 2, Within 1/2: Checked, D_2 = 1/2', st(h12) == 'Checked' and has(h12, r'\(WithinBound True\) *\)|\(WithinBound True\)') and has(h12, r'\(BehavioralDefect \(Rat 1 2\)\) \(Horizon \(Steps 2\)\)'), st(h12))
+r3c = csrc + ''.join('\n!(dc.run UnattainedSupremum %s)' % r for r in ['(CheckBehavioral JoinXY (Horizon (Steps 3)) (Within (Rat 1 2)))', '(CheckBehavioral JoinXY (Horizon (Steps 3)) (Within (Rat 7 8)))', '(CheckBehavioral JoinXY (Discount (Rat 1 2)) (Within (Rat 1 3)))', '(CheckBehavioral JoinXY (Discount (Rat 1 2)) (Within (Rat 1 4)))', '(MeasureBehavioral JoinXY (Precision (Rat 1 100)))']) + '\n'
+R3C = run(r3c, 'r3-cl')
+j12 = look(R3C, 'UnattainedSupremum', '(CheckBehavioral JoinXY (Horizon (Steps 3)) (Within (Rat 1 2)))'); j78 = look(R3C, 'UnattainedSupremum', '(CheckBehavioral JoinXY (Horizon (Steps 3)) (Within (Rat 7 8)))')
+lj12 = layered_replay(j12, r3c, UA, ['report'], 'UnattainedSupremum'); tj12 = mt_replay(j12, r3c, UA, Fr(1), 'UnattainedSupremum')
+report('R3-F1: JoinXY Horizon 3, Within 1/2: Refuted, value 7/8 = replayed LayeredPrefixpoint D_3 = Test gap', st(j12) == 'Refuted' and has(j12, r'\(BehavioralDefect \(Rat 7 8\)\) \(Horizon \(Steps 3\)\)') and bool(lj12) and lj12[3][('y', 'x')] == Fr(7, 8) and bool(tj12) and abs(tj12[0] - tj12[1]) == Fr(7, 8), tj12)
+report('R3-F1: JoinXY Horizon 3, Within 7/8: Checked, D_3 = 7/8', st(j78) == 'Checked' and has(j78, r'\(BehavioralDefect \(Rat 7 8\)\)'), st(j78))
+# review 3 F2: discounted Within reaches the exact fixed point
+d13 = look(R3C, 'UnattainedSupremum', '(CheckBehavioral JoinXY (Discount (Rat 1 2)) (Within (Rat 1 3)))'); d14 = look(R3C, 'UnattainedSupremum', '(CheckBehavioral JoinXY (Discount (Rat 1 2)) (Within (Rat 1 4)))')
+pd13 = prefix_replay(d13, r3c, UA, ['report'], 'UnattainedSupremum'); dd13 = dual_replay(d13, r3c, UA, ['report'], 'UnattainedSupremum'); td14 = mt_replay(d14, r3c, UA, Fr(1, 2), 'UnattainedSupremum')
+report('R3-F2: JoinXY Discount 1/2, Within 1/3: Checked, Prefixpoint and DualPostfixpoint replay 1/3', st(d13) == 'Checked' and bool(pd13) and bool(dd13) and has(d13, r'\(BehavioralDefect \(Rat 1 3\)\)'), (pd13 and pd13.get(('x', 'y')), dd13 and dd13.get(('x', 'y'))))
+report('R3-F2: JoinXY Discount 1/2, Within 1/4: Refuted on a replayed Test, gap > 1/4', st(d14) == 'Refuted' and bool(td14) and abs(td14[0] - td14[1]) > Fr(1, 4), td14)
+# review 3 F3: Precision and Budget are registered arguments, never InvalidInput
+pm = look(R3S, 'SevenState', '(MeasureBehavioral MergeXY (Precision (Rat 1 100)))'); bm = look(R3S, 'SevenState', '(MeasureBehavioral MergeXY (Budget (Steps 100)))'); pu = look(R3C, 'UnattainedSupremum', '(MeasureBehavioral JoinXY (Precision (Rat 1 100)))')
+report('R3-F3: Precision 1/100 on an exact distance: Checked 1/2', st(pm) == 'Checked' and has(pm, r'\(BehavioralDefect \(Rat 1 2\)\)'), st(pm))
+report('R3-F3: Budget is Unsupported, not InvalidInput', st(bm) == 'Unsupported', st(bm))
+report('R3-F3: Precision 1/100 on the unattained supremum (U01 shape): Unsupported, not InvalidInput', st(pu) == 'Unsupported', st(pu))
 
 # neg 12: a Positive arrow from an unnormalized realization (K rows sum to 2) is not valid, so no composite is formed from it.
 lsrc = open(LFIX, encoding='utf-8').read()

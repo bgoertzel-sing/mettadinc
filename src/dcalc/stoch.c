@@ -1208,8 +1208,12 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
     if ((!strcmp(head, "MeasureBehavioral") || !strcmp(head, "CheckBehavioral")) && st_repi(&S, a1) >= 0) {   /* U01-U04 handler */
         const StRepr *P = &S.rep[st_repi(&S, a1)]; const StMach *M = &S.mach[P->mach]; const StCar *C = &S.car[M->states]; const StMap *E = &S.map[P->enc];
         const Sx *hz = st_opt(q, "Horizon"), *wi = st_opt(q, "Within"), *dsc = st_opt(q, "Discount");
-        int handle = E->to == M->states, chk = !strcmp(head, "CheckBehavioral"), h = -1;
-        for (size_t i = 2; i < q->n; i++) if (!sx_head_is(q->items[i], "Horizon") && !sx_head_is(q->items[i], "Within") && !sx_head_is(q->items[i], "Discount")) handle = 0;
+        int handle = E->to == M->states, chk = !strcmp(head, "CheckBehavioral"), h = -1, prpos = 0;
+        { const Sx *pr = st_opt(q, "Precision"); DcRat pv;   /* review 3 F3: registered arguments Precision and Budget */
+          if (pr && (st_rat(pr->items[1], &pv) || pv.n < 0)) return dc_invalid(m, "%s: expected (Precision r) with r >= 0", head);
+          if (pr) prpos = pv.n > 0;
+          if (st_opt(q, "Budget")) return dc_unsupported(m, "%s: (Budget ..) is not implemented; answers are exact or Unsupported", head); }
+        for (size_t i = 2; i < q->n; i++) if (!sx_head_is(q->items[i], "Horizon") && !sx_head_is(q->items[i], "Within") && !sx_head_is(q->items[i], "Discount") && !sx_head_is(q->items[i], "Precision")) handle = 0;
         DcRat g = dc_rat(1, 1, &ovf), b = dc_rat(0, 1, &ovf);
         if (handle && dsc && (dc_sx_rat(dsc->items[1], &g) || g.n < 0 || dc_rat_cmp(g, dc_rat(1, 1, &ovf)) > 0)) handle = 0;   /* the S04 path answers InvalidInput */
         if (handle && hz) { const Sx *sp = hz->items[1]; DcRat hv;
@@ -1219,7 +1223,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         if (handle && wi && (!chk || st_rat(wi->items[1], &b) || b.n < 0)) return dc_invalid(m, "%s: (Within b) needs CheckBehavioral and b >= 0", head);
         if (handle && !hz && !wi) { static DcRat d0[ST_MAXE][ST_MAXE]; int o2 = 0; if (!st_behav(&S, M, g, d0, &o2)) handle = 0; }   /* S03/S04 path */
         if (handle) {
-            int n = C->n, oc[ST_MAXE], wx = -1, ch = 1, layers = 0, lim = hz ? h : (wi ? 40 : 20);
+            int n = C->n, oc[ST_MAXE], wx = -1, ch = 1, layers = 0, lim = hz ? h : (wi && dc_rat_cmp(g, dc_rat(1, 1, &ovf)) == 0 ? 40 : 20);   /* review 3 F2: Discount < 1 goes on to the exact fixed point */
             static DcRat d[ST_MAXE][ST_MAXE], nd[ST_MAXE][ST_MAXE];
             for (int x = 0; x < n; x++) { oc[x] = -1;
                 for (int y = 0; y < x && oc[x] < 0; y++) { int same = 1;
@@ -1228,7 +1232,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
                 if (oc[x] < 0) oc[x] = x; }
             for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) d[x][y] = dc_rat(oc[x] != oc[y], 1, &ovf);
             DcRat def = st_defect(C, E, d, &wx, &ovf);
-            while (layers < lim && ch && !(wi && dc_rat_cmp(def, b) > 0)) {
+            while (layers < lim && ch && !(wi && !hz && dc_rat_cmp(def, b) > 0)) {   /* review 3 F1: a Horizon is always computed to layer h */
                 if (st_bstep(&S, M, oc, g, d, nd, &ch, &ovf)) return dc_unsupported(m, "%s: rational overflow (int64) or transport limit", head);
                 memcpy(d, nd, sizeof d); layers++; def = st_defect(C, E, d, &wx, &ovf);
             }
@@ -1244,9 +1248,12 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
                     Sx *lt = st_layer_test(&S, M, g, wx, E->tab[wx], layers, &ovf);
                     if (!lt || ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "%s: no replayable depth-%d modal test", head, layers); }
                     sx_push(ev, lt); }
-                return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, ev, NULL);
+                /* review 3 F1: CheckBehavioral under a Horizon decides D_h <= Within (default 0): the depth-h Test refutes, the LayeredPrefixpoint confirms */
+                int bad = chk && dc_rat_cmp(def, b) > 0;
+                if (chk) sx_push(val, dc_form("WithinBound", dc_sym(bad ? "False" : "True"), NULL));
+                return st_env(m, bad ? VERDICT_FAILS : VERDICT_HOLDS, q, "Representation", a1, val, ev, NULL);
             }
-            if (wi && (dc_rat_cmp(def, b) > 0 || !ch)) {
+            if (wi && (dc_rat_cmp(def, b) > 0 || !ch)) {   /* (no Horizon here: that branch returned) */
                 int bad = dc_rat_cmp(def, b) > 0;
                 Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym(bad ? "False" : "True"), NULL), dc_form("BehavioralDefect", st_rsx(def), NULL), NULL);
                 if (pair) sx_free(pair);
@@ -1259,6 +1266,8 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             DcRat lo = def; int it = 0, frc = 1;
             if (dc_rat_cmp(g, dc_rat(1, 1, &ovf)) < 0) frc = st_fixpoint(&S, M, oc, g, d, &it, &ovf);
             if (frc < 0 || ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
+            if (frc != 0 && chk) return dc_unsupported(m, "%s: no exact fixed point reached; the Within bound cannot be decided", head);   /* review 3 F2 */
+            if (frc != 0 && prpos) return dc_unsupported(m, "%s: refining the interval to Precision > 0 is not implemented", head);   /* review 3 F3 */
             if (frc == 0) {
                 DcRat dv = st_defect(C, E, d, &wx, &ovf); int holds = !wi || dc_rat_cmp(dv, b) <= 0;
                 Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(dv), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
@@ -1290,7 +1299,10 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             return st_env(m, bad < 0 ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
         }
         DcRat g = dc_rat(1, 1, &ovf);
-        const Sx *dsc = q->n >= 3 ? q->items[2] : NULL;
+        const Sx *dsc = NULL;   /* review 3 F3: Precision (checked above) is skipped; an exact answer meets any precision */
+        for (size_t i = 2; i < q->n; i++) { if (sx_head_is(q->items[i], "Precision")) continue;
+            if (dsc) return dc_invalid(m, "%s: expected at most one (Discount r)", head);
+            dsc = q->items[i]; }
         if (dsc && (!sx_head_is(dsc, "Discount") || dsc->n != 2 || dc_sx_rat(dsc->items[1], &g) || g.n < 0 || dc_rat_cmp(g, dc_rat(1, 1, &ovf)) > 0))
             return dc_invalid(m, "%s: expected (Discount r) with 0 <= r <= 1", head);
         static DcRat d[ST_MAXE][ST_MAXE]; int rc = st_behav(&S, M, g, d, &ovf);
