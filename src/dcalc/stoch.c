@@ -966,6 +966,8 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             if (li[k] < 0) return dc_invalid(m, "Then: expected (Output D Value) where D derives (CheckLinearArrow L)");
         }
         const StLin *A = &S.lin[li[0]], *Bk = &S.lin[li[1]];
+        /* neg 12: an input that fails its own check (e.g. a Positive arrow whose rows do not sum to 1) makes the composite invalid; its grade still uses the real norms */
+        char wa[200] = "", wb[200] = ""; int okA = st_check_lin(&S, A, wa, sizeof wa, &ovf, 0), okB = st_check_lin(&S, Bk, wb, sizeof wb, &ovf, 0);
         if (A->tgt != Bk->src) return dc_invalid(m, "Then: %s targets %s but %s starts at %s", A->name, S.mach[A->tgt].name, Bk->name, S.mach[Bk->src].name);
         if (S.nlin == ST_MAXD) return dc_unsupported(m, "Then: too many linear arrows");
         StLin *C = &S.lin[S.nlin]; memset(C, 0, sizeof *C);
@@ -982,7 +984,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         DcRat lam = dc_rat_mul(la, lb, &ovf), rho = dc_rat_add(dc_rat_mul(ra, lb, &ovf), dc_rat_mul(la, rb, &ovf), &ovf);
         if (ovf) return dc_unsupported(m, "Then: rational overflow (int64)");
         int sound = dc_rat_cmp(lc, lam) <= 0 && dc_rat_cmp(rc, rho) <= 0, attained = !dc_rat_cmp(rc, rho);
-        Sx *val = dc_form("Value", dc_form("LinearArrow", dc_sym(C->kind), dc_form("Valid", dc_sym("True"), NULL),
+        Sx *val = dc_form("Value", dc_form("LinearArrow", dc_sym(C->kind), dc_form("Valid", dc_sym(okA && okB ? "True" : "False"), NULL),
             dc_form("Grade", dc_form("Lambda", st_rsx(lam), NULL), dc_form("Rho", st_rsx(rho), NULL), NULL),
             dc_form("Attained", dc_sym(attained ? "True" : "False"), NULL), NULL), NULL);
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("GradedComposition"), NULL),
@@ -990,7 +992,9 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             dc_form("Factors", dc_form(A->name, st_rsx(la), st_rsx(ra), NULL), dc_form(Bk->name, st_rsx(lb), st_rsx(rb), NULL), NULL),
             dc_form("ComposedResidual", dc_form("Lambda", st_rsx(lc), NULL), dc_form("Rho", st_rsx(rc), NULL), NULL), NULL), NULL);
         if (!sound) return dc_unsupported(m, "Then: composed residual exceeds the composition bound (internal check)");
-        return st_env(m, VERDICT_HOLDS, q, "LinearArrow", C->name, val, ev, NULL);
+        if (!okA) sx_push(ev->items[1], dc_form("Failure", dc_sym(A->name), dc_sym(wa), NULL));
+        if (!okB) sx_push(ev->items[1], dc_form("Failure", dc_sym(Bk->name), dc_sym(wb), NULL));
+        return st_env(m, okA && okB ? VERDICT_HOLDS : VERDICT_FAILS, q, "LinearArrow", C->name, val, ev, NULL);
     }
     if (!strcmp(head, "CheckUpdates") || !strcmp(head, "Refine")) {   /* V01, V02 */
         int pi = st_repi(&S, a1); if (pi < 0) return dc_invalid(m, "%s: %s names no representation", head, a1 ? a1 : "?");
