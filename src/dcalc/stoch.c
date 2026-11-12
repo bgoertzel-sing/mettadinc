@@ -847,7 +847,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             Sx *probs = dc_form("Probabilities", st_rsx(best.pe), st_rsx(best.qe), NULL), *evt = dc_form("Event", lr, NULL);
             if (pol) { wit = dc_form("PolicyTreeWitness", pair, btree ? btree : dc_form("Stop", NULL), evt, probs, NULL); btree = NULL; }
             else { Sx *wd = dc_form("Word", NULL); for (int i = 0; i < h; i++) sx_push(wd, dc_sym(M->al[bw[i]]));
-                wit = dc_form("WordWitness", pair, wd, evt, probs, NULL); }
+                wit = dc_form("TraceEventWitness", pair, wd, evt, probs, NULL); }
             sx_push(cert, wit);
         }
         if (btree) sx_free(btree);

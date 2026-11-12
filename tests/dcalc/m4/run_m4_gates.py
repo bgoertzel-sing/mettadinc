@@ -139,6 +139,12 @@ report('neg 9: no sampled-successor witness in any M4 answer', not any(has(l, r'
 # neg 10 (O03): the policy-class refutation carries a policy-tree witness, never a word witness
 o3 = next((l for (mo, rq), l in CL.items() if mo == 'AdaptiveProbe' and 'ObservationBased' in rq and 'Within' in rq), None)
 report('neg 10: O03 witness is PolicyTreeWitness, not WordWitness', st(o3) == 'Refuted' and has(o3, r'PolicyTreeWitness') and not has(o3, r'WordWitness'), st(o3))
+# review 1 F3: a stochastic fixed-word refutation carries a TraceEventWitness (spec table), never the deterministic WordWitness
+f3src = csrc.replace('(CheckTrace MergeX (Horizon (Steps 2)) (Within (Rat 3 4))))', '(CheckTrace MergeX (Horizon (Steps 2)) (Within (Rat 1 4))))', 1)
+assert f3src != csrc
+F3 = run(f3src, 'f3-words')
+o2b = next((l for (mo, rq), l in F3.items() if mo == 'AdaptiveProbe' and 'Rat 1 4' in rq and 'ObservationBased' not in rq), None)
+report('F3: fixed-word refutation (Within 1/4) is TraceEventWitness, not WordWitness', st(o2b) == 'Refuted' and has(o2b, r'\(TraceEventWitness \(Pair x x2\) \(Word a b\)') and not has(o2b, r'WordWitness \('), st(o2b))
 # neg 11 (U01): a Precision-0 undiscounted measurement is never Checked from tests alone, nor certified by a post-fixpoint
 u1 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(MeasureBehavioral JoinXY)'), None)
 report('neg 11: U01 not Checked, no post-fixpoint certificate', st(u1) == 'Unknown' and not has(u1, r'DualPostfixpoint|CouplingPrefixpoint'), st(u1))
