@@ -1,0 +1,7 @@
+(DC.Module EstSmoke
+  (Profile Stochastic)
+  (Use Estimates)
+  (Stream Replies (Source "../../../../docs/e0/docs/06_wmtm_worked_example/validation_bundle/streams/replies.json")
+    (Digest "sha256:1f5d10eff762371dffdef5e0be4f940e39366a8fe2c6b9227bb7cdb66c82ca0f")
+    (Population "replies") (Selection "all replies") (Policy "v1")))
+!(dc.run EstSmoke (EstimateRate (On Replies) (Column "stale") (Equals 1) (Level (Rat 1 100))))

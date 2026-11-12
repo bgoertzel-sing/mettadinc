@@ -30,6 +30,7 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
     if (q->kind != SX_LIST || q->n == 0 || q->items[0]->kind != SX_SYM)
         return dc_invalid(m, "request: expected (Head args...) or a Derive name");
     const char *h = q->items[0]->text;
+    if ((!strcmp(h, "EstimateRate") || !strcmp(h, "CompareRates")) && !m->profile_unsupported[0]) return dc_req_estimates(r, q, h);   /* M4-estimates opt-in */
     if (m->stochastic && !m->profile_unsupported[0]) return dc_req_stoch(r, q, h, slot);   /* M4 opt-in */
     if (m->symbolic && !m->profile_unsupported[0]) return dc_req_sym(r, q, h, slot);   /* M3 */
     if (m->profile_unsupported[0]) return dc_unsupported(m, "request %s: %s", h, m->profile_unsupported);

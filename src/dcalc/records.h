@@ -27,9 +27,17 @@ int dc_goal_change_is_renaming(int equivalence_holds, int meaning_preserved);
 
 /* ---- 5. Estimate record ---- */
 typedef struct {
-    char population[160], selection[160], policy_version[64], estimand[160];
+    char population[160], selection[160], policy_version[96], estimand[160];
     int selection_depends_on_policy;
+    /* M4-estimates: the rest of the registry envelope (result_envelope.Estimate).
+     * Optional in a declared Estimate; required (dc_estimate_complete) on an
+     * Estimated result.  Rationals are kept as canonical text, e.g. (Rat 1 100). */
+    char estimator[96], protocol[256], dependence[160], combination[128];
+    char eps[64], delta[64];
+    long long sample_size;                /* -1 when absent */
 } DcEstimate;
+/* 1 when all ten envelope fields are present (else why names the first missing). */
+int dc_estimate_complete(const DcEstimate *e, char *why, size_t wn);
 /* Parse (Estimate (Population ..) (Selection ..) (PolicyVersion ..) (Estimand ..)
  * [(SelectionDependsOnPolicy True)]).  0 ok; else err names the missing field. */
 int dc_estimate_parse(const Sx *x, DcEstimate *e, char *err, size_t en);
@@ -65,14 +73,20 @@ Sx *dc_agreed_by(const char *const *solver, const char *const *version, size_t n
 #define DC_ACCEPTS_MAX 8
 typedef struct {
     int checked;                          /* lists Checked */
+    int estimated;                        /* lists Estimated (empirical consumer) */
     size_t nbackend;                      /* Conditional on these solvers */
     char backend[DC_ACCEPTS_MAX][64];
+    size_t nassume;                       /* Conditional on these declared assumptions */
+    char assume[DC_ACCEPTS_MAX][64];
 } DcAccepts;
 /* 0 ok; else -1 with why naming the field. */
 int dc_accepts_parse(const Sx *x, DcAccepts *a, char *why, size_t wn);
-/* 1 when the consumer accepts a result: Checked iff it lists Checked;
- * Conditional iff every assumption is a TrustedBackend whose solver it lists
- * (any version); every other status (including Estimated) is not accepted. */
+/* 1 when the consumer accepts a result (registry assurance.accepts):
+ * Checked iff it lists Checked; Estimated iff it lists Estimated (inv 17:
+ * an Estimated result is never accepted as Checked); Conditional iff every
+ * undischarged assumption is covered: TrustedBackend by a listed solver (any
+ * version), (Assumption name ..) by a listed name, (EstimatedPremise ..) only
+ * when Estimated is listed.  Every other status is not accepted. */
 int dc_accepts_result(const DcAccepts *a, DcStatus st, const Sx *assumptions);
 /* Gate: number of results the consumer does not accept (inadequate coverage). */
 size_t dc_gate_inadequate(const DcAccepts *a, const DcStatus *st,

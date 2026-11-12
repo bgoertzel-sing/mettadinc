@@ -28,12 +28,28 @@ static int copy_field(const Sx *x, const char *name, char *dst, size_t dn, char 
     snprintf(dst, dn, "%s", f->items[1]->text); return 0;
 }
 
+static int copy_text(const Sx *it, char *dst, size_t dn) {   /* atom text or canonical print */
+    if (it->kind != SX_LIST) { if (strlen(it->text) >= dn) return -1; snprintf(dst, dn, "%s", it->text); return 0; }
+    char *s = sx_print(it); if (!s) return -1;
+    int bad = strlen(s) >= dn; if (!bad) snprintf(dst, dn, "%s", s);
+    free(s); return bad ? -1 : 0;
+}
+static int opt_field(const Sx *x, const char *name, char *dst, size_t dn, char *err, size_t en) {
+    const Sx *f = sx_find(x, name, 1);
+    if (!f) return 0;
+    if (f->n != 2 || copy_text(f->items[1], dst, dn)) { snprintf(err, en, "Estimate: field %s malformed or too long", name); return -1; }
+    return 0;
+}
+
 int dc_estimate_parse(const Sx *x, DcEstimate *e, char *err, size_t en) {
     memset(e, 0, sizeof *e);
+    e->sample_size = -1;
     if (!sx_head_is(x, "Estimate")) { snprintf(err, en, "Estimate: expected (Estimate ...)"); return -1; }
     if (copy_field(x, "Population", e->population, sizeof e->population, err, en)) return -1;
     if (copy_field(x, "Selection", e->selection, sizeof e->selection, err, en)) return -1;
-    if (copy_field(x, "PolicyVersion", e->policy_version, sizeof e->policy_version, err, en)) return -1;
+    /* the registry envelope names it (Policy digest); (PolicyVersion v) is the M4 spelling */
+    if (sx_find(x, "Policy", 1)) { if (copy_field(x, "Policy", e->policy_version, sizeof e->policy_version, err, en)) return -1; }
+    else if (copy_field(x, "PolicyVersion", e->policy_version, sizeof e->policy_version, err, en)) return -1;
     if (copy_field(x, "Estimand", e->estimand, sizeof e->estimand, err, en)) return -1;
     const Sx *d = sx_find(x, "SelectionDependsOnPolicy", 1);
     if (d) {
@@ -42,22 +58,65 @@ int dc_estimate_parse(const Sx *x, DcEstimate *e, char *err, size_t en) {
         }
         e->selection_depends_on_policy = sx_is_sym(d->items[1], "True");
     }
+    if (opt_field(x, "Estimator", e->estimator, sizeof e->estimator, err, en)) return -1;
+    if (opt_field(x, "Protocol", e->protocol, sizeof e->protocol, err, en)) return -1;
+    if (opt_field(x, "Dependence", e->dependence, sizeof e->dependence, err, en)) return -1;
+    if (opt_field(x, "Combination", e->combination, sizeof e->combination, err, en)) return -1;
+    const Sx *ss = sx_find(x, "SampleSize", 1);
+    if (ss) {
+        char *end = NULL;
+        if (ss->n != 2 || ss->items[1]->kind == SX_LIST) { snprintf(err, en, "Estimate: field SampleSize is not a natural number"); return -1; }
+        long long v = strtoll(ss->items[1]->text, &end, 10);
+        if (!end || *end || v < 0) { snprintf(err, en, "Estimate: field SampleSize is not a natural number"); return -1; }
+        e->sample_size = v;
+    }
+    const Sx *er = sx_find(x, "Error", 1);
+    if (er) {
+        if (er->n != 3 || copy_text(er->items[1], e->eps, sizeof e->eps) || copy_text(er->items[2], e->delta, sizeof e->delta)) {
+            snprintf(err, en, "Estimate: field Error is not (Error epsilon delta)"); return -1;
+        }
+    }
     for (size_t i = 1; i < x->n; i++) {
         const Sx *f = x->items[i];
-        static const char *K[] = { "Population", "Selection", "PolicyVersion", "Estimand", "SelectionDependsOnPolicy" };
+        static const char *K[] = { "Population", "Selection", "PolicyVersion", "Policy", "Estimand", "SelectionDependsOnPolicy",
+                                   "Estimator", "Protocol", "SampleSize", "Error", "Dependence", "Combination" };
         int known = 0;
-        for (int k = 0; k < 5; k++) if (sx_head_is(f, K[k])) known = 1;
+        for (size_t k = 0; k < sizeof K / sizeof K[0]; k++) if (sx_head_is(f, K[k])) known = 1;
         if (!known) { snprintf(err, en, "Estimate: field %zu is not a known field", i); return -1; }
     }
     return 0;
 }
 
+int dc_estimate_complete(const DcEstimate *e, char *why, size_t wn) {
+    const char *miss = !e->estimand[0] ? "Estimand" : !e->population[0] ? "Population" : !e->selection[0] ? "Selection"
+        : !e->policy_version[0] ? "Policy" : !e->estimator[0] ? "Estimator" : !e->protocol[0] ? "Protocol"
+        : e->sample_size < 0 ? "SampleSize" : (!e->eps[0] || !e->delta[0]) ? "Error"
+        : !e->dependence[0] ? "Dependence" : !e->combination[0] ? "Combination" : NULL;
+    if (miss) { snprintf(why, wn, "Estimate: field %s missing", miss); return 0; }
+    return 1;
+}
+
+static Sx *text_sx(const char *s) {          /* reparse canonical text so (Rat 1 100) round-trips */
+    if (s[0] != '(') return sx_sym(s);
+    const char *er = NULL; int el = 0;
+    Sx *all = sx_parse_all(s, &er, &el);
+    if (!all || all->n != 1) { if (all) sx_free(all); return sx_sym(s); }
+    Sx *r = sx_copy(all->items[0]); sx_free(all); return r;
+}
+
 Sx *dc_estimate_sx(const DcEstimate *e) {
-    return dc_form("Estimate", dc_form("Population", sx_sym(e->population), NULL),
-                   dc_form("Selection", sx_sym(e->selection), NULL),
-                   dc_form("PolicyVersion", sx_sym(e->policy_version), NULL),
-                   dc_form("Estimand", sx_sym(e->estimand), NULL),
-                   dc_form("SelectionDependsOnPolicy", sx_sym(e->selection_depends_on_policy ? "True" : "False"), NULL), NULL);
+    Sx *r = dc_form("Estimate", dc_form("Estimand", sx_str(e->estimand), NULL),
+                    dc_form("Population", sx_str(e->population), NULL),
+                    dc_form("Selection", sx_str(e->selection), NULL),
+                    dc_form("PolicyVersion", sx_str(e->policy_version), NULL), NULL);
+    if (e->estimator[0]) sx_push(r, dc_form("Estimator", sx_str(e->estimator), NULL));
+    if (e->protocol[0]) sx_push(r, dc_form("Protocol", sx_str(e->protocol), NULL));
+    if (e->sample_size >= 0) { char b[32]; snprintf(b, sizeof b, "%lld", e->sample_size); sx_push(r, dc_form("SampleSize", sx_sym(b), NULL)); }
+    if (e->eps[0] && e->delta[0]) sx_push(r, dc_form("Error", text_sx(e->eps), text_sx(e->delta), NULL));
+    if (e->dependence[0]) sx_push(r, dc_form("Dependence", sx_str(e->dependence), NULL));
+    if (e->combination[0]) sx_push(r, dc_form("Combination", sx_str(e->combination), NULL));
+    sx_push(r, dc_form("SelectionDependsOnPolicy", sx_sym(e->selection_depends_on_policy ? "True" : "False"), NULL));
+    return r;
 }
 
 int dc_estimate_transport(const DcEstimate *e, const char *new_policy, int declared_argument) {
@@ -163,27 +222,52 @@ int dc_accepts_parse(const Sx *x, DcAccepts *a, char *why, size_t wn) {
     for (size_t k = 1; k < x->n; k++) {
         const Sx *e = x->items[k];
         if (sx_is_sym(e, "Checked")) { a->checked = 1; continue; }
-        if (sx_head_is(e, "Conditional") && e->n == 2 && sx_head_is(e->items[1], "TrustedBackend")
-            && e->items[1]->n == 2 && e->items[1]->items[1]->kind == SX_SYM) {
-            if (a->nbackend == DC_ACCEPTS_MAX) { snprintf(why, wn, "Accepts: too many backends"); return -1; }
-            snprintf(a->backend[a->nbackend++], sizeof a->backend[0], "%s", e->items[1]->items[1]->text);
+        if (sx_is_sym(e, "Estimated")) { a->estimated = 1; continue; }
+        if (sx_head_is(e, "Conditional") && e->n >= 2) {
+            for (size_t c = 1; c < e->n; c++) {
+                const Sx *y = e->items[c];
+                int tb = sx_head_is(y, "TrustedBackend"), as = sx_head_is(y, "Assumption");
+                if ((!tb && !as) || y->n < 2) {
+                    snprintf(why, wn, "Accepts: entry %zu: clause item %zu is neither (TrustedBackend solver...) nor (Assumption name...)", k, c);
+                    return -1;
+                }
+                for (size_t s = 1; s < y->n; s++) {
+                    if (y->items[s]->kind != SX_SYM) { snprintf(why, wn, "Accepts: entry %zu: clause item %zu names a non-symbol", k, c); return -1; }
+                    size_t *cnt = tb ? &a->nbackend : &a->nassume;
+                    char (*dst)[64] = tb ? a->backend : a->assume;
+                    if (*cnt == DC_ACCEPTS_MAX) { snprintf(why, wn, "Accepts: too many %s entries", tb ? "backend" : "assumption"); return -1; }
+                    snprintf(dst[(*cnt)++], 64, "%s", y->items[s]->text);
+                }
+            }
             continue;
         }
-        snprintf(why, wn, "Accepts: entry %zu is neither Checked nor (Conditional (TrustedBackend solver))", k);
+        snprintf(why, wn, "Accepts: entry %zu is neither Checked, Estimated nor (Conditional (TrustedBackend solver...)|(Assumption name...))", k);
         return -1;
     }
+    return 0;
+}
+static int accepts_covers(const DcAccepts *a, const Sx *x) {
+    if (sx_head_is(x, "TrustedBackend") && x->n == 5 && x->items[1]->kind == SX_SYM) {
+        for (size_t b = 0; b < a->nbackend; b++) if (!strcmp(a->backend[b], x->items[1]->text)) return 1;
+        return 0;
+    }
+    if (sx_head_is(x, "Assumption") && x->n >= 2 && x->items[1]->kind == SX_SYM) {
+        for (size_t b = 0; b < a->nassume; b++) if (!strcmp(a->assume[b], x->items[1]->text)) return 1;
+        return 0;
+    }
+    if (sx_head_is(x, "EstimatedPremise") && x->n == 3) return a->estimated;
     return 0;
 }
 int dc_accepts_result(const DcAccepts *a, DcStatus st, const Sx *as) {
     size_t n = as ? as->n : 0;
     if (st == DC_CHECKED) return a->checked && n <= 1;
-    if (st != DC_CONDITIONAL || n <= 1) return 0;
-    for (size_t k = 1; k < n; k++) {
-        const Sx *x = as->items[k]; int ok = 0;
-        if (sx_head_is(x, "TrustedBackend") && x->n == 5)
-            for (size_t b = 0; b < a->nbackend && !ok; b++) ok = !strcmp(a->backend[b], x->items[1]->text);
-        if (!ok) return 0;
+    if (st == DC_ESTIMATED) {
+        if (!a->estimated) return 0;
+        for (size_t k = 1; k < n; k++) if (!accepts_covers(a, as->items[k])) return 0;
+        return 1;
     }
+    if (st != DC_CONDITIONAL || n <= 1) return 0;
+    for (size_t k = 1; k < n; k++) if (!accepts_covers(a, as->items[k])) return 0;
     return 1;
 }
 size_t dc_gate_inadequate(const DcAccepts *a, const DcStatus *st, const Sx *const *as, size_t n) {

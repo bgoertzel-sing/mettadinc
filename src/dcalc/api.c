@@ -67,7 +67,8 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
             dc_module_free(m);   /* review 2 F6: release partially admitted carrier tables */
         }
-        else { DcRun *run = dc_run_new(m); res = dc_run(run, req); dc_run_free(run); dc_module_free(m); }
+        else { if (basedir) snprintf(m->basedir, sizeof m->basedir, "%s", basedir);
+               DcRun *run = dc_run_new(m); res = dc_run(run, req); dc_run_free(run); dc_module_free(m); }
         free(m);
     }
     free(bad);
