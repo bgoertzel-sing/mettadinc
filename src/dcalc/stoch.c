@@ -303,8 +303,9 @@ static int st_trace_classes(const StSpan *B, int *tc) {
  * The metric is the least fixed point, reached exactly from d = obs-difference or
  * reported Unsupported when no exact fixed point appears within the round limit. */
 #define ST_KANT_AUG (4 * ST_MAXE * ST_MAXE)
+static DcRat g_kf[ST_MAXE][ST_MAXE];   /* U04: the optimal coupling of the last st_kant call */
 static int st_kant(int n, const DcRat *mu, const DcRat *nu, DcRat (*c)[ST_MAXE], DcRat *out, int *ovf) {
-    static DcRat f[ST_MAXE][ST_MAXE];
+    DcRat (*f)[ST_MAXE] = g_kf;
     DcRat rs[ST_MAXE], rd[ST_MAXE], z = dc_rat(0, 1, ovf);
     for (int i = 0; i < n; i++) { rs[i] = mu[i]; rd[i] = nu[i]; for (int j = 0; j < n; j++) f[i][j] = z; }
     for (int it = 0;; it++) {
@@ -658,6 +659,78 @@ static StTv st_tvrec(const StMod *s, const StMach *M, const int *oc, int noc, co
     return r;
 }
 
+/* ---- U01-U04: layered behavioral distances and exact fixed-point certificates ---- */
+static int g_st_rep = 1;   /* 0: the envelope answers Unknown (no replayable evidence) */
+static int st_bstep(const StMod *s, const StMach *M, const int *oc, DcRat gamma, DcRat (*d)[ST_MAXE], DcRat (*nd)[ST_MAXE], int *ch, int *ovf) {
+    int n = s->car[M->states].n; *ch = 0;
+    for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) {
+        if (oc[x] != oc[y] || x == y) { nd[x][y] = d[x][y]; continue; }
+        DcRat best = dc_rat(0, 1, ovf), w;
+        for (int a = 0; a < M->nact; a++) {
+            if (st_kant(n, s->ker[M->ak[a]].p[x], s->ker[M->ak[a]].p[y], d, &w, ovf)) return -1;
+            best = dc_rat_max(best, w);
+        }
+        nd[x][y] = dc_rat_mul(gamma, best, ovf);
+        if (dc_rat_cmp(nd[x][y], d[x][y])) *ch = 1;
+    }
+    return *ovf ? -1 : 0;
+}
+static DcRat st_defect(const StCar *C, const StMap *E, DcRat (*d)[ST_MAXE], int *wx, int *ovf) {
+    DcRat def = dc_rat(0, 1, ovf); *wx = -1;
+    for (int x = 0; x < C->n; x++) if (dc_rat_cmp(d[x][E->tab[x]], def) > 0) { def = d[x][E->tab[x]]; *wx = x; }
+    return def;
+}
+/* Candidate d* solves d = gamma * (coupling at d) d exactly for the couplings optimal at the
+ * current d (policy iteration); it is accepted only if one exact Bellman step (st_kant, whose
+ * optimum is the dual post-fixpoint check) maps d* to itself and 0 <= d* <= 1.
+ * Returns 0 accepted (d holds d*), 1 not found, -1 overflow. */
+#define ST_FPK 80
+static int st_fixpoint(const StMod *s, const StMach *M, const int *oc, DcRat gamma, DcRat (*d)[ST_MAXE], int *iters, int *ovf) {
+    int n = s->car[M->states].n, id[ST_MAXE][ST_MAXE], k = 0, px[ST_FPK], py[ST_FPK], ch;
+    static DcRat A[ST_FPK][ST_FPK + 1], T[ST_MAXE][ST_MAXE], bp[ST_MAXE][ST_MAXE];
+    for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) id[x][y] = -1;
+    for (int x = 0; x < n; x++) for (int y = x + 1; y < n; y++) if (oc[x] == oc[y]) {
+        if (k == ST_FPK) return 1;
+        px[k] = x; py[k] = y; id[x][y] = id[y][x] = k++; }
+    DcRat z = dc_rat(0, 1, ovf), one = dc_rat(1, 1, ovf);
+    for (int it = 0; it < 30; it++) {
+        *iters = it + 1;
+        for (int i = 0; i < k; i++) {
+            int x = px[i], y = py[i], ba = -1; DcRat best = z, w;
+            for (int a = 0; a < M->nact; a++) {
+                if (st_kant(n, s->ker[M->ak[a]].p[x], s->ker[M->ak[a]].p[y], d, &w, ovf)) return -1;
+                if (ba < 0 || dc_rat_cmp(w, best) > 0) { best = w; ba = a; memcpy(bp, g_kf, sizeof bp); }
+            }
+            for (int j = 0; j <= k; j++) A[i][j] = z;
+            A[i][i] = one;
+            for (int u = 0; u < n; u++) for (int v = 0; v < n; v++) if (!dc_rat_is_zero(bp[u][v])) {
+                DcRat c = dc_rat_mul(gamma, bp[u][v], ovf);
+                if (id[u][v] >= 0) A[i][id[u][v]] = dc_rat_sub(A[i][id[u][v]], c, ovf);
+                else if (oc[u] != oc[v]) A[i][k] = dc_rat_add(A[i][k], c, ovf);
+            }
+        }
+        for (int c = 0; c < k; c++) {
+            int p = -1;
+            for (int r = c; r < k && p < 0; r++) if (!dc_rat_is_zero(A[r][c])) p = r;
+            if (p < 0) return 1;
+            if (p != c) for (int j = 0; j <= k; j++) { DcRat t = A[c][j]; A[c][j] = A[p][j]; A[p][j] = t; }
+            for (int r = 0; r < k; r++) if (r != c && !dc_rat_is_zero(A[r][c])) {
+                DcRat f = dc_rat_div(A[r][c], A[c][c], ovf);
+                for (int j = c; j <= k; j++) A[r][j] = dc_rat_sub(A[r][j], dc_rat_mul(f, A[c][j], ovf), ovf);
+            }
+            if (*ovf) return -1;
+        }
+        for (int i = 0; i < k; i++) {
+            DcRat v = dc_rat_div(A[i][k], A[i][i], ovf);
+            if (dc_rat_cmp(v, z) < 0 || dc_rat_cmp(v, one) > 0) return 1;
+            d[px[i]][py[i]] = d[py[i]][px[i]] = v;
+        }
+        if (st_bstep(s, M, oc, gamma, d, T, &ch, ovf)) return -1;
+        if (!ch) return 0;
+    }
+    return 1;
+}
+
 /* ---- request dispatch ---- */
 static Sx *st_rsx(DcRat a) { return a.d == 1 ? dc_int((long)a.n) : dc_form("Rat", dc_int((long)a.n), dc_int((long)a.d), NULL); }
 static Sx *st_blocks(const StCar *c, const int *blk, int nb) {
@@ -672,7 +745,7 @@ static Sx *st_blocks(const StCar *c, const int *blk, int nb) {
 static Sx *st_env(DcModule *m, DcVerdict v, const Sx *q, const char *subjk, const char *subjn, Sx *val, Sx *ev, const char *why) {
     DcScope sc = { "M4-Stochastic", -1, "", NULL };
     Sx *subj = dc_form("Subject", dc_form(subjk, dc_sym(subjn), NULL), NULL);
-    Sx *res = dc_envelope_scoped(m, v, 1, dc_claim_of(q, "Literal"), subj, val, ev, why, &sc);
+    Sx *res = dc_envelope_scoped(m, v, g_st_rep, dc_claim_of(q, "Literal"), subj, val, ev, why, &sc);
     /* same pattern as M3 sym_policy: name the policy that replayed the evidence */
     Sx *au = res ? sx_find(res, "Assurance", 1) : NULL, *p = au ? sx_find(au, "Policy", 1) : NULL;
     if (p && p->n == 2) { sx_free(p->items[1]); p->items[1] = dc_sym("M4-StochasticReplay"); }
@@ -773,6 +846,68 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         if (btree) sx_free(btree);
         if (ovf) { sx_free(val); sx_free(cert); return dc_unsupported(m, "%s: rational overflow (int64)", head); }
         return st_env(m, holds ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
+    }
+    if ((!strcmp(head, "MeasureBehavioral") || !strcmp(head, "CheckBehavioral")) && st_repi(&S, a1) >= 0) {   /* U01-U04 handler */
+        const StRepr *P = &S.rep[st_repi(&S, a1)]; const StMach *M = &S.mach[P->mach]; const StCar *C = &S.car[M->states]; const StMap *E = &S.map[P->enc];
+        const Sx *hz = st_opt(q, "Horizon"), *wi = st_opt(q, "Within"), *dsc = st_opt(q, "Discount");
+        int handle = E->to == M->states, chk = !strcmp(head, "CheckBehavioral"), h = -1;
+        for (size_t i = 2; i < q->n; i++) if (!sx_head_is(q->items[i], "Horizon") && !sx_head_is(q->items[i], "Within") && !sx_head_is(q->items[i], "Discount")) handle = 0;
+        DcRat g = dc_rat(1, 1, &ovf), b = dc_rat(0, 1, &ovf);
+        if (handle && dsc && (dc_sx_rat(dsc->items[1], &g) || g.n < 0 || dc_rat_cmp(g, dc_rat(1, 1, &ovf)) > 0)) handle = 0;   /* the S04 path answers InvalidInput */
+        if (handle && hz) { const Sx *sp = hz->items[1]; DcRat hv;
+            if (!sx_head_is(sp, "Steps") || sp->n != 2 || st_rat(sp->items[1], &hv) || hv.d != 1 || hv.n < 0 || hv.n > 40)
+                return dc_invalid(m, "%s: expected (Horizon (Steps h)) with 0 <= h <= 40", head);
+            h = (int)hv.n; }
+        if (handle && wi && (!chk || st_rat(wi->items[1], &b) || b.n < 0)) return dc_invalid(m, "%s: (Within b) needs CheckBehavioral and b >= 0", head);
+        if (handle && !hz && !wi) { static DcRat d0[ST_MAXE][ST_MAXE]; int o2 = 0; if (!st_behav(&S, M, g, d0, &o2)) handle = 0; }   /* S03/S04 path */
+        if (handle) {
+            int n = C->n, oc[ST_MAXE], wx = -1, ch = 1, layers = 0, lim = hz ? h : (wi ? 40 : 20);
+            static DcRat d[ST_MAXE][ST_MAXE], nd[ST_MAXE][ST_MAXE];
+            for (int x = 0; x < n; x++) { oc[x] = -1;
+                for (int y = 0; y < x && oc[x] < 0; y++) { int same = 1;
+                    for (int j = 0; j < M->nobs; j++) if (S.map[M->om[j]].tab[x] != S.map[M->om[j]].tab[y]) same = 0;
+                    if (same) oc[x] = oc[y]; }
+                if (oc[x] < 0) oc[x] = x; }
+            for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) d[x][y] = dc_rat(oc[x] != oc[y], 1, &ovf);
+            DcRat def = st_defect(C, E, d, &wx, &ovf);
+            while (layers < lim && ch && !(wi && dc_rat_cmp(def, b) > 0)) {
+                if (st_bstep(&S, M, oc, g, d, nd, &ch, &ovf)) return dc_unsupported(m, "%s: rational overflow (int64) or transport limit", head);
+                memcpy(d, nd, sizeof d); layers++; def = st_defect(C, E, d, &wx, &ovf);
+            }
+            if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
+            Sx *pair = wx >= 0 ? dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[E->tab[wx]]), NULL) : NULL;
+            if (hz) {
+                Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(def), NULL), dc_form("Horizon", dc_form("Steps", dc_int(h), NULL), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
+                Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym("LayeredPrefixpoint"), NULL), dc_form("Layers", dc_int(layers), NULL), NULL);
+                if (pair) sx_push(cert, dc_form("DepthTest", pair, dc_form("Depth", dc_int(layers), NULL), dc_form("Separation", st_rsx(def), NULL), NULL));
+                return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
+            }
+            if (wi && (dc_rat_cmp(def, b) > 0 || !ch)) {
+                int bad = dc_rat_cmp(def, b) > 0;
+                Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym(bad ? "False" : "True"), NULL), dc_form("BehavioralDefect", st_rsx(def), NULL), NULL);
+                Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym(bad ? "DepthTestWitness" : "ExactFixpoint"), NULL), NULL);
+                if (bad && pair) { sx_push(cert, dc_form("DepthTest", pair, dc_form("Depth", dc_int(layers), NULL), dc_form("Separation", st_rsx(def), NULL), NULL)); pair = NULL; }
+                if (pair) sx_free(pair);
+                return st_env(m, bad ? VERDICT_FAILS : VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
+            }
+            if (pair) sx_free(pair);
+            DcRat lo = def; int it = 0, frc = 1;
+            if (dc_rat_cmp(g, dc_rat(1, 1, &ovf)) < 0) frc = st_fixpoint(&S, M, oc, g, d, &it, &ovf);
+            if (frc < 0 || ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
+            if (frc == 0) {
+                DcRat dv = st_defect(C, E, d, &wx, &ovf); int holds = !wi || dc_rat_cmp(dv, b) <= 0;
+                Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(dv), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
+                if (wi) sx_push(val, dc_form("WithinBound", dc_sym(holds ? "True" : "False"), NULL));
+                Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("CouplingPrefixpoint"), NULL),
+                    dc_form("DualPostfixpoint", dc_sym("Replayed"), NULL), dc_form("PolicyIterations", dc_int(it), NULL), NULL), NULL);
+                return st_env(m, holds ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
+            }
+            Sx *val = dc_form("Value", dc_form("BehavioralInterval", dc_form("Lower", st_rsx(lo), NULL), dc_form("Upper", dc_int(1), NULL), NULL),
+                dc_form("Layers", dc_int(layers), NULL), dc_form("Discount", st_rsx(g), NULL), dc_form("Precision", dc_int(0), NULL), NULL);
+            Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("LayeredPrefixpoint"), NULL), dc_form("Closed", dc_sym("False"), NULL), NULL), NULL);
+            g_st_rep = 0; Sx *res = st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, ev, "supremum not attained by any finite layer; interval does not close at Precision 0"); g_st_rep = 1;
+            return res;
+        }
     }
     if (!strcmp(head, "CheckBehavioral") || !strcmp(head, "MeasureBehavioral") || !strcmp(head, "CheckTrace")) {
         int pi = st_repi(&S, a1); if (pi < 0) return dc_invalid(m, "%s: %s names no representation", head, a1 ? a1 : "?");
