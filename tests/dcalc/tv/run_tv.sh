@@ -26,3 +26,6 @@ if grep -Eq '^minimize-[A-Za-z0-9]+\.tv .*\(SAT\)' build/tv_check.out; then echo
 echo "tv_check: PASS ($n CNFs: $s SAT, $u UNSAT; every sub-kind has both, the minimize fixed point is UNSAT)"
 python3 tests/dcalc/tv_mut.py "$M" "$D" "$W" > build/tv_mut.out || { cat build/tv_mut.out; exit 1; }
 tail -1 build/tv_mut.out
+# M4: source-level mutants of ops_sym.c (identity canary must survive, every mutant must be killed)
+python3 tests/dcalc/tv/src_mutants.py > build/tv_srcmut.out || { cat build/tv_srcmut.out; exit 1; }
+tail -1 build/tv_srcmut.out
