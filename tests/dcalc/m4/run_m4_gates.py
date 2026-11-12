@@ -120,6 +120,16 @@ for cid, req, want, pat, pol in urows:
 # neg 3 (L03): composed residual carries the norm factor: (rA*lB + lA*rB) = 3/5, never the plain sum rA + rB = 1/5
 LFIX = os.path.join(os.path.dirname(FIX), 'linear_composition.metta')
 LC = run(open(LFIX, encoding='utf-8').read(), 'lincomp')
+# L01-L03 rows (linear_composition.metta): release 1 answers Unsupported; --beyond-release gives the graded arrows
+LD = run(open(LFIX, encoding='utf-8').read(), 'lincomp-default', beyond=False)
+report('R1 default: L01-L03 requests Unsupported', all(st(LD.get(('LinearComposition', q))) == 'Unsupported' for q in ('LChecked', 'KChecked', 'LK')),
+       ' '.join(st(LD.get(('LinearComposition', q))) for q in ('LChecked', 'KChecked', 'LK')))
+lrows = [('L01', 'LChecked', 'Checked', r'\(LinearArrow Signed \(Valid True\) \(Grade \(Lambda 3\) \(Rho 0\)\)\).*\(Kind GradedIntertwining\)'),
+         ('L02', 'KChecked', 'Checked', r'\(LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho \(Rat 1 5\)\)\)\).*\(Kind GradedIntertwining\)'),
+         ('L03', 'LK', 'Checked', r'\(Grade \(Lambda 3\) \(Rho \(Rat 3 5\)\)\) \(Attained True\).*\(Kind GradedComposition\)')]
+for cid, req, want, pat in lrows:
+    line = LC.get(('LinearComposition', req)); s_ = st(line)
+    report('%s %s' % (cid, req), s_ == want and has(line, pat) and has(line, r'\(Policy M4-StochasticReplay\)'), s_)
 l3 = LC.get(('LinearComposition', 'LK'))   # requests are keyed by their Derive name; LK = (Then (Output LChecked Value) (Output KChecked Value))
 report('neg 3: L03 residual uses the norm factor (Rho 3/5, not 1/5)',
        st(l3) == 'Checked' and has(l3, r'\(Grade \(Lambda 3\) \(Rho \(Rat 3 5\)\)\)') and not has(l3, r'\(Value .*\(Rho \(Rat 1 5\)\)\) \(Attained'), st(l3))
