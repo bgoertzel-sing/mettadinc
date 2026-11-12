@@ -76,4 +76,17 @@ vrows = [('V01', '(CheckUpdates FitnessOnly)', 'Refuted', r'\(UpdatesStable Fals
 for cid, req, want, pat in vrows:
     line = E.get(('EvolutionArchive', req)); s_ = st(line)
     report('%s %s' % (cid, req[:40]), s_ == want and has(line, pat) and has(line, POL), s_)
+
+# ---- R01-R06: regime_repair.metta (Use Decisions, beyond release) ----
+RFIX = os.path.join(os.path.dirname(FIX), 'regime_repair.metta')
+G = run(open(RFIX, encoding='utf-8').read(), 'regime')
+rrows = [('R01', '(CheckEqual (AverageModel Old (Under Fair)) (AverageModel New (Under Fair)))', 'Checked', r'\(Equal True\).*\(Kind ExactLawEquality\)'),
+         ('R02', '(AverageModel New (Under Skewed))', 'Checked', r'\(L \(Law \(0 \(Rat 1 4\)\) \(1 \(Rat 3 4\)\)\) \(Mean \(Rat 3 4\)\)\) \(R \(Law \(0 \(Rat 3 4\)\) \(1 \(Rat 1 4\)\)\) \(Mean \(Rat 1 4\)\)\)'),
+         ('R03', '(InduceExact Coarse)', 'Refuted', r'\(Exact False\).*\(Kind ObservationWitness\) \(Pair Plus Minus\) \(Observation reward-law\)'),
+         ('R04', '(OptimizePolicy New (Through Coarse) (Under Fair))', 'Checked', r'\(Optimum \(Rat 1 2\)\)'),
+         ('R05', '(OptimizePolicy New (Under Fair))', 'Checked', r'\(Optimum 1\)'),
+         ('R06', '(EvaluatePolicy New (With Sensor) (Under Fair))', 'Checked', r'\(NetValue \(Rat 17 20\)\).*\(GainOverUninformed \(Rat 7 20\)\)')]
+for cid, req, want, pat in rrows:
+    line = G.get(('RegimeRepair', req)); s_ = st(line)
+    report('%s %s' % (cid, req[:48]), s_ == want and has(line, pat) and has(line, POL), s_)
 sys.exit(1 if fails else 0)
