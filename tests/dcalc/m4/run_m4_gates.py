@@ -144,4 +144,17 @@ V6 = run(m6, 'neg6-equal-means')
 r6 = V6.get(('RegimeRepair', '(CheckEqual (AverageModel Old (Under Fair)) (AverageModel New (Under Fair)))'))
 report('neg 6: equal means, different laws -> CheckEqual Refuted', st(r6) == 'Refuted' and has(r6, r'\(Equal False\)') and has(r6, r'\(Kind LawDifference\)')
        and has(r6, r'\(Mean 1\).*\(Mean 1\).*\(Mean 1\).*\(Mean 1\)'), st(r6))
+
+# neg 7 (V02; spec 13.2): equality concerns laws, not couplings -- the three-block quotient is certified by
+# strong lumping of the laws and is never rejected by (or certified with) a same-seed trajectory comparison
+v2 = E.get(('EvolutionArchive', 'Repaired'))
+report('neg 7: three-block quotient Checked by law lumping, no same-seed comparison',
+       st(v2) == 'Checked' and has(v2, r'\(Classes 3\)') and has(v2, r'\(Kind StrongLumping\)') and not has(v2, r'Seed|Trajectory|Sample'), st(v2))
+# neg 4 (R03/R04; worked examples 4): an induced bound is never applied without current adequacy --
+# InduceExact Coarse is Refuted on current adequacy (observation witness), and optimizing through Coarse
+# reports the coarse optimum 1/2, not the refined optimum 1 carried over as if the abstraction were exact
+r3 = G.get(('RegimeRepair', '(InduceExact Coarse)')); r4 = G.get(('RegimeRepair', '(OptimizePolicy New (Through Coarse) (Under Fair))'))
+report('neg 4: no induced bound without current adequacy (R03 Refuted, R04 = 1/2 not 1)',
+       st(r3) == 'Refuted' and has(r3, r'\(Kind ObservationWitness\)') and not has(r3, r'\(Exact True\)')
+       and has(r4, r'\(Optimum \(Rat 1 2\)\)') and not has(r4, r'\(Optimum 1\)'), '%s / %s' % (st(r3), st(r4)))
 sys.exit(1 if fails else 0)
