@@ -148,6 +148,45 @@ def dual_replay(line, text, actions, obsmaps, module=None):
     except (StopIteration, KeyError, IndexError, ValueError):
         return None
 
+
+def layered_replay(line, text, actions, obsmaps, module=None):
+    """Replay a LayeredPrefixpoint: D_0 >= d0, and for every layer t < h, same-class pair x != y and action a
+    coupling with the two successor laws as marginals and D_(t+1)(x,y) >= max(d0, gamma * E_theta D_t).
+    Returns the list [D_0 .. D_h] or None."""
+    K, M = chain_model(text, module)
+    try:
+        c = next(x for x in sx_find(sx_parse(line), 'Certificate') if ['Kind', 'LayeredPrefixpoint'] in x)
+        g = rat(next(sx_find(c, 'Discount'))[1]); h = int(next(sx_find(c, 'Steps'))[1])
+        states = list(next(iter(K.values())).keys())
+        d0 = {(a, b): Fr(int(any(M[o][a] != M[o][b] for o in obsmaps))) for a in states for b in states}
+        Ds = []
+        for lay in next(sx_find(c, 'LayerKernels'))[1:]:
+            D = {k: Fr(0) for k in d0}
+            for e in lay[2:]: D[(e[1], e[2])] = rat(e[3])
+            if any(not (d0[k] <= D[k] <= 1) or D[k] != D[(k[1], k[0])] for k in D): return None
+            Ds.append(D)
+        if len(Ds) != h + 1: return None
+        CS = next(sx_find(c, 'LayerCouplings'))[1:]
+        if len(CS) != h: return None
+        for tt, lay in enumerate(CS):
+            if int(lay[1]) != tt: return None
+            seen = set()
+            for cp in lay[2:]:
+                x, y, act = cp[1], cp[2], cp[3]; Kr = K[actions[act]]; th = {}
+                for ms in cp[4:]: th[(ms[1], ms[2])] = th.get((ms[1], ms[2]), Fr(0)) + rat(ms[3])
+                if any(v < 0 for v in th.values()): return None
+                for z in states:
+                    if sum(v for (i, j), v in th.items() if i == z) != Kr[x].get(z, 0): return None
+                    if sum(v for (i, j), v in th.items() if j == z) != Kr[y].get(z, 0): return None
+                if Ds[tt + 1][(x, y)] < g * sum(v * Ds[tt][k] for k, v in th.items()): return None
+                seen.add((x, y, act)); seen.add((y, x, act))
+            for a in states:
+                for b in states:
+                    if a != b and d0[(a, b)] == 0 and any((a, b, act) not in seen for act in actions): return None
+        return Ds
+    except (StopIteration, KeyError, IndexError, ValueError):
+        return None
+
 src = open(FIX, encoding='utf-8').read()
 MB = '(MeasureBehavioral MergeXY (Discount (Rat 9 10)))'
 REQS = ['Bisimulation', 'TraceClasses', 'Behavioral', MB, 'Trace', 'Linear', 'Positive']
@@ -286,6 +325,9 @@ UA = {'step': 'Step'}
 pu4 = prefix_replay(u4, csrc, UA, ['report'], 'UnattainedSupremum'); du4 = dual_replay(u4, csrc, UA, ['report'], 'UnattainedSupremum')
 report('F2: U04 Prefixpoint (upper) replays, D(x,y) = 1/3', bool(pu4) and pu4[('x', 'y')] == Fr(1, 3), pu4 and pu4[('x', 'y')])
 report('F2: U04 DualPostfixpoint (lower) replays, D(x,y) = 1/3, bounds meet', bool(du4) and du4[('x', 'y')] == Fr(1, 3) and bool(pu4) and du4 == pu4, du4 and du4[('x', 'y')])
+u2 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(MeasureBehavioral JoinXY (Horizon (Steps 3)))'), None)
+lu2 = layered_replay(u2, csrc, UA, ['report'], 'UnattainedSupremum')
+report('F2: U02 LayeredPrefixpoint replays (4 layer kernels, couplings per layer), D_3(y,x) = 7/8', bool(lu2) and len(lu2) == 4 and lu2[3][('y', 'x')] == Fr(7, 8), lu2 and lu2[-1][('y', 'x')])
 
 # neg 12: a Positive arrow from an unnormalized realization (K rows sum to 2) is not valid, so no composite is formed from it.
 lsrc = open(LFIX, encoding='utf-8').read()

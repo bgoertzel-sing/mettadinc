@@ -923,6 +923,45 @@ fail:
     sx_free(D); sx_free(du); return NULL;
 }
 
+
+/* review 1 F2: LayeredPrefixpoint upper certificate (spec certificate table): kernels D_0 .. D_h of the
+ * layered recurrence and, for every layer t < h, same-class pair x < y and action, one coupling optimal
+ * for cost D_t.  Replay: D_0 >= d0 and D_(t+1) >= max(d0, gamma * E_theta_t D_t).  Scope: horizon h. */
+static Sx *st_layered_cert(const StMod *s, const StMach *M, DcRat g, int h, int *ovf) {
+    int n = s->car[M->states].n, oc[ST_MAXE]; const StCar *C = &s->car[M->states];
+    if (h < 0 || h > 64) return NULL;
+    st_obsclass(s, M, oc);
+    static DcRat d[ST_MAXE][ST_MAXE], nd[ST_MAXE][ST_MAXE];
+    for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) d[x][y] = dc_rat(oc[x] != oc[y], 1, ovf);
+    Sx *ls = dc_form("LayerKernels", NULL), *cs = dc_form("LayerCouplings", NULL);
+    for (int t = 0;; t++) {
+        Sx *D = dc_form("Layer", dc_int(t), NULL);
+        for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) if (!dc_rat_is_zero(d[x][y]))
+            sx_push(D, dc_form("Entry", dc_sym(C->el[x]), dc_sym(C->el[y]), st_rsx(d[x][y]), NULL));
+        sx_push(ls, D);
+        if (t == h) break;
+        Sx *lc = dc_form("Layer", dc_int(t), NULL);
+        for (int x = 0; x < n; x++) for (int y = x + 1; y < n; y++) if (oc[x] == oc[y])
+            for (int a = 0; a < M->nact; a++) {
+                const StKer *K = &s->ker[M->ak[a]]; DcRat w;
+                if (st_kant(n, K->p[x], K->p[y], d, &w, ovf)) { sx_free(lc); goto fail; }
+                Sx *c = dc_form("Coupling", dc_sym(C->el[x]), dc_sym(C->el[y]), dc_sym(M->al[a]), NULL);
+                for (int i = 0; i < n; i++) for (int j = 0; j < n; j++) if (!dc_rat_is_zero(g_kf[i][j]))
+                    sx_push(c, dc_form("Mass", dc_sym(C->el[i]), dc_sym(C->el[j]), st_rsx(g_kf[i][j]), NULL));
+                sx_push(lc, c);
+            }
+        sx_push(cs, lc);
+        int ch = 0;
+        if (st_bstep(s, M, oc, g, d, nd, &ch, ovf)) goto fail;
+        memcpy(d, nd, sizeof d);
+    }
+    if (*ovf) goto fail;
+    return dc_form("Certificate", dc_form("Kind", dc_sym("LayeredPrefixpoint"), NULL), dc_form("Discount", st_rsx(g), NULL),
+                   dc_form("Horizon", dc_form("Steps", dc_int(h), NULL), NULL), ls, cs, NULL);
+fail:
+    sx_free(ls); sx_free(cs); return NULL;
+}
+
 /* Candidate d* solves d = gamma * (coupling at d) d exactly for the couplings optimal at the
  * current d (policy iteration); it is accepted only if one exact Bellman step (st_kant, whose
  * optimum is the dual post-fixpoint check) maps d* to itself and 0 <= d* <= 1.
@@ -1128,7 +1167,9 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             Sx *pair = wx >= 0 ? dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[E->tab[wx]]), NULL) : NULL;
             if (hz) {
                 Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(def), NULL), dc_form("Horizon", dc_form("Steps", dc_int(h), NULL), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
-                Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym("LayeredPrefixpoint"), NULL), dc_form("Layers", dc_int(layers), NULL), NULL);
+                Sx *cert = st_layered_cert(&S, M, g, h, &ovf);   /* review 1 F2: layer kernels and couplings */
+                if (!cert || ovf) { if (pair) sx_free(pair); sx_free(val); return dc_unsupported(m, "%s: no replayable layered prefixpoint", head); }
+                sx_push(cert, dc_form("Layers", dc_int(layers), NULL));
                 if (pair) sx_push(cert, dc_form("DepthTest", pair, dc_form("Depth", dc_int(layers), NULL), dc_form("Separation", st_rsx(def), NULL), NULL));
                 return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
             }
