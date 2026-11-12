@@ -680,6 +680,184 @@ static DcRat st_defect(const StCar *C, const StMap *E, DcRat (*d)[ST_MAXE], int 
     for (int x = 0; x < C->n; x++) if (dc_rat_cmp(d[x][E->tab[x]], def) > 0) { def = d[x][E->tab[x]]; *wx = x; }
     return def;
 }
+/* ---- review 1 F2: replayable behavioral certificates (spec certificate table) ----
+ * Layers D_0..D_K of st_behav's recurrence are kept.  Upper bound (Prefixpoint): the
+ * fixed point D_K with one optimal coupling per pair and action.  Lower bound (Test): a
+ * modal test of Definition 4.9, built bottom-up.  An observation test separates pairs in
+ * different observation classes.  For a pair in one class at layer k, the
+ * Kantorovich-Rubinstein dual of the optimal transport at D_(k-1) (potentials from the
+ * residual graph of st_kant's flow) gives a 1-Lipschitz F; F is rebuilt on the two
+ * supports as max_u min_v of clipped, shifted layer-(k-1) tests (lattice lemma), and
+ * <a>_gamma applies it.  Every node value is computed exactly and checked as it is built. */
+/* Kantorovich-Rubinstein dual of the optimal transport just computed by st_kant (flow in g_kf, cost w):
+ * shortest-path potentials on the residual graph give F(z) = min_j (c(z,j) - pi_j), a c-transform, hence
+ * 1-Lipschitz for the pseudometric c.  F is shifted to min 0 on U = supp(mu) u supp(nu) and accepted only
+ * if F <= 1 and E_mu F - E_nu F = w exactly (weak duality makes that an optimality certificate). */
+static int st_kdual(int n, const DcRat *mu, const DcRat *nu, DcRat (*c)[ST_MAXE], DcRat w, DcRat *F, int *U, int *mo, int *ovf) {
+    static DcRat fl[ST_MAXE][ST_MAXE]; memcpy(fl, g_kf, sizeof fl);
+    DcRat z0 = dc_rat(0, 1, ovf), one = dc_rat(1, 1, ovf), pi[2 * ST_MAXE], lo = z0, em = z0; int in[2 * ST_MAXE], m = 0, ch = 1;
+    for (int i = 0; i < n; i++) { in[i] = dc_rat_cmp(mu[i], z0) > 0; in[n + i] = dc_rat_cmp(nu[i], z0) > 0; pi[i] = pi[n + i] = z0; }
+    for (int round = 0; round < 2 * n + 2 && ch; round++) { ch = 0;
+        for (int i = 0; i < n; i++) if (in[i]) for (int j = 0; j < n; j++) if (in[n + j]) {
+            DcRat q = dc_rat_add(pi[i], c[i][j], ovf); if (dc_rat_cmp(q, pi[n + j]) < 0) { pi[n + j] = q; ch = 1; }
+            if (dc_rat_cmp(fl[i][j], z0) > 0) { q = dc_rat_sub(pi[n + j], c[i][j], ovf); if (dc_rat_cmp(q, pi[i]) < 0) { pi[i] = q; ch = 1; } } } }
+    if (ch || *ovf) return -1;
+    for (int z = 0; z < n; z++) if (in[z] || in[n + z]) {
+        int f1 = 1; for (int j = 0; j < n; j++) if (in[n + j]) { DcRat q = dc_rat_sub(c[z][j], pi[n + j], ovf); if (f1 || dc_rat_cmp(q, F[z]) < 0) F[z] = q; f1 = 0; }
+        if (!m || dc_rat_cmp(F[z], lo) < 0) lo = F[z];
+        U[m++] = z; }
+    for (int i = 0; i < m; i++) { F[U[i]] = dc_rat_sub(F[U[i]], lo, ovf); if (dc_rat_cmp(F[U[i]], one) > 0) return -1;
+        em = dc_rat_add(em, dc_rat_mul(dc_rat_sub(mu[U[i]], nu[U[i]], ovf), F[U[i]], ovf), ovf); }
+    *mo = m;
+    return (*ovf || dc_rat_cmp(em, w)) ? -1 : 0;
+}
+enum { MT_OBS, MT_NOT, MT_MIN, MT_MAX, MT_SUB, MT_NEXT };
+typedef struct { int op, a, b, act, obs, oval; DcRat r; } StMtN;
+typedef struct {
+    const StMod *s; const StMach *M; DcRat g; int n, K, nn, cap, base; int *ovf;
+    const int *oc; DcRat (*L)[ST_MAXE][ST_MAXE]; int *memo; StMtN *nd; DcRat *v;
+    int ncst; DcRat cr[256]; int cn[256];
+} StMt;
+#define MTV(t, k, z) ((t)->v[(size_t)(k) * (t)->n + (z)])
+static int mt_new(StMt *t, int op, int a, int b, DcRat r, int act, int obs, int oval) {
+    if (t->nn >= t->cap || a >= t->nn || b >= t->nn) return -1;
+    if (op != MT_OBS && (a < 0 || ((op == MT_MIN || op == MT_MAX) && b < 0))) return -1;
+    int k = t->nn, n = t->n, *ovf = t->ovf; StMtN *x = &t->nd[k];
+    x->op = op; x->a = a; x->b = b; x->r = r; x->act = act; x->obs = obs; x->oval = oval;
+    DcRat one = dc_rat(1, 1, ovf), z0 = dc_rat(0, 1, ovf);
+    for (int z = 0; z < n; z++) {
+        DcRat w = z0;
+        switch (op) {
+        case MT_OBS: w = dc_rat(t->s->map[t->M->om[obs]].tab[z] == oval, 1, ovf); break;
+        case MT_NOT: w = dc_rat_sub(one, MTV(t, a, z), ovf); break;
+        case MT_MIN: w = dc_rat_min(MTV(t, a, z), MTV(t, b, z)); break;
+        case MT_MAX: w = dc_rat_max(MTV(t, a, z), MTV(t, b, z)); break;
+        case MT_SUB: w = dc_rat_max(z0, dc_rat_sub(MTV(t, a, z), r, ovf)); break;
+        case MT_NEXT: { const StKer *K = &t->s->ker[t->M->ak[act]];
+            for (int y = 0; y < n; y++) if (!dc_rat_is_zero(K->p[z][y])) w = dc_rat_add(w, dc_rat_mul(K->p[z][y], MTV(t, a, y), ovf), ovf);
+            w = dc_rat_mul(t->g, w, ovf); break; }
+        }
+        MTV(t, k, z) = w;
+    }
+    t->nn++; return *ovf ? -1 : k;
+}
+static int mt_const(StMt *t, DcRat r) {   /* constants inside the grammar: 0 = max(0, phi - 1), 1 = 1 - 0, r = max(0, 1 - (1 - r)) */
+    for (int i = 0; i < t->ncst; i++) if (!dc_rat_cmp(t->cr[i], r)) return t->cn[i];
+    int *ovf = t->ovf, c; DcRat one = dc_rat(1, 1, ovf), z0 = dc_rat(0, 1, ovf);
+    if (dc_rat_is_zero(r)) {
+        if (t->base < 0 && (t->base = mt_new(t, MT_OBS, -1, -1, z0, 0, 0, t->s->map[t->M->om[0]].tab[0])) < 0) return -1;
+        c = mt_new(t, MT_SUB, t->base, -1, one, 0, 0, 0);
+    } else if (!dc_rat_cmp(r, one)) c = mt_new(t, MT_NOT, mt_const(t, z0), -1, z0, 0, 0, 0);
+    else c = mt_new(t, MT_SUB, mt_const(t, one), -1, dc_rat_sub(one, r, ovf), 0, 0, 0);
+    if (c >= 0 && t->ncst < 256) { t->cr[t->ncst] = r; t->cn[t->ncst++] = c; }
+    return c;
+}
+static int mt_shift(StMt *t, int a, DcRat c) {   /* min(1, a + c) for c > 0, max(0, a + c) for c < 0 */
+    int *ovf = t->ovf; DcRat z0 = dc_rat(0, 1, ovf);
+    if (a < 0 || dc_rat_is_zero(c)) return a;
+    if (dc_rat_cmp(c, z0) < 0) return mt_new(t, MT_SUB, a, -1, dc_rat_sub(z0, c, ovf), 0, 0, 0);
+    int na = mt_new(t, MT_NOT, a, -1, z0, 0, 0, 0);
+    return mt_new(t, MT_NOT, mt_new(t, MT_SUB, na, -1, c, 0, 0, 0), -1, z0, 0, 0, 0);
+}
+static int mt_clip(StMt *t, int a, DcRat lo, DcRat hi) {
+    DcRat z0 = dc_rat(0, 1, t->ovf); int h = mt_const(t, hi), l = mt_const(t, lo);
+    return mt_new(t, MT_MAX, l, mt_new(t, MT_MIN, h, a, z0, 0, 0, 0), z0, 0, 0, 0);
+}
+static int mt_test(StMt *t, int k, int u, int v);
+static int mt_lift(StMt *t, int k, const int *U, int m, const DcRat *F) {   /* a test equal to F on U from layer-k tests */
+    int outer = -1, *ovf = t->ovf; DcRat z0 = dc_rat(0, 1, ovf);
+    for (int i = 0; i < m; i++) {
+        int inner = -1;
+        for (int j = 0; j < m; j++) {
+            int u = U[i], w = U[j], h, c = dc_rat_cmp(F[u], F[w]);
+            if (c == 0) h = mt_const(t, F[u]);
+            else {
+                int up = c > 0, tt = up ? mt_test(t, k, u, w) : mt_test(t, k, w, u), at = up ? w : u;
+                if (tt < 0) return -1;
+                DcRat lo = up ? F[w] : F[u], hi = up ? F[u] : F[w];
+                h = mt_clip(t, mt_shift(t, tt, dc_rat_sub(lo, MTV(t, tt, at), ovf)), lo, hi);
+            }
+            if (h < 0) return -1;
+            inner = inner < 0 ? h : mt_new(t, MT_MIN, inner, h, z0, 0, 0, 0);
+            if (inner < 0) return -1;
+        }
+        outer = outer < 0 ? inner : mt_new(t, MT_MAX, outer, inner, z0, 0, 0, 0);
+        if (outer < 0) return -1;
+    }
+    for (int i = 0; i < m; i++) if (dc_rat_cmp(MTV(t, outer, U[i]), F[U[i]])) return -1;
+    return outer;
+}
+static int mt_test(StMt *t, int k, int u, int v) {   /* a test with value(u) - value(v) = D_k(u, v) */
+    int n = t->n, *mm = &t->memo[((size_t)k * n + u) * n + v], *ovf = t->ovf;
+    if (*mm != -2) return *mm;
+    DcRat z0 = dc_rat(0, 1, ovf), want = t->L[k][u][v]; int r = -1;
+    if (t->oc[u] != t->oc[v]) {
+        for (int j = 0; j < t->M->nobs && r < 0; j++) { const StMap *O = &t->s->map[t->M->om[j]];
+            if (O->tab[u] != O->tab[v]) r = mt_new(t, MT_OBS, -1, -1, z0, 0, j, O->tab[u]); }
+    } else if (dc_rat_is_zero(want)) r = mt_const(t, z0);
+    else if (k > 0) {
+        DcRat (*c)[ST_MAXE] = t->L[k - 1];
+        for (int a = 0; a < t->M->nact && r < 0; a++) {
+            const StKer *K = &t->s->ker[t->M->ak[a]]; DcRat w;
+            if (st_kant(n, K->p[u], K->p[v], c, &w, ovf)) return *mm = -1;
+            if (dc_rat_cmp(dc_rat_mul(t->g, w, ovf), want)) continue;
+            DcRat F[ST_MAXE]; int U[ST_MAXE], m = 0;
+            if (st_kdual(n, K->p[u], K->p[v], c, w, F, U, &m, ovf)) continue;
+            int f = mt_lift(t, k - 1, U, m, F); if (f < 0) continue;
+            int nx = mt_new(t, MT_NEXT, f, -1, z0, a, 0, 0);
+            if (nx >= 0 && !dc_rat_cmp(dc_rat_sub(MTV(t, nx, u), MTV(t, nx, v), ovf), want)) r = nx;
+        }
+    }
+    if (r >= 0 && dc_rat_cmp(dc_rat_sub(MTV(t, r, u), MTV(t, r, v), ovf), want)) r = -1;
+    return *mm = r;
+}
+
+/* Driver: layers D_0..D_K of the behavioral recurrence (D_K the exact fixed point), then a
+ * modal test at layer K for the pair (u, v), serialized as a graph with shared subformulas. */
+static Sx *st_modal_witness(const StMod *s, const StMach *M, DcRat g, int u, int v, int *ovf) {
+    int n = s->car[M->states].n, oc[ST_MAXE], KM = ST_BEH_ROUNDS + 2, K = 0, ok = 0, cap = 4096;
+    st_obsclass(s, M, oc);
+    DcRat (*L)[ST_MAXE][ST_MAXE] = malloc(sizeof(*L) * (size_t)KM);
+    int *memo = NULL; StMtN *nd = malloc(sizeof(StMtN) * (size_t)cap); DcRat *val = malloc(sizeof(DcRat) * (size_t)cap * (size_t)n);
+    char *keep = calloc((size_t)cap, 1); int *ren = malloc(sizeof(int) * (size_t)cap);
+    Sx *res = NULL;
+    if (!L || !nd || !val || !keep || !ren) goto out;
+    for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) L[0][x][y] = dc_rat(oc[x] != oc[y], 1, ovf);
+    for (;;) { int ch = 0;
+        if (K + 1 >= KM || st_bstep(s, M, oc, g, L[K], L[K + 1], &ch, ovf)) goto out;
+        if (!ch) { ok = 1; break; }
+        K++; }
+    memo = malloc(sizeof(int) * (size_t)(K + 1) * (size_t)n * (size_t)n); if (!memo) goto out;
+    for (size_t i = 0; i < (size_t)(K + 1) * n * n; i++) memo[i] = -2;
+    StMt t; memset(&t, 0, sizeof t);
+    t.s = s; t.M = M; t.g = g; t.n = n; t.K = K; t.cap = cap; t.base = -1; t.ovf = ovf; t.oc = oc; t.L = L; t.memo = memo; t.nd = nd; t.v = val;
+    int root = ok ? mt_test(&t, K, u, v) : -1;
+    if (root < 0 || *ovf) goto out;
+    keep[root] = 1;
+    for (int k = root; k >= 0; k--) if (keep[k]) { if (nd[k].a >= 0 && nd[k].op != MT_OBS) keep[nd[k].a] = 1; if (nd[k].op == MT_MIN || nd[k].op == MT_MAX) keep[nd[k].b] = 1; }
+    int id = 0; for (int k = 0; k <= root; k++) ren[k] = keep[k] ? id++ : -1;
+    Sx *fm = dc_form("Formula", dc_form("Root", dc_int(ren[root]), NULL), NULL);
+    for (int k = 0; k <= root; k++) if (keep[k]) {
+        StMtN *x = &nd[k]; Sx *e = NULL;
+        switch (x->op) {
+        case MT_OBS: { const StMap *O = &s->map[M->om[x->obs]];
+            e = dc_form("Indicator", dc_sym(M->ol[x->obs]), dc_sym(s->car[O->to].el[x->oval]), NULL); break; }
+        case MT_NOT: e = dc_form("Not", dc_int(ren[x->a]), NULL); break;
+        case MT_MIN: e = dc_form("Min", dc_int(ren[x->a]), dc_int(ren[x->b]), NULL); break;
+        case MT_MAX: e = dc_form("Max", dc_int(ren[x->a]), dc_int(ren[x->b]), NULL); break;
+        case MT_SUB: e = dc_form("Sub", dc_int(ren[x->a]), st_rsx(x->r), NULL); break;
+        case MT_NEXT: e = dc_form("Next", dc_sym(M->al[x->act]), dc_int(ren[x->a]), st_rsx(g), NULL); break;
+        }
+        sx_push(fm, dc_form("Node", dc_int(ren[k]), e, NULL));
+    }
+    const StCar *C = &s->car[M->states];
+    res = dc_form("ModalTestWitness", dc_form("Pair", dc_sym(C->el[u]), dc_sym(C->el[v]), NULL), fm,
+        dc_form("Left", st_rsx(MTV(&t, root, u)), NULL), dc_form("Right", st_rsx(MTV(&t, root, v)), NULL), dc_form("Layers", dc_int(K), NULL), NULL);
+out:
+    free(L); free(memo); free(nd); free(val); free(keep); free(ren);
+    return res;
+}
+
 /* Candidate d* solves d = gamma * (coupling at d) d exactly for the couplings optimal at the
  * current d (policy iteration); it is accepted only if one exact Bellman step (st_kant, whose
  * optimum is the dual post-fixpoint check) maps d* to itself and 0 <= d* <= 1.
@@ -942,8 +1120,9 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("KantorovichFixedPoint"), NULL), NULL), NULL);
         if (wx >= 0) {   /* 1-Lipschitz witness phi = d(x, .) separates enc x from x by the defect (oracle: phi(x)=1/2, phi(y)=0) */
             int y = E->tab[wx];
-            sx_push(ev->items[1], dc_form("ModalTestWitness", dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[y]), NULL),
-                dc_form("Phi", dc_form(C->el[y], st_rsx(d[wx][y]), NULL), dc_form(C->el[wx], st_rsx(d[wx][wx]), NULL), NULL), NULL));
+            Sx *mw = st_modal_witness(&S, M, g, wx, y, &ovf);   /* review 1 F2: a Definition 4.9 test, replayable */
+            if (!mw || ovf) return dc_unsupported(m, "%s: no modal test witness could be built", head);
+            sx_push(ev->items[1], mw);
         }
         if (!strcmp(head, "MeasureBehavioral")) return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, ev, NULL);
         return st_env(m, wx < 0 ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);

@@ -25,6 +25,68 @@ def run(src, tag, beyond=True):
 def st(line): m = re.search(r'\(Result \(Status (\w+)\)', line or ''); return m.group(1) if m else 'missing'
 def has(line, pat): return re.search(pat, line or '') is not None
 
+
+# ---- review 1 F2: independent replay of certificate data (exact Fractions, own S-expression reader) ----
+from fractions import Fraction as Fr
+def sx_parse(t):
+    toks = re.findall(r'\(|\)|[^\s()]+', t); pos = 0
+    def rd():
+        nonlocal pos
+        tk = toks[pos]; pos += 1
+        if tk != '(': return tk
+        out = []
+        while toks[pos] != ')': out.append(rd())
+        pos += 1; return out
+    res = []
+    while pos < len(toks): res.append(rd())
+    return res
+def sx_find(x, head):
+    if isinstance(x, list):
+        if x and x[0] == head: yield x
+        for y in x: yield from sx_find(y, head)
+def rat(x):
+    if isinstance(x, list) and x[0] == 'Rat': return Fr(int(x[1]), int(x[2]))
+    return Fr(int(x))
+def chain_model(text):
+    """kernels name -> {state: {state: Fr}}, maps name -> {state: value}, from the fixture source itself"""
+    K, M = {}, {}
+    for f in sx_parse(text):
+        for k in sx_find(f, 'TransitionKernel'):
+            K[k[1]] = {r[1]: {ms[1]: rat(ms[2]) for ms in r[2:] if ms[0] == 'Mass'} for r in k if isinstance(r, list) and r[0] == 'Row'}
+        for m_ in sx_find(f, 'Map'):
+            cs = [c for c in m_ if isinstance(c, list) and c[0] == 'Cases']
+            if cs: M[m_[1]] = {c[0]: c[1] for c in cs[0][1:]}
+    return K, M
+def mt_replay(line, text, actions, gamma):
+    """Evaluate the ModalTestWitness Formula graph at every state; check the grammar (Definition 4.9),
+    the discount on every Next node, and that Left/Right are the values at the Pair.  Returns (left, right) or None."""
+    K, M = chain_model(text)
+    try:
+        w = next(sx_find(sx_parse(line), 'ModalTestWitness'))
+        pair = next(sx_find(w, 'Pair')); fm = next(sx_find(w, 'Formula'))
+        root = int(next(sx_find(fm, 'Root'))[1]); states = list(next(iter(K.values())).keys())
+        val = {}
+        for nd in fm[1:]:
+            if nd[0] != 'Node': continue
+            i, e = int(nd[1]), nd[2]; op = e[0]
+            if op == 'Indicator': v = {z: Fr(int(M[e[1]][z] == e[2])) for z in states}
+            elif op == 'Not': v = {z: 1 - val[int(e[1])][z] for z in states}
+            elif op == 'Min': v = {z: min(val[int(e[1])][z], val[int(e[2])][z]) for z in states}
+            elif op == 'Max': v = {z: max(val[int(e[1])][z], val[int(e[2])][z]) for z in states}
+            elif op == 'Sub': v = {z: max(Fr(0), val[int(e[1])][z] - rat(e[2])) for z in states}
+            elif op == 'Next':
+                if rat(e[3]) != gamma or e[1] not in actions: return None
+                Kr = K[actions[e[1]]]; a = val[int(e[2])]
+                v = {z: gamma * sum(p * a[y] for y, p in Kr[z].items()) for z in states}
+            else: return None
+            if any(not (0 <= x <= 1) for x in v.values()): return None
+            val[i] = v
+        l, r = val[root][pair[1]], val[root][pair[2]]
+        if l != rat(next(sx_find(w, 'Left'))[1]) or r != rat(next(sx_find(w, 'Right'))[1]): return None
+        return l, r
+    except (StopIteration, KeyError, IndexError, ValueError):
+        return None
+
 src = open(FIX, encoding='utf-8').read()
 MB = '(MeasureBehavioral MergeXY (Discount (Rat 9 10)))'
 REQS = ['Bisimulation', 'TraceClasses', 'Behavioral', MB, 'Trace', 'Linear', 'Positive']
@@ -36,7 +98,7 @@ L = run(src, 'fixture')
 POL = r'\(Policy M4-StochasticReplay\) \(Replayed True\)'
 rows = [('S01', 'Bisimulation', 'Checked', r'\(Classes 7\).*\(Kind StrongLumping\)'),
         ('S02', 'TraceClasses', 'Checked', r'\(Block x y\).*\(Classes 6\)'),
-        ('S03', 'Behavioral', 'Refuted', r'\(BehavioralDefect \(Rat 1 2\)\).*\(ModalTestWitness \(Pair y x\) \(Phi \(x \(Rat 1 2\)\) \(y 0\)\)\)'),
+        ('S03', 'Behavioral', 'Refuted', r'\(BehavioralDefect \(Rat 1 2\)\).*\(ModalTestWitness \(Pair y x\) \(Formula \(Root \d+\)'),
         ('S04', MB, 'Checked', r'\(BehavioralDefect \(Rat 81 200\)\).*\(Discount \(Rat 9 10\)\)'),
         ('S05', 'Trace', 'Checked', r'\(TraceEquivalent True\)'),
         ('S06', 'Linear', 'Checked', r'\(Dimension 5\).*\(Minor \(Columns( \w+){5}\) \(Determinant (?!0\))'),
@@ -47,6 +109,11 @@ for cid, req, want, pat in rows:
 # neg 1 (S03, S05): the behavioral refutation carries a modal test witness, never a trace-event/word witness,
 # and the trace check is not refuted because the behavioral one is
 b3, t5 = L.get(('SevenState', 'Behavioral')), L.get(('SevenState', 'Trace'))
+# review 1 F2: the S03/S04 modal tests replay independently and certify the defect as a lower bound
+ACT = {'step': 'Step'}
+rp3 = mt_replay(b3, src, ACT, Fr(1)); rp4 = mt_replay(L.get(('SevenState', MB)), src, ACT, Fr(9, 10))
+report('F2: S03 ModalTestWitness formula replays, |Left - Right| = 1/2', bool(rp3) and abs(rp3[0] - rp3[1]) == Fr(1, 2), rp3)
+report('F2: S04 ModalTestWitness formula replays at discount 9/10, gap 81/200', bool(rp4) and abs(rp4[0] - rp4[1]) == Fr(81, 200), rp4)
 report('neg 1: behavioral refutation uses ModalTestWitness, trace stays Checked',
        has(b3, r'\(ModalTestWitness ') and not has(b3, r'TraceEventWitness|\(Word ') and st(t5) == 'Checked', st(t5))
 # neg 2 (S07): the positive candidate is never reported as a minimum without the signed lower bound
