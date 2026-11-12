@@ -132,4 +132,16 @@ report('neg 10: O03 witness is PolicyTreeWitness, not WordWitness', st(o3) == 'R
 # neg 11 (U01): a Precision-0 undiscounted measurement is never Checked from tests alone, nor certified by a post-fixpoint
 u1 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(MeasureBehavioral JoinXY)'), None)
 report('neg 11: U01 not Checked, no post-fixpoint certificate', st(u1) == 'Unknown' and not has(u1, r'DualPostfixpoint|CouplingPrefixpoint'), st(u1))
+
+# neg 6 (R01): equal expected rewards with different reward laws are not equal.  Mutation of regime_repair:
+# Bit gains outcome 2; Old pays 1 surely, New pays 2 or 0 with probability 1/2 each under Fair (mean 1 for both actions).
+rsrc = open(RFIX, encoding='utf-8').read()
+m6 = re.sub(r'\(Carrier Bit +\(Of Nat\) \(Enum 0 1\)\)', '(Carrier Bit (Of Nat) (Enum 0 1 2))', rsrc, count=1)
+m6 = m6.replace('(Body ($sa) (Coin (Rat 1 2)))', '(Body ($sa) (Point 1))', 1)
+m6 = m6.replace('((Tuple Plus L) (Point 1))', '((Tuple Plus L) (Point 2))', 1).replace('((Tuple Minus R) (Point 1))', '((Tuple Minus R) (Point 2))', 1)
+assert m6.count('(Point 2)') == 2 and '(Enum 0 1 2)' in m6 and '(Point 1))' in m6
+V6 = run(m6, 'neg6-equal-means')
+r6 = V6.get(('RegimeRepair', '(CheckEqual (AverageModel Old (Under Fair)) (AverageModel New (Under Fair)))'))
+report('neg 6: equal means, different laws -> CheckEqual Refuted', st(r6) == 'Refuted' and has(r6, r'\(Equal False\)') and has(r6, r'\(Kind LawDifference\)')
+       and has(r6, r'\(Mean 1\).*\(Mean 1\).*\(Mean 1\).*\(Mean 1\)'), st(r6))
 sys.exit(1 if fails else 0)
