@@ -39,6 +39,7 @@ step m2_claimless;     $R m2_claimless "python3 tests/dcalc/claimless/run_claiml
 step m3_incremental;    $R m3_incremental "cd src/dcalc && make -s CC='$CC' tests && cd ../.. && build/dcalc/m3_incremental > build/m3_incremental.out; r=\$?; tail -1 build/m3_incremental.out; exit \$r" || rc=1
 step m3_gates;         $R m3_gates "python3 tests/dcalc/mutations/run_m3_gates.py > build/m3_gates.out; r=\$?; tail -1 build/m3_gates.out; exit \$r" || rc=1
 step m3_tv;            $R m3_tv "sh tests/dcalc/tv/run_tv.sh" || rc=1
+step m4_gates;         $R m4_gates "python3 tests/dcalc/m4/run_m4_gates.py > build/m4_gates.out; r=\$?; tail -1 build/m4_gates.out; exit \$r" || rc=1
 step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_CETTA=1)"; else $R cetta_smoke "tools/dcalc-cetta-smoke.sh" || rc=1; fi
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"

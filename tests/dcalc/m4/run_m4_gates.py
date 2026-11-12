@@ -157,4 +157,5 @@ r3 = G.get(('RegimeRepair', '(InduceExact Coarse)')); r4 = G.get(('RegimeRepair'
 report('neg 4: no induced bound without current adequacy (R03 Refuted, R04 = 1/2 not 1)',
        st(r3) == 'Refuted' and has(r3, r'\(Kind ObservationWitness\)') and not has(r3, r'\(Exact True\)')
        and has(r4, r'\(Optimum \(Rat 1 2\)\)') and not has(r4, r'\(Optimum 1\)'), '%s / %s' % (st(r3), st(r4)))
+print('m4_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
