@@ -406,6 +406,64 @@ static Sx *st_minor_sx(const StSpan *B, const StCar *C, int *ovf) {
     return dc_form("Minor", cols, dc_form("Determinant", st_rsx(det), NULL), NULL);
 }
 
+
+/* review 1 F2: the realization behind the signed minimum (MILESTONES Table 1: "test basis with a
+ * nonsingular minor, and a realization").  Coordinates of x in the basis are solved on the pivot
+ * minor and checked exactly on every column.  Operator (a, y) column j = coordinates of D_y K_a v_j;
+ * Projector y = coordinates of the observation indicator 1_y; Final row of state s = (v_1(s) .. v_k(s)).
+ * Then beta(y_0 a_1 y_1 .. a_m y_m)(s) = Final(s) . T_(a_1,y_0) .. T_(a_m,y_(m-1)) Projector(y_m). */
+static int st_coords(const StSpan *B, const DcRat *x, DcRat *c, int *ovf) {
+    static DcRat a[ST_MAXE][ST_MAXE + 1];
+    int k = B->dim;
+    for (int j = 0; j < k; j++) { for (int i = 0; i < k; i++) a[j][i] = B->v[i][B->piv[j]]; a[j][k] = x[B->piv[j]]; }
+    for (int col = 0; col < k; col++) {
+        int p = -1; for (int r = col; r < k && p < 0; r++) if (!dc_rat_is_zero(a[r][col])) p = r;
+        if (p < 0) return -1;
+        if (p != col) for (int j = 0; j <= k; j++) { DcRat t = a[col][j]; a[col][j] = a[p][j]; a[p][j] = t; }
+        for (int r = 0; r < k; r++) if (r != col && !dc_rat_is_zero(a[r][col])) {
+            DcRat f = dc_rat_div(a[r][col], a[col][col], ovf);
+            for (int j = col; j <= k; j++) a[r][j] = dc_rat_sub(a[r][j], dc_rat_mul(f, a[col][j], ovf), ovf);
+        }
+    }
+    for (int i = 0; i < k; i++) c[i] = dc_rat_div(a[i][k], a[i][i], ovf);
+    for (int t = 0; t < B->n; t++) { DcRat sm = dc_rat(0, 1, ovf);
+        for (int i = 0; i < k; i++) sm = dc_rat_add(sm, dc_rat_mul(c[i], B->v[i][t], ovf), ovf);
+        if (dc_rat_cmp(sm, x[t])) return -1; }
+    return *ovf ? -1 : 0;
+}
+static Sx *st_obs_sx(const StMod *s, const StMach *M, int t) {
+    Sx *o = dc_form("Observe", NULL);
+    for (int j = 0; j < M->nobs; j++) { const StMap *O = &s->map[M->om[j]];
+        sx_push(o, dc_form(M->ol[j], dc_sym(s->car[O->to].el[O->tab[t]]), NULL)); }
+    return o;
+}
+static Sx *st_realization_sx(const StMod *s, const StMach *M, const StSpan *B, int *ovf) {
+    int n = B->n, k = B->dim, oc[ST_MAXE], no = st_obsclass(s, M, oc), rep[ST_MAXE];
+    const StCar *C = &s->car[M->states]; DcRat x[ST_MAXE], c[ST_MAXE];
+    for (int y = 0; y < no; y++) { rep[y] = -1; for (int t = 0; t < n && rep[y] < 0; t++) if (oc[t] == y) rep[y] = t; }
+    Sx *R = dc_form("Realization", dc_form("Dimension", dc_int(k), NULL), NULL);
+    for (int a = 0; a < M->nact; a++) for (int y = 0; y < no; y++) {
+        const StKer *K = &s->ker[M->ak[a]];
+        Sx *op = dc_form("Operator", dc_sym(M->al[a]), st_obs_sx(s, M, rep[y]), NULL);
+        for (int j = 0; j < k; j++) {
+            for (int t = 0; t < n; t++) { x[t] = dc_rat(0, 1, ovf); if (oc[t] != y) continue;
+                for (int u = 0; u < n; u++) if (!dc_rat_is_zero(K->p[t][u])) x[t] = dc_rat_add(x[t], dc_rat_mul(K->p[t][u], B->v[j][u], ovf), ovf); }
+            if (st_coords(B, x, c, ovf)) { sx_free(op); sx_free(R); return NULL; }
+            Sx *col = dc_form("Column", dc_int(j), NULL); for (int i = 0; i < k; i++) sx_push(col, st_rsx(c[i])); sx_push(op, col);
+        }
+        sx_push(R, op);
+    }
+    for (int y = 0; y < no; y++) {
+        for (int t = 0; t < n; t++) x[t] = dc_rat(oc[t] == y, 1, ovf);
+        if (st_coords(B, x, c, ovf)) { sx_free(R); return NULL; }
+        Sx *pj = dc_form("Projector", st_obs_sx(s, M, rep[y]), NULL); for (int i = 0; i < k; i++) sx_push(pj, st_rsx(c[i])); sx_push(R, pj);
+    }
+    Sx *fin = dc_form("Final", NULL);
+    for (int t = 0; t < n; t++) { Sx *r = dc_form("Row", dc_sym(C->el[t]), NULL); for (int i = 0; i < k; i++) sx_push(r, st_rsx(B->v[i][t])); sx_push(fin, r); }
+    sx_push(R, fin);
+    return *ovf ? (sx_free(R), NULL) : R;
+}
+
 /* ---- S07: linear arrows and positive realization ----
  * A linear arrow L : Source -> Target is checked by exact intertwining
  * K_a L = L K'_a for every action label a, observation preservation
@@ -1068,6 +1126,9 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         }
         Sx *val = dc_form("Value", dc_form("MinimalLinear", dc_form("Dimension", dc_int(B.dim), NULL), NULL), NULL);
         sx_push(ev->items[1], st_minor_sx(&B, C, &ovf));
+        { Sx *rz = st_realization_sx(&S, M, &B, &ovf);   /* review 1 F2: the realization (Table 1) */
+          if (!rz || ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "%s: no exact realization in the basis", head); }
+          sx_push(ev->items[1], rz); }
         if (ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "%s: rational overflow (int64)", head); }
         return st_env(m, VERDICT_HOLDS, q, "Machine", a1, val, ev, NULL);
     }

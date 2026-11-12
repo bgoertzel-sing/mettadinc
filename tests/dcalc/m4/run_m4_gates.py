@@ -187,6 +187,43 @@ def layered_replay(line, text, actions, obsmaps, module=None):
     except (StopIteration, KeyError, IndexError, ValueError):
         return None
 
+
+def realization_replay(line, text, actions, obs, depth=4):
+    """Replay the S06 realization: for every word y0 a1 y1 .. am ym with m < depth, the value
+    Final(s) . T_(a1,y0) .. T_(am,y(m-1)) Projector(ym) must equal the chain's exact probability
+    Pr_s[o(X0)=y0, .., o(Xm)=ym] under the actions, at every state s.  Returns the dimension or None."""
+    K, M = chain_model(text)
+    try:
+        R = next(sx_find(sx_parse(line), 'Realization'))
+        k = int(next(sx_find(R, 'Dimension'))[1]); O = M[obs]; states = list(O.keys()); ys = sorted(set(O.values()))
+        T, P, F = {}, {}, {}
+        for e in R[2:]:
+            if e[0] == 'Operator':
+                cols = {int(c[1]): [rat(v) for v in c[2:]] for c in e[3:]}
+                T[(e[1], e[2][1][1])] = [[cols[j][i] for j in range(k)] for i in range(k)]
+            elif e[0] == 'Projector': P[e[1][1][1]] = [rat(v) for v in e[2:]]
+            elif e[0] == 'Final': F = {r[1]: [rat(v) for v in r[2:]] for r in e[1:]}
+        if set(F) != set(states) or any(len(v) != k for v in list(F.values()) + list(P.values())): return None
+        def direct(word):   # word = [y0, a1, y1, ..]
+            f = {s: Fr(int(O[s] == word[-1])) for s in states}
+            for i in range(len(word) - 3, -1, -2):
+                Kr = K[actions[word[i + 1]]]
+                f = {s: Fr(int(O[s] == word[i])) * sum(p * f[u] for u, p in Kr[s].items()) for s in states}
+            return f
+        def viaR(word):
+            c = P[word[-1]]
+            for i in range(len(word) - 3, -1, -2):
+                A = T[(word[i + 1], word[i])]; c = [sum(A[r][j] * c[j] for j in range(k)) for r in range(k)]
+            return {s: sum(F[s][i] * c[i] for i in range(k)) for s in states}
+        words = [[y] for y in ys]; allw = list(words)
+        for _ in range(depth - 1):
+            words = [w + [a, y] for w in words for a in actions for y in ys]; allw += words
+        for w in allw:
+            if direct(w) != viaR(w): return None
+        return k
+    except (StopIteration, KeyError, IndexError, ValueError):
+        return None
+
 src = open(FIX, encoding='utf-8').read()
 MB = '(MeasureBehavioral MergeXY (Discount (Rat 9 10)))'
 REQS = ['Bisimulation', 'TraceClasses', 'Behavioral', MB, 'Trace', 'Linear', 'Positive']
@@ -218,6 +255,9 @@ report('F2: S04 ModalTestWitness formula replays at discount 9/10, gap 81/200', 
 pp3 = prefix_replay(b3, src, ACT, ['report']); pp4 = prefix_replay(L.get(('SevenState', MB)), src, ACT, ['report'])
 report('F2: S03 Prefixpoint replays (marginals, D >= max(d0, E_theta D)), D(x,y) = 1/2 = test gap', bool(pp3) and pp3[('x', 'y')] == Fr(1, 2), pp3 and pp3[('x', 'y')])
 report('F2: S04 Prefixpoint replays at 9/10, D(x,y) = 81/200 = test gap', bool(pp4) and pp4[('x', 'y')] == Fr(81, 200), pp4 and pp4[('x', 'y')])
+# review 1 F2: the S06 signed minimum carries its realization (Table 1); every word up to length 4 replays exactly
+rz6 = realization_replay(L.get(('SevenState', 'Linear')), src, ACT, 'report')
+report('F2: S06 Realization (dimension 5) reproduces every word probability up to length 4', rz6 == 5, rz6)
 report('neg 1: behavioral refutation uses ModalTestWitness, trace stays Checked',
        has(b3, r'\(ModalTestWitness ') and not has(b3, r'TraceEventWitness|\(Word ') and st(t5) == 'Checked', st(t5))
 # neg 2 (S07): the positive candidate is never reported as a minimum without the signed lower bound
