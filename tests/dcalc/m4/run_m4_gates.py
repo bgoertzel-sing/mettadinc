@@ -115,4 +115,21 @@ for cid, req, want, pat, pol in urows:
     if cid == 'U01':   # the lower bound is below 1 and the interval is reported open
         ok = ok and has(line, r'\(Upper 1\)') and has(line, r'\(Closed False\)') and not has(line, r'\(BehavioralDefect 1\)')
     report('%s %s' % (cid, req[:48]), ok, s_)
+
+# ---- negative gates 3, 9, 10, 11 ----
+# neg 3 (L03): composed residual carries the norm factor: (rA*lB + lA*rB) = 3/5, never the plain sum rA + rB = 1/5
+LFIX = os.path.join(os.path.dirname(FIX), 'linear_composition.metta')
+LC = run(open(LFIX, encoding='utf-8').read(), 'lincomp')
+l3 = LC.get(('LinearComposition', 'LK'))   # requests are keyed by their Derive name; LK = (Then (Output LChecked Value) (Output KChecked Value))
+report('neg 3: L03 residual uses the norm factor (Rho 3/5, not 1/5)',
+       st(l3) == 'Checked' and has(l3, r'\(Grade \(Lambda 3\) \(Rho \(Rat 3 5\)\)\)') and not has(l3, r'\(Value .*\(Rho \(Rat 1 5\)\)\) \(Attained'), st(l3))
+# neg 9: no answer anywhere uses a sampled successor (seed / sample / trajectory) as a witness
+allout = [l for D_ in (L, E, G, CL, LC) for l in D_.values()]
+report('neg 9: no sampled-successor witness in any M4 answer', not any(has(l, r'Sample|Seed|Trajectory') for l in allout), '%d answers' % len(allout))
+# neg 10 (O03): the policy-class refutation carries a policy-tree witness, never a word witness
+o3 = next((l for (mo, rq), l in CL.items() if mo == 'AdaptiveProbe' and 'ObservationBased' in rq and 'Within' in rq), None)
+report('neg 10: O03 witness is PolicyTreeWitness, not WordWitness', st(o3) == 'Refuted' and has(o3, r'PolicyTreeWitness') and not has(o3, r'WordWitness'), st(o3))
+# neg 11 (U01): a Precision-0 undiscounted measurement is never Checked from tests alone, nor certified by a post-fixpoint
+u1 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(MeasureBehavioral JoinXY)'), None)
+report('neg 11: U01 not Checked, no post-fixpoint certificate', st(u1) == 'Unknown' and not has(u1, r'DualPostfixpoint|CouplingPrefixpoint'), st(u1))
 sys.exit(1 if fails else 0)
