@@ -100,6 +100,73 @@ static void surface_gates(const char *B) {
     }
 }
 
+/* gaps task (review 3): one consumer-side test per gap; each fails on c0db2a8 */
+static Sx *parse1(const char *o) {
+    const char *err = NULL; int line = 0;
+    Sx *all = o ? sx_parse_all(o, &err, &line) : NULL;
+    Sx *r = all && all->n == 1 ? sx_copy(all->items[0]) : NULL;
+    if (all) sx_free(all);
+    return r;
+}
+static const char *str2(const Sx *l, const char *k) {   /* (k "text") or (k Sym) -> text */
+    const Sx *f = l ? sx_find(l, k, 1) : NULL;
+    return f && f->n == 2 && f->items[1]->kind != SX_LIST ? f->items[1]->text : NULL;
+}
+static const char *MOD_NOPOL =
+    "(DC.Module EstN (Profile Stochastic) (Use Estimates)\n"
+    "  (Stream Replies (Source \"streams/replies.json\") (Digest \"" DIG "\")\n"
+    "    (Population \"replies\") (Selection \"all replies\")))\n";
+static void gaps_tests(const char *B) {
+    /* gap 1a: the transport trace names source policy, target policy and the argument */
+    char *o = evalt(B, RQ("(ReuseUnder \"v2\") (Argument \"keys fixed before the policy runs\")"), 1);
+    Sx *r = parse1(o); const Sx *e = r ? sx_find(r, "Estimate", 1) : NULL;
+    const Sx *t = e ? sx_find(e, "Transport", 1) : NULL;
+    const char *fp = str2(t, "FromPolicy"), *tp = str2(t, "ToPolicy"), *ar = str2(t, "Argument");
+    CHECK(t && fp && tp && ar && !strcmp(fp, "v1") && !strcmp(tp, "v2") && !strcmp(ar, "keys fixed before the policy runs"),
+          "gap 1: ReuseUnder p + Argument a: Estimate carries (Transport (FromPolicy v1) (ToPolicy v2) (Argument a))");
+    DcEstimate pe; char why[256];
+    CHECK(e && dc_estimate_parse(e, &pe, why, sizeof why) == 0, "gap 1: the Estimate with a Transport record still parses");
+    if (r) sx_free(r);
+    free(o);
+    /* gap 1b: a Stream with no Policy cannot transport under a literal "undeclared" */
+    dc_eval_set_beyond_release(1);
+    o = dc_eval_text(MOD_NOPOL, B, "EstN", RQ("(ReuseUnder \"undeclared\") (Argument \"a\")"));
+    CHECK(has(o, "(Status InvalidInput)") && !has(o, "(Estimate ") && has(o, "declares no Policy"),
+          "gap 1: Stream without Policy + ReuseUnder \"undeclared\": InvalidInput, no Estimate");
+    free(o);
+    o = dc_eval_text(MOD_NOPOL, B, "EstN", RQ("(ReuseUnder \"v2\") (Argument \"a\")"));
+    CHECK(has(o, "(Status InvalidInput)") && !has(o, "(Estimate "), "gap 1: Stream without Policy + ReuseUnder a named policy: InvalidInput");
+    free(o);
+    /* gap 2: RatesSeparated names the estimates policy and carries each premise's Estimate */
+    o = evalt(B, "(RatesSeparated StaleRate FreshRate)", 1);
+    r = parse1(o);
+    const Sx *as = r ? sx_find(r, "Assurance", 1) : NULL;
+    const char *pol = str2(as, "Policy");
+    CHECK(pol && !strcmp(pol, "M4-Estimates"), "gap 2: RatesSeparated Assurance names M4-Estimates, not M2-ExactReplay");
+    const Sx *es = r ? sx_find(r, "Estimates", 1) : NULL; int ok = es && es->n == 3;
+    for (size_t i = 1; ok && i < es->n; i++) {
+        const Sx *pr = es->items[i];
+        const Sx *pe2 = pr->kind == SX_LIST && pr->n == 3 ? pr->items[2] : NULL;
+        DcEstimate x; ok = pe2 && dc_estimate_parse(pe2, &x, why, sizeof why) == 0 && dc_estimate_complete(&x, why, sizeof why) && x.sample_size == 916;
+    }
+    CHECK(ok, "gap 2: RatesSeparated carries a complete, parseable Estimate record for each premise");
+    if (r) sx_free(r);
+    free(o);
+    /* gap 4: the Replay record's request, re-run, reproduces the result byte for byte */
+    o = evalt(B, RQ("(Sample 200) (Seed 20261112)"), 1);
+    r = parse1(o); e = r ? sx_find(r, "Estimate", 1) : NULL;
+    const Sx *rp = e ? sx_find(e, "Replay", 1) : NULL, *rq = rp ? sx_find(rp, "Request", 1) : NULL;
+    const char *sd = str2(rp, "StreamDigest"), *sp = str2(rp, "SamplePopulation"), *ss = str2(rp, "Seed"), *cm = str2(rp, "Command");
+    CHECK(rq && rq->n == 2 && sd && !strcmp(sd, DIG) && sp && !strcmp(sp, "916") && ss && !strcmp(ss, "20261112") && cm,
+          "gap 4: Estimated result carries (Replay (Request ..) (StreamDigest d) (SamplePopulation 916) (Seed s) (Command ..))");
+    char *again = NULL;
+    if (rq && rq->n == 2) { char *rt = sx_print(rq->items[1]); again = evalt(B, rt, 1); free(rt); }
+    CHECK(again && o && !strcmp(again, o), "gap 4: running the Replay request reproduces the Estimated result byte for byte");
+    free(again);
+    if (r) sx_free(r);
+    free(o);
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) { fprintf(stderr, "usage: test_estimates <bundle_dir>\n"); return 2; }
     const char *B = argv[1]; char why[256];
@@ -146,6 +213,7 @@ int main(int argc, char **argv) {
     CHECK(memcmp(a, c, sizeof a) != 0, "a different seed draws a different sample");
 
     surface_gates(B);
+    gaps_tests(B);
     Sx *fr[] = { rel, r, bad, bad0 };
     for (size_t k = 0; k < 4; k++) if (fr[k]) sx_free(fr[k]);
     printf("estimates: %d/%d passed\n", total - fails, total);

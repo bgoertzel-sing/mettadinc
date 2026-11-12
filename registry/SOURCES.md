@@ -223,3 +223,15 @@ Diffs:
 +   "ref:DecisionModel|DecisionProcess"
    ]
 ```
+
+
+## Local inputs (beyond release only)
+
+These are not inputs of `registry/mettadinc_registry.json` or `registry/DIGEST`. They are local patches, not part of the frozen `docs/e0/` bundles. They are applied
+after the bundle patches above, only to the beyond-release registry `registry/beyond/mettadinc_registry_beyond.json` (digest in `registry/beyond/DIGEST`), which dcalc selects only under `--beyond-release`.
+
+**Beyond-release registry digest: `30f222c93dca2308c936d22cebafc992cf0e34bac2080bdcb7fd37e5311555c6`**
+
+| Local input | File | sha256 |
+|---|---|---|
+| m4est local patch (beyond release only) | registry/patches/m4est_registry_patch.json | `87000ddd263f9911fd6872e11cff609dcee766ce206c7229d5d7d591f5ab6b39` |

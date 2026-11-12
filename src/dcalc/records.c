@@ -80,7 +80,8 @@ int dc_estimate_parse(const Sx *x, DcEstimate *e, char *err, size_t en) {
         const Sx *f = x->items[i];
         static const char *K[] = { "Population", "Selection", "PolicyVersion", "Policy", "Estimand", "SelectionDependsOnPolicy",
                                    "Estimator", "Protocol", "SampleSize", "Error", "Dependence", "Combination",
-                                   "SamplePopulation", "Seed" };   /* review 1 F4 */
+                                   "SamplePopulation", "Seed",   /* review 1 F4 */
+                                   "Transport", "Replay" };      /* gaps task: review 3 gaps 1 and 4 */
         int known = 0;
         for (size_t k = 0; k < sizeof K / sizeof K[0]; k++) if (sx_head_is(f, K[k])) known = 1;
         if (!known) { snprintf(err, en, "Estimate: field %zu is not a known field", i); return -1; }

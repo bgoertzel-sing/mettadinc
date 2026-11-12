@@ -95,8 +95,12 @@ Sx *dc_req_estimates(DcRun *run, const Sx *q, const char *head) {
     const Sx *ru = arg(q, "ReuseUnder");
     if (ru) {                                     /* F5: policy transport, decided before any row is read */
         if (ru->kind == SX_LIST) return dc_invalid(m, "%s: field ReuseUnder must name a policy digest", head);
+        /* gaps task, review 3 gap 1: a Stream with no Policy has no source policy for the
+         * transport check (guide 1.x boundary 5); it is InvalidInput, never "undeclared". */
+        if (!pol)
+            return dc_invalid(m, "%s: ReuseUnder %s: Stream %s declares no Policy, so the transport check has no source policy; declare (Policy ..) on the Stream", head, ru->text, sn);
         DcEstimate te; memset(&te, 0, sizeof te);
-        snprintf(te.policy_version, sizeof te.policy_version, "%s", pol ? pol : "undeclared");
+        snprintf(te.policy_version, sizeof te.policy_version, "%s", pol);
         te.selection_depends_on_policy = seldep;
         if (!dc_estimate_transport(&te, ru->text, arg(q, "Argument") != NULL)) {
             if (seldep)
@@ -179,6 +183,28 @@ Sx *dc_req_estimates(DcRun *run, const Sx *q, const char *head) {
         dc_form("SelectionDependsOnPolicy", dc_sym(seldep ? "True" : "False"), NULL),
         dc_form("SamplePopulation", dc_int((long)rows), NULL), NULL);
     if (hs) sx_push(estimate, dc_form("Seed", dc_int((long)seed), NULL));
+    if (ru) {   /* gaps task, review 3 gap 1: the transport trace (source policy, target policy, argument passed on) */
+        const Sx *ar = arg(q, "Argument");
+        sx_push(estimate, dc_form("Transport", dc_form("FromPolicy", sx_str(pol), NULL),
+                                  dc_form("ToPolicy", sx_str(ru->text), NULL),
+                                  ar ? dc_form("Argument", sx_copy(ar), NULL) : dc_form("Argument", dc_sym("None"), NULL),
+                                  dc_form("Rule", sx_str(!strcmp(pol, ru->text) ? "same policy" : "declared argument"), NULL), NULL));
+    }
+    {   /* gaps task, review 3 gap 4: an explicit replay command.  Re-running Request (which already
+         * names Seed and Sample) under --beyond-release against a stream whose digest is StreamDigest
+         * and whose population is SamplePopulation reproduces this result byte for byte. */
+        char cmdline[512];
+        snprintf(cmdline, sizeof cmdline, "dcalc --beyond-release <module> with !(dc.run %s <request>); check (Stream %s) has digest %s and %zu rows",
+                 m->name[0] ? m->name : "<module>", sn, dig, rows);
+        Sx *rp = dc_form("Replay", dc_form("Request", sx_copy(q), NULL),
+                         dc_form("StreamDigest", sx_str(dig), NULL),
+                         dc_form("SamplePopulation", dc_int((long)rows), NULL), NULL);
+        if (hs) sx_push(rp, dc_form("Seed", dc_int((long)seed), NULL));
+        else sx_push(rp, dc_form("Seed", dc_sym("None"), NULL));
+        sx_push(rp, dc_form("Mode", dc_sym("BeyondRelease"), NULL));
+        sx_push(rp, dc_form("Command", sx_str(cmdline), NULL));
+        sx_push(estimate, rp);
+    }
     Sx *inner = cmp ? dc_form("PairedComparison", dc_form("FirstOnly", dc_int(S), NULL), dc_form("SecondOnly", dc_int(n - S), NULL), NULL)
               : dup ? dc_form("RateEstimate", dc_form("Count", dc_int((long)num), NULL), dc_form("Observations", dc_int((long)den), NULL), NULL)
                     : dc_form("RateEstimate", dc_form("Count", dc_int(S), NULL), dc_form("Observations", dc_int(n), NULL), NULL);
@@ -243,5 +269,20 @@ Sx *dc_req_separated(DcRun *run, const Sx *q) {
     Sx *r = dc_envelope_scoped(m, sep ? VERDICT_HOLDS : VERDICT_FAILS, 1, dc_form("Claim", sx_copy(q), NULL),
                         dc_form("Subject", sx_copy(q->items[1]), sx_copy(q->items[2]), NULL), val, ev, NULL, &sc);
     for (int k = 0; k < 2; k++) dc_result_add_premise(r, pr[k], m->der[dd[k]].name);
+    /* gaps task, review 3 gap 2: the derived result names the estimates policy, not M2-ExactReplay,
+     * and carries each premise's Estimate record (the rates it compares are statistical). */
+    for (size_t i = 1; i < r->n; i++)
+        if (sx_head_is(r->items[i], "Assurance")) {
+            sx_free(r->items[i]);
+            r->items[i] = dc_form("Assurance", dc_form("Policy", dc_sym("M4-Estimates"), NULL),
+                                  dc_form("Replayed", dc_sym("False"), NULL),
+                                  dc_form("Ground", dc_sym(dc_ground_name(GROUND_STATISTICAL)), NULL), NULL);
+        }
+    Sx *ests = dc_form("Estimates", NULL);
+    for (int k = 0; k < 2; k++) {
+        const Sx *e = sx_find(pr[k], "Estimate", 1);
+        sx_push(ests, dc_form("Premise", dc_sym(m->der[dd[k]].name), e ? sx_copy(e) : dc_sym("None"), NULL));
+    }
+    sx_push(r, ests);
     return r;
 }
