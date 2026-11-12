@@ -872,7 +872,7 @@ static int mt_test(StMt *t, int k, int u, int v) {   /* a test with value(u) - v
 
 /* Driver: layers D_0..D_K of the behavioral recurrence (D_K the exact fixed point), then a
  * modal test at layer K for the pair (u, v), serialized as a graph with shared subformulas. */
-static Sx *st_modal_witness(const StMod *s, const StMach *M, DcRat g, int u, int v, int *ovf) {
+static Sx *st_modal_witness(const StMod *s, const StMach *M, DcRat g, int u, int v, int kcap, int *ovf) {   /* kcap >= 0: test at layer min(kcap, fixpoint) */
     int n = s->car[M->states].n, oc[ST_MAXE], KM = ST_BEH_ROUNDS + 2, K = 0, ok = 0, cap = 4096;
     st_obsclass(s, M, oc);
     DcRat (*L)[ST_MAXE][ST_MAXE] = malloc(sizeof(*L) * (size_t)KM);
@@ -882,6 +882,7 @@ static Sx *st_modal_witness(const StMod *s, const StMach *M, DcRat g, int u, int
     if (!L || !nd || !val || !keep || !ren) goto out;
     for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) L[0][x][y] = dc_rat(oc[x] != oc[y], 1, ovf);
     for (;;) { int ch = 0;
+        if (kcap >= 0 && K >= kcap) { ok = 1; break; }
         if (K + 1 >= KM || st_bstep(s, M, oc, g, L[K], L[K + 1], &ch, ovf)) goto out;
         if (!ch) { ok = 1; break; }
         K++; }
@@ -914,6 +915,13 @@ static Sx *st_modal_witness(const StMod *s, const StMach *M, DcRat g, int u, int
 out:
     free(L); free(memo); free(nd); free(val); free(keep); free(ren);
     return res;
+}
+/* review 2 F1: the lower certificate (Test) for the defect pair (x, y) from layer k of the recurrence,
+ * oriented in carrier order (the canonical witness of the oracle key: phi(first) - phi(second) = D_k). */
+static Sx *st_layer_test(const StMod *s, const StMach *M, DcRat g, int x, int y, int k, int *ovf) {
+    int u = x < y ? x : y, v = x < y ? y : x;
+    Sx *mw = st_modal_witness(s, M, g, u, v, k, ovf);
+    return mw ? dc_form("Certificate", dc_form("Kind", dc_sym("Test"), NULL), mw, NULL) : NULL;
 }
 
 
@@ -1231,15 +1239,20 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
                 Sx *cert = st_layered_cert(&S, M, g, h, &ovf);   /* review 1 F2: layer kernels and couplings */
                 if (!cert || ovf) { if (pair) sx_free(pair); sx_free(val); return dc_unsupported(m, "%s: no replayable layered prefixpoint", head); }
                 sx_push(cert, dc_form("Layers", dc_int(layers), NULL));
-                if (pair) sx_push(cert, dc_form("DepthTest", pair, dc_form("Depth", dc_int(layers), NULL), dc_form("Separation", st_rsx(def), NULL), NULL));
-                return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
+                Sx *ev = dc_form("Evidence", cert, NULL);
+                if (pair) { sx_free(pair);   /* review 2 F1: the depth-h modal test is the lower certificate (invariant 18) */
+                    Sx *lt = st_layer_test(&S, M, g, wx, E->tab[wx], layers, &ovf);
+                    if (!lt || ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "%s: no replayable depth-%d modal test", head, layers); }
+                    sx_push(ev, lt); }
+                return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, ev, NULL);
             }
             if (wi && (dc_rat_cmp(def, b) > 0 || !ch)) {
                 int bad = dc_rat_cmp(def, b) > 0;
                 Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym(bad ? "False" : "True"), NULL), dc_form("BehavioralDefect", st_rsx(def), NULL), NULL);
-                Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym(bad ? "DepthTestWitness" : "ExactFixpoint"), NULL), NULL);
-                if (bad && pair) { sx_push(cert, dc_form("DepthTest", pair, dc_form("Depth", dc_int(layers), NULL), dc_form("Separation", st_rsx(def), NULL), NULL)); pair = NULL; }
                 if (pair) sx_free(pair);
+                /* review 2 F1: a refutation carries the layer modal test (gap > b); a pass carries the Prefixpoint of the fixed point (D <= b) */
+                Sx *cert = bad ? st_layer_test(&S, M, g, wx, E->tab[wx], layers, &ovf) : st_prefix_cert(&S, M, g, d, "Prefixpoint", &ovf);
+                if (!cert || ovf) { if (cert) sx_free(cert); sx_free(val); return dc_unsupported(m, "%s: no replayable %s certificate", head, bad ? "test" : "prefixpoint"); }
                 return st_env(m, bad ? VERDICT_FAILS : VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
             }
             if (pair) sx_free(pair);
@@ -1293,7 +1306,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         Sx *ev = dc_form("Evidence", up, NULL);
         if (wx >= 0) {
             int y = E->tab[wx];
-            Sx *mw = st_modal_witness(&S, M, g, wx, y, &ovf);   /* a Definition 4.9 test, replayable */
+            Sx *mw = st_modal_witness(&S, M, g, wx < y ? wx : y, wx < y ? y : wx, -1, &ovf);   /* review 2 F2: carrier order, the oracle key's orientation */   /* a Definition 4.9 test, replayable */
             if (!mw || ovf) return dc_unsupported(m, "%s: no modal test witness could be built", head);
             sx_push(ev, dc_form("Certificate", dc_form("Kind", dc_sym("Test"), NULL), mw, NULL));
         }

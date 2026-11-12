@@ -60,10 +60,10 @@ def chain_model(text, module=None):
             cs = [c for c in m_ if isinstance(c, list) and c[0] == 'Cases']
             if cs: M[m_[1]] = {c[0]: c[1] for c in cs[0][1:]}
     return K, M
-def mt_replay(line, text, actions, gamma):
+def mt_replay(line, text, actions, gamma, module=None):
     """Evaluate the ModalTestWitness Formula graph at every state; check the grammar (Definition 4.9),
     the discount on every Next node, and that Left/Right are the values at the Pair.  Returns (left, right) or None."""
-    K, M = chain_model(text)
+    K, M = chain_model(text, module)
     try:
         w = next(sx_find(sx_parse(line), 'ModalTestWitness'))
         pair = next(sx_find(w, 'Pair')); fm = next(sx_find(w, 'Formula'))
@@ -235,7 +235,7 @@ L = run(src, 'fixture')
 POL = r'\(Policy M4-StochasticReplay\) \(Replayed True\)'
 rows = [('S01', 'Bisimulation', 'Checked', r'\(Classes 7\).*\(Kind StrongLumping\)'),
         ('S02', 'TraceClasses', 'Checked', r'\(Block x y\).*\(Classes 6\)'),
-        ('S03', 'Behavioral', 'Refuted', r'\(BehavioralDefect \(Rat 1 2\)\).*\(ModalTestWitness \(Pair y x\) \(Formula \(Root \d+\)'),
+        ('S03', 'Behavioral', 'Refuted', r'\(BehavioralDefect \(Rat 1 2\)\).*\(ModalTestWitness \(Pair x y\) \(Formula \(Root \d+\)'),
         ('S04', MB, 'Checked', r'\(BehavioralDefect \(Rat 81 200\)\).*\(Discount \(Rat 9 10\)\)'),
         ('S05', 'Trace', 'Checked', r'\(TraceEquivalent True\)'),
         ('S06', 'Linear', 'Checked', r'\(Dimension 5\).*\(Minor \(Columns( \w+){5}\) \(Determinant (?!0\))'),
@@ -317,8 +317,8 @@ for cid, req, want, pat in orows:
 # ---- U01-U04: certificate_limits.metta UnattainedSupremum (beyond release) ----
 UPOL = r'\(Policy M4-StochasticReplay\) \(Replayed False\)'
 urows = [('U01', '(MeasureBehavioral JoinXY)', 'Unknown', r'\(BehavioralInterval \(Lower \(Rat (\d+) \1\d*\)\)|\(BehavioralInterval \(Lower \(Rat \d+ \d+\)\) \(Upper 1\)\).*\(Closed False\)', UPOL),
-         ('U02', '(MeasureBehavioral JoinXY (Horizon (Steps 3)))', 'Checked', r'\(BehavioralDefect \(Rat 7 8\)\) \(Horizon \(Steps 3\)\).*\(Kind LayeredPrefixpoint\).*\(Depth 3\)', POL),
-         ('U03', '(CheckBehavioral JoinXY (Within (Rat 99 100)))', 'Refuted', r'\(WithinBound False\) \(BehavioralDefect \(Rat 127 128\)\).*\(Depth 7\) \(Separation \(Rat 127 128\)\)', POL),
+         ('U02', '(MeasureBehavioral JoinXY (Horizon (Steps 3)))', 'Checked', r'\(BehavioralDefect \(Rat 7 8\)\) \(Horizon \(Steps 3\)\).*\(Kind LayeredPrefixpoint\).*\(Kind Test\) \(ModalTestWitness \(Pair x y\)', POL),
+         ('U03', '(CheckBehavioral JoinXY (Within (Rat 99 100)))', 'Refuted', r'\(WithinBound False\) \(BehavioralDefect \(Rat 127 128\)\).*\(Kind Test\) \(ModalTestWitness \(Pair x y\)', POL),
          ('U04', '(MeasureBehavioral JoinXY (Discount (Rat 1 2)))', 'Checked', r'\(BehavioralDefect \(Rat 1 3\)\) \(Discount \(Rat 1 2\)\).*\(Kind Prefixpoint\).*\(Kind DualPostfixpoint\)', POL)]
 for cid, req, want, pat, pol in urows:
     line = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == req), None); s_ = st(line)
@@ -368,6 +368,21 @@ report('F2: U04 DualPostfixpoint (lower) replays, D(x,y) = 1/3, bounds meet', bo
 u2 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(MeasureBehavioral JoinXY (Horizon (Steps 3)))'), None)
 lu2 = layered_replay(u2, csrc, UA, ['report'], 'UnattainedSupremum')
 report('F2: U02 LayeredPrefixpoint replays (4 layer kernels, couplings per layer), D_3(y,x) = 7/8', bool(lu2) and len(lu2) == 4 and lu2[3][('y', 'x')] == Fr(7, 8), lu2 and lu2[-1][('y', 'x')])
+# review 2 F1: the horizon and Within answers carry replayable tests (lower) and prefixpoints (upper), never bare labels
+tu2 = mt_replay(u2, csrc, UA, Fr(1), 'UnattainedSupremum')
+report('R2-F1: U02 lower Test (depth-3 modal formula) replays, gap 7/8 = LayeredPrefixpoint D_3: bounds meet', bool(tu2) and abs(tu2[0] - tu2[1]) == Fr(7, 8) and bool(lu2) and lu2[3][('y', 'x')] == Fr(7, 8), tu2)
+u3 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(CheckBehavioral JoinXY (Within (Rat 99 100)))'), None)
+tu3 = mt_replay(u3, csrc, UA, Fr(1), 'UnattainedSupremum')
+report('R2-F1: U03 Refuted on a replayed Test, gap 127/128 > 99/100', st(u3) == 'Refuted' and bool(tu3) and abs(tu3[0] - tu3[1]) == Fr(127, 128), tu3)
+wsrc = src + '\n!(dc.run SevenState (CheckBehavioral MergeXY (Within (Rat 1 4))))\n!(dc.run SevenState (CheckBehavioral MergeXY (Within (Rat 1 2))))\n'
+WL = run(wsrc, 'r2-within')
+w14 = WL.get(('SevenState', '(CheckBehavioral MergeXY (Within (Rat 1 4)))')); w12 = WL.get(('SevenState', '(CheckBehavioral MergeXY (Within (Rat 1 2)))'))
+tw14 = mt_replay(w14, wsrc, ACT, Fr(1)); pw12 = prefix_replay(w12, wsrc, ACT, ['report'])
+report('R2-F1: MergeXY Within 1/4 Refuted on a replayed Test, gap 1/2 > 1/4', st(w14) == 'Refuted' and bool(tw14) and abs(tw14[0] - tw14[1]) == Fr(1, 2), tw14)
+report('R2-F1: MergeXY Within 1/2 Checked on a replayed Prefixpoint, D(x,y) = 1/2 <= 1/2', st(w12) == 'Checked' and bool(pw12) and pw12[('x', 'y')] == Fr(1, 2), pw12 and pw12[('x', 'y')])
+report('R2-F1: no unregistered DepthTestWitness / ExactFixpoint / DepthTest label in any answer', not any(has(l, r'DepthTestWitness|ExactFixpoint|\(DepthTest ') for l in list(L.values()) + list(CL.values()) + list(WL.values())), '')
+# review 2 F2: the S03 witness has the oracle key's orientation, phi(x) = 1/2, phi(y) = 0
+report('R2-F2: S03 test is canonical: Pair x y, Left 1/2, Right 0', bool(rp3) and rp3 == (Fr(1, 2), Fr(0)), rp3)
 
 # neg 12: a Positive arrow from an unnormalized realization (K rows sum to 2) is not valid, so no composite is formed from it.
 lsrc = open(LFIX, encoding='utf-8').read()
