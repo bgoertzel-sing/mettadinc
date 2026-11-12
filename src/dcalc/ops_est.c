@@ -42,7 +42,8 @@ static Sx *est_env(DcModule *m, const Sx *q, const char *sname, Sx *val, Sx *ev,
         if (sx_head_is(r->items[i], "Assurance")) {
             sx_free(r->items[i]);
             r->items[i] = dc_form("Assurance", dc_form("Policy", dc_sym("M4-Estimates"), NULL),
-                                  dc_form("Replayed", dc_sym("True"), NULL),
+                                  /* review 2 F4: a statistical ground is not a replayed certificate */
+                                  dc_form("Replayed", dc_sym("False"), NULL),
                                   dc_form("Ground", dc_sym(dc_ground_name(GROUND_STATISTICAL)), NULL), NULL);
         }
     sx_push(r, estimate);
@@ -238,8 +239,9 @@ Sx *dc_req_separated(DcRun *run, const Sx *q) {
         dc_form("FirstUpper", dc_form("Rat", dc_int((long)b[0].n), dc_int((long)b[0].d), NULL), NULL),
         dc_form("SecondLower", dc_form("Rat", dc_int((long)b[1].n), dc_int((long)b[1].d), NULL), NULL), NULL), NULL);
     Sx *ev = dc_form("Evidence", dc_form("ExactRationalComparison", sx_copy(q->items[1]), sx_copy(q->items[2]), NULL), NULL);
-    Sx *r = dc_envelope(m, sep ? VERDICT_HOLDS : VERDICT_FAILS, 1, dc_form("Claim", sx_copy(q), NULL),
-                        dc_form("Subject", sx_copy(q->items[1]), sx_copy(q->items[2]), NULL), val, ev, NULL);
+    DcScope sc = { "M4-Estimates", -1, "1", NULL };   /* review 2 F4: not the M0 fragment */
+    Sx *r = dc_envelope_scoped(m, sep ? VERDICT_HOLDS : VERDICT_FAILS, 1, dc_form("Claim", sx_copy(q), NULL),
+                        dc_form("Subject", sx_copy(q->items[1]), sx_copy(q->items[2]), NULL), val, ev, NULL, &sc);
     for (int k = 0; k < 2; k++) dc_result_add_premise(r, pr[k], m->der[dd[k]].name);
     return r;
 }

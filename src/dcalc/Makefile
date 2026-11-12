@@ -4,7 +4,7 @@ CC ?= gcc
 AR := $(if $(shell command -v ar),ar,gcc-ar)
 CFLAGS ?= -std=c11 -Wall -Wextra -O2
 BUILD ?= ../../build/dcalc
-OBJS = rat.o graded.o ops_graded.o ops_refine.o ops_weakest.o ops_approx.o ops_kernels.o sexp.o sha256.o registry_gen.o registry.o admit.o binding.o api.o model.o ops_core.o obligations.o ops_req.o ops_induce.o ops_abs.o ops_dispatch.o records.o estimates.o ops_est.o bdd.o ops_sym.o stoch.o
+OBJS = rat.o graded.o ops_graded.o ops_refine.o ops_weakest.o ops_approx.o ops_kernels.o sexp.o sha256.o registry_gen.o registry_beyond_gen.o registry.o admit.o binding.o api.o model.o ops_core.o obligations.o ops_req.o ops_induce.o ops_abs.o ops_dispatch.o records.o estimates.o ops_est.o bdd.o ops_sym.o stoch.o
 all: $(BUILD)/dcalc $(BUILD)/libdcalc.a
 $(BUILD)/%.o: %.c $(wildcard *.h)
 	@mkdir -p $(BUILD)

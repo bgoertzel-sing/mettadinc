@@ -1,5 +1,5 @@
 /* M4-estimates seeded coverage simulations (t-2026-11-12-mettadinc-m4-estimates).
- * Usage: sim_coverage [seed] [trials].  Every draw comes from splitmix64(seed),
+ * Usage: sim_coverage [seed] [trials] [level].  Every draw comes from splitmix64(seed),
  * so a run replays exactly.  Each check passes iff the observed miss count is
  * at most the nominal level plus a binomial tolerance (3 sd); the canary
  * (peeking normal-approximation interval) must FAIL that bound, proving the
@@ -18,8 +18,10 @@ static void report(const char *name, long miss, long T, double a, int expect_ok)
 int main(int argc, char **argv) {
     uint64_t seed = argc > 1 ? strtoull(argv[1], NULL, 10) : 20261112ULL;
     long T = argc > 2 ? atol(argv[2]) : 2000;
-    const double ps[] = { 0.03, 0.2, 0.5 }; const long N = 400; const double a = 0.05;
-    printf("seed %llu trials %ld steps %ld\n", (unsigned long long)seed, T, N);
+    const double ps[] = { 0.03, 0.2, 0.5 }; const long N = 400;
+    /* review 2 F4: optional third argument = level; run-all runs 0.05 and 0.01 (the surface requests use 1/100) */
+    const double a = argc > 3 ? atof(argv[3]) : 0.05;
+    printf("seed %llu trials %ld steps %ld level %.3g\n", (unsigned long long)seed, T, N, a);
     for (int pi = 0; pi < 3; pi++) {
         double p = ps[pi]; uint64_t st = seed + (uint64_t)pi * 1000003ULL;
         long cs_miss = 0, cp_miss = 0, hf_miss = 0, wald_peek = 0; double thr = log(1.0 / a);

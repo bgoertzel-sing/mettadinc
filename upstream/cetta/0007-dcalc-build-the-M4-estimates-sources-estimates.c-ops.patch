@@ -17,7 +17,7 @@ index 9834a9e3..1218868a 100644
  # src/dcalc directory; the default assumes CeTTa is the mettadinc submodule.
  DCALC_DIR ?= ../src/dcalc
 -DCALC_CORE_SRC = rat.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c bdd.c ops_sym.c stoch.c
-+DCALC_CORE_SRC = rat.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c bdd.c ops_sym.c stoch.c estimates.c ops_est.c
++DCALC_CORE_SRC = rat.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry_beyond_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c bdd.c ops_sym.c stoch.c estimates.c ops_est.c
  SRC += src/library_dcalc.c $(addprefix $(DCALC_DIR)/,$(DCALC_CORE_SRC))
  CPPFLAGS_DCALC = -I$(DCALC_DIR)
  SRC += src/u64_index.c

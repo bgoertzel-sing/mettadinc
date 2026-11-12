@@ -55,18 +55,13 @@ PATCHES = [  # (name, canonical copy: the bundle that introduces the patch)
 OUT = os.path.join(REPO, "registry", "mettadinc_registry.json")
 DIGEST = os.path.join(REPO, "registry", "DIGEST")
 SOURCES = os.path.join(REPO, "registry", "SOURCES.md")
-# Local patches, applied after the bundle patches.  They live in this repository, not in the frozen docs/e0/.
-# m4est: hive decision 2026-11-12 18:32 on t-2026-11-12-mettadinc-m4-estimates (opt-in, reversible deviation
-# from Ben's decision 1, recorded in workspace DECISIONS.md); every addition is first_release [].
+# Local patches (hive decision 2026-11-12 on t-2026-11-12-mettadinc-m4-estimates, answer 1).  They are applied
+# only to the beyond-release registry under registry/beyond/, never to the release registry above, whose bytes and
+# digest stay those of the bundle patches alone.  A local patch whose file is absent is skipped: deleting
+# registry/patches/m4est_registry_patch.json and rerunning this script makes the beyond registry equal the release one.
 LOCAL_PATCHES = [("m4est", "registry/patches/m4est_registry_patch.json")]
-
-
-def ppath(name, path):
-    return os.path.join(REPO, path) if name in dict(LOCAL_PATCHES) else os.path.join(DOCS, path)
-
-
-def pshow(name, path):
-    return path if name in dict(LOCAL_PATCHES) else "docs/e0/docs/" + path
+BOUT = os.path.join(REPO, "registry", "beyond", "mettadinc_registry_beyond.json")
+BDIGEST = os.path.join(REPO, "registry", "beyond", "DIGEST")
 WHOLE = [("libraries", "libraries"), ("declarations", "declarations"), ("requests", "requests"),
          ("result_types", "result_types"), ("witness_types", "witness_types")]
 FIELDS = [("declaration_fields", "declarations", "fields"), ("request_args", "requests", "args"),
@@ -103,10 +98,13 @@ def copies():
     return out
 
 
-def build(supersede):
+def build(supersede, local=()):
+    """local: [(name, repo-relative path)] of local patches, applied after the bundle patches (beyond release)."""
     base = json.load(open(os.path.join(DOCS, BASE)))
     reg = copy.deepcopy(base)
-    patches = [(n, p, json.load(open(ppath(n, p)))) for n, p in PATCHES + LOCAL_PATCHES]
+    patches = [(n, p, json.load(open(os.path.join(DOCS, p)))) for n, p in PATCHES]
+    patches += [(n, p, json.load(open(os.path.join(REPO, p)))) for n, p in local]
+    lp = dict(local)
     conflicts, revisions, resolved, notes_out = [], [], [], {}
     owner_whole, owner_field, fields_added = {}, {}, {}
     for name, path, pt in patches:
@@ -181,11 +179,14 @@ def build(supersede):
                 conflicts.append(f"note {k}: {notes_out[k]['patch']} and {name} differ")
             notes_out[k] = {"text": text, "patch": name}
         reg.setdefault("adopted_patches", []).append(
-            {"name": name, "file": pshow(name, path), "sha256": sha(ppath(name, path)),
+            {"name": name, "file": path if name in lp else "docs/e0/docs/" + path,
+             "sha256": sha(os.path.join(REPO, path) if name in lp else os.path.join(DOCS, path)),
              "patch": pt.get("patch"), "date": pt.get("date")})
     if notes_out:
         reg["notes"] = notes_out
-    reg["registry"] = base["registry"] + ", with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted, and the local patch m4est (hive decision 2026-11-12, beyond release only)"
+    reg["registry"] = base["registry"] + ", with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted"
+    if local:
+        reg["registry"] += ", and the local patches " + ", ".join(n for n, _ in local) + " (beyond release only)"
     reg["date"] = "2026-11-05"
     return base, reg, conflicts, revisions, resolved
 
@@ -230,9 +231,6 @@ def summarize(old, new):
 # gives 0 diagnostics for every bundle with no patch.  The checker column lists the ex_check.py install() code
 # that moved into validation/check_fixtures.py because the input's forms need it.
 COORDINATED = [
-    ("m4est (local)", "none", "none",
-     "request args Estimator, Sample, Seed, ReuseUnder, Argument on EstimateRate/CompareRates and the request "
-     "EstimateDupRate, all first_release []; checker reads them from the adopted registry"),
     ("base registry", "none", "none",
      "the working copy validation/check_fixtures.py reads registry/mettadinc_registry.json (MDINC_REGISTRY overrides) "
      "and the package data from the frozen docs/e0/ copy"),
@@ -268,9 +266,6 @@ def sources_md(base_sha, reg_sha, cps, revisions, resolved):
     for n, p in PATCHES:
         L.append(f"| {n} patch (applied {names.index(n) + 1} of {len(PATCHES)}) | docs/e0/docs/{p} | "
                  f"{code(sha(os.path.join(DOCS, p)))} |")
-    for n, p in LOCAL_PATCHES:
-        L.append(f"| {n} local patch (applied after wx; hive decision 2026-11-12 18:32, beyond release only) | {p} | "
-                 f"{code(sha(os.path.join(REPO, p)))} |")
     L += ["", "## Coordinated change (MILESTONES.md, entry checklist item 3)", "",
           "| Input | Fixtures | Manifest | Checker |", "|---|---|---|---|"]
     for row in COORDINATED:
@@ -352,16 +347,35 @@ def main(argv):
     text = json.dumps(reg, indent=1, ensure_ascii=False) + "\n"
     reg_sha = hashlib.sha256(text.encode()).hexdigest()
     src = sources_md(sha(os.path.join(DOCS, BASE)), reg_sha, cps, revisions, resolved)
+    local = [(n, p) for n, p in LOCAL_PATCHES if os.path.exists(os.path.join(REPO, p))]
+    _, breg, bconflicts, _, _ = build(supersede, local)
+    if bconflicts:
+        print(f"STOP: {len(bconflicts)} conflict(s) in the beyond-release registry; nothing written")
+        for c in bconflicts:
+            print(c)
+        return 1
+    btext = json.dumps(breg, indent=1, ensure_ascii=False) + "\n"
+    b_sha = hashlib.sha256(btext.encode()).hexdigest()
+    bdig = f"{b_sha}  mettadinc_registry_beyond.json\n" + "".join(
+        f"local patch {n}: {p} sha256 {sha(os.path.join(REPO, p))}\n" for n, p in local) + (
+        "" if local else "no local patch present: the beyond-release registry equals the release registry\n")
     if check:
         same = (os.path.exists(OUT) and open(OUT).read() == text and open(DIGEST).read().split()[0] == reg_sha
                 and open(SOURCES).read() == src)
+        bsame = os.path.exists(BOUT) and open(BOUT).read() == btext and open(BDIGEST).read() == bdig
         print(("up to date: " if same else "OUT OF DATE: ") + reg_sha)
-        return 0 if same else 1
+        print(("beyond up to date: " if bsame else "beyond OUT OF DATE: ") + b_sha)
+        return 0 if same and bsame else 1
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     open(OUT, "w").write(text)
     open(DIGEST, "w").write(f"{reg_sha}  mettadinc_registry.json\n")
     open(SOURCES, "w").write(src)
     print(f"wrote registry/mettadinc_registry.json sha256 {reg_sha}")
+    os.makedirs(os.path.dirname(BOUT), exist_ok=True)
+    open(BOUT, "w").write(btext)
+    open(BDIGEST, "w").write(bdig)
+    print(f"wrote registry/beyond/mettadinc_registry_beyond.json sha256 {b_sha} (local patches: "
+          f"{', '.join(n for n, _ in local) or 'none'})")
     return 0
 
 

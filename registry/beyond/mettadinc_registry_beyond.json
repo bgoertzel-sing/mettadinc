@@ -1,0 +1,5290 @@
+{
+ "registry": "MeTTaDinC request and declaration registry, with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted, and the local patches m4est (beyond release only)",
+ "date": "2026-11-05",
+ "statuses": {
+  "Checked": "The claim is established within its scope by an exact method that the core runs on the frozen model, or by a certificate that the core's replay checker validates.",
+  "Refuted": "A counterexample or lower-bound certificate that the core replays by evaluating the admitted source establishes that the claim fails.",
+  "Conditional": "The claim holds under named, undischarged assumptions: an external backend's answer that the core has not replayed, (TrustedBackend solver version logic obligation-digest); an assumption declared in the admitted source, (Assumption name digest); or an Estimated premise, (EstimatedPremise result-digest delta). A result derived from a Conditional premise is Conditional.",
+  "Estimated": "A statistical procedure supports an estimate or bound, reported with its estimand, population, selection rule, policy version, estimator, protocol, sample size and error guarantee.",
+  "Unknown": "The claim is unresolved, for example because a budget ended or the certified interval straddles the bound.",
+  "Unsupported": "The request, profile or argument combination is outside the capability manifest.",
+  "InvalidInput": "A declaration, type, law, dependency, coercion or binding violates the admitted language, for example a premise about another machine or interface than the request names, or a stream whose content does not match its declared digest."
+ },
+ "base_statuses": [
+  "Conditional",
+  "Unknown",
+  "Unsupported",
+  "InvalidInput"
+ ],
+ "status_rules": {
+  "Measure": "Checked when the certified interval has width at most Precision; otherwise Unknown with the interval in Resources",
+  "Check": "Checked when the upper end is at most Within; Refuted when the lower end exceeds Within, with a lower-bound certificate as Witness; Unknown otherwise",
+  "Induce": "InduceExact is Checked only when both obligations hold with defect 0 and the code fibers are literally congruent, checked on code values whatever the code tolerance; InduceApprox without Within is a measurement",
+  "Output": "projection is defined only on Checked results; any other status yields a dependency diagnostic",
+  "Precision0": "a measurement at Precision 0 is Checked only when a lower and an upper certificate meet (certificate_kinds); when no registered certificate reaches the other end, the result is Unknown with the certified interval",
+  "Policies": "on a stochastic machine a trace refutation over ObservationBased is reported with a PolicyTreeWitness; a fixed word replays as the policy tree whose actions ignore the observations; an implementation that does not replay policy trees answers such requests Unsupported, or Unknown with the interval it can certify, and never reports a WordWitness or TraceEventWitness as their refutation",
+  "Assurance": "every status follows the assurance policy (assurance); a Checked result whose evidence is an unreplayed backend answer does not exist: such a result is Conditional",
+  "Binding": "every consuming operation validates the bindings of its premises (binding_rules); a mismatch is InvalidInput naming the field"
+ },
+ "profiles": {
+  "dynamics": [
+   "Deterministic",
+   "Stochastic",
+   "Nondeterministic"
+  ],
+  "values": [
+   "Crisp",
+   "Lukasiewicz",
+   "Directed"
+  ],
+  "carriers": [
+   "Enumerated",
+   "Symbolic",
+   "Snapshot"
+  ],
+  "shorthands": {
+   "Crisp": [
+    "Deterministic",
+    "Crisp",
+    "Enumerated"
+   ],
+   "Graded": [
+    "Deterministic",
+    "Lukasiewicz",
+    "Enumerated"
+   ],
+   "Stochastic": [
+    "Stochastic",
+    "Lukasiewicz",
+    "Enumerated"
+   ],
+   "Nondeterministic": [
+    "Nondeterministic",
+    "Lukasiewicz",
+    "Enumerated"
+   ]
+  }
+ },
+ "argument_types": {
+  "name": "an identifier atom",
+  "rat01": "0, 1, or (Rat p q) with 0 <= p/q <= 1",
+  "rat": "an integer atom or (Rat p q)",
+  "discount": "(Rat p q) or 1 with 0 < p/q <= 1",
+  "nat": "a nonnegative integer atom",
+  "horizon": "AllFiniteWords or (Steps k), k transitions and k+1 observations",
+  "budget": "(Unit k) with a registered work unit: PairExpansions, Probes, Proposals, Seconds, Unrollings",
+  "selector": "Center (a 1-center under the behavioral distance, ties by declaration order), First, or (Choose map)",
+  "ref:K": "a declared name of kind K, or (Output D F) whose registered field type is K",
+  "enum:A|B": "one of the listed atoms",
+  "word": "(Do a1 ... ak): a finite word of declared action labels",
+  "pair": "(Pair a b) of declared elements or names",
+  "grade": "(Grade L eta): two rationals",
+  "predicate": "an admitted Boolean expression over declared maps",
+  "property": "a registered safety property form of the Simulation library (see libraries.Simulation.property_forms)",
+  "element": "an element of a declared carrier",
+  "expr": "an admitted expression; names are resolved but not typed by the registry checker",
+  "names": "a sequence of declared names"
+ },
+ "witness_types": {
+  "WordWitness": {
+   "fields": [
+    "Pair",
+    "SameCode",
+    "Word",
+    "Query",
+    "Left",
+    "Right"
+   ],
+   "profiles": [
+    "Deterministic"
+   ]
+  },
+  "ModalTestWitness": {
+   "fields": [
+    "Pair",
+    "Formula (a graph with shared subformulas)",
+    "Left",
+    "Right"
+   ],
+   "profiles": [
+    "Stochastic",
+    "Nondeterministic"
+   ]
+  },
+  "TraceEventWitness": {
+   "fields": [
+    "Pair",
+    "Word",
+    "Event",
+    "Left",
+    "Right"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "doc": "a trace refutation over the policy class Words: one action word, one event on observation sequences, and its two exact probabilities"
+  },
+  "PolicyTreeWitness": {
+   "fields": [
+    "Pair",
+    "Tree",
+    "Event",
+    "Left",
+    "Right"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "doc": "a trace refutation over the policy class ObservationBased",
+   "tree": "a finite tree of nodes keyed by observed histories (y0 a1 y1 ... ak yk), k below the horizon; the root is keyed by the initial observation and the children of a node by its action and the next observation; each node names an action, or a rational law on actions",
+   "admissibility": "the tree reads observed histories only: replay keys every node by its history, runs both states through the same tree, and requires a node for every history of positive probability from either state",
+   "replay": "exact propagation of both states through the tree gives the two joint laws of actions and observations; Left and Right are the probabilities of Event, a set of complete histories, and the witness certifies a discrepancy of at least |Left - Right|"
+  },
+  "UpdateWitness": {
+   "fields": [
+    "Pair",
+    "Action",
+    "Codes or Class",
+    "Left",
+    "Right"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ]
+  },
+  "CongruenceWitness": {
+   "fields": [
+    "Pair",
+    "SameCode",
+    "Action",
+    "Left",
+    "Right"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "doc": "a failure of literal congruence in InduceExact: two states with the same code value whose successors under Action have different code values (deterministic), different laws on code values (stochastic: a code value and its two masses) or different sets of code values (nondeterministic); it refutes exact induction even when the code tolerance identifies the successor codes"
+  },
+  "ObligationWitness": {
+   "fields": [
+    "Obligation",
+    "Word or State"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ]
+  },
+  "RecordWitness": {
+   "fields": [
+    "Record",
+    "OldAnswer",
+    "NewAnswer",
+    "OldDecision",
+    "NewDecision"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "doc": "a valid record on which the old and the new goal, each read through its declared decoder, call for different decisions"
+  }
+ },
+ "witness_order": "replay accepts any witness that replays; the canonical witness, recorded in the manifest, is the least one: shortest word first, then pairs in lexicographic order of carrier declaration, then actions and queries in declaration order, then words in numeric order; policy trees of least depth first, then actions in declaration order at nodes taken in order of their histories",
+ "result_envelope": {
+  "Status": "one of the seven statuses",
+  "Claim": "the claim kind, its bound or precision, and the observation equality (Literal or Observer)",
+  "Binding": "the exact objects the claim is about: the module digest and the names of the subject declarations; for arrows, simulations and transfers the source and target model identities; the interface checked against (queries with their value tolerances, actions with their update kinds, merges)",
+  "Scope": "initial states, reachable-state scope, horizon, discount, and policy class (Words or ObservationBased)",
+  "Value": "the fields of the request's registered result type",
+  "Estimate": "present on Estimated results and on results derived from them: (Estimate (Estimand e) (Population p) (Selection rule) (Policy digest) (Estimator m) (Protocol pr) (SampleSize n) (Error epsilon delta) (Dependence assumptions) (Combination rule)); the estimand is stated as a function of the population, and the policy is the version under which the rows were produced",
+  "Evidence": "the certificate kind and digest, the digests of the streams and snapshots read, and agreed_by",
+  "agreed_by": "inside Evidence: other backends that reached the same verdict on an independently written encoding, as (solver version logic encoding-digest); evidence only, it discharges no assumption",
+  "Assumptions": "the undischarged assumptions, for example (TrustedBackend cvc5 1.4.2 QF_LRA sha256:...); a derived result lists the union of its premises' assumptions",
+  "Assurance": "the grounds of the status: Exact or Replayed for Checked, Witness for Refuted, Statistical for Estimated; for Conditional, the grounds of its undischarged assumptions (TrustedBackend, Assumed, Statistical)",
+  "Dependencies": "the premise results, by digest",
+  "Method": "the backend, algorithm and arithmetic that produced the candidate (execution provenance)",
+  "Resources": "the work done, and the certified interval of an Unknown result"
+ },
+ "assurance": {
+  "policy": "a result is Checked only on the grounds Exact or Replayed, Refuted only on the ground Witness, Estimated only on the ground Statistical, and Conditional when it rests on an unreplayed backend answer, a declared assumption, an Estimated premise or a Conditional premise, in every request and library; a value of a behavioral or trace distance is Checked only through the registered certificate kinds (certificate_kinds), whatever algorithm computed it",
+  "grounds": {
+   "Exact": "Checked: an exact method that the core runs on the frozen model (finite enumeration, exact rational arithmetic, partition refinement, splitting trees replayed on representatives); a distance value needs, in addition, registered certificates for both ends of its interval",
+   "Replayed": "Checked: a certificate that the core's replay checker validates (a replayed witness, a coupling, a matching, stability equations, an exact dual certificate of a linear program, or a DRAT proof converted to LRAT and checked by cake_lpr for a propositional obligation that the obligation generator built from the admitted source)",
+   "Witness": "Refuted: a counterexample or lower-bound certificate that the core replayed by evaluating the admitted source; a witness found by a backend counts once replayed",
+   "TrustedBackend": "Conditional: the verdict rests on an external backend's answer that the core has not replayed, such as an SMT solver's unsat or a SAT solver's unsat without a replayed proof",
+   "Assumed": "Conditional: the claim rests on an assumption that the admitted source declares by name, such as the assumption, carried by the provenance of a kernel imported with estimated or sampled masses, that the kernel is the law of the system it was fitted to",
+   "Statistical": "Estimated: a declared statistical procedure on declared data; also the ground of a Conditional result derived from an Estimated premise"
+  },
+  "assumption_forms": {
+   "(TrustedBackend solver version logic obligation-digest)": "an unreplayed backend answer, for example (TrustedBackend cvc5 1.4.2 QF_LRA sha256:...)",
+   "(Assumption name digest)": "an assumption declared in the admitted source: name is the declaration that carries it, for example an imported kernel, and digest identifies its provenance record",
+   "(EstimatedPremise result-digest delta)": "a premise that is an Estimated result; the derived claim holds on the event that the estimate's guarantee holds, which fails with probability at most delta; the deltas of several such premises add"
+  },
+  "inheritance": "a result derived from premises (lifting a statistic to a store, Then, safety transfer along a simulation, a rebuild, a gate bundle) carries the union of its premises' assumptions; a derivation from a Conditional premise is Conditional, and a derivation from an Estimated premise is Conditional on (EstimatedPremise result-digest delta), which carries the estimate's failure probability",
+  "accepts": {
+   "(Accepts Checked)": "accepts Checked results only",
+   "(Accepts Checked (Conditional (TrustedBackend solver+)))": "also accepts Conditional results whose only undischarged assumptions are TrustedBackend assumptions for the named backends, for example (Accepts Checked (Conditional (TrustedBackend cvc5)))",
+   "(Accepts Checked (Conditional (Assumption name+)))": "also accepts Conditional results whose only undischarged assumptions are declared assumptions with the listed names",
+   "(Accepts Checked Estimated)": "an empirical consumer: also accepts Estimated results under its own signature, and Conditional results whose only undischarged assumptions are EstimatedPremise assumptions; a consumer that does not list Estimated accepts neither",
+   "combination": "the forms combine, as in (Accepts Checked Estimated (Conditional (TrustedBackend cvc5) (Assumption StepModel))); a Conditional result is accepted only when every one of its undischarged assumptions is covered"
+  },
+  "consumers": "frame consumers accept only Checked unless the external ceremony records otherwise; agent consumers may list backends",
+  "gates": "a gate reads the status and assumptions of every result in its bundle and checks them against the declaration of each consumer the change touches; a Conditional result that the consumer does not accept counts as inadequate coverage for that consumer, never as Checked"
+ },
+ "binding_rules": {
+  "rule": "an operation that consumes a result validates the result's binding before using it; a mismatch is InvalidInput naming the mismatched field, returned before any value is produced. Binding rules are admission rules and apply in every release, including a release in which the request itself is Unsupported",
+  "Then": "the target of the first arrow is the source of the second: the same model identity, interface and value tolerances",
+  "ComposeTransfers": "each transfer's target method system is the next transfer's source",
+  "ThenContracts": "the intermediate audit space and its pseudometric are the same in both contracts",
+  "CheckSafety": "the abstract machine (Target) of the Via simulation is the request's target machine; the result is about the simulation's concrete machine (Source), and Init names states of that machine",
+  "Output": "a projected payload keeps the binding of its result and is validated like a declared argument where it is used",
+  "Snapshot": "the content digest of the snapshot equals the declared Digest; checked before any carrier or map is materialized",
+  "libraries": "operations of other libraries register rules of the same form: a statistic lifted to a keyed store belongs to the store's item machine, or to a declared view whose queries bound the lifted result; a rebuilt index matches the observed machine's encoding and the read map's codomain; a stream's declared digest matches its file before any count or interval is computed; a gate's bundle digests match the evaluated surface, and each result's binding names the touched consumer's machine and interface"
+ },
+ "certificate_kinds": {
+  "Test": {
+   "bound": "lower",
+   "data": "a test (word, modal, trace-event or policy-tree test) with its two exact values",
+   "replay": "evaluate the test at both states exactly",
+   "scope": "word and modal tests bound the distance at their own discount; trace-event and policy-tree tests are undiscounted probabilities of an event and bound the distance at discount 1 only; a test of depth h bounds the horizon-h distance; no finite test need attain the distance over all finite words"
+  },
+  "Prefixpoint": {
+   "bound": "upper",
+   "data": "a kernel D with one coupling (stochastic) or two matchings (nondeterministic) per pair and action",
+   "replay": "check the marginals or matching domains and D >= max(d0, gamma * E_theta D) for every pair and action",
+   "scope": "every horizon"
+  },
+  "LayeredPrefixpoint": {
+   "bound": "upper",
+   "data": "kernels D_0 .. D_h with couplings or matchings for every layer, pair and action",
+   "replay": "check D_0 >= d0 and D_(t+1) >= max(d0, gamma * E_theta_t D_t) for every layer, pair and action",
+   "scope": "horizon h"
+  },
+  "DualPostfixpoint": {
+   "bound": "lower",
+   "data": "a kernel D of a stochastic machine; for every pair with D above d0 an action and rational dual potentials f, g on the supports of its two successor laws",
+   "replay": "check f(u) - g(v) <= D(u,v) on the supports and D(x,x') <= gamma * (E f - E g) for those pairs, D <= d0 elsewhere",
+   "scope": "stochastic machines at discount below 1, where Phi_gamma contracts; at discount 1 the same data bound only some fixed point of the distance operator, not necessarily the least"
+  },
+  "rule": "a distance value enters a result only through these kinds, whatever algorithm computed it; a measurement with Precision 0 is Checked only when a lower and an upper certificate meet; at discount 1 over all finite words no lower certificate other than tests is registered, so a Precision 0 measurement whose tests do not reach the upper certificate is Unknown with the certified interval"
+ },
+ "declarations": {
+  "Type": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ],
+    [
+     "type",
+     "expr"
+    ]
+   ],
+   "fields": {},
+   "body": null,
+   "declares": "Type",
+   "doc": ""
+  },
+  "Record": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {},
+   "body": "fields",
+   "declares": "Record",
+   "doc": ""
+  },
+  "Const": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ],
+    [
+     "type",
+     "expr"
+    ],
+    [
+     "value",
+     "expr"
+    ]
+   ],
+   "fields": {},
+   "body": null,
+   "declares": "Const",
+   "doc": ""
+  },
+  "Carrier": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": "carrier-expr",
+   "declares": "Carrier",
+   "doc": "carrier-expr: (Enum e+) | (Product c+) | (All) | (Subset c predicate-map) | (Reach machine (From e+)) | (Query snapshot pattern (Key $v))"
+  },
+  "Map": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "From": {
+     "type": "expr",
+     "required": true
+    },
+    "To": {
+     "type": "expr",
+     "required": true
+    },
+    "Parameters": {
+     "type": "expr",
+     "required": false,
+     "doc": "elaboration-time parameters, each ($p Carrier) over an enumerated carrier"
+    }
+   },
+   "body": "map-body",
+   "declares": "Map",
+   "doc": "map-body: (Cases (pattern expr)+) | (Body ($v) expr) | (Table (in out)+) | (Choice (in out+)+)"
+  },
+  "Tolerance": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "On": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": "tolerance-body",
+   "declares": "Tolerance",
+   "doc": "tolerance-body: (SymmetricTable (Diagonal 1) (a b v)+) | (DirectedTable (a b v)+) | (Pullback map tolerance) | (OneMinusAbsoluteDifference), meaning max(0, 1-|p-p'|) | (Discrete) | (Trivial); separation is computed at admission, not declared"
+  },
+  "Measure": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "On": {
+     "type": "ref:Carrier",
+     "required": true
+    }
+   },
+   "body": "measure-body",
+   "declares": "Measure",
+   "doc": "measure-body: (Uniform) | (Masses (e v)+) | (Product (Bernoulli v)+)"
+  },
+  "PairLaw": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Independent": {
+     "type": "names",
+     "required": true
+    },
+    "Diagonal": {
+     "type": "enum:Included|Excluded",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "PairLaw",
+   "doc": ""
+  },
+  "TransitionKernel": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "From": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "To": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Row": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true
+    },
+    "Import": {
+     "type": "expr",
+     "required": false
+    }
+   },
+   "body": null,
+   "declares": "TransitionKernel",
+   "doc": ""
+  },
+  "Machine": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "States": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Observe": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(Observe label map [(Values tolerance)])"
+    },
+    "Action": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(Action label map-or-kernel)"
+    },
+    "Merge": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true
+    },
+    "Available": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true
+    },
+    "Bag": {
+     "type": "enum:Set|Multiset",
+     "required": false,
+     "doc": "nondeterministic profile: reading of a host result bag"
+    },
+    "ActionsOf": {
+     "type": "ref:Machine",
+     "required": false,
+     "doc": "the action entries of another machine on a carrier of the same element type"
+    },
+    "Like": {
+     "type": "ref:Machine",
+     "required": false,
+     "doc": "the observe and action entries of another machine; States may differ (a scope)"
+    }
+   },
+   "body": null,
+   "declares": "Machine",
+   "doc": ""
+  },
+  "Representation": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Encode": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Codes": {
+     "type": "ref:Tolerance",
+     "required": false
+    }
+   },
+   "body": null,
+   "declares": "Representation",
+   "doc": ""
+  },
+  "AbstractionMap": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Source": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Target": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Map": {
+     "type": "ref:Map",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "AbstractionMap",
+   "doc": ""
+  },
+  "Snapshot": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Space": {
+     "type": "name",
+     "required": true
+    },
+    "Digest": {
+     "type": "expr",
+     "required": true
+    },
+    "Revision": {
+     "type": "nat",
+     "required": false
+    }
+   },
+   "body": null,
+   "declares": "Snapshot",
+   "doc": ""
+  },
+  "Derive": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ],
+    [
+     "request",
+     "request"
+    ]
+   ],
+   "fields": {},
+   "body": null,
+   "declares": "Derive",
+   "doc": ""
+  },
+  "BlockPartition": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "On": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Block": {
+     "type": "expr",
+     "required": true,
+     "repeatable": true,
+     "doc": "(Block label predicate representative)"
+    },
+    "Successor": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(Successor action from-label to-label)"
+    },
+    "Invariant": {
+     "type": "ref:Map",
+     "required": false,
+     "doc": "a candidate inductive invariant for a reachability scope: checked to contain the initial states and to be closed under every action, then used to discharge the universal obligations"
+    }
+   },
+   "body": null,
+   "declares": "BlockPartition",
+   "doc": "a symbolic partition certificate submitted for replay; see the admission obligations"
+  },
+  "LinearRealization": {
+   "library": "Linear",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Dimension": {
+     "type": "nat",
+     "required": true
+    },
+    "Operator": {
+     "type": "expr",
+     "required": true,
+     "repeatable": true
+    },
+    "Projector": {
+     "type": "expr",
+     "required": true,
+     "repeatable": true
+    },
+    "Final": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "LinearRealization",
+   "doc": "a signed weighted linear system; not a Machine until a positivity check converts it"
+  },
+  "LinearArrow": {
+   "library": "Linear",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Source": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Target": {
+     "type": "ref:Machine|LinearRealization",
+     "required": true
+    },
+    "Matrix": {
+     "type": "expr",
+     "required": true
+    },
+    "Kind": {
+     "type": "enum:Positive|Signed",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "LinearArrow",
+   "doc": ""
+  },
+  "Simulation": {
+   "library": "Simulation",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Source": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Target": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Relation": {
+     "type": "ref:Map|Relation",
+     "required": true
+    },
+    "Order": {
+     "type": "expr",
+     "required": false
+    },
+    "Matching": {
+     "type": "enum:Lockstep|Stutter",
+     "required": false,
+     "doc": "Lockstep (the default): each source step is matched by the target step with the same label.  Stutter: each source step is matched by the target step whose label is the head of the source label, or by no step, the relation holding afterwards in both cases.  All three registered safety forms transfer along stuttering simulations: a step matched by no step changes no observation, and a source run is never shorter than its image."
+    }
+   },
+   "body": null,
+   "declares": "Simulation",
+   "doc": ""
+  },
+  "Relation": {
+   "library": "Simulation",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "From": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "To": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Pairs": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "Relation",
+   "doc": ""
+  },
+  "Scheduler": {
+   "library": "Simulation",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Rule": {
+     "type": "enum:Uniform",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "Scheduler",
+   "doc": ""
+  },
+  "MethodSystem": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "States": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Methods": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Response": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Observe": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true
+    }
+   },
+   "body": null,
+   "declares": "MethodSystem",
+   "doc": ""
+  },
+  "Transfer": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Source": {
+     "type": "ref:MethodSystem",
+     "required": true
+    },
+    "Target": {
+     "type": "ref:MethodSystem",
+     "required": true
+    },
+    "StatePullback": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "MethodPushforward": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Responses": {
+     "type": "expr",
+     "required": false
+    }
+   },
+   "body": null,
+   "declares": "Transfer",
+   "doc": ""
+  },
+  "Symmetry": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:MethodSystem",
+     "required": true
+    },
+    "States": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Methods": {
+     "type": "ref:Map",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "Symmetry",
+   "doc": ""
+  },
+  "CrossKernel": {
+   "library": "Hives",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Left": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Right": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Entries": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "CrossKernel",
+   "doc": ""
+  },
+  "KernelHive": {
+   "library": "Hives",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Member": {
+     "type": "expr",
+     "required": true,
+     "repeatable": true,
+     "doc": "(Member label carrier tolerance measure)"
+    },
+    "Correspondence": {
+     "type": "expr",
+     "required": true,
+     "repeatable": true,
+     "doc": "(Correspondence i j kernel Measured|Unmeasured)"
+    },
+    "Weights": {
+     "type": "expr",
+     "required": false
+    }
+   },
+   "body": null,
+   "declares": "KernelHive",
+   "doc": ""
+  },
+  "TransferHive": {
+   "library": "Hives",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Member": {
+     "type": "ref:MethodSystem",
+     "required": true,
+     "repeatable": true
+    },
+    "Edge": {
+     "type": "ref:Transfer",
+     "required": true,
+     "repeatable": true
+    },
+    "Cycle": {
+     "type": "names",
+     "required": true,
+     "repeatable": true
+    },
+    "Gauge": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(Gauge member symmetry+): the gauge is the group generated by the listed symmetries; every transfer must intertwine the gauges of its endpoints"
+    },
+    "Weights": {
+     "type": "expr",
+     "required": false,
+     "doc": "member weights for derived kernel hives; uniform by default, with uniform laws on member states"
+    },
+    "GaugeFrom": {
+     "type": "expr",
+     "required": false,
+     "doc": "(GaugeFrom member symmetry+): declare the gauge at one member; the checker transports it along the declared edges by conjugation with the method pushforwards, reports the transported gauges, and checks that the transport around each cycle returns the declared gauge"
+    }
+   },
+   "body": null,
+   "declares": "TransferHive",
+   "doc": ""
+  },
+  "Implementation": {
+   "library": "Contracts",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Ideal": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Actual": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Audit": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "InputDistance": {
+     "type": "ref:Tolerance",
+     "required": true
+    },
+    "OutputDistance": {
+     "type": "ref:Tolerance",
+     "required": true
+    },
+    "Pairs": {
+     "type": "ref:Map",
+     "required": false,
+     "doc": "a map from ordered audit pairs (x-hat, x) to Bool; only pairs it accepts are audited, for example pairs with equal stimulus or with one member near a boundary"
+    }
+   },
+   "body": null,
+   "declares": "Implementation",
+   "doc": ""
+  },
+  "ObserverFamily": {
+   "library": "Discovery",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "On": {
+     "type": "expr",
+     "required": true
+    },
+    "Returns": {
+     "type": "expr",
+     "required": true
+    },
+    "Generate": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "ObserverFamily",
+   "doc": ""
+  },
+  "ObserverSource": {
+   "library": "Discovery",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Procedure": {
+     "type": "enum:SimultaneousConjugacy",
+     "required": true
+    },
+    "On": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "ObserverSource",
+   "doc": ""
+  },
+  "ReportSystem": {
+   "library": "Neural",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Input": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "ReportType": {
+     "type": "expr",
+     "required": true
+    },
+    "Encoder": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Readout": {
+     "type": "ref:Map",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "ReportSystem",
+   "doc": ""
+  },
+  "DecisionModel": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "States": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Actions": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "RewardLaw": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Prior": {
+     "type": "ref:Measure",
+     "required": false
+    }
+   },
+   "body": null,
+   "declares": "DecisionModel",
+   "doc": ""
+  },
+  "ObservationMethod": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Channel": {
+     "type": "ref:TransitionKernel",
+     "required": true
+    },
+    "Cost": {
+     "type": "rat",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "ObservationMethod",
+   "doc": ""
+  },
+  "Archive": {
+   "library": "Search",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Machine": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Key": {
+     "type": "ref:Representation",
+     "required": true
+    },
+    "Start": {
+     "type": "element",
+     "required": true
+    },
+    "ParentChoice": {
+     "type": "enum:Uniform|FirstRepresentative",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "Archive",
+   "doc": ""
+  },
+  "Schema": {
+   "library": "Hyperseed",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Parameters": {
+     "type": "expr",
+     "required": true
+    },
+    "Build": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "Schema",
+   "doc": ""
+  },
+  "Method": {
+   "library": "Hyperseed",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Parameters": {
+     "type": "expr",
+     "required": true
+    },
+    "Returns": {
+     "type": "expr",
+     "required": true
+    },
+    "Body": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "Method",
+   "doc": ""
+  },
+  "DescriptionSystem": {
+   "library": "Hyperseed",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Description": {
+     "type": "expr",
+     "required": true,
+     "repeatable": true
+    },
+    "Decoder": {
+     "type": "enum:Expand",
+     "required": true
+    },
+    "Cost": {
+     "type": "expr",
+     "required": true
+    },
+    "Baseline": {
+     "type": "name",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "DescriptionSystem",
+   "doc": ""
+  },
+  "PatternWitness": {
+   "library": "Hyperseed",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "System": {
+     "type": "ref:DescriptionSystem",
+     "required": true
+    },
+    "Target": {
+     "type": "expr",
+     "required": true
+    },
+    "Description": {
+     "type": "name",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "PatternWitness",
+   "doc": ""
+  },
+  "EncodingFamily": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Generator": {
+     "type": "expr",
+     "required": true,
+     "doc": "(IntervalProduct c1 c2 [(Tied True)]) | (RoundedGrid (map lo hi)+)"
+    }
+   },
+   "body": null,
+   "declares": "EncodingFamily",
+   "doc": "a finite declared family of representations of one machine; frontier optimality may be Checked relative to it"
+  },
+  "ParallelMachine": {
+   "library": "Parallel",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Component": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Copies": {
+     "type": "nat",
+     "required": true
+    },
+    "Synchronize": {
+     "type": "names",
+     "required": false,
+     "doc": "action labels applied to every copy at once; the other labels become one action per copy, label.i"
+    }
+   },
+   "body": null,
+   "declares": "Machine",
+   "doc": "states are tuples of component states; observers are label.i for each copy"
+  },
+  "ProductRepresentation": {
+   "library": "Parallel",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Component": {
+     "type": "ref:Representation",
+     "required": true
+    },
+    "Copies": {
+     "type": "nat",
+     "required": true
+    }
+   },
+   "body": null,
+   "declares": "Representation",
+   "doc": "the componentwise encoding of a parallel machine"
+  },
+  "DecisionProcess": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "States": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Actions": {
+     "type": "ref:Carrier",
+     "required": true
+    },
+    "Kernel": {
+     "type": "expr",
+     "required": true,
+     "doc": "a map, or an instance of a parameterized map, from (Product States Actions) to (Law States)"
+    },
+    "RewardLaw": {
+     "type": "expr",
+     "required": true,
+     "doc": "a map or map instance from (Product States Actions) to (Law Rational)"
+    },
+    "Discount": {
+     "type": "discount",
+     "required": true
+    },
+    "Values": {
+     "type": "ref:Tolerance",
+     "required": false,
+     "doc": "value tolerance of the reward queries of the machine view"
+    }
+   },
+   "body": null,
+   "declares": "Machine",
+   "doc": "a finite discounted decision process.  It is also a stochastic Machine whose observations are the expected rewards of its actions, one query (reward a) per action in declaration order, so InduceExact, CheckUpdates, MeasureBehavioral and CheckAbstractionMap apply to it unchanged; a quotient in that sense is an MDP homomorphism."
+  },
+  "Monitor": {
+   "library": "Monitors",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Context": {
+     "type": "ref:Carrier",
+     "required": true,
+     "doc": "what is fixed before each observation, such as the posted quote"
+    },
+    "Null": {
+     "type": "expr",
+     "required": true,
+     "doc": "map or map instance from Context to the law of one observation"
+    },
+    "Alternative": {
+     "type": "expr",
+     "required": true
+    },
+    "Columns": {
+     "type": "expr",
+     "required": true,
+     "doc": "(Columns [(context col+)] (observation col+)); (each col) reads every element of a list column as one observation"
+    }
+   },
+   "body": null,
+   "declares": "Monitor",
+   "doc": ""
+  },
+  "Stream": {
+   "library": "Monitors",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Source": {
+     "type": "expr",
+     "required": true,
+     "doc": "a frozen data file"
+    },
+    "Digest": {
+     "type": "expr",
+     "required": true
+    },
+    "Provenance": {
+     "type": "expr",
+     "required": false
+    },
+    "Population": {
+     "type": "expr",
+     "required": false,
+     "doc": "the units the stream samples"
+    },
+    "Selection": {
+     "type": "expr",
+     "required": false,
+     "doc": "which units become rows, and when"
+    },
+    "Policy": {
+     "type": "expr",
+     "required": false,
+     "doc": "the policy version under which the rows were produced: in a live system the digest of the deployed code and flags"
+    },
+    "SelectionDependsOnPolicy": {
+     "type": "enum:True|False",
+     "required": false,
+     "default": "False",
+     "doc": "True when the selection rule of the rows depends on the policy that produced them; such an estimate never transports to another policy (ReuseUnder is refused even with an Argument)"
+    }
+   },
+   "body": null,
+   "declares": "Stream",
+   "doc": "frozen observation data with provenance; a different digest is a different stream"
+  },
+  "Consumer": {
+   "library": "Core",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Machine",
+     "required": true,
+     "doc": "the machine whose observers are the consumer's queries"
+    },
+    "Accepts": {
+     "type": "expr",
+     "required": true,
+     "doc": "the forms of the specification's registry (assurance.accepts): Checked, optionally followed by Estimated, and optionally by one clause (Conditional entry ...) whose entries are (TrustedBackend solver ...) or (Assumption name ...). (Accepts Checked): the consumer acts only on Checked results; (Accepts Checked Estimated): an empirical consumer that also accepts Estimated results under its own signature, and Conditional results whose only undischarged assumptions are (EstimatedPremise result-digest delta) assumptions; a TrustedBackend entry admits Conditional results that rest on an unreplayed answer of a listed solver, and an Assumption entry results that rest on an assumption carried by a listed declaration. A Conditional result is accepted only when every one of its undischarged assumptions is covered. A frame consumer accepts only Checked results unless the external ceremony records otherwise. A gate treats a result whose status and assumptions the consumer does not accept as inadequate coverage, never as Checked"
+    },
+    "Custody": {
+     "type": "enum:Frame|Agent",
+     "required": true,
+     "doc": "Frame: the declaration is held outside the agent's rewrite authority and changes only through an external upgrade; Agent: the agent may propose changes through the ordinary promotion path"
+    },
+    "Decode": {
+     "type": "ref:Map",
+     "required": false,
+     "doc": "the decoder: a map from the consumer's answer (the value of its machine's observer, or the tuple of its observers' values in declaration order) to the decision the answer stands for; it is part of the declaration and has its custody, so a frame consumer's decoder changes only through the external upgrade"
+    }
+   },
+   "body": null,
+   "declares": "Consumer",
+   "doc": "a declared user of a machine's answers; checkers and gates read it to decide which claims a change must preserve and which statuses and assumptions count as coverage"
+  },
+  "Statistic": {
+   "library": "Statistics",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Machine",
+     "required": true,
+     "doc": "the machine whose queries the statistic must answer"
+    },
+    "Encode": {
+     "type": "ref:Map",
+     "required": true,
+     "doc": "the map s from states to statistic values"
+    },
+    "Step": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(Step label map [(For $v Carrier)]...): the abstract update for the machine's action entries with this label; a family label (f $v) takes a map instance (g $v)"
+    },
+    "Read": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(Read query map): the map that reads the query's answer from the statistic value"
+    },
+    "MergeStep": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "(MergeStep merge-label map): the abstract merge for a Merge entry of the machine, on pairs of statistic values; required for every Merge entry of a machine that has one"
+    }
+   },
+   "body": null,
+   "declares": "Representation",
+   "doc": "a summary statistic (T, s, step, read) of a machine: a representation together with the abstract updates and read maps that certify it.  Every action entry of the machine needs a Step entry, every query a Read entry and every merge entry a MergeStep entry, and a Statistic that lacks one is InvalidInput; CheckStatistic checks the obligations.  As a representation it can be passed to CheckNow, CheckUpdates and CheckBehavioral."
+  },
+  "Store": {
+   "library": "Statistics",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Keys": {
+     "type": "ref:Carrier",
+     "required": true,
+     "doc": "the identifiers"
+    },
+    "Of": {
+     "type": "ref:Machine",
+     "required": true,
+     "doc": "the item machine"
+    },
+    "Global": {
+     "type": "names",
+     "required": false,
+     "doc": "action labels, or heads of action families, that apply to every item at once (the passage of time); the other actions address one item"
+    }
+   },
+   "body": null,
+   "declares": "Machine",
+   "doc": "the machine of finite maps from Keys to item states.  (insert k x) adds an item, each item action a gives (a k), each Global action applies to every item, each item query q gives (q k), and each Bool query q gives the aggregate (count q), the number of keys whose item answers true."
+  },
+  "Keyed": {
+   "library": "Statistics",
+   "positional": [
+    [
+     "name",
+     "name"
+    ]
+   ],
+   "fields": {
+    "Of": {
+     "type": "ref:Store",
+     "required": true
+    },
+    "Item": {
+     "type": "ref:Statistic",
+     "required": true
+    },
+    "View": {
+     "type": "ref:Machine",
+     "required": false,
+     "doc": "a view of the store's item machine (the same state carrier, actions declared as ActionsOf that machine) of which Item is a statistic; without it, Item must be a statistic of the store's item machine itself"
+    }
+   },
+   "body": null,
+   "declares": "Representation",
+   "doc": "the keyed statistic: the finite map from keys to the item statistic's values, updated pointwise.  CheckStatistic with (Method Lift) first checks the premise of the lifting proposition: Item must be a statistic of the store's item machine, or, when View names a view of that machine, of the view; otherwise the result is InvalidInput naming the mismatch.  It then checks the item statistic and derives the keyed one, which answers every item query of the machine it is bound to, and every count, exactly.  The result is bound to that machine's queries and carries the item statistic's status and assumptions."
+  }
+ },
+ "result_types": {
+  "DefectMeasurement": {
+   "fields": {
+    "Defect": "Interval",
+    "Equality": "enum:Literal|Observer",
+    "Decoders": "Map?",
+    "Updates": "Map?",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": "A measured defect: a certified interval [l,u]; Checked when u - l <= Precision."
+  },
+  "DefectCheck": {
+   "fields": {
+    "Defect": "Interval",
+    "Bound": "Rational",
+    "Equality": "enum:Literal|Observer",
+    "Decoders": "Map?",
+    "Updates": "Map?",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": "A bound claim: Checked when u <= Bound, Refuted when l > Bound (with Witness), Unknown otherwise."
+  },
+  "DefectRecord": {
+   "fields": {
+    "Now": "DefectMeasurement",
+    "Updates": "DefectMeasurement",
+    "Behavioral": "DefectMeasurement",
+    "Trace": "DefectMeasurement?"
+   },
+   "doc": ""
+  },
+  "BlockPartitionCheck": {
+   "fields": {
+    "Obligation": "enum:Coverage|Disjointness|Membership|Constancy|Stability|Closure|Reachability?",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": "Replay of a symbolic partition certificate; Refuted names the first failed obligation and a witness word"
+  },
+  "PartitionResult": {
+   "fields": {
+    "Partition": "Partition",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "ToleranceResult": {
+   "fields": {
+    "Tolerance": "Tolerance",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "Refinement": {
+   "fields": {
+    "Representation": "Representation",
+    "Partition": "Partition",
+    "Ledger": "Ledger",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "ExactAbstraction": {
+   "fields": {
+    "Machine": "Machine?",
+    "AbstractionMap": "CheckedAbstractionMap?",
+    "Decoders": "Map?",
+    "Updates": "Map?",
+    "Equality": "enum:Literal|Observer?",
+    "Obligation": "enum:Current|Update|Congruence?",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": "Checked: the quotient data on the code values; Refuted: the failed obligation and its witness (CongruenceWitness for literal congruence)"
+  },
+  "ApproxAbstraction": {
+   "fields": {
+    "Machine": "Machine",
+    "Selector": "Map",
+    "Radius": "Rational",
+    "Defect": "Interval",
+    "Bound": "Rational?",
+    "AbstractionMap": "CheckedGradedArrow",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "Frontier": {
+   "fields": {
+    "Representation": "Representation",
+    "Partition": "Partition",
+    "Weakness": "Rational",
+    "Defect": "Interval",
+    "Optimality": "enum:Checked|Unknown",
+    "Certificate": "Certificate",
+    "Codes": "Nat",
+    "LowerBound": "Certificate?",
+    "Representatives": "Map?"
+   },
+   "doc": ""
+  },
+  "CheckedAbstractionMap": {
+   "fields": {
+    "Kind": "enum:Quotient|Homomorphism",
+    "Map": "Map",
+    "Source": "Machine",
+    "Target": "Machine",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "CheckedGradedArrow": {
+   "fields": {
+    "Map": "Map",
+    "Defect": "Interval",
+    "Discount": "Rational",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "ComposedArrow": {
+   "fields": {
+    "Arrow": "Arrow",
+    "Grade": "Grade",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "Verdict": {
+   "fields": {
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "LinearMinimum": {
+   "fields": {
+    "Dimension": "Nat",
+    "Basis": "TestBasis",
+    "Realization": "LinearRealization",
+    "SeparatingTests": "TestList",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "CheckedLinearArrow": {
+   "fields": {
+    "Kind": "enum:Positive|Signed",
+    "Lambda": "Rational",
+    "Rho": "Rational",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "PositiveDimension": {
+   "fields": {
+    "Lower": "Nat",
+    "Upper": "Nat",
+    "LowerEvidence": "enum:SignedMinimum|PositiveLowerCertificate",
+    "Realization": "LinearArrow",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "CheckedSimulation": {
+   "fields": {
+    "Relation": "Relation",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "SafetyResult": {
+   "fields": {
+    "InitialCoverage": "Certificate",
+    "AbstractScope": "StateSet",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "OutcomeSet": {
+   "fields": {
+    "Outcomes": "ValueSet"
+   },
+   "doc": ""
+  },
+  "Scalar": {
+   "fields": {
+    "Value": "Rational"
+   },
+   "doc": ""
+  },
+  "KernelResult": {
+   "fields": {
+    "Kernel": "Tolerance",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "RelationResult": {
+   "fields": {
+    "Relation": "Relation"
+   },
+   "doc": ""
+  },
+  "CheckedImplementationContract": {
+   "fields": {
+    "Grade": "Grade",
+    "Certificate": "Certificate",
+    "Witness": "Witness?"
+   },
+   "doc": ""
+  },
+  "CheckedTransfer": {
+   "fields": {
+    "Transfer": "Transfer",
+    "Defect": "Interval",
+    "Metric": "enum:RewardLawTV|ExpectedReward",
+    "Certificate": "Certificate",
+    "Witness": "Witness?"
+   },
+   "doc": ""
+  },
+  "ValueCertificate": {
+   "fields": {
+    "Values": "Table",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "HiveCoherence": {
+   "fields": {
+    "Holonomy": "Kernel?",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "HiveKernel": {
+   "fields": {
+    "Kernel": "Tolerance"
+   },
+   "doc": ""
+  },
+  "HiveResult": {
+   "fields": {
+    "Hive": "KernelHive",
+    "Cost": "Rational",
+    "Optimality": "enum:Checked|Unknown",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "TransferHiveCoherence": {
+   "fields": {
+    "Holonomies": "TransferList",
+    "GaugeEvidence": "Certificate",
+    "Witness": "Witness?"
+   },
+   "doc": "GaugeEvidence covers the symmetry checks of every gauge and the intertwining of the gauges by every transfer"
+  },
+  "DerivedKernelHive": {
+   "fields": {
+    "Hive": "KernelHive",
+    "Saturation": "enum:Gauge|None",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "SeparatorResult": {
+   "fields": {
+    "Observer": "Expr",
+    "Evaluations": "Table",
+    "Invariance": "Certificate"
+   },
+   "doc": ""
+  },
+  "InvarianceResult": {
+   "fields": {
+    "Derivation": "Certificate"
+   },
+   "doc": ""
+  },
+  "EquivalenceDecision": {
+   "fields": {
+    "Conjugator": "Matrix?",
+    "HomDimensions": "Table?",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "ClockRateTable": {
+   "fields": {
+    "Rates": "Table",
+    "Exact": "CoordinateSet",
+    "Hypotheses": "Certificate"
+   },
+   "doc": ""
+  },
+  "CoordinateSet": {
+   "fields": {
+    "Coordinates": "CoordinateSet"
+   },
+   "doc": ""
+  },
+  "DistinctionComparison": {
+   "fields": {
+    "MassOld": "Rational",
+    "MassNew": "Rational",
+    "Creation": "Rational",
+    "Erasure": "Rational",
+    "Turnover": "Rational"
+   },
+   "doc": ""
+  },
+  "MetricTable": {
+   "fields": {
+    "Table": "Table"
+   },
+   "doc": ""
+  },
+  "PolicyValue": {
+   "fields": {
+    "Value": "Rational",
+    "Policy": "Table?",
+    "Values": "Table?",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "AveragedModel": {
+   "fields": {
+    "Model": "DecisionModel",
+    "Process": "DecisionProcess?"
+   },
+   "doc": ""
+  },
+  "DescriptionResult": {
+   "fields": {
+    "Description": "Name",
+    "Cost": "Rational",
+    "Optimality": "enum:Checked|Unknown"
+   },
+   "doc": ""
+  },
+  "TransportedSkill": {
+   "fields": {
+    "Skill": "Map",
+    "Changed": "Nat",
+    "Certificate": "Certificate"
+   },
+   "doc": "the transported skill table, the number of states where it differs from the skill it was transported from when source and target coincide, and the response-equality certificate"
+  },
+  "TransferCandidates": {
+   "fields": {
+    "Exact": "TransferList",
+    "Count": "Nat",
+    "Certificate": "Certificate"
+   },
+   "doc": "the qualifying candidates in declaration order, with one defect certificate per candidate"
+  },
+  "OptimalityVerdict": {
+   "fields": {
+    "Values": "Table",
+    "QValues": "Table",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": "the exact values of the policy and the Q-table that certifies or refutes optimality"
+  },
+  "PulledBackPolicy": {
+   "fields": {
+    "Policy": "Map",
+    "Values": "Table",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "MonitorCheck": {
+   "fields": {
+    "Valid": "Bool",
+    "Blind": "Bool",
+    "ChiSquare": "Table",
+    "Certificate": "Certificate"
+   },
+   "doc": ""
+  },
+  "Detection": {
+   "fields": {
+    "Fired": "Monitor?",
+    "Step": "Nat?",
+    "Observations": "Nat",
+    "EValue": "Rational",
+    "Threshold": "Rational",
+    "Estimand": "Expr",
+    "Procedure": "Expr",
+    "Assumptions": "Expr",
+    "Scheme": "enum:Ville|ShiryaevRoberts",
+    "MeanTimeToFalseAlarm": "Nat?",
+    "Largest": "Rational?",
+    "LargestAt": "Nat?"
+   },
+   "doc": "an Estimated result: the claim is about the data source, never about the model"
+  },
+  "StatisticCheck": {
+   "fields": {
+    "Obligations": "Table",
+    "Witness": "Witness?",
+    "Certificate": "Certificate"
+   },
+   "doc": "the obligations with their verdicts; for a refutation the failing obligation, state and parameter"
+  },
+  "RateEstimate": {
+   "fields": {
+    "Count": "Nat",
+    "Observations": "Nat",
+    "Lower": "Rational",
+    "Upper": "Rational",
+    "Estimand": "Expr",
+    "Procedure": "Expr",
+    "Assumptions": "Expr"
+   },
+   "doc": "an Estimated result: the claim is about the data source, never about the model"
+  },
+  "PairedComparison": {
+   "fields": {
+    "FirstOnly": "Nat",
+    "SecondOnly": "Nat",
+    "Lower": "Rational",
+    "Upper": "Rational",
+    "Estimand": "Expr",
+    "Procedure": "Expr",
+    "Assumptions": "Expr"
+   },
+   "doc": "an Estimated result on paired rows"
+  },
+  "RateSeparation": {
+   "fields": {
+    "Separated": "Bool",
+    "FirstUpper": "Rational",
+    "SecondLower": "Rational"
+   },
+   "doc": "m4est: interval separation of two Estimated rates"
+  }
+ },
+ "requests": {
+  "MeasureNow": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Precision": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectMeasurement",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the now defect lies in the reported interval"
+  },
+  "CheckNow": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Within": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectCheck",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the now defect is at most Within"
+  },
+  "MeasureUpdates": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Precision": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectMeasurement",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the updates defect lies in the reported interval"
+  },
+  "CheckUpdates": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Within": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectCheck",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the updates defect is at most Within"
+  },
+  "MeasureBehavioral": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Discount": {
+     "type": "discount",
+     "required": false,
+     "default": "1"
+    },
+    "Horizon": {
+     "type": "horizon",
+     "required": false,
+     "default": "AllFiniteWords"
+    },
+    "Precision": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectMeasurement",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the behavioral (bisimulation) defect lies in the reported interval; at Precision 0 the lower and upper certificates must meet (certificate_kinds), otherwise Unknown with the interval"
+  },
+  "CheckBehavioral": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Discount": {
+     "type": "discount",
+     "required": false,
+     "default": "1"
+    },
+    "Horizon": {
+     "type": "horizon",
+     "required": false,
+     "default": "AllFiniteWords"
+    },
+    "Within": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectCheck",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "every pair with equal codes is within Within in the behavioral pseudometric; witnesses are word tests (deterministic) or modal tests"
+  },
+  "MeasureTrace": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Horizon": {
+     "type": "horizon",
+     "required": false,
+     "default": "AllFiniteWords"
+    },
+    "Policies": {
+     "type": "enum:Words|ObservationBased",
+     "required": false,
+     "default": "Words"
+    },
+    "Precision": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectMeasurement",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the largest total-variation distance between observation-trace laws of equal-code pairs, over the declared policy class, lies in the interval; over ObservationBased on a stochastic machine the lower end needs a PolicyTreeWitness, and an implementation that does not replay policy trees answers Unsupported, or Unknown with the interval it can certify"
+  },
+  "CheckTrace": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Horizon": {
+     "type": "horizon",
+     "required": false,
+     "default": "AllFiniteWords"
+    },
+    "Policies": {
+     "type": "enum:Words|ObservationBased",
+     "required": false,
+     "default": "Words"
+    },
+    "Within": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectCheck",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "equal-code pairs have trace laws within Within over the declared policy class (trace equivalence at 0); witnesses are action words with an observation event and two probabilities (TraceEventWitness, Words) or finite policy trees with an event and two probabilities (PolicyTreeWitness, ObservationBased); on a stochastic machine a refutation over ObservationBased needs a PolicyTreeWitness, and an implementation that does not replay policy trees answers Unsupported or Unknown; for deterministic machines with discrete value tolerances the two policy classes give the same defect; for nondeterministic machines only Within 0 is defined, meaning may-trace equivalence"
+  },
+  "Defects": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Discount": {
+     "type": "discount",
+     "required": false,
+     "default": "1"
+    },
+    "Horizon": {
+     "type": "horizon",
+     "required": false,
+     "default": "AllFiniteWords"
+    },
+    "Precision": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "DefectRecord",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "measurement of the current, update and behavioral defects (and trace defect where supported)"
+  },
+  "BehavioralTolerance": {
+   "library": "Core",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "Discount": {
+     "type": "discount",
+     "required": false,
+     "default": "1"
+    },
+    "Horizon": {
+     "type": "horizon",
+     "required": false,
+     "default": "AllFiniteWords"
+    },
+    "Precision": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "ToleranceResult",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the returned kernel encloses the behavioral tolerance"
+  },
+  "Refine": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Preserve": {
+     "type": "enum:Encoding|Queries",
+     "required": false,
+     "default": "Encoding"
+    },
+    "Until": {
+     "type": "stable-or-horizon",
+     "required": false,
+     "default": "Stable",
+     "doc": "Stable, or (Steps k) for the staged partition P_k, which need not be update-compatible"
+    },
+    "Under": {
+     "type": "ref:Measure",
+     "required": false
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "Refinement",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the returned partition is the coarsest update-compatible refinement of the seed"
+  },
+  "MinimizeForQueries": {
+   "library": "Core",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "Under": {
+     "type": "ref:Measure",
+     "required": false
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "Refinement",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the returned partition is the behavioral equivalence of the queries"
+  },
+  "InduceExact": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "ExactAbstraction",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "current adequacy and update compatibility hold with defect zero and the fibers of the encoding are literally congruent: states with the same code value have successors with the same code value (deterministic), the same law on code values (stochastic) or the same set of code values (nondeterministic), whatever the code tolerance; so the quotient machine on the code values and a checked quotient arrow exist. Refuted with the witness of the first failed obligation, a CongruenceWitness for literal congruence"
+  },
+  "InduceApprox": {
+   "library": "Core",
+   "positional": [
+    [
+     "subject",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Representatives": {
+     "type": "selector",
+     "required": false,
+     "default": "Center"
+    },
+    "Discount": {
+     "type": "discount",
+     "required": false,
+     "default": "1"
+    },
+    "Horizon": {
+     "type": "horizon",
+     "required": false,
+     "default": "AllFiniteWords"
+    },
+    "Within": {
+     "type": "rat01",
+     "required": false,
+     "doc": "absent: a measurement; present: the claim defect <= Within"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "ApproxAbstraction",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the representative machine has the reported radius and arrow defect (and, with Within, defect at most Within)"
+  },
+  "WeakestWithin": {
+   "library": "Core",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "Within": {
+     "type": "rat01",
+     "required": true
+    },
+    "Kind": {
+     "type": "enum:Behavioral|Trace|Now|Updates|Radius",
+     "required": false,
+     "default": "Behavioral",
+     "doc": "Radius: the largest behavioral distance from a state to the representative of its class; the representatives are part of the answer"
+    },
+    "Discount": {
+     "type": "discount",
+     "required": false,
+     "default": "1"
+    },
+    "Under": {
+     "type": "ref:Measure",
+     "required": true
+    },
+    "Search": {
+     "type": "enum:Exhaustive|Greedy",
+     "required": false,
+     "default": "Exhaustive"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    },
+    "Objective": {
+     "type": "enum:Weakness|Codes",
+     "required": false,
+     "default": "Weakness"
+    },
+    "Family": {
+     "type": "ref:EncodingFamily",
+     "required": false,
+     "doc": "search only the declared family; Optimality is then relative to it"
+    }
+   },
+   "result": "Frontier",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the returned partition meets the bound; Optimality is Checked only after an exhaustive search completes"
+  },
+  "CheckAbstractionMap": {
+   "library": "Core",
+   "positional": [
+    [
+     "arrow",
+     "ref:AbstractionMap"
+    ]
+   ],
+   "args": {
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "CheckedAbstractionMap",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the map is a homomorphism; Kind is Quotient when it is also surjective"
+  },
+  "Then": {
+   "library": "Core",
+   "positional": [
+    [
+     "first",
+     "ref:Arrow"
+    ],
+    [
+     "second",
+     "ref:Arrow"
+    ]
+   ],
+   "args": {},
+   "result": "ComposedArrow",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "composition of two checked arrows of one kind by that kind's registered law; the target of the first arrow must be the source of the second, with the same interface identity, otherwise InvalidInput; the composite carries the union of the premises' assumptions"
+  },
+  "CheckBlockPartition": {
+   "library": "Core",
+   "positional": [
+    [
+     "partition",
+     "ref:BlockPartition"
+    ]
+   ],
+   "args": {
+    "Of": {
+     "type": "ref:Machine",
+     "required": true
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "BlockPartitionCheck",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the blocks cover the carrier, are disjoint, contain their representatives, keep queries constant and are stable"
+  },
+  "SamePartition": {
+   "library": "Core",
+   "positional": [
+    [
+     "left",
+     "ref:Representation"
+    ],
+    [
+     "right",
+     "ref:Representation"
+    ]
+   ],
+   "args": {},
+   "result": "Verdict",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the two encodings induce the same equivalence relation"
+  },
+  "MinimalLinear": {
+   "library": "Linear",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "LinearMinimum",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the dimension is the minimum over signed linear realizations of the trace function"
+  },
+  "TracePartition": {
+   "library": "Linear",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "PartitionResult",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the classes of trace equivalence (not a dynamical quotient)"
+  },
+  "CheckLinearArrow": {
+   "library": "Linear",
+   "positional": [
+    [
+     "arrow",
+     "ref:LinearArrow"
+    ]
+   ],
+   "args": {
+    "Norm": {
+     "type": "enum:InfinityOperator",
+     "required": false,
+     "default": "InfinityOperator"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "CheckedLinearArrow",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the residuals of the intertwining equations and the operator norm satisfy the reported grade (Lambda, Rho)"
+  },
+  "PositiveRealization": {
+   "library": "Linear",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "Candidate": {
+     "type": "ref:LinearArrow",
+     "required": true
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "PositiveDimension",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the minimum positive dimension lies in [Lower, Upper]; Upper comes from the replayed candidate"
+  },
+  "CheckSimulation": {
+   "library": "Simulation",
+   "positional": [
+    [
+     "simulation",
+     "ref:Simulation"
+    ]
+   ],
+   "args": {
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "CheckedSimulation",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the relation is a simulation"
+  },
+  "CheckSafety": {
+   "library": "Simulation",
+   "positional": [
+    [
+     "target",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "Never": {
+     "type": "property",
+     "required": true
+    },
+    "Via": {
+     "type": "ref:Simulation",
+     "required": true
+    },
+    "Init": {
+     "type": "names",
+     "required": true
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "SafetyResult",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the source machine of the Via simulation, started in Init, satisfies the registered safety property; the simulation's target must be the request's target machine, otherwise InvalidInput; requires Init within the domain of the relation, otherwise Unknown"
+  },
+  "Outcomes": {
+   "library": "Simulation",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "From": {
+     "type": "element",
+     "required": true
+    },
+    "After": {
+     "type": "word",
+     "required": true
+    },
+    "Observe": {
+     "type": "name",
+     "required": true
+    }
+   },
+   "result": "OutcomeSet",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the set of observable outcomes"
+  },
+  "OutcomeProbability": {
+   "library": "Simulation",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "From": {
+     "type": "element",
+     "required": true
+    },
+    "After": {
+     "type": "word",
+     "required": true
+    },
+    "Event": {
+     "type": "expr",
+     "required": true
+    },
+    "Scheduler": {
+     "type": "ref:Scheduler",
+     "required": true
+    }
+   },
+   "result": "Scalar",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the probability of the event under the declared scheduler"
+  },
+  "PathClosure": {
+   "library": "GradedKernels",
+   "positional": [
+    [
+     "kernel",
+     "ref:Tolerance"
+    ]
+   ],
+   "args": {
+    "Algebra": {
+     "type": "enum:Lukasiewicz01|Boolean",
+     "required": false,
+     "default": "Lukasiewicz01"
+    }
+   },
+   "result": "KernelResult",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the least metric kernel above the input"
+  },
+  "Threshold": {
+   "library": "GradedKernels",
+   "positional": [
+    [
+     "kernel",
+     "ref:Tolerance"
+    ]
+   ],
+   "args": {
+    "AtLeast": {
+     "type": "rat01",
+     "required": true
+    }
+   },
+   "result": "RelationResult",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the crisp relation of entries at least the threshold"
+  },
+  "Bracket": {
+   "library": "GradedKernels",
+   "positional": [
+    [
+     "kernel",
+     "ref:Tolerance"
+    ]
+   ],
+   "args": {
+    "Under": {
+     "type": "ref:PairLaw",
+     "required": true
+    }
+   },
+   "result": "Scalar",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the weakness bracket under the pair law"
+  },
+  "Delta": {
+   "library": "GradedKernels",
+   "positional": [],
+   "args": {
+    "From": {
+     "type": "expr",
+     "required": true
+    },
+    "To": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "result": "Scalar",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "difference of two scalars"
+  },
+  "CheckTransitive": {
+   "library": "GradedKernels",
+   "positional": [
+    [
+     "kernel",
+     "ref:Tolerance|Relation"
+    ]
+   ],
+   "args": {
+    "Algebra": {
+     "type": "enum:Lukasiewicz01|Boolean",
+     "required": false,
+     "default": "Lukasiewicz01"
+    }
+   },
+   "result": "Verdict",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [
+    "Deterministic"
+   ],
+   "claim": "the kernel is transitive in the algebra"
+  },
+  "CheckImplementation": {
+   "library": "Contracts",
+   "positional": [
+    [
+     "implementation",
+     "ref:Implementation"
+    ]
+   ],
+   "args": {
+    "Grade": {
+     "type": "grade",
+     "required": true
+    }
+   },
+   "result": "CheckedImplementationContract",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the affine contract holds on all audited pairs"
+  },
+  "ThenContracts": {
+   "library": "Contracts",
+   "positional": [
+    [
+     "first",
+     "ref:CheckedImplementationContract"
+    ],
+    [
+     "second",
+     "ref:CheckedImplementationContract"
+    ]
+   ],
+   "args": {},
+   "result": "CheckedImplementationContract",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "composite grade (L2 L1, L2 eta1 + eta2)"
+  },
+  "CheckTransfer": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "transfer",
+     "ref:Transfer"
+    ]
+   ],
+   "args": {
+    "Within": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Metric": {
+     "type": "enum:RewardLawTV|ExpectedReward",
+     "required": false,
+     "default": "RewardLawTV"
+    }
+   },
+   "result": "CheckedTransfer",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "labelled responses are preserved within Within"
+  },
+  "ComposeTransfers": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "transfers",
+     "ref:Transfer",
+     "variadic"
+    ]
+   ],
+   "args": {},
+   "result": "CheckedTransfer",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "composition in Poly; defects add"
+  },
+  "CheckValuePullback": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "transfer",
+     "ref:Transfer"
+    ]
+   ],
+   "args": {},
+   "result": "ValueCertificate",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "optimal values agree; this is not a transfer certificate"
+  },
+  "LibraryGap": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "transfer",
+     "ref:Transfer"
+    ]
+   ],
+   "args": {},
+   "result": "Scalar",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "target optimum minus best translated value"
+  },
+  "CheckKernelCoherence": {
+   "library": "Hives",
+   "positional": [
+    [
+     "hive",
+     "ref:KernelHive"
+    ]
+   ],
+   "args": {},
+   "result": "HiveCoherence",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the block kernel is a metric tolerance"
+  },
+  "Holonomy": {
+   "library": "Hives",
+   "positional": [
+    [
+     "hive",
+     "ref:KernelHive"
+    ]
+   ],
+   "args": {
+    "Cycle": {
+     "type": "names",
+     "required": true
+    }
+   },
+   "result": "HiveKernel",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "composite correspondence around the cycle"
+  },
+  "ConsensusCost": {
+   "library": "Hives",
+   "positional": [
+    [
+     "hive",
+     "ref:KernelHive"
+    ]
+   ],
+   "args": {},
+   "result": "Scalar",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "weighted mass erased by metric closure"
+  },
+  "CompleteHive": {
+   "library": "Hives",
+   "positional": [
+    [
+     "hive",
+     "ref:KernelHive"
+    ]
+   ],
+   "args": {},
+   "result": "HiveResult",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "least coherent completion of unmeasured correspondences along a Lipschitz forest"
+  },
+  "LeastCoherentRefinement": {
+   "library": "Hives",
+   "positional": [
+    [
+     "hive",
+     "ref:KernelHive"
+    ]
+   ],
+   "args": {
+    "Search": {
+     "type": "enum:Exhaustive|LinearProgram",
+     "required": false,
+     "default": "LinearProgram"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "HiveResult",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "a coherent refinement of least cost; Optimality as for frontiers"
+  },
+  "CheckTransferHive": {
+   "library": "Hives",
+   "positional": [
+    [
+     "hive",
+     "ref:TransferHive"
+    ]
+   ],
+   "args": {},
+   "result": "TransferHiveCoherence",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "every gauge is a group of response symmetries, every transfer intertwines the gauges of its endpoints (iota^-1 G_j^M iota = G_i^M on method parts), and every declared cycle has holonomy in the gauge of its base member"
+  },
+  "KernelOf": {
+   "library": "Hives",
+   "positional": [
+    [
+     "hive",
+     "ref:TransferHive"
+    ]
+   ],
+   "args": {
+    "Saturate": {
+     "type": "enum:Gauge|None",
+     "required": false,
+     "default": "None"
+    }
+   },
+   "result": "DerivedKernelHive",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the kernel hive derived from response observers and transfers (exact transfers only)"
+  },
+  "SeekSeparator": {
+   "library": "Discovery",
+   "positional": [],
+   "args": {
+    "Pair": {
+     "type": "pair",
+     "required": true
+    },
+    "Family": {
+     "type": "ref:ObserverFamily",
+     "required": true
+    },
+    "Require": {
+     "type": "expr",
+     "required": true
+    },
+    "Order": {
+     "type": "enum:GeneratedOrder",
+     "required": false,
+     "default": "GeneratedOrder"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "SeparatorResult",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the returned observer separates the pair and is invariant"
+  },
+  "CheckObserverInvariance": {
+   "library": "Discovery",
+   "positional": [
+    [
+     "family",
+     "ref:ObserverFamily"
+    ]
+   ],
+   "args": {
+    "Under": {
+     "type": "expr",
+     "required": true
+    },
+    "Method": {
+     "type": "enum:StructuralMatrixRules",
+     "required": true
+    }
+   },
+   "result": "InvarianceResult",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "every generated observer is invariant under the equivalence"
+  },
+  "DecideEquivalence": {
+   "library": "Discovery",
+   "positional": [
+    [
+     "source",
+     "ref:ObserverSource"
+    ]
+   ],
+   "args": {
+    "Pair": {
+     "type": "pair",
+     "required": true
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "EquivalenceDecision",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the two structures are equivalent"
+  },
+  "ClockRates": {
+   "library": "Discovery",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {
+    "Under": {
+     "type": "ref:Measure",
+     "required": true
+    },
+    "Library": {
+     "type": "enum:Coordinates",
+     "required": true
+    },
+    "Kind": {
+     "type": "enum:Mean|SupNorm|Brier",
+     "required": false,
+     "default": "Mean"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "ClockRateTable",
+   "statuses": [
+    "Checked",
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "clock rates of the task observer under coordinate flips; exactness statements need a full-support product law"
+  },
+  "ConeOfInfluence": {
+   "library": "Discovery",
+   "positional": [
+    [
+     "machine",
+     "ref:Machine"
+    ]
+   ],
+   "args": {},
+   "result": "CoordinateSet",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "coordinates read by some query or update, transitively"
+  },
+  "CompareDistinctions": {
+   "library": "Neural",
+   "positional": [
+    [
+     "old",
+     "ref:Representation"
+    ],
+    [
+     "new",
+     "ref:Representation"
+    ]
+   ],
+   "args": {
+    "Under": {
+     "type": "ref:PairLaw",
+     "required": true
+    }
+   },
+   "result": "DistinctionComparison",
+   "statuses": [
+    "Checked",
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "masses, creation, erasure and turnover under the pair law"
+  },
+  "AuditIntervention": {
+   "library": "Neural",
+   "positional": [],
+   "args": {
+    "Systems": {
+     "type": "names",
+     "required": true
+    },
+    "Intervention": {
+     "type": "expr",
+     "required": true
+    },
+    "Task": {
+     "type": "ref:Map",
+     "required": true
+    },
+    "Under": {
+     "type": "ref:Measure",
+     "required": true
+    },
+    "Metric": {
+     "type": "enum:Accuracy",
+     "required": true
+    }
+   },
+   "result": "MetricTable",
+   "statuses": [
+    "Checked",
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "metric per system under the intervention"
+  },
+  "AverageModel": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "model",
+     "ref:DecisionModel|DecisionProcess"
+    ]
+   ],
+   "args": {
+    "Under": {
+     "type": "ref:Measure",
+     "required": true
+    },
+    "Through": {
+     "type": "ref:Representation",
+     "required": false
+    }
+   },
+   "result": "AveragedModel",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "prior-averaged reward law per action.  For a DecisionProcess with Through: the process on the codes whose rewards and pushed rows are averaged over each fiber under Under; admitted only when the hidden part is fresh (redrawn from Under at every step, independently of the rest), and then exact for every policy, history-dependent or not, that sees only the codes; InvalidInput otherwise"
+  },
+  "CheckEqual": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "left",
+     "expr"
+    ],
+    [
+     "right",
+     "expr"
+    ]
+   ],
+   "args": {
+    "Compare": {
+     "type": "enum:Laws|Means",
+     "required": false,
+     "default": "Laws",
+     "doc": "Laws compares reward laws; Means compares expected rewards, which is what values and decisions of a risk-neutral process depend on"
+    }
+   },
+   "result": "Verdict",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the two averaged reward laws are equal; for decision processes on the same states and actions (declared or averaged), equal kernels and equal reward laws (Compare Laws) or equal expected rewards (Compare Means), with witness the least state, the first action and the first successor or reward value, in increasing order, whose masses differ"
+  },
+  "OptimizePolicy": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "model",
+     "ref:DecisionModel|DecisionProcess"
+    ]
+   ],
+   "args": {
+    "Through": {
+     "type": "ref:Representation",
+     "required": false
+    },
+    "Under": {
+     "type": "ref:Measure",
+     "required": true
+    }
+   },
+   "result": "PolicyValue",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "optimal expected reward over policies that see only the representation.  For a DecisionProcess: the optimal discounted value from the start law Under, over stationary deterministic policies on states (no Through) or on codes (Through), evaluated in the concrete process, with the policy table and a Bellman certificate; on codes the class is memoryless code policies, which is every coarse policy when the hidden part is fresh"
+  },
+  "EvaluatePolicy": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "model",
+     "ref:DecisionModel|DecisionProcess"
+    ]
+   ],
+   "args": {
+    "With": {
+     "type": "ref:ObservationMethod",
+     "required": false
+    },
+    "Policy": {
+     "type": "ref:Map",
+     "required": false
+    },
+    "Through": {
+     "type": "ref:Representation",
+     "required": false
+    },
+    "Under": {
+     "type": "ref:Measure",
+     "required": true
+    }
+   },
+   "result": "PolicyValue",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "exactly one of With and Policy.  With: expected reward of the best policy using the observation method, net of its cost; for a DecisionProcess the method reads the state component whose carrier is its channel's input once per step before the action, the policy also sees the code of Through, and values are computed on the hidden states, never by substituting the reading for the state.  Policy: the exact discounted value of the declared stationary policy from Under"
+  },
+  "ExpectedProposals": {
+   "library": "Search",
+   "positional": [
+    [
+     "archive",
+     "ref:Archive"
+    ]
+   ],
+   "args": {
+    "Until": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "result": "Scalar",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "expected number of proposals until the target is hit"
+  },
+  "FindCheapestDescription": {
+   "library": "Hyperseed",
+   "positional": [
+    [
+     "system",
+     "ref:DescriptionSystem"
+    ]
+   ],
+   "args": {
+    "Target": {
+     "type": "expr",
+     "required": true
+    }
+   },
+   "result": "DescriptionResult",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "least cost among the declared descriptions only"
+  },
+  "CheckPatternWitness": {
+   "library": "Hyperseed",
+   "positional": [
+    [
+     "witness",
+     "ref:PatternWitness"
+    ]
+   ],
+   "args": {},
+   "result": "Verdict",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the description decodes to the target and beats the baseline"
+  },
+  "TransportSkill": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "transfer",
+     "ref:Transfer|CheckedTransfer"
+    ],
+    [
+     "skill",
+     "ref:Map"
+    ]
+   ],
+   "args": {},
+   "result": "TransportedSkill",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the transported skill y -> iota(skill(phi y)) earns, at every target state, the labelled response the source skill earns at the pulled-back state; the result also lists where it differs from a declared comparison skill"
+  },
+  "FindTransfers": {
+   "library": "Transfers",
+   "positional": [
+    [
+     "source",
+     "ref:MethodSystem"
+    ],
+    [
+     "target",
+     "ref:MethodSystem"
+    ]
+   ],
+   "args": {
+    "Candidates": {
+     "type": "names",
+     "required": true,
+     "doc": "(Candidates (pullback pushforward)+): a sequence of candidate transfers, each a pair of declared maps"
+    },
+    "Within": {
+     "type": "rat01",
+     "required": false,
+     "default": "0"
+    },
+    "Metric": {
+     "type": "enum:RewardLawTV|ExpectedReward",
+     "required": false,
+     "default": "RewardLawTV"
+    }
+   },
+   "result": "TransferCandidates",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the listed candidates are exactly those of the declared family whose defect is at most Within; a learner that keeps one of several reports the others, since the choice among them is a gauge choice"
+  },
+  "CheckOptimal": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "process",
+     "ref:DecisionProcess"
+    ]
+   ],
+   "args": {
+    "Policy": {
+     "type": "ref:Map",
+     "required": true
+    }
+   },
+   "result": "OptimalityVerdict",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the stationary policy is optimal: its exact values V satisfy Q(x, pi x) >= Q(x, a) for every state and action, Q(x, a) = r(x, a) + gamma E V; Refuted with the least state, the policy's action, the first action in declaration order with a larger Q-value and the two exact Q-values"
+  },
+  "PullbackPolicy": {
+   "library": "Decisions",
+   "positional": [
+    [
+     "arrow",
+     "ref:AbstractionMap|CheckedAbstractionMap"
+    ]
+   ],
+   "args": {
+    "Policy": {
+     "type": "ref:Map",
+     "required": true
+    }
+   },
+   "result": "PulledBackPolicy",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the arrow h is a homomorphism of decision processes (expected rewards and pushed rows preserved) and the policy x -> pi(h x) has at every source state the value pi has at h x; when h is surjective and pi is optimal for the target, the pulled-back policy is optimal for the source; Refuted with the homomorphism witness otherwise"
+  },
+  "CheckMonitor": {
+   "library": "Monitors",
+   "positional": [
+    [
+     "monitor",
+     "ref:Monitor"
+    ]
+   ],
+   "args": {},
+   "result": "MonitorCheck",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "for every context the null expectation of the likelihood-ratio factor is at most one (exactly one when the alternative is absolutely continuous with respect to the null), so the product is a nonnegative supermartingale under the null for every policy that fixes the context before the observation; Blind when the two laws agree in every context; exact chi-square per context"
+  },
+  "Detect": {
+   "library": "Monitors",
+   "positional": [
+    [
+     "monitors",
+     "ref:Monitor",
+     "variadic"
+    ]
+   ],
+   "args": {
+    "On": {
+     "type": "ref:Stream",
+     "required": true
+    },
+    "Level": {
+     "type": "rat01",
+     "required": false,
+     "doc": "required with Scheme Ville: the probability bound on any false alarm"
+    },
+    "Combine": {
+     "type": "enum:Union|Mixture",
+     "required": false,
+     "default": "Union"
+    },
+    "Scheme": {
+     "type": "enum:Ville|ShiryaevRoberts",
+     "required": false,
+     "default": "Ville",
+     "doc": "Ville: e-processes started at the first observation, as in the fourth of the four worked examples; ShiryaevRoberts: a changepoint detector that sums e-processes started at every observation"
+    },
+    "MeanTimeToFalseAlarm": {
+     "type": "nat",
+     "required": false,
+     "doc": "required with Scheme ShiryaevRoberts: the alarm threshold, which bounds from below the expected number of observations before a false alarm"
+    }
+   },
+   "result": "Detection",
+   "statuses": [
+    "Estimated"
+   ],
+   "profiles": [
+    "Stochastic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Estimated.  With Scheme Ville (the default): if the stream follows laws whose likelihood-ratio factors have conditional null expectation at most one, the probability that a listed monitor ever reaches its threshold is at most Level (Ville's inequality; Union gives each of k monitors the threshold k/Level, Mixture thresholds the average of the e-values at 1/Level).  With Scheme ShiryaevRoberts and Combine Mixture: each monitor's Shiryaev-Roberts statistic R_n = (1 + R_{n-1}) L_n is averaged over the monitors and the alarm is raised when the average reaches MeanTimeToFalseAlarm; under the same null condition the average minus n is a supermartingale, so the expected number of observations before a false alarm is at least MeanTimeToFalseAlarm.  The result names the first monitor (or the mixture) and observation to reach the threshold, or reports that none did with the largest value reached, with the stream digest, the protocol and the dependence assumptions"
+  },
+  "CheckInterpretation": {
+   "library": "Core",
+   "positional": [
+    [
+     "old",
+     "ref:Consumer"
+    ],
+    [
+     "new",
+     "ref:Consumer"
+    ]
+   ],
+   "args": {
+    "Via": {
+     "type": "ref:AbstractionMap",
+     "required": false,
+     "doc": "for a change of record schema: the map h from the old consumer's machine to the new consumer's machine"
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "Verdict",
+   "statuses": [
+    "Checked",
+    "Refuted"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "the interpretation obligation: for every valid record x, that is, every state of the old consumer's machine, d_new(g_new(x)) = d_old(g_old(x)), where g is a consumer's goal answer (its machine's observer, or the tuple of its observers in declaration order) and d the decoder its Decode field declares; with Via h, d_new(g_new(h x)) = d_old(g_old(x)). Refuted with a RecordWitness, the least record in carrier order whose two decisions differ. InvalidInput, naming the mismatch, when a consumer declares no decoder, when the two machines have different state carriers and no Via is given, when the map's Source or Target is not the old or the new consumer's machine, or when h leaves the new machine's states. The result is bound to both consumer declarations, both machines with their observers, both decoders with their custody, and the records it ranges over. Informational refinement and equivalence (CheckNow in each direction) do not imply it"
+  },
+  "CheckStatistic": {
+   "library": "Statistics",
+   "positional": [
+    [
+     "statistic",
+     "ref:Statistic|Keyed"
+    ]
+   ],
+   "args": {
+    "Method": {
+     "type": "enum:Symbolic|Exhaustive|Lift",
+     "required": false,
+     "default": "Symbolic",
+     "doc": "Symbolic: every obligation is decided for all states and parameters by a decision procedure of the carriers' theories.  Exhaustive: every state and parameter of an enumerated machine is checked.  Lift: for a Keyed statistic, the item statistic is checked and the keyed one follows by the lifting proposition."
+    },
+    "Budget": {
+     "type": "budget",
+     "required": false,
+     "doc": "work limit; never a semantic horizon"
+    }
+   },
+   "result": "StatisticCheck",
+   "statuses": [
+    "Checked",
+    "Refuted",
+    "Conditional"
+   ],
+   "profiles": [
+    "Deterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "for every state x in the machine's carrier and every parameter p: T_a(x, p) lies in the carrier, s(T_a(x, p)) = step_a(s(x), p), q(x) = read_q(s(x)) for every query q, and s(m(x, y)) = mstep(s(x), s(y)) for every merge entry m; then two states with equal statistic values answer every word of actions and queries alike.  Refuted with the failing obligation and a replayable witness state and parameter."
+  },
+  "EstimateRate": {
+   "library": "Estimates",
+   "positional": [],
+   "args": {
+    "On": {
+     "type": "ref:Stream",
+     "required": true
+    },
+    "Column": {
+     "type": "expr",
+     "required": true
+    },
+    "Equals": {
+     "type": "expr",
+     "required": true,
+     "doc": "the value that counts as an event"
+    },
+    "Level": {
+     "type": "rat01",
+     "required": true
+    },
+    "Estimator": {
+     "type": "enum:ConfidenceSequence|Hoeffding|ExactBinomial",
+     "required": false,
+     "default": "ConfidenceSequence",
+     "doc": "ConfidenceSequence is anytime-valid; Hoeffding and ExactBinomial (Clopper-Pearson) are fixed-sample intervals, valid only when the sample size was fixed before reading"
+    },
+    "Sample": {
+     "type": "nat",
+     "required": false,
+     "doc": "read a seeded simple random sample of this many rows without replacement instead of every row; the result records Seed and SamplePopulation"
+    },
+    "Seed": {
+     "type": "nat",
+     "required": false,
+     "doc": "the sampling seed; required with Sample"
+    },
+    "ReuseUnder": {
+     "type": "expr",
+     "required": false,
+     "doc": "the policy digest the estimate is to be reused under; refused (InvalidInput) unless it equals the stream's Policy or an Argument is declared, and always refused when the stream's selection depends on the policy"
+    },
+    "Argument": {
+     "type": "expr",
+     "required": false,
+     "doc": "the declared argument that the population and selection do not depend on the policy"
+    }
+   },
+   "result": "RateEstimate",
+   "statuses": [
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Estimated: the interval at the stream's last row of the binomial-mixture confidence sequence for the rate at which Column equals Equals. Read as an interval for a common rate, it holds at every row simultaneously with probability at least 1 - Level when every row has that rate given the rows before it. Read as a one-sided claim that the rate is below (or above) a fixed target, it needs no common rate: it holds for the running average of the rows' conditional rates, for rows read in an order fixed before their labels (Part II, Proposition 5.1). The result names the stream, its digest, population, selection rule and policy; a stream whose digest differs from the declared one is InvalidInput, with no count or interval"
+  },
+  "CompareRates": {
+   "library": "Estimates",
+   "positional": [],
+   "args": {
+    "On": {
+     "type": "ref:Stream",
+     "required": true
+    },
+    "First": {
+     "type": "expr",
+     "required": true
+    },
+    "Second": {
+     "type": "expr",
+     "required": true
+    },
+    "Equals": {
+     "type": "expr",
+     "required": true
+    },
+    "Level": {
+     "type": "rat01",
+     "required": true
+    },
+    "Estimator": {
+     "type": "enum:ConfidenceSequence|Hoeffding|ExactBinomial",
+     "required": false,
+     "default": "ConfidenceSequence"
+    },
+    "Sample": {
+     "type": "nat",
+     "required": false
+    },
+    "Seed": {
+     "type": "nat",
+     "required": false
+    },
+    "ReuseUnder": {
+     "type": "expr",
+     "required": false
+    },
+    "Argument": {
+     "type": "expr",
+     "required": false
+    }
+   },
+   "result": "PairedComparison",
+   "statuses": [
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Estimated: on the rows where exactly one of the two columns equals Equals, the confidence sequence for the share of rows in which it is First; an interval above one half says that First shows the event more often than Second, as a one-sided claim about the running average of the discordant rows' conditional shares (Part II, Proposition 5.1). The result names the stream and its digest; a mismatching digest is InvalidInput"
+  },
+  "EstimateDupRate": {
+   "library": "Estimates",
+   "positional": [],
+   "args": {
+    "On": {
+     "type": "ref:Stream",
+     "required": true
+    },
+    "Column": {
+     "type": "expr",
+     "required": true,
+     "doc": "the key column; a duplicate is a pair of rows with equal keys"
+    },
+    "Level": {
+     "type": "rat01",
+     "required": true
+    },
+    "Sample": {
+     "type": "nat",
+     "required": false
+    },
+    "Seed": {
+     "type": "nat",
+     "required": false
+    },
+    "ReuseUnder": {
+     "type": "expr",
+     "required": false
+    },
+    "Argument": {
+     "type": "expr",
+     "required": false
+    }
+   },
+   "result": "RateEstimate",
+   "statuses": [
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Estimated: the pairwise duplicate rate (share of unordered row pairs with equal Column) as the order-2 U-statistic, with a two-sided Hoeffding interval over floor(n/2) disjoint pairs at the requested Level, valid when rows are independent and identically distributed. Same stream, digest and policy rules as EstimateRate"
+  },
+  "RatesSeparated": {
+   "library": "Estimates",
+   "positional": [
+    [
+     "first",
+     "ref:RateEstimate"
+    ],
+    [
+     "second",
+     "ref:RateEstimate"
+    ]
+   ],
+   "args": {},
+   "result": "RateSeparation",
+   "statuses": [
+    "Conditional"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Checked comparison of two Estimated rates (review 1 F3): Holds when the first estimate's Upper is strictly below the second's Lower (exact rationals). The answer is derived from Estimated premises, so it is Conditional on (EstimatedPremise digest delta) for each, and (EstimatedDelta sum) adds their deltas; never Checked"
+  }
+ },
+ "libraries": {
+  "Core": {
+   "primitives": [
+    "Tuple",
+    "GetTuple",
+    "Rat",
+    "Add",
+    "Mul",
+    "Sub",
+    "Div",
+    "Eq",
+    "If",
+    "Not",
+    "And",
+    "Or",
+    "Xor",
+    "Value",
+    "Get",
+    "Variant",
+    "Do",
+    "Pair",
+    "Steps",
+    "Choose",
+    "Mass",
+    "Row",
+    "Body",
+    "Cases",
+    "Table",
+    "Choice",
+    "Enum",
+    "Product",
+    "All",
+    "Subset",
+    "Reach",
+    "Query",
+    "Key",
+    "Uniform",
+    "Masses",
+    "Trivial",
+    "Discrete",
+    "OneMinusAbsoluteDifference",
+    "Pullback",
+    "SymmetricTable",
+    "DirectedTable",
+    "Diagonal",
+    "Block",
+    "Successor",
+    "Dynamics",
+    "Values",
+    "Carriers",
+    "Unit",
+    "PairExpansions",
+    "Seconds",
+    "LetResult",
+    "IntervalProduct",
+    "Tied",
+    "RoundedGrid",
+    "Meet",
+    "Checked",
+    "Estimated",
+    "Conditional",
+    "TrustedBackend",
+    "Assumption",
+    "cvc5",
+    "z3",
+    "cadical"
+   ],
+   "type_constructors": [
+    "Tuple",
+    "Sum",
+    "BitVector",
+    "Matrix",
+    "Law",
+    "Product",
+    "BoundedString",
+    "BoundedList",
+    "Expr"
+   ],
+   "builtin_types": [
+    "Symbol",
+    "Nat",
+    "Int",
+    "Rational",
+    "Rational01",
+    "Bit",
+    "Bool"
+   ],
+   "constants": [
+    "Encoding",
+    "Queries",
+    "Stable",
+    "AllFiniteWords",
+    "Center",
+    "First",
+    "Words",
+    "ObservationBased",
+    "Literal",
+    "Observer",
+    "Included",
+    "Excluded",
+    "Behavioral",
+    "Trace",
+    "Now",
+    "Updates",
+    "Exhaustive",
+    "Greedy",
+    "True",
+    "False",
+    "Crisp",
+    "Graded",
+    "Stochastic",
+    "Nondeterministic",
+    "Deterministic",
+    "Lukasiewicz",
+    "Directed",
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ]
+  },
+  "BitVectors": {
+   "primitives": [
+    "BitAt",
+    "SwapBits",
+    "RotateRange",
+    "SetBit",
+    "Parity",
+    "Slice",
+    "IsZero",
+    "BitOr",
+    "BitAnd",
+    "BitXor",
+    "PopCount",
+    "Gather"
+   ],
+   "constants": []
+  },
+  "FiniteSets": {
+   "primitives": [
+    "ReceiptUnion"
+   ],
+   "constants": []
+  },
+  "Linear": {
+   "primitives": [
+    "Rows"
+   ],
+   "constants": [
+    "Positive",
+    "Signed",
+    "InfinityOperator"
+   ]
+  },
+  "Simulation": {
+   "primitives": [
+    "EnterFrom",
+    "Shows",
+    "ReachWithin"
+   ],
+   "constants": [
+    "Set",
+    "Multiset",
+    "Uniform"
+   ],
+   "property_forms": {
+    "(Shows o v)": "no reachable state shows value v for query o",
+    "(EnterFrom t (Not s))": "no reachable transition enters a state showing t from a state showing neither t nor s (values of the machine's observation)",
+    "(ReachWithin t k)": "no run of at most k steps from an initial state reaches a state showing t"
+   },
+   "note": "all three forms lie in the universal fragment preserved by simulations with initial coverage"
+  },
+  "GradedKernels": {
+   "primitives": [],
+   "constants": [
+    "Lukasiewicz01",
+    "Boolean"
+   ]
+  },
+  "Contracts": {
+   "primitives": [
+    "Grade"
+   ],
+   "constants": []
+  },
+  "Transfers": {
+   "primitives": [],
+   "constants": [
+    "RewardLawTV",
+    "ExpectedReward"
+   ]
+  },
+  "Hives": {
+   "primitives": [
+    "Cycle"
+   ],
+   "constants": [
+    "Measured",
+    "Unmeasured",
+    "Gauge",
+    "None",
+    "LinearProgram"
+   ]
+  },
+  "Discovery": {
+   "primitives": [
+    "Generate",
+    "For",
+    "Elements",
+    "Expr",
+    "Lambda",
+    "Rank",
+    "Scale",
+    "Square",
+    "SimultaneousConjugacy",
+    "Fields",
+    "Over",
+    "Matrix4",
+    "PowerRanks",
+    "Probes"
+   ],
+   "constants": [
+    "F7",
+    "I4",
+    "GeneratedOrder",
+    "StructuralMatrixRules",
+    "Coordinates",
+    "Mean",
+    "SupNorm",
+    "Brier",
+    "Rank4"
+   ]
+  },
+  "Neural": {
+   "primitives": [
+    "SetReport"
+   ],
+   "constants": [
+    "Accuracy"
+   ]
+  },
+  "Decisions": {
+   "primitives": [
+    "Point",
+    "Coin"
+   ],
+   "constants": []
+  },
+  "Search": {
+   "primitives": [
+    "Hits",
+    "Proposals"
+   ],
+   "constants": [
+    "Uniform",
+    "FirstRepresentative"
+   ]
+  },
+  "Hyperseed": {
+   "primitives": [
+    "Literal",
+    "Repeat",
+    "Tokens",
+    "Operator",
+    "Count",
+    "PBit",
+    "Observed",
+    "PBitNot",
+    "PBitAnd",
+    "PBitOr",
+    "EvidenceJoin",
+    "EvidenceProduct"
+   ],
+   "type_constructors": [
+    "Sum"
+   ],
+   "builtin_types": [
+    "PBit"
+   ],
+   "constants": [
+    "Expand",
+    "Missing",
+    "InterfaceRef",
+    "MapRef",
+    "RepresentationRef"
+   ]
+  },
+  "NatArith": {
+   "primitives": [
+    "Le",
+    "Lt",
+    "Min",
+    "Max",
+    "Quot",
+    "Rem"
+   ],
+   "constants": [],
+   "doc": "order and integer division on Nat and Int; Quot and Rem need a positive divisor and return a tagged failure value otherwise; If evaluates only the branch it selects"
+  },
+  "Parallel": {
+   "primitives": [],
+   "constants": [],
+   "doc": "parallel composition of machines with synchronized and interleaved actions, and product representations; claims about products are answered by the product rule from component certificates"
+  },
+  "Families": {
+   "primitives": [
+    "Switch",
+    "Exists",
+    "ForAll",
+    "For"
+   ],
+   "constants": [
+    "Any"
+   ],
+   "binders": [
+    "Exists",
+    "ForAll"
+   ],
+   "doc": "indexed families elaborated before checking: a Map with (Parameters ($p Carrier) ...) is a family of unary maps, applied as (f p1 ... x); (For $v Carrier) on an Observe or Action entry declares one entry per element, labelled by the instantiated label term, in the order of the For clauses and of each carrier's enumeration; (Switch $p (element expr)+) selects on a parameter and must be total and exclusive over its carrier; (Exists $v C e) and (ForAll $v C e) range over an enumerated carrier; Any in a Successor entry stands for every action label"
+  },
+  "Laws": {
+   "primitives": [
+    "Indep",
+    "Image",
+    "Expect",
+    "LawOf"
+   ],
+   "constants": [],
+   "binders": [
+    "Image"
+   ],
+   "doc": "finite rational laws as values: (Indep L1 ... Lk) is the product law, whose values are k-tuples; (Image $v expr L) is the law of expr when $v is drawn from L, masses of equal values added; (Expect L) is the mean of a rational-valued law; (LawOf m) is the law of a declared Measure.  Coin and Point remain the elementary laws.  Laws are evaluated on their support, so a value of mass zero is never produced and carrier closure is checked on supports."
+  },
+  "Monitors": {
+   "primitives": [
+    "Columns",
+    "context",
+    "observation",
+    "each"
+   ],
+   "constants": [
+    "Union",
+    "Mixture"
+   ],
+   "doc": "likelihood-ratio monitors for streams: a Monitor multiplies Alternative(c)(o) / Null(c)(o) over the observations o of a Stream, each read in the context c posted before it.  Exact claims about a monitor are Checked; detections on data are Estimated."
+  },
+  "RationalArith": {
+   "primitives": [
+    "Le",
+    "Lt",
+    "Min",
+    "Max"
+   ],
+   "constants": [],
+   "doc": "order on Rational and Int, Min and Max.  Symbolic obligations over Rational carriers are decided over the real numbers: by linear real arithmetic when every product has a constant factor, and by nonlinear real arithmetic otherwise (decidable, at a higher cost).  An obligation proved over the reals holds over the rationals.  A refutation is reported only with a rational witness, which the replay checker evaluates by substitution; a real model with no rational witness gives Unknown."
+  },
+  "BoundedSets": {
+   "primitives": [
+    "Insert",
+    "Union",
+    "Size",
+    "Cap",
+    "CapInsert",
+    "CapUnion",
+    "CapSize"
+   ],
+   "type_constructors": [
+    "FiniteSet",
+    "Capped"
+   ],
+   "constants": [
+    "Many"
+   ],
+   "doc": "(FiniteSet T) is the type of finite sets of T, with (Insert x S), (Union S S') and (Size S).  (Capped T) is the type of identity-bounded sets: a set of fewer than K elements, or the marker Many.  (Cap K S) is S when (Size S) < K and Many otherwise; (CapInsert K x c) and (CapUnion K c d) insert and unite and then cap, with Many absorbing; (CapSize K c) is (Size S) for a set S and K for Many, that is min(K, number of distinct elements).  K is a positive integer literal.  Symbolic obligations are decided in the theory of finite sets with cardinality over an uninterpreted element sort, so they hold for every set of identifiers, however large."
+  },
+  "Statistics": {
+   "primitives": [],
+   "constants": [
+    "Symbolic",
+    "Exhaustive",
+    "Lift"
+   ],
+   "doc": "summary statistics as certificates.  A Statistic declares an encoding of a machine's states with an abstract update for every action entry, a read map for every declared query and an abstract merge for every merge entry; CheckStatistic checks the obligations that make the encoding behaviorally sufficient for the queries.  Store and Keyed lift item machines and item statistics to finite maps from identifiers to items."
+  },
+  "Estimates": {
+   "primitives": [],
+   "constants": [],
+   "doc": "anytime-valid estimates of rates read from frozen Streams.  EstimateRate reports the confidence sequence of the uniform-prior binomial mixture at the requested level: the set of rates p with B(S+1, n-S+1) / (p^S (1-p)^(n-S)) < 1/Level after S events in n rows.  It contains the true rate at every n simultaneously with probability at least 1 - Level when the rows are conditionally Bernoulli with one common rate given the past (Ville's inequality).  CompareRates applies the same sequence to the share of discordant rows in which the first column shows the event and the second does not.  Results are Estimated: claims about the data source, with the stream digest, the protocol and the assumptions."
+  }
+ },
+ "first_release": {
+  "dynamics": [
+   "Deterministic"
+  ],
+  "values": [
+   "Crisp",
+   "Lukasiewicz"
+  ],
+  "carriers": [
+   "Enumerated",
+   "Symbolic"
+  ],
+  "symbolic_primitives": [
+   "BitVectors"
+  ],
+  "symbolic_backends": [
+   "SAT with DRAT, converted to LRAT and checked by cake_lpr",
+   "linear algebra over GF(2)"
+  ],
+  "requests": [
+   "BehavioralTolerance",
+   "Bracket",
+   "CheckAbstractionMap",
+   "CheckBehavioral",
+   "CheckBlockPartition",
+   "CheckNow",
+   "CheckTrace",
+   "CheckTransitive",
+   "CheckUpdates",
+   "Defects",
+   "Delta",
+   "InduceApprox",
+   "InduceExact",
+   "MeasureBehavioral",
+   "MeasureNow",
+   "MeasureTrace",
+   "MeasureUpdates",
+   "MinimizeForQueries",
+   "PathClosure",
+   "Refine",
+   "SamePartition",
+   "Then",
+   "Threshold",
+   "WeakestWithin"
+  ],
+  "libraries": [
+   "Core",
+   "GradedKernels",
+   "BitVectors",
+   "FiniteSets"
+  ],
+  "must_answer_unsupported": [
+   "every request on a Stochastic or Nondeterministic module, including the seven-state chain",
+   "Snapshot carriers",
+   "requests of the Linear, Simulation, Contracts, Transfers, Hives, Discovery, Neural, Decisions, Search and Hyperseed libraries"
+  ]
+ },
+ "body_heads_added": {
+  "tolerance-body": [
+   "Meet"
+  ]
+ },
+ "adopted_patches": [
+  {
+   "name": "ex1",
+   "file": "docs/e0/docs/03_four_worked_examples/validation_bundles/ex1_belief_memory/ex1_registry_patch.json",
+   "sha256": "b8a609764ef135cd17d6018c2a26dfd56f052906a9d9adcba666f10eac186a29",
+   "patch": "Proposed registry additions used by Example 1 (belief-memory compaction)",
+   "date": "2026-11-04"
+  },
+  {
+   "name": "ex2",
+   "file": "docs/e0/docs/03_four_worked_examples/validation_bundles/ex2_access_policy/ex2_registry_patch.json",
+   "sha256": "72e937936d1910e977f076a482852ea36b155ccca3a22add07ef2eb5fecf2380",
+   "patch": "Proposed registry additions used by Example 2 (access-policy audit)",
+   "date": "2026-11-04"
+  },
+  {
+   "name": "ex3",
+   "file": "docs/e0/docs/03_four_worked_examples/validation_bundles/ex3_skill_share/ex3_registry_patch.json",
+   "sha256": "61c08c4e95c3c12c4feed6fec6f82e367a7035f94bac42c37ea9769ce182557d",
+   "patch": "Proposed registry additions used by Example 3 (skill transfer across camera frames)",
+   "date": "2026-11-04"
+  },
+  {
+   "name": "ex4",
+   "file": "docs/e0/docs/03_four_worked_examples/validation_bundles/ex4_market_maker/ex4_registry_patch.json",
+   "sha256": "3deef740c511a480e694e2f168bd6868c61d4ff6a83916b3fb9b61c734b7f6bf",
+   "patch": "Proposed registry additions used by Example 4 (market making across regime shifts)",
+   "date": "2026-11-04"
+  },
+  {
+   "name": "mg",
+   "file": "docs/e0/docs/04_omega_memory_goals_part1/validation_bundle/mg_registry_patch.json",
+   "sha256": "2cf3248cb51ffdca15e15d50dfadc01c7abc5dee8fd5cafdee5b465e503e8c54",
+   "patch": "Proposed registry additions used by the guide to Omega memory and goals in MeTTaDinC",
+   "date": "2026-11-04"
+  },
+  {
+   "name": "ls",
+   "file": "docs/e0/docs/05_live_memory_part2/validation_bundle/ls_registry_patch.json",
+   "sha256": "ef4eb8ff1bb20964f371c36288e4902f6b50a886c518830c6a04e7f05d5893e8",
+   "patch": "Proposed registry additions used by Part II of the guide to Omega memory and goals in MeTTaDinC (live memory through summary statistics)",
+   "date": "2026-11-04"
+  },
+  {
+   "name": "wx",
+   "file": "docs/e0/docs/06_wmtm_worked_example/validation_bundle/wx_registry_patch.json",
+   "sha256": "35d940acf974062e171a12173f550387e0759eb765feac04423f547167211cc4",
+   "patch": "Proposed registry additions used by the worked example of Part II (WMTM's open-item store)",
+   "date": "2026-11-04"
+  },
+  {
+   "name": "m4est",
+   "file": "registry/patches/m4est_registry_patch.json",
+   "sha256": "87000ddd263f9911fd6872e11cff609dcee766ce206c7229d5d7d591f5ab6b39",
+   "patch": "m4est: local registry patch for t-2026-11-12-mettadinc-m4-estimates review 1 (F2, F4, F5). Approved by the hive 2026-11-12 18:32 (block decision: opt-in, reversible deviation from Ben's decision 1, recorded in workspace DECISIONS.md). Adds the estimator choice, seeded sampling and policy reuse to EstimateRate and CompareRates, and the request EstimateDupRate. Every addition is first_release [] (beyond release only).",
+   "date": "2026-11-12"
+  }
+ ],
+ "budget_units": [
+  "PairExpansions",
+  "Probes",
+  "Proposals",
+  "Seconds",
+  "Unrollings"
+ ],
+ "notes": {
+  "Unrollings": {
+   "text": "bounded search depth for reachable counterexamples when an inductive argument fails; a work limit, never a semantic horizon",
+   "patch": "ex2"
+  },
+  "Gather": {
+   "text": "(Gather x i1 ... ik) is the k-bit word whose bit j is bit i_j of x",
+   "patch": "ex2"
+  },
+  "Pairs": {
+   "text": "without the field every ordered pair of the audit carrier is audited, as in the base registry",
+   "patch": "mg"
+  },
+  "Accepts": {
+   "text": "the atoms of the clause (Checked, Estimated, Conditional, TrustedBackend, Assumption) and the solvers a clause may name (cvc5, z3, cadical) are added to Core, so (Accepts Checked) keeps its meaning",
+   "patch": "mg"
+  },
+  "Decode": {
+   "text": "without the field the consumer has no declared meaning for its answers, and CheckInterpretation on it is InvalidInput",
+   "patch": "mg"
+  },
+  "For": {
+   "text": "a For clause on a machine entry or a Step entry may range over a carrier that is not enumerated when the module's carriers are Symbolic: the entry is then one parameterized action, and every obligation quantifies over the parameter",
+   "patch": "ls"
+  },
+  "Rational literals": {
+   "text": "integer atoms and (Rat p q) are Rational wherever a Rational is expected",
+   "patch": "ls"
+  },
+  "Matching": {
+   "text": "a stuttering simulation is checked by three obligations: the relation maps the source carrier into the target carrier, every source step either keeps the image fixed or moves it by the target action with the label's head, and every query the two machines share answers alike on related states",
+   "patch": "ls"
+  },
+  "Conditional": {
+   "text": "status rule for symbolic requests: a verdict of unsatisfiability is Checked when a proof of it has been checked by the core's proof checker (for instance an Alethe proof from cvc5 checked by Carcara, available for equality, linear arithmetic and bit-vectors), and otherwise Conditional, with the assumption (TrustedBackend solver version logic obligation-digest); agreement of a second solver on an independent encoding is recorded as agreed_by and discharges nothing.  A result derived from Conditional premises, such as a lift or a safety transfer, is Conditional with the union of their assumptions.  Refutations are Refuted, since their witnesses are replayed by evaluation.  The base statuses Unknown, Unsupported and InvalidInput remain available to every request.",
+   "patch": "ls"
+  },
+  "Binding": {
+   "text": "every result records the declarations it is about, the machine and queries it was checked against, and for estimates the stream, its digest, population, selection rule and policy; a stream whose file digest differs from the declared one makes EstimateRate, CompareRates and Detect return InvalidInput before any count is computed, and a safety request along a simulation whose target is not the request's target is InvalidInput",
+   "patch": "ls"
+  },
+  "Detect": {
+   "text": "a monitor started at the first observation accumulates evidence for the null while the stream is healthy, and a change that comes late must first overcome it; the Shiryaev-Roberts scheme restarts implicitly at every observation, at the price of a guarantee on the mean time to a false alarm instead of on the probability of any false alarm",
+   "patch": "wx"
+  }
+ }
+}

@@ -1,5 +1,5 @@
 {
- "registry": "MeTTaDinC request and declaration registry, with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted, and the local patch m4est (hive decision 2026-11-12, beyond release only)",
+ "registry": "MeTTaDinC request and declaration registry, with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted",
  "date": "2026-11-05",
  "statuses": {
   "Checked": "The claim is established within its scope by an exact method that the core runs on the frozen model, or by a certificate that the core's replay checker validates.",
@@ -1469,12 +1469,6 @@
      "type": "expr",
      "required": false,
      "doc": "the policy version under which the rows were produced: in a live system the digest of the deployed code and flags"
-    },
-    "SelectionDependsOnPolicy": {
-     "type": "enum:True|False",
-     "required": false,
-     "default": "False",
-     "doc": "True when the selection rule of the rows depends on the policy that produced them; such an estimate never transports to another policy (ReuseUnder is refused even with an Argument)"
     }
    },
    "body": null,
@@ -2052,14 +2046,6 @@
     "Assumptions": "Expr"
    },
    "doc": "an Estimated result on paired rows"
-  },
-  "RateSeparation": {
-   "fields": {
-    "Separated": "Bool",
-    "FirstUpper": "Rational",
-    "SecondLower": "Rational"
-   },
-   "doc": "m4est: interval separation of two Estimated rates"
   }
  },
  "requests": {
@@ -4535,32 +4521,6 @@
     "Level": {
      "type": "rat01",
      "required": true
-    },
-    "Estimator": {
-     "type": "enum:ConfidenceSequence|Hoeffding|ExactBinomial",
-     "required": false,
-     "default": "ConfidenceSequence",
-     "doc": "ConfidenceSequence is anytime-valid; Hoeffding and ExactBinomial (Clopper-Pearson) are fixed-sample intervals, valid only when the sample size was fixed before reading"
-    },
-    "Sample": {
-     "type": "nat",
-     "required": false,
-     "doc": "read a seeded simple random sample of this many rows without replacement instead of every row; the result records Seed and SamplePopulation"
-    },
-    "Seed": {
-     "type": "nat",
-     "required": false,
-     "doc": "the sampling seed; required with Sample"
-    },
-    "ReuseUnder": {
-     "type": "expr",
-     "required": false,
-     "doc": "the policy digest the estimate is to be reused under; refused (InvalidInput) unless it equals the stream's Policy or an Argument is declared, and always refused when the stream's selection depends on the policy"
-    },
-    "Argument": {
-     "type": "expr",
-     "required": false,
-     "doc": "the declared argument that the population and selection do not depend on the policy"
     }
    },
    "result": "RateEstimate",
@@ -4603,27 +4563,6 @@
     "Level": {
      "type": "rat01",
      "required": true
-    },
-    "Estimator": {
-     "type": "enum:ConfidenceSequence|Hoeffding|ExactBinomial",
-     "required": false,
-     "default": "ConfidenceSequence"
-    },
-    "Sample": {
-     "type": "nat",
-     "required": false
-    },
-    "Seed": {
-     "type": "nat",
-     "required": false
-    },
-    "ReuseUnder": {
-     "type": "expr",
-     "required": false
-    },
-    "Argument": {
-     "type": "expr",
-     "required": false
     }
    },
    "result": "PairedComparison",
@@ -4642,87 +4581,6 @@
    ],
    "first_release": [],
    "claim": "Estimated: on the rows where exactly one of the two columns equals Equals, the confidence sequence for the share of rows in which it is First; an interval above one half says that First shows the event more often than Second, as a one-sided claim about the running average of the discordant rows' conditional shares (Part II, Proposition 5.1). The result names the stream and its digest; a mismatching digest is InvalidInput"
-  },
-  "EstimateDupRate": {
-   "library": "Estimates",
-   "positional": [],
-   "args": {
-    "On": {
-     "type": "ref:Stream",
-     "required": true
-    },
-    "Column": {
-     "type": "expr",
-     "required": true,
-     "doc": "the key column; a duplicate is a pair of rows with equal keys"
-    },
-    "Level": {
-     "type": "rat01",
-     "required": true
-    },
-    "Sample": {
-     "type": "nat",
-     "required": false
-    },
-    "Seed": {
-     "type": "nat",
-     "required": false
-    },
-    "ReuseUnder": {
-     "type": "expr",
-     "required": false
-    },
-    "Argument": {
-     "type": "expr",
-     "required": false
-    }
-   },
-   "result": "RateEstimate",
-   "statuses": [
-    "Estimated"
-   ],
-   "profiles": [
-    "Deterministic",
-    "Stochastic",
-    "Nondeterministic"
-   ],
-   "carriers": [
-    "Enumerated",
-    "Symbolic",
-    "Snapshot"
-   ],
-   "first_release": [],
-   "claim": "Estimated: the pairwise duplicate rate (share of unordered row pairs with equal Column) as the order-2 U-statistic, with a two-sided Hoeffding interval over floor(n/2) disjoint pairs at the requested Level, valid when rows are independent and identically distributed. Same stream, digest and policy rules as EstimateRate"
-  },
-  "RatesSeparated": {
-   "library": "Estimates",
-   "positional": [
-    [
-     "first",
-     "ref:RateEstimate"
-    ],
-    [
-     "second",
-     "ref:RateEstimate"
-    ]
-   ],
-   "args": {},
-   "result": "RateSeparation",
-   "statuses": [
-    "Conditional"
-   ],
-   "profiles": [
-    "Deterministic",
-    "Stochastic",
-    "Nondeterministic"
-   ],
-   "carriers": [
-    "Enumerated",
-    "Symbolic",
-    "Snapshot"
-   ],
-   "first_release": [],
-   "claim": "Checked comparison of two Estimated rates (review 1 F3): Holds when the first estimate's Upper is strictly below the second's Lower (exact rationals). The answer is derived from Estimated premises, so it is Conditional on (EstimatedPremise digest delta) for each, and (EstimatedDelta sum) adds their deltas; never Checked"
   }
  },
  "libraries": {
@@ -5225,13 +5083,6 @@
    "sha256": "35d940acf974062e171a12173f550387e0759eb765feac04423f547167211cc4",
    "patch": "Proposed registry additions used by the worked example of Part II (WMTM's open-item store)",
    "date": "2026-11-04"
-  },
-  {
-   "name": "m4est",
-   "file": "registry/patches/m4est_registry_patch.json",
-   "sha256": "87000ddd263f9911fd6872e11cff609dcee766ce206c7229d5d7d591f5ab6b39",
-   "patch": "m4est: local registry patch for t-2026-11-12-mettadinc-m4-estimates review 1 (F2, F4, F5). Approved by the hive 2026-11-12 18:32 (block decision: opt-in, reversible deviation from Ben's decision 1, recorded in workspace DECISIONS.md). Adds the estimator choice, seeded sampling and policy reuse to EstimateRate and CompareRates, and the request EstimateDupRate. Every addition is first_release [] (beyond release only).",
-   "date": "2026-11-12"
   }
  ],
  "budget_units": [

@@ -66,8 +66,10 @@ static void surface_gates(const char *B) {
         CHECK(has(o, G[i].want) && has(o, G[i].k1) && has(o, G[i].k2), G[i].msg);
         free(o);
         o = evalt(B, G[i].req, 0);
-        char m[256]; snprintf(m, sizeof m, "release mode: %.200s -> Unsupported", G[i].req);
-        CHECK(has(o, "(Status Unsupported)") && !has(o, "(Status Estimated)") && !has(o, "(Status Conditional)"), m);
+        /* review 2 F2: release 1 uses the bundle-only registry (digest fc046d14), so the new arguments, the new
+         * Stream field and the new heads are refused at admission exactly as at the M4 head. */
+        char m[256]; snprintf(m, sizeof m, "release mode: %.200s -> InvalidInput (as at M4 head)", G[i].req);
+        CHECK(has(o, "(Status InvalidInput)") && !has(o, "(Status Estimated)") && !has(o, "(Status Conditional)"), m);
         free(o);
     }
     char *o = evalt(B, "(RatesSeparated StaleRate FreshRate)", 1);
@@ -89,6 +91,11 @@ static void surface_gates(const char *B) {
     for (size_t i = 0; i < sizeof N / sizeof N[0]; i++) {
         char *x = evalt(B, N[i].req, 1);
         CHECK(has(x, "(Status InvalidInput)") && !has(x, "(Estimate ") && !has(x, "Unsupported"), N[i].msg);
+        free(x);
+        /* review 2 F3: refused in release mode too (boundary 1: binding rules hold in every release) */
+        x = evalt(B, N[i].req, 0);
+        char m[300]; snprintf(m, sizeof m, "release mode: %.240s", N[i].msg);
+        CHECK(has(x, "(Status InvalidInput)") && !has(x, "(Estimate ") && !has(x, "Unsupported"), m);
         free(x);
     }
 }
