@@ -149,16 +149,17 @@ report('F3: fixed-word refutation (Within 1/4) is TraceEventWitness, not WordWit
 u1 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(MeasureBehavioral JoinXY)'), None)
 report('neg 11: U01 not Checked, no post-fixpoint certificate', st(u1) == 'Unknown' and not has(u1, r'DualPostfixpoint|CouplingPrefixpoint'), st(u1))
 
-# neg 12: a Positive arrow from an unnormalized realization (K rows sum to 2) is not valid, and its composite
-# uses the real norm: Lambda 3*2 = 6, Rho 0*2 + 3*(2/5) = 6/5, never the additive shortcut rA + rB = 2/5.
+# neg 12: a Positive arrow from an unnormalized realization (K rows sum to 2) is not valid, so no composite is formed from it.
 lsrc = open(LFIX, encoding='utf-8').read()
 m12 = lsrc.replace('(Matrix (Rows (e1 (e1 1)) (e2 (e2 1))))', '(Matrix (Rows (e1 (e1 2)) (e2 (e2 2))))', 1)
 assert m12 != lsrc
 U12 = run(m12, 'neg12-unnorm')
 k12, c12 = U12.get(('LinearComposition', 'KChecked')), U12.get(('LinearComposition', 'LK'))
 report('neg 12: unnormalized Positive arrow K is Refuted (row sum)', st(k12) == 'Refuted' and has(k12, r'\(Valid False\)') and has(k12, r'does not sum to 1'), st(k12))
-report('neg 12: composite of unnormalized K is invalid, Rho 6/5 (norm), not 2/5', st(c12) == 'Refuted' and has(c12, r'\(Valid False\)')
-       and has(c12, r'\(Grade \(Lambda 6\) \(Rho \(Rat 6 5\)\)\)') and not has(c12, r'\(Value .*\(Rho \(Rat 2 5\)\)\) \(Attained'), st(c12))
+# review 1 F4: registry Output rule -- Then projects only from Checked results, so the composite of a Refuted K is InvalidInput
+# (never a Checked/Refuted composite carrying the additive shortcut grade 2/5).
+report('neg 12: composite of unnormalized K is InvalidInput (Output only from Checked), no grade 2/5', st(c12) == 'InvalidInput'
+       and has(c12, r'Output projects only from Checked results') and not has(c12, r'\(Rho \(Rat 2 5\)\)'), st(c12))
 
 # neg 6 (R01): equal expected rewards with different reward laws are not equal.  Mutation of regime_repair:
 # Bit gains outcome 2; Old pays 1 surely, New pays 2 or 0 with probability 1/2 each under Fair (mean 1 for both actions).
