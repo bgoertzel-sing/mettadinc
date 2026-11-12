@@ -613,6 +613,51 @@ static const Sx *st_opt(const Sx *q, const char *h) {
     return NULL;
 }
 
+/* ---- O01-O04: bounded trace defect over fixed words or observation-based policies.
+ * mu, nu are sub-probability vectors that agree on all reports so far; the defect is the
+ * total positive part sum over leaves max(0, |mu_leaf| - |nu_leaf|), maximised over the
+ * action choice at each node (policies) or along one fixed word. */
+typedef struct { DcRat v, pe, qe; } StTv;
+static int g_tvnodes; static unsigned long long g_tvlast; static char g_olab[ST_MAXE][ST_NM];
+static StTv st_tvrec(const StMod *s, const StMach *M, const int *oc, int noc, const DcRat *mu, const DcRat *nu,
+                     int k, const int *word, int depth, int last, Sx **tree, int *ovf) {
+    int n = s->car[M->states].n; StTv r; r.v = r.pe = r.qe = dc_rat(0, 1, ovf);
+    if (tree) *tree = NULL;
+    if (++g_tvnodes > 200000) { *ovf = 1; return r; }
+    if (k == 0) {
+        DcRat a = dc_rat(0, 1, ovf), b = a;
+        for (int x = 0; x < n; x++) { a = dc_rat_add(a, mu[x], ovf); b = dc_rat_add(b, nu[x], ovf); }
+        if (dc_rat_cmp(a, b) > 0) { r.v = dc_rat_sub(a, b, ovf); r.pe = a; r.qe = b; if (last >= 0 && last < 64) g_tvlast |= 1ULL << last; }
+        return r;
+    }
+    int a0 = word ? word[depth] : 0, a1 = word ? word[depth] + 1 : M->nact, best = -1; Sx *bt = NULL;
+    unsigned long long save = g_tvlast, bmask = 0;
+    for (int a = a0; a < a1; a++) {
+        const StKer *K = &s->ker[M->ak[a]]; DcRat mu2[ST_MAXE], nu2[ST_MAXE];
+        for (int y = 0; y < n; y++) mu2[y] = nu2[y] = dc_rat(0, 1, ovf);
+        for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) if (!dc_rat_is_zero(K->p[x][y])) {
+            if (!dc_rat_is_zero(mu[x])) mu2[y] = dc_rat_add(mu2[y], dc_rat_mul(mu[x], K->p[x][y], ovf), ovf);
+            if (!dc_rat_is_zero(nu[x])) nu2[y] = dc_rat_add(nu2[y], dc_rat_mul(nu[x], K->p[x][y], ovf), ovf); }
+        StTv acc; acc.v = acc.pe = acc.qe = dc_rat(0, 1, ovf); g_tvlast = 0;
+        Sx *node = tree ? dc_form("Do", dc_sym(M->al[a]), NULL) : NULL;
+        for (int c = 0; c < noc; c++) {
+            DcRat m3[ST_MAXE], n3[ST_MAXE]; int any = 0;
+            for (int y = 0; y < n; y++) { m3[y] = oc[y] == c ? mu2[y] : dc_rat(0, 1, ovf); n3[y] = oc[y] == c ? nu2[y] : dc_rat(0, 1, ovf);
+                any |= !dc_rat_is_zero(m3[y]) || !dc_rat_is_zero(n3[y]); }
+            if (!any) continue;
+            Sx *sub = NULL;
+            StTv t = st_tvrec(s, M, oc, noc, m3, n3, k - 1, word, depth + 1, c, node && k > 1 ? &sub : NULL, ovf);
+            acc.v = dc_rat_add(acc.v, t.v, ovf); acc.pe = dc_rat_add(acc.pe, t.pe, ovf); acc.qe = dc_rat_add(acc.qe, t.qe, ovf);
+            if (node && sub) sx_push(node, dc_form("On", dc_sym(g_olab[c]), sub, NULL));
+        }
+        if (best < 0 || dc_rat_cmp(acc.v, r.v) > 0) { r = acc; best = a; if (bt) sx_free(bt); bt = node; bmask = g_tvlast; }
+        else if (node) sx_free(node);
+    }
+    g_tvlast = save | bmask;
+    if (tree) *tree = bt; else if (bt) sx_free(bt);
+    return r;
+}
+
 /* ---- request dispatch ---- */
 static Sx *st_rsx(DcRat a) { return a.d == 1 ? dc_int((long)a.n) : dc_form("Rat", dc_int((long)a.n), dc_int((long)a.d), NULL); }
 static Sx *st_blocks(const StCar *c, const int *blk, int nb) {
@@ -663,6 +708,71 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         sx_push(ev->items[1], st_minor_sx(&B, C, &ovf));
         if (ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "%s: rational overflow (int64)", head); }
         return st_env(m, VERDICT_HOLDS, q, "Machine", a1, val, ev, NULL);
+    }
+    if (!strcmp(head, "MeasureTrace") || (!strcmp(head, "CheckTrace") && st_opt(q, "Horizon"))) {   /* O01-O04 handler */
+        int pi = st_repi(&S, a1); if (pi < 0) return dc_invalid(m, "%s: %s names no representation", head, a1 ? a1 : "?");
+        const StRepr *P = &S.rep[pi]; const StMach *M = &S.mach[P->mach]; const StCar *C = &S.car[M->states]; const StMap *E = &S.map[P->enc];
+        if (E->to != M->states) return dc_invalid(m, "%s: representation %s encodes into %s, not into the machine states", head, a1, S.car[E->to].name);
+        const Sx *hz = st_opt(q, "Horizon"), *po = st_opt(q, "Policies"), *wi = st_opt(q, "Within"), *sp = hz ? hz->items[1] : NULL;
+        DcRat hv, bound = dc_rat(0, 1, &ovf);
+        if (!sx_head_is(sp, "Steps") || sp->n != 2 || st_rat(sp->items[1], &hv) || hv.d != 1 || hv.n < 0 || hv.n > 12)
+            return dc_invalid(m, "%s: expected (Horizon (Steps h)) with 0 <= h <= 12", head);
+        int pol = po != NULL, chk = !strcmp(head, "CheckTrace");
+        if (po && !sx_is_sym(po->items[1], "ObservationBased")) return dc_invalid(m, "%s: (Policies P) supports ObservationBased only", head);
+        if (chk != (wi != NULL) || (wi && (st_rat(wi->items[1], &bound) || bound.n < 0)))
+            return dc_invalid(m, "%s: %s", head, chk ? "expected (Within b) with b >= 0" : "takes no (Within b)");
+        for (size_t i = 2; i < q->n; i++)
+            if (!sx_head_is(q->items[i], "Horizon") && !sx_head_is(q->items[i], "Policies") && !sx_head_is(q->items[i], "Within")) return dc_invalid(m, "%s: unexpected option", head);
+        int n = C->n, h = (int)hv.n, oc[ST_MAXE], noc = 0, rep[ST_MAXE];
+        for (int x = 0; x < n; x++) { oc[x] = -1;
+            for (int y = 0; y < x && oc[x] < 0; y++) { int same = 1;
+                for (int j = 0; j < M->nobs; j++) if (S.map[M->om[j]].tab[x] != S.map[M->om[j]].tab[y]) same = 0;
+                if (same) oc[x] = oc[y]; }
+            if (oc[x] < 0) { rep[noc] = x; oc[x] = noc++; } }
+        for (int c = 0; c < noc; c++) {
+            if (M->nobs == 1) snprintf(g_olab[c], ST_NM, "%s", S.car[S.map[M->om[0]].to].el[S.map[M->om[0]].tab[rep[c]]]);
+            else snprintf(g_olab[c], ST_NM, "c%d", c); }
+        long nw = 1;
+        for (int i = 0; i < h && !pol; i++) { nw *= M->nact; if (nw > 100000) return dc_unsupported(m, "%s: more than 100000 words of length %d", head, h); }
+        StTv best; best.v = best.pe = best.qe = dc_rat(0, 1, &ovf); int bx = -1, bw[16] = {0}; Sx *btree = NULL; unsigned long long bmask = 0;
+        for (int x = 0; x < n; x++) {
+            int y = E->tab[x]; if (y == x) continue;
+            DcRat mu[ST_MAXE], nu[ST_MAXE];
+            for (int z = 0; z < n; z++) { mu[z] = dc_rat(z == x, 1, &ovf); nu[z] = dc_rat(z == y, 1, &ovf); }
+            if (oc[x] != oc[y]) {   /* separated by the initial report */
+                if (bx < 0 || dc_rat_cmp(dc_rat(1, 1, &ovf), best.v) > 0) { best.v = best.pe = dc_rat(1, 1, &ovf); best.qe = dc_rat(0, 1, &ovf);
+                    bx = x; memset(bw, 0, sizeof bw); if (btree) sx_free(btree); btree = NULL; bmask = 1ULL << oc[x]; }
+                continue;
+            }
+            int w[16] = {0};
+            for (long k = 0; k < (pol ? 1 : nw); k++) {
+                long t = k; for (int i = 0; i < h; i++) { w[i] = (int)(t % M->nact); t /= M->nact; }
+                Sx *tr = NULL; g_tvlast = 0; g_tvnodes = 0;
+                StTv r = st_tvrec(&S, M, oc, noc, mu, nu, h, pol ? NULL : w, 0, oc[x], pol ? &tr : NULL, &ovf);
+                if (ovf) { if (tr) sx_free(tr); if (btree) sx_free(btree); return dc_unsupported(m, "%s: rational overflow (int64) or search limit", head); }
+                if (bx < 0 || dc_rat_cmp(r.v, best.v) > 0) { best = r; bx = x; memcpy(bw, w, sizeof bw); if (btree) sx_free(btree); btree = tr; bmask = g_tvlast; }
+                else if (tr) sx_free(tr);
+            }
+        }
+        int holds = !chk || dc_rat_cmp(best.v, bound) <= 0;
+        Sx *val = chk ? dc_form("Value", dc_form("WithinBound", dc_sym(holds ? "True" : "False"), NULL), dc_form("TraceDefect", st_rsx(best.v), NULL), NULL)
+                      : dc_form("Value", dc_form("TraceDefect", st_rsx(best.v), NULL), NULL);
+        sx_push(val, dc_form("Horizon", dc_form("Steps", dc_int(h), NULL), NULL));
+        sx_push(val, dc_form("Policies", dc_sym(pol ? "ObservationBased" : "FixedWords"), NULL));
+        Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym(pol ? "PolicyTreeSearch" : "ExhaustiveWords"), NULL), NULL);
+        if (bx >= 0 && !dc_rat_is_zero(best.v)) {
+            Sx *lr = dc_form("LastReport", NULL);
+            for (int c = 0; c < noc && c < 64; c++) if (bmask >> c & 1) sx_push(lr, dc_sym(g_olab[c]));
+            Sx *pair = dc_form("Pair", dc_sym(C->el[bx]), dc_sym(C->el[E->tab[bx]]), NULL), *wit;
+            Sx *probs = dc_form("Probabilities", st_rsx(best.pe), st_rsx(best.qe), NULL), *evt = dc_form("Event", lr, NULL);
+            if (pol) { wit = dc_form("PolicyTreeWitness", pair, btree ? btree : dc_form("Stop", NULL), evt, probs, NULL); btree = NULL; }
+            else { Sx *wd = dc_form("Word", NULL); for (int i = 0; i < h; i++) sx_push(wd, dc_sym(M->al[bw[i]]));
+                wit = dc_form("WordWitness", pair, wd, evt, probs, NULL); }
+            sx_push(cert, wit);
+        }
+        if (btree) sx_free(btree);
+        if (ovf) { sx_free(val); sx_free(cert); return dc_unsupported(m, "%s: rational overflow (int64)", head); }
+        return st_env(m, holds ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
     }
     if (!strcmp(head, "CheckBehavioral") || !strcmp(head, "MeasureBehavioral") || !strcmp(head, "CheckTrace")) {
         int pi = st_repi(&S, a1); if (pi < 0) return dc_invalid(m, "%s: %s names no representation", head, a1 ? a1 : "?");
