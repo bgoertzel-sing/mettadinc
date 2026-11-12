@@ -743,7 +743,14 @@ static Sx *st_blocks(const StCar *c, const int *blk, int nb) {
     return part;
 }
 static Sx *st_env(DcModule *m, DcVerdict v, const Sx *q, const char *subjk, const char *subjn, Sx *val, Sx *ev, const char *why) {
+    /* review 1 F1 (invariant 16): the scope is read from the request, as ops_graded.c does */
     DcScope sc = { "M4-Stochastic", -1, "", NULL };
+    const Sx *hz = st_opt(q, "Horizon"), *dsc = st_opt(q, "Discount"), *po = st_opt(q, "Policies");
+    if (hz && hz->items[1]->kind == SX_LIST && sx_head_is(hz->items[1], "Steps") && hz->items[1]->n == 2) {
+        DcRat h; if (!dc_sx_rat(hz->items[1]->items[1], &h) && h.d == 1 && h.n >= 0 && h.n <= 4096) sc.horizon = (int)h.n; }
+    if (dsc) { DcRat g; if (!dc_sx_rat(dsc->items[1], &g)) dc_rat_str(g, sc.discount, sizeof sc.discount); }
+    if (po && po->items[1]->kind == SX_SYM) sc.policy = po->items[1]->text;
+    else if (q && (sx_head_is(q, "MeasureTrace") || sx_head_is(q, "CheckTrace"))) sc.policy = "Words";
     Sx *subj = dc_form("Subject", dc_form(subjk, dc_sym(subjn), NULL), NULL);
     Sx *res = dc_envelope_scoped(m, v, g_st_rep, dc_claim_of(q, "Literal"), subj, val, ev, why, &sc);
     /* same pattern as M3 sym_policy: name the policy that replayed the evidence */
