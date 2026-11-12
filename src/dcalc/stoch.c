@@ -738,10 +738,10 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         for (int x = 0; x < n; x++) {
             int y = E->tab[x]; if (y == x) continue;
             DcRat mu[ST_MAXE], nu[ST_MAXE];
-            for (int z = 0; z < n; z++) { mu[z] = dc_rat(z == x, 1, &ovf); nu[z] = dc_rat(z == y, 1, &ovf); }
+            for (int z = 0; z < n; z++) { mu[z] = dc_rat(z == y, 1, &ovf); nu[z] = dc_rat(z == x, 1, &ovf); }   /* left = encoded image */
             if (oc[x] != oc[y]) {   /* separated by the initial report */
                 if (bx < 0 || dc_rat_cmp(dc_rat(1, 1, &ovf), best.v) > 0) { best.v = best.pe = dc_rat(1, 1, &ovf); best.qe = dc_rat(0, 1, &ovf);
-                    bx = x; memset(bw, 0, sizeof bw); if (btree) sx_free(btree); btree = NULL; bmask = 1ULL << oc[x]; }
+                    bx = x; memset(bw, 0, sizeof bw); if (btree) sx_free(btree); btree = NULL; bmask = 1ULL << oc[y]; }
                 continue;
             }
             int w[16] = {0};
@@ -763,7 +763,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         if (bx >= 0 && !dc_rat_is_zero(best.v)) {
             Sx *lr = dc_form("LastReport", NULL);
             for (int c = 0; c < noc && c < 64; c++) if (bmask >> c & 1) sx_push(lr, dc_sym(g_olab[c]));
-            Sx *pair = dc_form("Pair", dc_sym(C->el[bx]), dc_sym(C->el[E->tab[bx]]), NULL), *wit;
+            Sx *pair = dc_form("Pair", dc_sym(C->el[E->tab[bx]]), dc_sym(C->el[bx]), NULL), *wit;
             Sx *probs = dc_form("Probabilities", st_rsx(best.pe), st_rsx(best.qe), NULL), *evt = dc_form("Event", lr, NULL);
             if (pol) { wit = dc_form("PolicyTreeWitness", pair, btree ? btree : dc_form("Stop", NULL), evt, probs, NULL); btree = NULL; }
             else { Sx *wd = dc_form("Word", NULL); for (int i = 0; i < h; i++) sx_push(wd, dc_sym(M->al[bw[i]]));
