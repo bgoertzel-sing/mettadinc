@@ -194,8 +194,8 @@ Sx *dc_req_estimates(DcRun *run, const Sx *q, const char *head) {
          * names Seed and Sample) under --beyond-release against a stream whose digest is StreamDigest
          * and whose population is SamplePopulation reproduces this result byte for byte. */
         char cmdline[512];
-        snprintf(cmdline, sizeof cmdline, "dcalc --beyond-release <module> with !(dc.run %s <request>); check (Stream %s) has digest %s and %zu rows",
-                 m->name[0] ? m->name : "<module>", sn, dig, rows);
+        snprintf(cmdline, sizeof cmdline, "dcalc --beyond-release FILE.metta, where FILE.metta holds module %s (Stream %s with Digest %s, %zu rows) and the line !(dc.run %s <Request>)",
+                 m->name[0] ? m->name : "<module>", sn, dig, rows, m->name[0] ? m->name : "<module>");
         Sx *rp = dc_form("Replay", dc_form("Request", sx_copy(q), NULL),
                          dc_form("StreamDigest", sx_str(dig), NULL),
                          dc_form("SamplePopulation", dc_int((long)rows), NULL), NULL);
