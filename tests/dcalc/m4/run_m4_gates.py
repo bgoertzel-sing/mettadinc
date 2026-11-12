@@ -87,6 +87,35 @@ def mt_replay(line, text, actions, gamma):
     except (StopIteration, KeyError, IndexError, ValueError):
         return None
 
+
+def prefix_replay(line, text, actions, obsmaps):
+    """Replay a Prefixpoint certificate: couplings have the two successor laws as marginals, every
+    same-class pair x != y has a coupling per action, and D >= max(d0, gamma * E_theta D).  Returns D or None."""
+    K, M = chain_model(text)
+    try:
+        c = next(x for x in sx_find(sx_parse(line), 'Certificate') if ['Kind', 'Prefixpoint'] in x)
+        g = rat(next(sx_find(c, 'Discount'))[1]); states = list(next(iter(K.values())).keys())
+        D = {(a, b): Fr(0) for a in states for b in states}
+        for e in next(sx_find(c, 'Kernel'))[1:]: D[(e[1], e[2])] = rat(e[3])
+        d0 = {(a, b): Fr(int(any(M[o][a] != M[o][b] for o in obsmaps))) for a in states for b in states}
+        if any(not (max(d0[k], Fr(0)) <= D[k] <= 1) for k in D) or any(D[(a, b)] != D[(b, a)] for a, b in D): return None
+        seen = set()
+        for cp in next(sx_find(c, 'Couplings'))[1:]:
+            x, y, act = cp[1], cp[2], cp[3]; Kr = K[actions[act]]; th = {}
+            for ms in cp[4:]: th[(ms[1], ms[2])] = th.get((ms[1], ms[2]), Fr(0)) + rat(ms[3])
+            if any(v < 0 for v in th.values()): return None
+            for z in states:
+                if sum(v for (i, j), v in th.items() if i == z) != Kr[x].get(z, 0): return None
+                if sum(v for (i, j), v in th.items() if j == z) != Kr[y].get(z, 0): return None
+            if D[(x, y)] < g * sum(v * D[k] for k, v in th.items()): return None
+            seen.add((x, y, act)); seen.add((y, x, act))
+        for a in states:
+            for b in states:
+                if a != b and d0[(a, b)] == 0 and any((a, b, act) not in seen for act in actions): return None
+        return D
+    except (StopIteration, KeyError, IndexError, ValueError):
+        return None
+
 src = open(FIX, encoding='utf-8').read()
 MB = '(MeasureBehavioral MergeXY (Discount (Rat 9 10)))'
 REQS = ['Bisimulation', 'TraceClasses', 'Behavioral', MB, 'Trace', 'Linear', 'Positive']
@@ -114,6 +143,10 @@ ACT = {'step': 'Step'}
 rp3 = mt_replay(b3, src, ACT, Fr(1)); rp4 = mt_replay(L.get(('SevenState', MB)), src, ACT, Fr(9, 10))
 report('F2: S03 ModalTestWitness formula replays, |Left - Right| = 1/2', bool(rp3) and abs(rp3[0] - rp3[1]) == Fr(1, 2), rp3)
 report('F2: S04 ModalTestWitness formula replays at discount 9/10, gap 81/200', bool(rp4) and abs(rp4[0] - rp4[1]) == Fr(81, 200), rp4)
+# invariant 18: the upper certificate (Prefixpoint) replays and meets the lower one (modal test) at the value
+pp3 = prefix_replay(b3, src, ACT, ['report']); pp4 = prefix_replay(L.get(('SevenState', MB)), src, ACT, ['report'])
+report('F2: S03 Prefixpoint replays (marginals, D >= max(d0, E_theta D)), D(x,y) = 1/2 = test gap', bool(pp3) and pp3[('x', 'y')] == Fr(1, 2), pp3 and pp3[('x', 'y')])
+report('F2: S04 Prefixpoint replays at 9/10, D(x,y) = 81/200 = test gap', bool(pp4) and pp4[('x', 'y')] == Fr(81, 200), pp4 and pp4[('x', 'y')])
 report('neg 1: behavioral refutation uses ModalTestWitness, trace stays Checked',
        has(b3, r'\(ModalTestWitness ') and not has(b3, r'TraceEventWitness|\(Word ') and st(t5) == 'Checked', st(t5))
 # neg 2 (S07): the positive candidate is never reported as a minimum without the signed lower bound

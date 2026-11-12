@@ -858,6 +858,32 @@ out:
     return res;
 }
 
+
+/* review 1 F2: Prefixpoint upper certificate (spec certificate table): the kernel D (every nonzero
+ * entry, ordered pairs) and, for every pair x < y in one observation class with D(x,y) > 0 and every
+ * action, one coupling theta of the two successor laws optimal for cost D.  Replay checks the
+ * marginals of theta and D >= max(d0, gamma * E_theta D).  Built and self-checked here. */
+static Sx *st_prefix_cert(const StMod *s, const StMach *M, DcRat g, DcRat (*d)[ST_MAXE], const char *kind, int *ovf) {
+    int n = s->car[M->states].n, oc[ST_MAXE]; const StCar *C = &s->car[M->states];
+    st_obsclass(s, M, oc);
+    Sx *D = dc_form("Kernel", NULL), *cp = dc_form("Couplings", NULL);
+    for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) if (!dc_rat_is_zero(d[x][y]))
+        sx_push(D, dc_form("Entry", dc_sym(C->el[x]), dc_sym(C->el[y]), st_rsx(d[x][y]), NULL));
+    for (int x = 0; x < n; x++) for (int y = x + 1; y < n; y++) {
+        if (oc[x] != oc[y]) continue;   /* D(x,y) = 0 needs its zero-cost coupling too */
+        for (int a = 0; a < M->nact; a++) {
+            const StKer *K = &s->ker[M->ak[a]]; DcRat w;
+            if (st_kant(n, K->p[x], K->p[y], d, &w, ovf)) { sx_free(D); sx_free(cp); return NULL; }
+            if (dc_rat_cmp(dc_rat_mul(g, w, ovf), d[x][y]) > 0) { sx_free(D); sx_free(cp); return NULL; }   /* not a prefixpoint */
+            Sx *c = dc_form("Coupling", dc_sym(C->el[x]), dc_sym(C->el[y]), dc_sym(M->al[a]), NULL);
+            for (int i = 0; i < n; i++) for (int j = 0; j < n; j++) if (!dc_rat_is_zero(g_kf[i][j]))
+                sx_push(c, dc_form("Mass", dc_sym(C->el[i]), dc_sym(C->el[j]), st_rsx(g_kf[i][j]), NULL));
+            sx_push(cp, c);
+        }
+    }
+    return dc_form("Certificate", dc_form("Kind", dc_sym(kind), NULL), dc_form("Discount", st_rsx(g), NULL), D, cp, NULL);
+}
+
 /* Candidate d* solves d = gamma * (coupling at d) d exactly for the couplings optimal at the
  * current d (policy iteration); it is accepted only if one exact Bellman step (st_kant, whose
  * optimum is the dual post-fixpoint check) maps d* to itself and 0 <= d* <= 1.
@@ -1117,12 +1143,16 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         DcRat def = dc_rat(0, 1, &ovf); int wx = -1;
         for (int x = 0; x < C->n; x++) if (dc_rat_cmp(d[x][E->tab[x]], def) > 0) { def = d[x][E->tab[x]]; wx = x; }
         Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(def), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
-        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("KantorovichFixedPoint"), NULL), NULL), NULL);
-        if (wx >= 0) {   /* 1-Lipschitz witness phi = d(x, .) separates enc x from x by the defect (oracle: phi(x)=1/2, phi(y)=0) */
+        /* review 1 F2 (invariant 18): an upper certificate (Prefixpoint: D with couplings) and, when the
+         * defect is positive, a lower certificate (Test: a Definition 4.9 modal test) that meet at the value */
+        Sx *up = st_prefix_cert(&S, M, g, d, "Prefixpoint", &ovf);
+        if (!up || ovf) return dc_unsupported(m, "%s: no prefixpoint certificate could be built", head);
+        Sx *ev = dc_form("Evidence", up, NULL);
+        if (wx >= 0) {
             int y = E->tab[wx];
-            Sx *mw = st_modal_witness(&S, M, g, wx, y, &ovf);   /* review 1 F2: a Definition 4.9 test, replayable */
+            Sx *mw = st_modal_witness(&S, M, g, wx, y, &ovf);   /* a Definition 4.9 test, replayable */
             if (!mw || ovf) return dc_unsupported(m, "%s: no modal test witness could be built", head);
-            sx_push(ev->items[1], mw);
+            sx_push(ev, dc_form("Certificate", dc_form("Kind", dc_sym("Test"), NULL), mw, NULL));
         }
         if (!strcmp(head, "MeasureBehavioral")) return st_env(m, VERDICT_HOLDS, q, "Representation", a1, val, ev, NULL);
         return st_env(m, wx < 0 ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
