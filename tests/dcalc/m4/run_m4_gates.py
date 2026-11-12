@@ -89,4 +89,17 @@ rrows = [('R01', '(CheckEqual (AverageModel Old (Under Fair)) (AverageModel New 
 for cid, req, want, pat in rrows:
     line = G.get(('RegimeRepair', req)); s_ = st(line)
     report('%s %s' % (cid, req[:48]), s_ == want and has(line, pat) and has(line, POL), s_)
+
+# ---- O01-O04: certificate_limits.metta AdaptiveProbe (beyond release) ----
+CFIX = os.path.join(os.path.dirname(FIX), 'certificate_limits.metta')
+csrc = open(CFIX, encoding='utf-8').read()
+CL = run(csrc, 'certlimits')
+orows = [('O01', '(MeasureTrace MergeX (Horizon (Steps 2)))', 'Checked', r'\(TraceDefect \(Rat 1 2\)\).*\(Policies FixedWords\)'),
+         ('O02', '(CheckTrace MergeX (Horizon (Steps 2)) (Within (Rat 3 4)))', 'Checked', r'\(WithinBound True\) \(TraceDefect \(Rat 1 2\)\)'),
+         ('O03', '(CheckTrace MergeX (Horizon (Steps 2)) (Policies ObservationBased) (Within (Rat 3 4)))', 'Refuted',
+          r'\(WithinBound False\).*\(PolicyTreeWitness \(Pair x x2\) \(Do a \(On 1 \(Do b\)\) \(On 2 \(Do c\)\)\) \(Event \(LastReport 3\)\) \(Probabilities 1 0\)\)'),
+         ('O04', '(MeasureTrace MergeX (Horizon (Steps 2)) (Policies ObservationBased))', 'Checked', r'\(TraceDefect 1\).*\(Policies ObservationBased\)')]
+for cid, req, want, pat in orows:
+    line = next((l for (mo, rq), l in CL.items() if mo == 'AdaptiveProbe' and ' '.join(rq.split()) == req), None); s_ = st(line)
+    report('%s %s' % (cid, req[:48]), s_ == want and has(line, pat) and has(line, POL), s_)
 sys.exit(1 if fails else 0)
