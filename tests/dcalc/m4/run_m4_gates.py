@@ -408,6 +408,44 @@ pm = look(R3S, 'SevenState', '(MeasureBehavioral MergeXY (Precision (Rat 1 100))
 report('R3-F3: Precision 1/100 on an exact distance: Checked 1/2', st(pm) == 'Checked' and has(pm, r'\(BehavioralDefect \(Rat 1 2\)\)'), st(pm))
 report('R3-F3: Budget is Unsupported, not InvalidInput', st(bm) == 'Unsupported', st(bm))
 report('R3-F3: Precision 1/100 on the unattained supremum (U01 shape): Unsupported, not InvalidInput', st(pu) == 'Unsupported', st(pu))
+# review 4 F1: an unbounded CheckTrace refutation carries a TraceEventWitness; replay it by an independent matrix-vector product
+def tw_replay(line, text, actions, obsmap, enc, module):
+    """P(s) = [obs s = o0] * sum_t K_a1(s,t) [obs t = o1] * ... ; returns (P(left), P(right)) if the pair has equal codes
+    and the emitted probabilities match, else None"""
+    K, M = chain_model(text, module)
+    try:
+        w = next(sx_find(sx_parse(line), 'TraceEventWitness'))
+        pr = next(sx_find(w, 'Pair')); wd = next(sx_find(w, 'Word'))[1:]; ob = next(sx_find(w, 'Observations'))[1:]; ps = next(sx_find(w, 'Probabilities'))
+        if len(ob) != len(wd) + 1 or M[enc][pr[1]] != M[enc][pr[2]] or pr[1] == pr[2]: return None
+        states = list(M[obsmap].keys())
+        v = {z: Fr(int(M[obsmap][z] == ob[-1])) for z in states}
+        for k in range(len(wd) - 1, -1, -1):
+            Kr = K[actions[wd[k]]]
+            v = {z: Fr(int(M[obsmap][z] == ob[k])) * sum(q * v[y] for y, q in Kr[z].items()) for z in states}
+        l, r = v[pr[1]], v[pr[2]]
+        return (l, r) if (l, r) == (rat(ps[1]), rat(ps[2])) and l != r else None
+    except (StopIteration, KeyError, IndexError, TypeError, ValueError):
+        return None
+PA = {'a': 'StepA', 'b': 'StepB', 'c': 'StepC'}
+r4c = csrc + '\n!(dc.run AdaptiveProbe (CheckTrace MergeX))\n!(dc.run UnattainedSupremum (CheckTrace JoinXY))\n!(dc.run UnattainedSupremum (MeasureBehavioral JoinXY (Discount (Rat 9 10))))\n!(dc.run UnattainedSupremum (CheckBehavioral JoinXY (Discount (Rat 9 10)) (Within (Rat 9 11))))\n!(dc.run UnattainedSupremum (CheckBehavioral JoinXY (Discount (Rat 9 10)) (Within (Rat 4 5))))\n'
+R4C = run(r4c, 'r4-cl')
+ap = look(R4C, 'AdaptiveProbe', '(CheckTrace MergeX)'); jt = look(R4C, 'UnattainedSupremum', '(CheckTrace JoinXY)')
+tap = tw_replay(ap, r4c, PA, 'report', 'merge-x', 'AdaptiveProbe'); tjt = tw_replay(jt, r4c, UA, 'report', 'join-xy', 'UnattainedSupremum')
+report('R4-F1: AdaptiveProbe unbounded CheckTrace Refuted with a replayed TraceEventWitness', st(ap) == 'Refuted' and has(ap, r'\(Ground Witness\)') and bool(tap), tap)
+report('R4-F1: Leak unbounded CheckTrace Refuted with a replayed TraceEventWitness', st(jt) == 'Refuted' and has(jt, r'\(Ground Witness\)') and bool(tjt), tjt)
+allw = [l for D in (R4C,) for l in D.values() if l and has(l, r'\(Ground Witness\)')]
+report('R4-F1: every Ground Witness answer here carries a witness term', bool(allw) and all(has(l, r'TraceEventWitness|ModalTestWitness|PolicyTreeWitness') for l in allw), len(allw))
+# review 4 F2: CheckTrace under a Horizon takes Within as optional, default 0
+r4s = src + '\n!(dc.run SevenState (CheckTrace MergeXY (Horizon (Steps 3))))\n'
+R4S = run(r4s, 'r4-seven'); ct = look(R4S, 'SevenState', '(CheckTrace MergeXY (Horizon (Steps 3)))')
+report('R4-F2: CheckTrace MergeXY Horizon 3 without Within: Checked, defect 0', st(ct) == 'Checked' and has(ct, r'\(WithinBound True\)') and has(ct, r'\(TraceDefect 0\)'), st(ct))
+# review 4 F3: Discount 9/10 on the Leak chain reaches the exact fixed point 9/11
+m9 = look(R4C, 'UnattainedSupremum', '(MeasureBehavioral JoinXY (Discount (Rat 9 10)))')
+p9 = prefix_replay(m9, r4c, UA, ['report'], 'UnattainedSupremum'); q9 = dual_replay(m9, r4c, UA, ['report'], 'UnattainedSupremum')
+report('R4-F3: MeasureBehavioral JoinXY Discount 9/10 = 9/11, Prefixpoint and DualPostfixpoint replay', st(m9) == 'Checked' and has(m9, r'\(BehavioralDefect \(Rat 9 11\)\)') and bool(p9) and bool(q9), (p9 and p9.get(('x', 'y')), q9 and q9.get(('x', 'y'))))
+c9 = look(R4C, 'UnattainedSupremum', '(CheckBehavioral JoinXY (Discount (Rat 9 10)) (Within (Rat 9 11)))'); f9 = look(R4C, 'UnattainedSupremum', '(CheckBehavioral JoinXY (Discount (Rat 9 10)) (Within (Rat 4 5)))')
+t9 = mt_replay(f9, r4c, UA, Fr(9, 10), 'UnattainedSupremum')
+report('R4-F3: Within 9/11 Checked; Within 4/5 Refuted on a replayed Test with gap > 4/5', st(c9) == 'Checked' and st(f9) == 'Refuted' and bool(t9) and abs(t9[0] - t9[1]) > Fr(4, 5), t9)
 
 # neg 12: a Positive arrow from an unnormalized realization (K rows sum to 2) is not valid, so no composite is formed from it.
 lsrc = open(LFIX, encoding='utf-8').read()

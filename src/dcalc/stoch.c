@@ -242,6 +242,7 @@ typedef struct {
     DcRat e[ST_MAXE][ST_MAXE];     /* echelon copy */
     int piv[ST_MAXE];
     int len[ST_MAXE];              /* word length (symbols) of each basis vector */
+    int par[ST_MAXE], act[ST_MAXE], obs[ST_MAXE];   /* review 4 F1: v[i] = D_obs K_act v[par] (par -1: indicator of obs) */
 } StSpan;
 static int st_span_add(StSpan *B, const DcRat *x, int len, int *ovf) {
     DcRat r[ST_MAXE];
@@ -266,7 +267,7 @@ static void st_span(const StMod *s, const StMach *M, StSpan *B, int *ovf) {
     for (int y = 0; y < no; y++) {
         DcRat x[ST_MAXE];
         for (int t = 0; t < n; t++) x[t] = dc_rat(oc[t] == y, 1, ovf);
-        st_span_add(B, x, 1, ovf);
+        if (st_span_add(B, x, 1, ovf)) { B->par[B->dim - 1] = -1; B->act[B->dim - 1] = -1; B->obs[B->dim - 1] = y; }
     }
     for (int head = 0; head < B->dim && !*ovf; head++)      /* B->dim grows: BFS queue */
         for (int a = 0; a < M->nact; a++)
@@ -277,7 +278,7 @@ static void st_span(const StMod *s, const StMach *M, StSpan *B, int *ovf) {
                     if (oc[t] != y) continue;
                     for (int u = 0; u < n; u++) if (!dc_rat_is_zero(K->p[t][u])) x[t] = dc_rat_add(x[t], dc_rat_mul(K->p[t][u], B->v[head][u], ovf), ovf);
                 }
-                st_span_add(B, x, B->len[head] + 1, ovf);
+                if (st_span_add(B, x, B->len[head] + 1, ovf)) { B->par[B->dim - 1] = head; B->act[B->dim - 1] = a; B->obs[B->dim - 1] = y; }
             }
 }
 /* Trace classes: tc[x] = class index; returns the number of classes. */
@@ -1150,7 +1151,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             return dc_invalid(m, "%s: expected (Horizon (Steps h)) with 0 <= h <= 12", head);
         int pol = po != NULL, chk = !strcmp(head, "CheckTrace");
         if (po && !sx_is_sym(po->items[1], "ObservationBased")) return dc_invalid(m, "%s: (Policies P) supports ObservationBased only", head);
-        if (chk != (wi != NULL) || (wi && (st_rat(wi->items[1], &bound) || bound.n < 0)))
+        if ((!chk && wi) || (wi && (st_rat(wi->items[1], &bound) || bound.n < 0)))   /* review 4 F2: Within is optional, default 0 */
             return dc_invalid(m, "%s: %s", head, chk ? "expected (Within b) with b >= 0" : "takes no (Within b)");
         for (size_t i = 2; i < q->n; i++)
             if (!sx_head_is(q->items[i], "Horizon") && !sx_head_is(q->items[i], "Policies") && !sx_head_is(q->items[i], "Within")) return dc_invalid(m, "%s: unexpected option", head);
@@ -1233,7 +1234,9 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) d[x][y] = dc_rat(oc[x] != oc[y], 1, &ovf);
             DcRat def = st_defect(C, E, d, &wx, &ovf);
             while (layers < lim && ch && !(wi && !hz && dc_rat_cmp(def, b) > 0)) {   /* review 3 F1: a Horizon is always computed to layer h */
-                if (st_bstep(&S, M, oc, g, d, nd, &ch, &ovf)) return dc_unsupported(m, "%s: rational overflow (int64) or transport limit", head);
+                if (st_bstep(&S, M, oc, g, d, nd, &ch, &ovf)) {   /* review 4 F3: with Discount < 1 and no Horizon, stop layering and solve the fixed point exactly */
+                    int o1 = 0; if (hz || dc_rat_cmp(g, dc_rat(1, 1, &o1)) >= 0) return dc_unsupported(m, "%s: rational overflow (int64) or transport limit", head);
+                    ovf = 0; def = st_defect(C, E, d, &wx, &ovf); break; }
                 memcpy(d, nd, sizeof d); layers++; def = st_defect(C, E, d, &wx, &ovf);
             }
             if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
@@ -1295,8 +1298,22 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             int tc[ST_MAXE], bad = -1; st_trace_classes(&B, tc);
             for (int x = 0; x < C->n && bad < 0; x++) if (tc[x] != tc[E->tab[x]]) bad = x;
             Sx *val = dc_form("Value", dc_form("TraceEquivalent", dc_sym(bad < 0 ? "True" : "False"), NULL), NULL);
-            Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("TestVectorBasis"), NULL), dc_form("Dimension", dc_int(B.dim), NULL), NULL), NULL);
-            return st_env(m, bad < 0 ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
+            Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym("TestVectorBasis"), NULL), dc_form("Dimension", dc_int(B.dim), NULL), NULL);
+            if (bad >= 0) {   /* review 4 F1 (invariant 17): the refutation carries a TraceEventWitness from the separating basis vector */
+                int y2 = E->tab[bad], i = 0, oc[ST_MAXE], rp[ST_MAXE], no = st_obsclass(&S, M, oc);
+                while (i < B.dim && !dc_rat_cmp(B.v[i][bad], B.v[i][y2])) i++;
+                if (i >= B.dim) { sx_free(val); sx_free(cert); return dc_unsupported(m, "%s: no separating test vector", head); }
+                for (int c = 0; c < no; c++) { rp[c] = -1; for (int x = 0; x < C->n && rp[c] < 0; x++) if (oc[x] == c) rp[c] = x; }
+                Sx *wd = dc_form("Word", NULL), *ob = dc_form("Observations", NULL);
+                for (int k = i; k >= 0; k = B.par[k]) {
+                    char lb[ST_NM];
+                    if (M->nobs == 1) snprintf(lb, ST_NM, "%s", S.car[S.map[M->om[0]].to].el[S.map[M->om[0]].tab[rp[B.obs[k]]]]);
+                    else snprintf(lb, ST_NM, "c%d", B.obs[k]);
+                    sx_push(ob, dc_sym(lb));
+                    if (B.act[k] >= 0) sx_push(wd, dc_sym(M->al[B.act[k]])); }
+                sx_push(cert, dc_form("TraceEventWitness", dc_form("Pair", dc_sym(C->el[bad]), dc_sym(C->el[y2]), NULL), wd, dc_form("Event", ob, NULL),
+                    dc_form("Probabilities", st_rsx(B.v[i][bad]), st_rsx(B.v[i][y2]), NULL), NULL)); }
+            return st_env(m, bad < 0 ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
         }
         DcRat g = dc_rat(1, 1, &ovf);
         const Sx *dsc = NULL;   /* review 3 F3: Precision (checked above) is skipped; an exact answer meets any precision */
