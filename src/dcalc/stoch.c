@@ -884,6 +884,45 @@ static Sx *st_prefix_cert(const StMod *s, const StMach *M, DcRat g, DcRat (*d)[S
     return dc_form("Certificate", dc_form("Kind", dc_sym(kind), NULL), dc_form("Discount", st_rsx(g), NULL), D, cp, NULL);
 }
 
+
+/* review 1 F2: DualPostfixpoint lower certificate (spec certificate table): the kernel D and, for every
+ * same-class pair x < y with D(x,y) > 0 (D above d0), an action attaining D(x,y) = gamma * W_D and
+ * Kantorovich dual potentials f (on the support of the x successor law) and g (on the y support) with
+ * f(u) - g(v) <= D(u,v) and E f - E g = W_D.  Built from st_kdual and self-checked here. */
+static Sx *st_dual_cert(const StMod *s, const StMach *M, DcRat g, DcRat (*d)[ST_MAXE], int iters, int *ovf) {
+    int n = s->car[M->states].n, oc[ST_MAXE]; const StCar *C = &s->car[M->states];
+    st_obsclass(s, M, oc);
+    Sx *D = dc_form("Kernel", NULL), *du = dc_form("Duals", NULL);
+    for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) if (!dc_rat_is_zero(d[x][y]))
+        sx_push(D, dc_form("Entry", dc_sym(C->el[x]), dc_sym(C->el[y]), st_rsx(d[x][y]), NULL));
+    for (int x = 0; x < n; x++) for (int y = x + 1; y < n; y++) {
+        if (oc[x] != oc[y] || dc_rat_is_zero(d[x][y])) continue;
+        Sx *got = NULL;
+        for (int a = 0; a < M->nact && !got; a++) {
+            const StKer *K = &s->ker[M->ak[a]]; DcRat w, F[ST_MAXE]; int U[ST_MAXE], m = 0, ok = 1;
+            if (st_kant(n, K->p[x], K->p[y], d, &w, ovf)) goto fail;
+            if (dc_rat_cmp(dc_rat_mul(g, w, ovf), d[x][y])) continue;
+            if (st_kdual(n, K->p[x], K->p[y], d, w, F, U, &m, ovf)) continue;
+            for (int i = 0; i < m && ok; i++) for (int j = 0; j < m && ok; j++)
+                if (dc_rat_cmp(dc_rat_sub(F[U[i]], F[U[j]], ovf), d[U[i]][U[j]]) > 0) ok = 0;
+            if (!ok) continue;
+            Sx *f = dc_form("F", NULL), *gg = dc_form("G", NULL);
+            for (int i = 0; i < m; i++) {
+                if (!dc_rat_is_zero(K->p[x][U[i]])) sx_push(f, dc_form("Pot", dc_sym(C->el[U[i]]), st_rsx(F[U[i]]), NULL));
+                if (!dc_rat_is_zero(K->p[y][U[i]])) sx_push(gg, dc_form("Pot", dc_sym(C->el[U[i]]), st_rsx(F[U[i]]), NULL));
+            }
+            got = dc_form("Dual", dc_sym(C->el[x]), dc_sym(C->el[y]), dc_sym(M->al[a]), f, gg, NULL);
+        }
+        if (!got) goto fail;
+        sx_push(du, got);
+    }
+    if (*ovf) goto fail;
+    return dc_form("Certificate", dc_form("Kind", dc_sym("DualPostfixpoint"), NULL), dc_form("Discount", st_rsx(g), NULL), D, du,
+                   dc_form("PolicyIterations", dc_int(iters), NULL), NULL);
+fail:
+    sx_free(D); sx_free(du); return NULL;
+}
+
 /* Candidate d* solves d = gamma * (coupling at d) d exactly for the couplings optimal at the
  * current d (policy iteration); it is accepted only if one exact Bellman step (st_kant, whose
  * optimum is the dual post-fixpoint check) maps d* to itself and 0 <= d* <= 1.
@@ -1109,8 +1148,10 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
                 DcRat dv = st_defect(C, E, d, &wx, &ovf); int holds = !wi || dc_rat_cmp(dv, b) <= 0;
                 Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(dv), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
                 if (wi) sx_push(val, dc_form("WithinBound", dc_sym(holds ? "True" : "False"), NULL));
-                Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("CouplingPrefixpoint"), NULL),
-                    dc_form("DualPostfixpoint", dc_sym("Replayed"), NULL), dc_form("PolicyIterations", dc_int(it), NULL), NULL), NULL);
+                /* review 1 F2 (invariant 18): upper Prefixpoint and lower DualPostfixpoint, both carrying their data */
+                Sx *up = st_prefix_cert(&S, M, g, d, "Prefixpoint", &ovf), *lo2 = up ? st_dual_cert(&S, M, g, d, it, &ovf) : NULL;
+                if (!up || !lo2 || ovf) { if (up) sx_free(up); return dc_unsupported(m, "%s: no replayable prefixpoint/dual certificate pair", head); }
+                Sx *ev = dc_form("Evidence", up, lo2, NULL);
                 return st_env(m, holds ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
             }
             Sx *val = dc_form("Value", dc_form("BehavioralInterval", dc_form("Lower", st_rsx(lo), NULL), dc_form("Upper", dc_int(1), NULL), NULL),

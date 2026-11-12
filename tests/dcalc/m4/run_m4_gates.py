@@ -47,10 +47,13 @@ def sx_find(x, head):
 def rat(x):
     if isinstance(x, list) and x[0] == 'Rat': return Fr(int(x[1]), int(x[2]))
     return Fr(int(x))
-def chain_model(text):
-    """kernels name -> {state: {state: Fr}}, maps name -> {state: value}, from the fixture source itself"""
+def chain_model(text, module=None):
+    """kernels name -> {state: {state: Fr}}, maps name -> {state: value}, from the fixture source itself
+    (restricted to the top-level form named `module` when given)"""
     K, M = {}, {}
-    for f in sx_parse(text):
+    forms = sx_parse(text)
+    if module: forms = [f for f in forms if isinstance(f, list) and len(f) > 1 and f[1] == module]
+    for f in forms:
         for k in sx_find(f, 'TransitionKernel'):
             K[k[1]] = {r[1]: {ms[1]: rat(ms[2]) for ms in r[2:] if ms[0] == 'Mass'} for r in k if isinstance(r, list) and r[0] == 'Row'}
         for m_ in sx_find(f, 'Map'):
@@ -88,10 +91,10 @@ def mt_replay(line, text, actions, gamma):
         return None
 
 
-def prefix_replay(line, text, actions, obsmaps):
+def prefix_replay(line, text, actions, obsmaps, module=None):
     """Replay a Prefixpoint certificate: couplings have the two successor laws as marginals, every
     same-class pair x != y has a coupling per action, and D >= max(d0, gamma * E_theta D).  Returns D or None."""
-    K, M = chain_model(text)
+    K, M = chain_model(text, module)
     try:
         c = next(x for x in sx_find(sx_parse(line), 'Certificate') if ['Kind', 'Prefixpoint'] in x)
         g = rat(next(sx_find(c, 'Discount'))[1]); states = list(next(iter(K.values())).keys())
@@ -112,6 +115,35 @@ def prefix_replay(line, text, actions, obsmaps):
         for a in states:
             for b in states:
                 if a != b and d0[(a, b)] == 0 and any((a, b, act) not in seen for act in actions): return None
+        return D
+    except (StopIteration, KeyError, IndexError, ValueError):
+        return None
+
+
+def dual_replay(line, text, actions, obsmaps, module=None):
+    """Replay a DualPostfixpoint certificate: for every same-class pair with D(x,y) > 0 a Dual names an action
+    and potentials f on supp K(x), g on supp K(y) with f(u) - g(v) <= D(u,v) and gamma (E f - E g) >= D(x,y).
+    D outside such pairs must equal d0.  Then D is a post-fixpoint, hence a lower bound.  Returns D or None."""
+    K, M = chain_model(text, module)
+    try:
+        c = next(x for x in sx_find(sx_parse(line), 'Certificate') if ['Kind', 'DualPostfixpoint'] in x)
+        g = rat(next(sx_find(c, 'Discount'))[1]); states = list(next(iter(K.values())).keys())
+        D = {(a, b): Fr(0) for a in states for b in states}
+        for e in next(sx_find(c, 'Kernel'))[1:]: D[(e[1], e[2])] = rat(e[3])
+        d0 = {(a, b): Fr(int(any(M[o][a] != M[o][b] for o in obsmaps))) for a in states for b in states}
+        if any(D[(a, b)] != D[(b, a)] for a, b in D) or any(not (0 <= v <= 1) for v in D.values()): return None
+        ok = set()
+        for du in next(sx_find(c, 'Duals'))[1:]:
+            x, y, act = du[1], du[2], du[3]; Kr = K[actions[act]]
+            f = {p_[1]: rat(p_[2]) for p_ in du[4][1:]}; gg = {p_[1]: rat(p_[2]) for p_ in du[5][1:]}
+            if du[4][0] != 'F' or du[5][0] != 'G': return None
+            if set(z for z, p in Kr[x].items() if p) - set(f) or set(z for z, p in Kr[y].items() if p) - set(gg): return None
+            if any(f[u] - gg[v] > D[(u, v)] for u in f for v in gg): return None
+            if g * (sum(p * f[z] for z, p in Kr[x].items() if p) - sum(p * gg[z] for z, p in Kr[y].items() if p)) < D[(x, y)]: return None
+            ok.add((x, y)); ok.add((y, x))
+        for k, v in D.items():
+            if k[0] != k[1] and d0[k] == 0 and v > 0 and k not in ok: return None
+            if d0[k] == 1 and v != 1: return None
         return D
     except (StopIteration, KeyError, IndexError, ValueError):
         return None
@@ -208,7 +240,7 @@ UPOL = r'\(Policy M4-StochasticReplay\) \(Replayed False\)'
 urows = [('U01', '(MeasureBehavioral JoinXY)', 'Unknown', r'\(BehavioralInterval \(Lower \(Rat (\d+) \1\d*\)\)|\(BehavioralInterval \(Lower \(Rat \d+ \d+\)\) \(Upper 1\)\).*\(Closed False\)', UPOL),
          ('U02', '(MeasureBehavioral JoinXY (Horizon (Steps 3)))', 'Checked', r'\(BehavioralDefect \(Rat 7 8\)\) \(Horizon \(Steps 3\)\).*\(Kind LayeredPrefixpoint\).*\(Depth 3\)', POL),
          ('U03', '(CheckBehavioral JoinXY (Within (Rat 99 100)))', 'Refuted', r'\(WithinBound False\) \(BehavioralDefect \(Rat 127 128\)\).*\(Depth 7\) \(Separation \(Rat 127 128\)\)', POL),
-         ('U04', '(MeasureBehavioral JoinXY (Discount (Rat 1 2)))', 'Checked', r'\(BehavioralDefect \(Rat 1 3\)\) \(Discount \(Rat 1 2\)\).*\(Kind CouplingPrefixpoint\) \(DualPostfixpoint Replayed\)', POL)]
+         ('U04', '(MeasureBehavioral JoinXY (Discount (Rat 1 2)))', 'Checked', r'\(BehavioralDefect \(Rat 1 3\)\) \(Discount \(Rat 1 2\)\).*\(Kind Prefixpoint\).*\(Kind DualPostfixpoint\)', POL)]
 for cid, req, want, pat, pol in urows:
     line = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == req), None); s_ = st(line)
     ok = s_ == want and has(line, pat) and has(line, pol)
@@ -248,6 +280,12 @@ report('F3: fixed-word refutation (Within 1/4) is TraceEventWitness, not WordWit
 # neg 11 (U01): a Precision-0 undiscounted measurement is never Checked from tests alone, nor certified by a post-fixpoint
 u1 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(MeasureBehavioral JoinXY)'), None)
 report('neg 11: U01 not Checked, no post-fixpoint certificate', st(u1) == 'Unknown' and not has(u1, r'DualPostfixpoint|CouplingPrefixpoint'), st(u1))
+# review 1 F2 (invariant 18): U04 upper Prefixpoint and lower DualPostfixpoint both replay and meet at 1/3
+u4 = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == '(MeasureBehavioral JoinXY (Discount (Rat 1 2)))'), None)
+UA = {'step': 'Step'}
+pu4 = prefix_replay(u4, csrc, UA, ['report'], 'UnattainedSupremum'); du4 = dual_replay(u4, csrc, UA, ['report'], 'UnattainedSupremum')
+report('F2: U04 Prefixpoint (upper) replays, D(x,y) = 1/3', bool(pu4) and pu4[('x', 'y')] == Fr(1, 3), pu4 and pu4[('x', 'y')])
+report('F2: U04 DualPostfixpoint (lower) replays, D(x,y) = 1/3, bounds meet', bool(du4) and du4[('x', 'y')] == Fr(1, 3) and bool(pu4) and du4 == pu4, du4 and du4[('x', 'y')])
 
 # neg 12: a Positive arrow from an unnormalized realization (K rows sum to 2) is not valid, so no composite is formed from it.
 lsrc = open(LFIX, encoding='utf-8').read()
