@@ -102,4 +102,17 @@ orows = [('O01', '(MeasureTrace MergeX (Horizon (Steps 2)))', 'Checked', r'\(Tra
 for cid, req, want, pat in orows:
     line = next((l for (mo, rq), l in CL.items() if mo == 'AdaptiveProbe' and ' '.join(rq.split()) == req), None); s_ = st(line)
     report('%s %s' % (cid, req[:48]), s_ == want and has(line, pat) and has(line, POL), s_)
+
+# ---- U01-U04: certificate_limits.metta UnattainedSupremum (beyond release) ----
+UPOL = r'\(Policy M4-StochasticReplay\) \(Replayed False\)'
+urows = [('U01', '(MeasureBehavioral JoinXY)', 'Unknown', r'\(BehavioralInterval \(Lower \(Rat (\d+) \1\d*\)\)|\(BehavioralInterval \(Lower \(Rat \d+ \d+\)\) \(Upper 1\)\).*\(Closed False\)', UPOL),
+         ('U02', '(MeasureBehavioral JoinXY (Horizon (Steps 3)))', 'Checked', r'\(BehavioralDefect \(Rat 7 8\)\) \(Horizon \(Steps 3\)\).*\(Kind LayeredPrefixpoint\).*\(Depth 3\)', POL),
+         ('U03', '(CheckBehavioral JoinXY (Within (Rat 99 100)))', 'Refuted', r'\(WithinBound False\) \(BehavioralDefect \(Rat 127 128\)\).*\(Depth 7\) \(Separation \(Rat 127 128\)\)', POL),
+         ('U04', '(MeasureBehavioral JoinXY (Discount (Rat 1 2)))', 'Checked', r'\(BehavioralDefect \(Rat 1 3\)\) \(Discount \(Rat 1 2\)\).*\(Kind CouplingPrefixpoint\) \(DualPostfixpoint Replayed\)', POL)]
+for cid, req, want, pat, pol in urows:
+    line = next((l for (mo, rq), l in CL.items() if mo == 'UnattainedSupremum' and ' '.join(rq.split()) == req), None); s_ = st(line)
+    ok = s_ == want and has(line, pat) and has(line, pol)
+    if cid == 'U01':   # the lower bound is below 1 and the interval is reported open
+        ok = ok and has(line, r'\(Upper 1\)') and has(line, r'\(Closed False\)') and not has(line, r'\(BehavioralDefect 1\)')
+    report('%s %s' % (cid, req[:48]), ok, s_)
 sys.exit(1 if fails else 0)
