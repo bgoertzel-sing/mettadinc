@@ -55,6 +55,18 @@ PATCHES = [  # (name, canonical copy: the bundle that introduces the patch)
 OUT = os.path.join(REPO, "registry", "mettadinc_registry.json")
 DIGEST = os.path.join(REPO, "registry", "DIGEST")
 SOURCES = os.path.join(REPO, "registry", "SOURCES.md")
+# Local patches, applied after the bundle patches.  They live in this repository, not in the frozen docs/e0/.
+# m4est: hive decision 2026-11-12 18:32 on t-2026-11-12-mettadinc-m4-estimates (opt-in, reversible deviation
+# from Ben's decision 1, recorded in workspace DECISIONS.md); every addition is first_release [].
+LOCAL_PATCHES = [("m4est", "registry/patches/m4est_registry_patch.json")]
+
+
+def ppath(name, path):
+    return os.path.join(REPO, path) if name in dict(LOCAL_PATCHES) else os.path.join(DOCS, path)
+
+
+def pshow(name, path):
+    return path if name in dict(LOCAL_PATCHES) else "docs/e0/docs/" + path
 WHOLE = [("libraries", "libraries"), ("declarations", "declarations"), ("requests", "requests"),
          ("result_types", "result_types"), ("witness_types", "witness_types")]
 FIELDS = [("declaration_fields", "declarations", "fields"), ("request_args", "requests", "args"),
@@ -94,7 +106,7 @@ def copies():
 def build(supersede):
     base = json.load(open(os.path.join(DOCS, BASE)))
     reg = copy.deepcopy(base)
-    patches = [(n, p, json.load(open(os.path.join(DOCS, p)))) for n, p in PATCHES]
+    patches = [(n, p, json.load(open(ppath(n, p)))) for n, p in PATCHES + LOCAL_PATCHES]
     conflicts, revisions, resolved, notes_out = [], [], [], {}
     owner_whole, owner_field, fields_added = {}, {}, {}
     for name, path, pt in patches:
@@ -169,11 +181,11 @@ def build(supersede):
                 conflicts.append(f"note {k}: {notes_out[k]['patch']} and {name} differ")
             notes_out[k] = {"text": text, "patch": name}
         reg.setdefault("adopted_patches", []).append(
-            {"name": name, "file": "docs/e0/docs/" + path, "sha256": sha(os.path.join(DOCS, path)),
+            {"name": name, "file": pshow(name, path), "sha256": sha(ppath(name, path)),
              "patch": pt.get("patch"), "date": pt.get("date")})
     if notes_out:
         reg["notes"] = notes_out
-    reg["registry"] = base["registry"] + ", with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted"
+    reg["registry"] = base["registry"] + ", with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted, and the local patch m4est (hive decision 2026-11-12, beyond release only)"
     reg["date"] = "2026-11-05"
     return base, reg, conflicts, revisions, resolved
 
@@ -218,6 +230,9 @@ def summarize(old, new):
 # gives 0 diagnostics for every bundle with no patch.  The checker column lists the ex_check.py install() code
 # that moved into validation/check_fixtures.py because the input's forms need it.
 COORDINATED = [
+    ("m4est (local)", "none", "none",
+     "request args Estimator, Sample, Seed, ReuseUnder, Argument on EstimateRate/CompareRates and the request "
+     "EstimateDupRate, all first_release []; checker reads them from the adopted registry"),
     ("base registry", "none", "none",
      "the working copy validation/check_fixtures.py reads registry/mettadinc_registry.json (MDINC_REGISTRY overrides) "
      "and the package data from the frozen docs/e0/ copy"),
@@ -253,6 +268,9 @@ def sources_md(base_sha, reg_sha, cps, revisions, resolved):
     for n, p in PATCHES:
         L.append(f"| {n} patch (applied {names.index(n) + 1} of {len(PATCHES)}) | docs/e0/docs/{p} | "
                  f"{code(sha(os.path.join(DOCS, p)))} |")
+    for n, p in LOCAL_PATCHES:
+        L.append(f"| {n} local patch (applied after wx; hive decision 2026-11-12 18:32, beyond release only) | {p} | "
+                 f"{code(sha(os.path.join(REPO, p)))} |")
     L += ["", "## Coordinated change (MILESTONES.md, entry checklist item 3)", "",
           "| Input | Fixtures | Manifest | Checker |", "|---|---|---|---|"]
     for row in COORDINATED:

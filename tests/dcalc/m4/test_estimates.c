@@ -33,6 +33,66 @@ static const char *status(const Sx *r) {
     return s && s->n == 2 ? s->items[1]->text : "missing";
 }
 
+
+/* review 1: surface gates over the whole request path (dc_eval_text), as text */
+static const char *MOD2 =
+    "(DC.Module EstS (Profile Stochastic) (Use Estimates)\n"
+    "  (Stream Replies (Source \"streams/replies.json\") (Digest \"" DIG "\")\n"
+    "    (Population \"replies\") (Selection \"all replies\") (Policy \"v1\"))\n"
+    "  (Stream RepliesSel (Source \"streams/replies.json\") (Digest \"" DIG "\")\n"
+    "    (Population \"replies\") (Selection \"replies the policy chose to show\") (Policy \"v1\") (SelectionDependsOnPolicy True))\n"
+    "  (Derive StaleRate (EstimateRate (On Replies) (Column \"stale\") (Equals 1) (Level (Rat 1 100))))\n"
+    "  (Derive FreshRate (EstimateRate (On Replies) (Column \"stale\") (Equals 0) (Level (Rat 1 50)))))\n";
+static char *evalt(const char *bundle, const char *req, int beyond) {
+    dc_eval_set_beyond_release(beyond);
+    char *o = dc_eval_text(MOD2, bundle, "EstS", req);
+    return o ? o : calloc(1, 1);
+}
+static int has(const char *o, const char *k) { return o && strstr(o, k) != NULL; }
+#define RQ(x) "(EstimateRate (On Replies) (Column \"stale\") (Equals 1) (Level (Rat 1 100)) " x ")"
+static void surface_gates(const char *B) {
+    struct { const char *req, *want, *k1, *k2, *msg; } G[] = {
+        { RQ("(Estimator Hoeffding)"), "(Status Estimated)", "(Hoeffding (Level", "(SampleSize 916)", "F2 EstimateRate (Estimator Hoeffding): Estimated, full record" },
+        { RQ("(Estimator ExactBinomial)"), "(Status Estimated)", "(ExactBinomial (Level", "Clopper-Pearson", "F2 EstimateRate (Estimator ExactBinomial): Estimated" },
+        { "(EstimateDupRate (On Replies) (Column \"day\") (Level (Rat 1 100)))", "(Status Estimated)", "(Count 8080) (Observations 419070)", "(IndependentPairs 458)", "F2 EstimateDupRate: U-statistic 8080/419070, Hoeffding over floor(916/2)=458 pairs" },
+        { RQ("(Sample 200) (Seed 20261112)"), "(Status Estimated)", "(Seed 20261112)", "(SamplePopulation 916)", "F4 (Sample 200) (Seed s): Seed and SamplePopulation recorded" },
+        { "(EstimateDupRate (On Replies) (Column \"day\") (Level (Rat 1 100)) (Sample 100) (Seed 7))", "(Status Estimated)", "(SampleSize 100)", "(Seed 7)", "F4 EstimateDupRate on a seeded sample of 100" },
+        { RQ("(ReuseUnder \"v1\")"), "(Status Estimated)", "(Policy \"v1\")", "(Estimate ", "F5 ReuseUnder the producing policy: Estimated" },
+        { RQ("(ReuseUnder \"v2\") (Argument \"keys fixed before the policy runs\")"), "(Status Estimated)", "(Estimate ", "(Delta (Rat 1 100))", "F5 ReuseUnder a new policy with a declared Argument: Estimated" },
+        { "(RatesSeparated StaleRate FreshRate)", "(Status Conditional)", "(EstimatedDelta (Rat 3 100))", "(Separated True)", "F3 RatesSeparated over two Derive'd estimates: Conditional, deltas add 1/100+1/50=3/100" },
+    };
+    for (size_t i = 0; i < sizeof G / sizeof G[0]; i++) {
+        char *o = evalt(B, G[i].req, 1);
+        CHECK(has(o, G[i].want) && has(o, G[i].k1) && has(o, G[i].k2), G[i].msg);
+        free(o);
+        o = evalt(B, G[i].req, 0);
+        char m[256]; snprintf(m, sizeof m, "release mode: %.200s -> Unsupported", G[i].req);
+        CHECK(has(o, "(Status Unsupported)") && !has(o, "(Status Estimated)") && !has(o, "(Status Conditional)"), m);
+        free(o);
+    }
+    char *o = evalt(B, "(RatesSeparated StaleRate FreshRate)", 1);
+    const char *p1 = o ? strstr(o, "(EstimatedPremise") : NULL;
+    CHECK(p1 && strstr(p1 + 1, "(EstimatedPremise") && has(o, "(Rat 1 100))") && has(o, "(Rat 1 50))") && !has(o, "Unknown"),
+          "F3 derived result carries (EstimatedPremise digest delta) for each premise, no Unknown delta");
+    free(o);
+    char *a = evalt(B, RQ("(Sample 200) (Seed 20261112)"), 1), *b = evalt(B, RQ("(Sample 200) (Seed 20261112)"), 1);
+    CHECK(a && b && !strcmp(a, b), "F4 replay: the same (Sample, Seed) gives a byte-identical result");
+    free(a); free(b);
+    /* negatives: refuse (InvalidInput), never Estimated, never Unsupported */
+    struct { const char *req, *msg; } N[] = {
+        { RQ("(ReuseUnder \"v2\")"), "F5 negative: ReuseUnder a new policy without new estimate or Argument -> InvalidInput" },
+        { "(EstimateDupRate (On Replies) (Column \"day\") (Level (Rat 1 100)) (ReuseUnder \"v2\"))", "F5 negative: dup-rate bound reused under a new policy -> InvalidInput" },
+        { "(EstimateRate (On RepliesSel) (Column \"stale\") (Equals 1) (Level (Rat 1 100)) (ReuseUnder \"v2\") (Argument \"claimed\"))", "F5 negative: policy-dependent selection blocks transport even with an Argument" },
+        { RQ("(Sample 50)"), "F4 negative: (Sample k) without (Seed s) -> InvalidInput" },
+        { "(EstimateDupRate (On Replies) (Column \"day\") (Level (Rat 1 100)) (Estimator ExactBinomial))", "F2 negative: EstimateDupRate takes only the Hoeffding bound" },
+    };
+    for (size_t i = 0; i < sizeof N / sizeof N[0]; i++) {
+        char *x = evalt(B, N[i].req, 1);
+        CHECK(has(x, "(Status InvalidInput)") && !has(x, "(Estimate ") && !has(x, "Unsupported"), N[i].msg);
+        free(x);
+    }
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) { fprintf(stderr, "usage: test_estimates <bundle_dir>\n"); return 2; }
     const char *B = argv[1]; char why[256];
@@ -78,6 +138,7 @@ int main(int argc, char **argv) {
     CHECK(!memcmp(a, b, sizeof a), "seeded sample replays byte for byte from (seed, population size)");
     CHECK(memcmp(a, c, sizeof a) != 0, "a different seed draws a different sample");
 
+    surface_gates(B);
     Sx *fr[] = { rel, r, bad, bad0 };
     for (size_t k = 0; k < 4; k++) if (fr[k]) sx_free(fr[k]);
     printf("estimates: %d/%d passed\n", total - fails, total);

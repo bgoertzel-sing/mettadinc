@@ -122,10 +122,23 @@ void dc_result_add_premise(Sx *res, const Sx *premise, const char *premise_name)
         dc_sha256_hex(txt, strlen(txt), dg); free(txt);
         const Sx *dl = NULL; const Sx *val = sx_find(premise, "Value", 1);
         for (size_t i = 1; val && i < val->n && !dl; i++)
-            if (val->items[i]->kind == SX_LIST) { const Sx *x = sx_head_is(val->items[i], "Delta") ? val->items[i] : sx_find(val->items[i], "Delta", 1); if (x && x->n == 2 && x->items[1]->kind == SX_SYM) dl = x; }
-        Sx *e = dc_form("EstimatedPremise", sx_str(dg), dc_sym(dl ? dl->items[1]->text : "Unknown"), NULL);
+            if (val->items[i]->kind == SX_LIST) { const Sx *x = sx_head_is(val->items[i], "Delta") ? val->items[i] : sx_find(val->items[i], "Delta", 1); if (x && x->n == 2 && (x->items[1]->kind == SX_SYM || sx_head_is(x->items[1], "Rat"))) dl = x; }
+        Sx *e = dc_form("EstimatedPremise", sx_str(dg), dl ? sx_copy(dl->items[1]) : dc_sym("Unknown"), NULL);
         Sx *one = dc_form("Assumptions", e, NULL);
         dc_assumptions_union(dst, one); sx_free(one);
+        /* review 1 F3: the deltas add.  (EstimatedDelta total) is the exact
+         * rational sum over every EstimatedPremise; Unknown if any premise
+         * declares none or the sum overflows. */
+        DcRat tot = { 0, 1 }; int unk = 0, ovf = 0;
+        for (size_t j = 1; j < dst->n; j++) {
+            const Sx *a = dst->items[j]; DcRat d;
+            if (!sx_head_is(a, "EstimatedPremise") || a->n != 3) continue;
+            if (dc_sx_rat(a->items[2], &d)) { unk = 1; continue; }
+            tot = dc_rat_add(tot, d, &ovf);
+        }
+        for (size_t j = 1; j < res->n; j++)
+            if (sx_head_is(res->items[j], "EstimatedDelta")) { sx_free(res->items[j]); for (size_t k = j + 1; k < res->n; k++) res->items[k - 1] = res->items[k]; res->n--; break; }
+        sx_push(res, dc_form("EstimatedDelta", (unk || ovf) ? dc_sym("Unknown") : dc_form("Rat", dc_int((long)tot.n), dc_int((long)tot.d), NULL), NULL));
     }
     if (dst->n > 1 && res->n > 1 && sx_head_is(res->items[1], "Status") && res->items[1]->n == 2) {
         DcStatus st = dc_result_status(res);

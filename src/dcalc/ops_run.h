@@ -47,4 +47,5 @@ Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot);
 Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot);
 /* M4-estimates (ops_est.c): EstimateRate over a frozen Stream; Estimated, never Checked. */
 Sx *dc_req_estimates(DcRun *r, const Sx *q, const char *head);
+Sx *dc_req_separated(DcRun *run, const Sx *q);   /* review 1 F3 */
 #endif

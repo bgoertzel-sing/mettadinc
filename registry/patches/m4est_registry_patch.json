@@ -1,0 +1,160 @@
+{
+ "patch": "m4est: local registry patch for t-2026-11-12-mettadinc-m4-estimates review 1 (F2, F4, F5). Approved by the hive 2026-11-12 18:32 (block decision: opt-in, reversible deviation from Ben's decision 1, recorded in workspace DECISIONS.md). Adds the estimator choice, seeded sampling and policy reuse to EstimateRate and CompareRates, and the request EstimateDupRate. Every addition is first_release [] (beyond release only).",
+ "date": "2026-11-12",
+ "request_args": {
+  "EstimateRate": {
+   "Estimator": {
+    "type": "enum:ConfidenceSequence|Hoeffding|ExactBinomial",
+    "required": false,
+    "default": "ConfidenceSequence",
+    "doc": "ConfidenceSequence is anytime-valid; Hoeffding and ExactBinomial (Clopper-Pearson) are fixed-sample intervals, valid only when the sample size was fixed before reading"
+   },
+   "Sample": {
+    "type": "nat",
+    "required": false,
+    "doc": "read a seeded simple random sample of this many rows without replacement instead of every row; the result records Seed and SamplePopulation"
+   },
+   "Seed": {
+    "type": "nat",
+    "required": false,
+    "doc": "the sampling seed; required with Sample"
+   },
+   "ReuseUnder": {
+    "type": "expr",
+    "required": false,
+    "doc": "the policy digest the estimate is to be reused under; refused (InvalidInput) unless it equals the stream's Policy or an Argument is declared, and always refused when the stream's selection depends on the policy"
+   },
+   "Argument": {
+    "type": "expr",
+    "required": false,
+    "doc": "the declared argument that the population and selection do not depend on the policy"
+   }
+  },
+  "CompareRates": {
+   "Estimator": {
+    "type": "enum:ConfidenceSequence|Hoeffding|ExactBinomial",
+    "required": false,
+    "default": "ConfidenceSequence"
+   },
+   "Sample": {
+    "type": "nat",
+    "required": false
+   },
+   "Seed": {
+    "type": "nat",
+    "required": false
+   },
+   "ReuseUnder": {
+    "type": "expr",
+    "required": false
+   },
+   "Argument": {
+    "type": "expr",
+    "required": false
+   }
+  }
+ },
+ "requests": {
+  "EstimateDupRate": {
+   "library": "Estimates",
+   "positional": [],
+   "args": {
+    "On": {
+     "type": "ref:Stream",
+     "required": true
+    },
+    "Column": {
+     "type": "expr",
+     "required": true,
+     "doc": "the key column; a duplicate is a pair of rows with equal keys"
+    },
+    "Level": {
+     "type": "rat01",
+     "required": true
+    },
+    "Sample": {
+     "type": "nat",
+     "required": false
+    },
+    "Seed": {
+     "type": "nat",
+     "required": false
+    },
+    "ReuseUnder": {
+     "type": "expr",
+     "required": false
+    },
+    "Argument": {
+     "type": "expr",
+     "required": false
+    }
+   },
+   "result": "RateEstimate",
+   "statuses": [
+    "Estimated"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Estimated: the pairwise duplicate rate (share of unordered row pairs with equal Column) as the order-2 U-statistic, with a two-sided Hoeffding interval over floor(n/2) disjoint pairs at the requested Level, valid when rows are independent and identically distributed. Same stream, digest and policy rules as EstimateRate"
+  },
+  "RatesSeparated": {
+   "library": "Estimates",
+   "positional": [
+    [
+     "first",
+     "ref:RateEstimate"
+    ],
+    [
+     "second",
+     "ref:RateEstimate"
+    ]
+   ],
+   "args": {},
+   "result": "RateSeparation",
+   "statuses": [
+    "Conditional"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "Checked comparison of two Estimated rates (review 1 F3): Holds when the first estimate's Upper is strictly below the second's Lower (exact rationals). The answer is derived from Estimated premises, so it is Conditional on (EstimatedPremise digest delta) for each, and (EstimatedDelta sum) adds their deltas; never Checked"
+  }
+ },
+ "declaration_fields": {
+  "Stream": {
+   "SelectionDependsOnPolicy": {
+    "type": "enum:True|False",
+    "required": false,
+    "default": "False",
+    "doc": "True when the selection rule of the rows depends on the policy that produced them; such an estimate never transports to another policy (ReuseUnder is refused even with an Argument)"
+   }
+  }
+ },
+ "result_types": {
+  "RateSeparation": {
+   "fields": {
+    "Separated": "Bool",
+    "FirstUpper": "Rational",
+    "SecondLower": "Rational"
+   },
+   "doc": "m4est: interval separation of two Estimated rates"
+  }
+ }
+}

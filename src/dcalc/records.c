@@ -79,7 +79,8 @@ int dc_estimate_parse(const Sx *x, DcEstimate *e, char *err, size_t en) {
     for (size_t i = 1; i < x->n; i++) {
         const Sx *f = x->items[i];
         static const char *K[] = { "Population", "Selection", "PolicyVersion", "Policy", "Estimand", "SelectionDependsOnPolicy",
-                                   "Estimator", "Protocol", "SampleSize", "Error", "Dependence", "Combination" };
+                                   "Estimator", "Protocol", "SampleSize", "Error", "Dependence", "Combination",
+                                   "SamplePopulation", "Seed" };   /* review 1 F4 */
         int known = 0;
         for (size_t k = 0; k < sizeof K / sizeof K[0]; k++) if (sx_head_is(f, K[k])) known = 1;
         if (!known) { snprintf(err, en, "Estimate: field %zu is not a known field", i); return -1; }
@@ -108,7 +109,7 @@ Sx *dc_estimate_sx(const DcEstimate *e) {
     Sx *r = dc_form("Estimate", dc_form("Estimand", sx_str(e->estimand), NULL),
                     dc_form("Population", sx_str(e->population), NULL),
                     dc_form("Selection", sx_str(e->selection), NULL),
-                    dc_form("PolicyVersion", sx_str(e->policy_version), NULL), NULL);
+                    dc_form("Policy", sx_str(e->policy_version), NULL), NULL);   /* review 1 F6: the registry envelope spelling */
     if (e->estimator[0]) sx_push(r, dc_form("Estimator", sx_str(e->estimator), NULL));
     if (e->protocol[0]) sx_push(r, dc_form("Protocol", sx_str(e->protocol), NULL));
     if (e->sample_size >= 0) { char b[32]; snprintf(b, sizeof b, "%lld", e->sample_size); sx_push(r, dc_form("SampleSize", sx_sym(b), NULL)); }

@@ -44,6 +44,42 @@ int main(int argc, char **argv) {
         snprintf(b, sizeof b, "p=%.2f Hoeffding at n=%ld", p, N); report(b, hf_miss, T, a, 1);
         snprintf(b, sizeof b, "p=%.2f CANARY peeking Wald must violate", p); report(b, wald_peek, T, a, 0);
     }
+    /* review 1 F1: the order-2 U-statistic (pairwise duplicate rate) with its
+     * Hoeffding bound over floor(n/2) independent pairs, on key distributions
+     * whose duplicate rate theta = sum_k w_k^2 is known exactly.  Canary: the
+     * same bound with m = C(n,2) (pretending every pair is independent) must
+     * violate on the non-degenerate skewed model. */
+    {
+        static const char *K[20] = { "k0","k1","k2","k3","k4","k5","k6","k7","k8","k9",
+                                     "k10","k11","k12","k13","k14","k15","k16","k17","k18","k19" };
+        static const double W0[] = { 0.5, 0.25, 0.15, 0.1 };
+        double W1[20], W2[10], z = 0;
+        for (int i = 0; i < 20; i++) { W1[i] = pow(0.8, i); z += W1[i]; }
+        for (int i = 0; i < 20; i++) W1[i] /= z;
+        for (int i = 0; i < 10; i++) W2[i] = 0.1;
+        const double *W[3] = { W0, W1, W2 }; const int nk[3] = { 4, 20, 10 };
+        const char *nm[3] = { "skewed 4 keys (0.5,0.25,0.15,0.1)", "geometric 20 keys (ratio 0.8)", "uniform 10 keys" };
+        const long NU = 100; const char *keys[100];
+        for (int di = 0; di < 3; di++) {
+            double th = 0; for (int i = 0; i < nk[di]; i++) th += W[di][i] * W[di][i];
+            uint64_t st = seed + 7000003ULL + (uint64_t)di * 1000003ULL;
+            double eps = dc_hoeffding_eps(NU / 2, a), eps_bad = dc_hoeffding_eps(NU * (NU - 1) / 2, a);
+            long miss = 0, miss_bad = 0;
+            for (long t = 0; t < T; t++) {
+                for (long i = 0; i < NU; i++) {
+                    double u = unif(&st), c = 0; int k = nk[di] - 1;
+                    for (int j = 0; j < nk[di]; j++) { c += W[di][j]; if (u < c) { k = j; break; } }
+                    keys[i] = K[k];
+                }
+                long long num, den; dc_ustat_dup(keys, (size_t)NU, &num, &den);
+                double dev = fabs((double)num / (double)den - th);
+                miss += dev > eps; miss_bad += dev > eps_bad;
+            }
+            char b[128];
+            snprintf(b, sizeof b, "U-stat dup rate, %s, theta=%.4f, n=%ld", nm[di], th, NU); report(b, miss, T, a, 1);
+            if (di == 0) { snprintf(b, sizeof b, "U-stat CANARY m=C(n,2) bound must violate (%s)", nm[di]); report(b, miss_bad, T, a, 0); }
+        }
+    }
     printf("coverage: %d/%d passed\n", total - fails, total);
     return fails ? 1 : 0;
 }
