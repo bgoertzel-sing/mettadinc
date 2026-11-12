@@ -1033,17 +1033,30 @@ void dc_admission_free(DcAdmission *a) {
 /* First-release capability manifest (registry first_release): NULL when the
  * module's profile coordinates and libraries all lie inside the release,
  * else a reason, written to buf. */
-const char *dc_admit_unsupported(const DcAModule *m, char *buf, size_t n) {
+/* M4 opt-in: Dynamics Stochastic and the stochastic libraries are admitted
+ * beyond the first release; every other first-release gap still answers. */
+/* M4-estimates: Estimates (EstimateRate, CompareRates) joins the opt-in set. */
+static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", NULL };
+static int m4_allowed(const char *key, const char *val) {
+    if (!val) return 0;
+    if (!strcmp(key, "dynamics")) return !strcmp(val, "Stochastic");
+    if (!strcmp(key, "libraries")) { for (int i = 0; M4_LIBS[i]; i++) if (!strcmp(val, M4_LIBS[i])) return 1; }
+    return 0;
+}
+static const char *admit_unsupported(const DcAModule *m, char *buf, size_t n, int beyond);
+const char *dc_admit_unsupported(const DcAModule *m, char *buf, size_t n) { return admit_unsupported(m, buf, n, 0); }
+const char *dc_admit_unsupported_beyond(const DcAModule *m, char *buf, size_t n) { return admit_unsupported(m, buf, n, 1); }
+static const char *admit_unsupported(const DcAModule *m, char *buf, size_t n, int beyond) {
     const Sx *fr = reg_section("first_release");
     struct { const char *key, *val, *what; } co[] = {
         { "dynamics", m->dynamics, "Dynamics" }, { "values", m->values, "Values" }, { "carriers", m->carriers, "Carriers" } };
     for (int i = 0; i < 3; i++)
-        if (!co[i].val || !dc_reg_list_has(dc_reg_get(fr, co[i].key), co[i].val)) {
+        if ((!co[i].val || !dc_reg_list_has(dc_reg_get(fr, co[i].key), co[i].val)) && !(beyond && m4_allowed(co[i].key, co[i].val))) {
             snprintf(buf, n, "Profile %s %s is outside the first release", co[i].what, co[i].val ? co[i].val : "None");
             return buf;
         }
     for (size_t i = 0; i < m->libraries.n; i++)
-        if (!dc_reg_list_has(dc_reg_get(fr, "libraries"), m->libraries.v[i])) {
+        if (!dc_reg_list_has(dc_reg_get(fr, "libraries"), m->libraries.v[i]) && !(beyond && m4_allowed("libraries", m->libraries.v[i]))) {
             snprintf(buf, n, "library %s is outside the first release", m->libraries.v[i]);
             return buf;
         }

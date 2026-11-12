@@ -145,6 +145,31 @@ static void boundary2_assurance(void) {
     Sx *der2 = parse1("(Result (Status Checked) (Assumptions))");
     dc_result_add_premise(der2, est, "E");
     CHECK(dc_result_status(der2) == DC_CONDITIONAL, "B2 derived result from an Estimated premise is Conditional on it");
+    /* inv 17: Estimated is accepted only by a consumer that lists Estimated,
+     * never as Checked; EstimatedPremise only covered by an empirical consumer;
+     * (Assumption name) entries cover declared assumptions. */
+    DcAccepts emp, asm_, mix;
+    Sx *d4 = parse1("(Accepts Checked Estimated)");
+    Sx *d5 = parse1("(Accepts Checked (Conditional (Assumption StepModel)))");
+    Sx *d6 = parse1("(Accepts Checked Estimated (Conditional (TrustedBackend cvc5) (Assumption StepModel)))");
+    Sx *d7 = parse1("(Accepts Checked (Conditional (EstimatedPremise x)))");
+    CHECK(dc_accepts_parse(d4, &emp, why, sizeof why) == 0 && emp.checked && emp.estimated, "inv17 (Accepts Checked Estimated) parsed");
+    CHECK(dc_accepts_parse(d5, &asm_, why, sizeof why) == 0 && asm_.nassume == 1 && !asm_.estimated, "inv17 (Conditional (Assumption StepModel)) parsed");
+    CHECK(dc_accepts_parse(d6, &mix, why, sizeof why) == 0 && mix.estimated && mix.nbackend == 1 && mix.nassume == 1, "inv17 combined Accepts parsed");
+    DcAccepts junk2;
+    CHECK(dc_accepts_parse(d7, &junk2, why, sizeof why) == -1, "inv17 EstimatedPremise is not a declarable Accepts entry");
+    Sx *ep = sx_find(der2, "Assumptions", 0);
+    Sx *sa = parse1("(Assumptions (Assumption StepModel \"d2\"))");
+    Sx *epa = parse1("(Assumptions (Assumption StepModel \"d2\") (TrustedBackend z3 4.13 QF_LIA \"d3\"))");
+    CHECK(dc_accepts_result(&emp, DC_ESTIMATED, none), "inv17 empirical consumer accepts Estimated");
+    CHECK(!dc_accepts_result(&strict, DC_ESTIMATED, none) && !dc_accepts_result(&asm_, DC_ESTIMATED, none), "inv17 a consumer not listing Estimated refuses Estimated");
+    CHECK(dc_accepts_result(&emp, DC_CONDITIONAL, ep), "inv17 empirical consumer accepts Conditional(EstimatedPremise)");
+    CHECK(!dc_accepts_result(&strict, DC_CONDITIONAL, ep) && !dc_accepts_result(&cvc, DC_CONDITIONAL, ep), "inv17 EstimatedPremise not covered without Estimated");
+    CHECK(!dc_accepts_result(&emp, DC_CHECKED, ep), "inv17 a result carrying EstimatedPremise is never accepted as Checked");
+    CHECK(dc_accepts_result(&asm_, DC_CONDITIONAL, sa) && !dc_accepts_result(&strict, DC_CONDITIONAL, sa), "inv17 Assumption entry covers a declared assumption");
+    CHECK(!dc_accepts_result(&mix, DC_CONDITIONAL, epa), "inv17 Conditional refused when one assumption (z3) is uncovered");
+    Sx *fr2[] = { d4, d5, d6, d7, sa, epa };
+    for (size_t k = 0; k < sizeof fr2 / sizeof fr2[0]; k++) sx_free(fr2[k]);
     Sx *fr[] = { tb, tz, badtb, a1, a2, u, ab, d1, d2, d3, none, prem, der, est, der2 };
     for (size_t k = 0; k < sizeof fr / sizeof fr[0]; k++) sx_free(fr[k]);
 }

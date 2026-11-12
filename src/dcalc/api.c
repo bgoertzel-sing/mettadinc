@@ -21,6 +21,9 @@ static Sx *bare(const char *status, const char *mod, const char *reason) {
  * of this run form, or the release reason. */
 static const char *g_source_name = "input";
 void dc_eval_set_source_name(const char *name) { g_source_name = name && *name ? name : "input"; }
+static int g_beyond = 0;   /* M4 opt-in, see api.h */
+void dc_eval_set_beyond_release(int on) { g_beyond = on ? 1 : 0; }
+int dc_eval_beyond_release(void) { return g_beyond; }
 
 static int m1_admission(const Sx *all, const char *mn, const Sx *req, char *why, size_t wn) {
     DcAdmission a; int rc = 0;
@@ -38,7 +41,7 @@ static int m1_admission(const Sx *all, const char *mn, const Sx *req, char *why,
         }
     for (size_t i = 0; i < a.diag.n && !rc; i++)
         if (!strcmp(a.diag.v[i].mod, mn) || i >= before) { snprintf(why, wn, "%s", a.diag.v[i].msg); rc = 1; }
-    if (!rc) { DcAModule *m = dc_admit_find(&a, mn); char b[256]; const char *u = m ? dc_admit_unsupported(m, b, sizeof b) : NULL;
+    if (!rc) { DcAModule *m = dc_admit_find(&a, mn); char b[256]; const char *u = m ? (g_beyond ? dc_admit_unsupported_beyond : dc_admit_unsupported)(m, b, sizeof b) : NULL;
                if (u) { snprintf(why, wn, "%s", u); rc = 2; } }
     sx_free(run); dc_admission_free(&a);
     return rc;
@@ -64,7 +67,8 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
             dc_module_free(m);   /* review 2 F6: release partially admitted carrier tables */
         }
-        else { DcRun *run = dc_run_new(m); res = dc_run(run, req); dc_run_free(run); dc_module_free(m); }
+        else { if (basedir) snprintf(m->basedir, sizeof m->basedir, "%s", basedir);
+               DcRun *run = dc_run_new(m); res = dc_run(run, req); dc_run_free(run); dc_module_free(m); }
         free(m);
     }
     free(bad);

@@ -54,6 +54,8 @@ size_t dc_admit_module_ndiag(const DcAdmission *a, const char *mn);
 DcAModule *dc_admit_find(DcAdmission *a, const char *name);
 /* NULL if the module lies inside the first-release manifest, else the reason (in buf). */
 const char *dc_admit_unsupported(const DcAModule *m, char *buf, size_t n);
+/* Same, under the M4 opt-in (api.h dc_eval_set_beyond_release). */
+const char *dc_admit_unsupported_beyond(const DcAModule *m, char *buf, size_t n);
 void dc_admission_free(DcAdmission *a);
 
 /* string sets */

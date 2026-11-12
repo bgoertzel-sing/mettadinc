@@ -4,28 +4,40 @@
 #include <stdlib.h>
 #include <string.h>
 
-static Sx *g_all;          /* parse result: a list holding the root form */
+/* Two compiled registries (hive answer 1 on t-2026-11-12-mettadinc-m4-estimates): the release registry
+ * (registry_gen.c, the bundle patches only) and the beyond-release registry (registry_beyond_gen.c, plus the
+ * local patches).  The beyond one is used only while --beyond-release is on (dc_eval_beyond_release), so
+ * release 1 admits, answers and reports its digest exactly as before the local patches. */
+int dc_eval_beyond_release(void);
+static Sx *g_all[2];       /* parse results: [0] release, [1] beyond release; each a list holding the root form */
 
-const Sx *dc_registry(void) {
-    if (g_all) return g_all->n ? g_all->items[0] : NULL;
+static const Sx *load(int b) {
+    if (g_all[b]) return g_all[b]->n ? g_all[b]->items[0] : NULL;
+    const char *const *parts = b ? dc_registry_beyond_parts : dc_registry_parts;
     size_t n = 0;
-    for (size_t i = 0; dc_registry_parts[i]; i++) n += strlen(dc_registry_parts[i]);
+    for (size_t i = 0; parts[i]; i++) n += strlen(parts[i]);
     char *buf = malloc(n + 1);
     if (!buf) return NULL;
     size_t k = 0;
-    for (size_t i = 0; dc_registry_parts[i]; i++) {
-        size_t l = strlen(dc_registry_parts[i]);
-        memcpy(buf + k, dc_registry_parts[i], l); k += l;
+    for (size_t i = 0; parts[i]; i++) {
+        size_t l = strlen(parts[i]);
+        memcpy(buf + k, parts[i], l); k += l;
     }
     buf[k] = 0;
     const char *err = NULL; int line = 0;
-    g_all = sx_parse_all(buf, &err, &line);
+    g_all[b] = sx_parse_all(buf, &err, &line);
     free(buf);
-    if (!g_all || g_all->n != 1 || !sx_head_is(g_all->items[0], "Dict")) { sx_free(g_all); g_all = NULL; return NULL; }
-    return g_all->items[0];
+    if (!g_all[b] || g_all[b]->n != 1 || !sx_head_is(g_all[b]->items[0], "Dict")) {
+        sx_free(g_all[b]); g_all[b] = NULL; return NULL;
+    }
+    return g_all[b]->items[0];
 }
 
-const char *dc_registry_digest_hex(void) { return dc_registry_digest; }
+const Sx *dc_registry(void) { return load(dc_eval_beyond_release() ? 1 : 0); }
+
+const char *dc_registry_digest_hex(void) {
+    return dc_eval_beyond_release() ? dc_registry_beyond_digest : dc_registry_digest;
+}
 
 const Sx *dc_reg_get(const Sx *dict, const char *key) {
     if (!dict || !sx_head_is(dict, "Dict")) return NULL;
@@ -56,4 +68,4 @@ int dc_reg_list_has(const Sx *list, const char *s) {
 
 int dc_reg_true(const Sx *v) { return sx_is_sym(v, "True"); }
 
-void dc_registry_free(void) { sx_free(g_all); g_all = NULL; }
+void dc_registry_free(void) { for (int b = 0; b < 2; b++) { sx_free(g_all[b]); g_all[b] = NULL; } }

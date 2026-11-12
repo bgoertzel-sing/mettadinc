@@ -1,5 +1,6 @@
 /* Admission of DC.Module sources into the enumerated deterministic model. */
 #include "model.h"
+#include "api.h"   /* M4 opt-in flag */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -582,6 +583,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
                 snprintf(m->profile, sizeof m->profile, "%s", pn);
                 /* review 2 F4: the single-symbol form must gate like (Dynamics ...):
                  * Nondeterministic and Stochastic modules are outside M0. */
+                if (!strcmp(pn, "Stochastic") && dc_eval_beyond_release()) { m->stochastic = 1; continue; }   /* M4 opt-in */
                 if ((!strcmp(pn, "Nondeterministic") || !strcmp(pn, "Stochastic")) && !m->profile_unsupported[0])
                     snprintf(m->profile_unsupported, sizeof m->profile_unsupported, "Profile %s is outside the M0 fragment", pn);
                 continue;
@@ -593,6 +595,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
                 const char *key = f->items[0]->text, *val = f->items[1]->text;
                 if (!strcmp(key, "Values")) snprintf(m->profile, sizeof m->profile, "%s", val);
                 else if (!strcmp(key, "Carriers") && !strcmp(val, "Symbolic")) m->symbolic = 1;   /* M3 */
+                else if (!strcmp(key, "Dynamics") && !strcmp(val, "Stochastic") && dc_eval_beyond_release()) m->stochastic = 1;   /* M4 opt-in */
                 else if ((!strcmp(key, "Dynamics") && strcmp(val, "Deterministic")) || (!strcmp(key, "Carriers") && strcmp(val, "Enumerated")))
                     { if (!m->profile_unsupported[0]) snprintf(m->profile_unsupported, sizeof m->profile_unsupported, "Profile %s %s is outside the M0 fragment", key, val); }
                 else if (strcmp(key, "Dynamics") && strcmp(key, "Carriers"))
@@ -600,6 +603,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
             }
             continue;
         }
+        else if (m->stochastic && strcmp(h, "Derive")) continue;   /* M4: stochastic decls are read by stoch.c from m->source */
         else if (m->symbolic && strcmp(h, "Derive")) continue;   /* M3: symbolic decls are read by sym.c from m->source */
         else if (!strcmp(h, "Carrier")) rc = admit_carrier(m, d, err, es);
         else if (!strcmp(h, "Map")) rc = admit_map(m, d, err, es);

@@ -19,7 +19,7 @@ rc=0
 step() { echo "== $*"; }
 R="python3 tools/dcalc_res.py"; rm -f build/dcalc-resources.tsv
 step build;            $R build "cd src/dcalc && make -s CC='$CC'" || exit 1
-step test_boundaries;  $R test_boundaries "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/test_boundaries.c build/dcalc/libdcalc.a -o build/dcalc/test_boundaries && { build/dcalc/test_boundaries > build/test_boundaries.out; r=\$?; tail -1 build/test_boundaries.out; exit \$r; }" || rc=1
+step test_boundaries;  $R test_boundaries "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/test_boundaries.c build/dcalc/libdcalc.a -lm -o build/dcalc/test_boundaries && { build/dcalc/test_boundaries > build/test_boundaries.out; r=\$?; tail -1 build/test_boundaries.out; exit \$r; }" || rc=1
 step check_claims;     $R check_claims "python3 tests/dcalc/check_claims.py > build/check_claims.out; r=\$?; tail -4 build/check_claims.out; exit \$r" || rc=1
 step negative_suite;   $R negative_suite "python3 tests/dcalc/negative/run_negative.py" || rc=1
 step refuted_abs;      $R refuted_abs "sh tests/dcalc/refuted_abs/run_refuted_abs.sh" || rc=1
@@ -33,12 +33,16 @@ step package;          $R package "python3 tests/dcalc/package/run_package.py > 
 step admission_mutations; $R admission_mutations "python3 tests/dcalc/mutations/run_mutations.py > build/admission_mutations.out; r=\$?; tail -1 build/admission_mutations.out; exit \$r" || rc=1
 step m2_claims;        $R m2_claims "python3 tests/dcalc/check_claims_m2.py > build/m2_claims.out; r=\$?; tail -1 build/m2_claims.out; exit \$r" || rc=1
 step m2_gates;         $R m2_gates "python3 tests/dcalc/mutations/run_m2_gates.py > build/m2_gates.out; r=\$?; tail -1 build/m2_gates.out; exit \$r" || rc=1
-step m2_differential;  $R m2_differential "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/differential_m2.c build/dcalc/libdcalc.a -o build/dcalc/differential_m2 && build/dcalc/differential_m2 20261110 5000 7" || rc=1
+step m2_differential;  $R m2_differential "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/differential_m2.c build/dcalc/libdcalc.a -lm -o build/dcalc/differential_m2 && build/dcalc/differential_m2 20261110 5000 7" || rc=1
 step m2_screen;  $R m2_screen "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/screen_m2.c build/dcalc/libdcalc.a -lm -o build/dcalc/screen_m2 && build/dcalc/screen_m2 20261110" || rc=1
 step m2_claimless;     $R m2_claimless "python3 tests/dcalc/claimless/run_claimless.py > build/m2_claimless.out; r=\$?; tail -1 build/m2_claimless.out; exit \$r" || rc=1
 step m3_incremental;    $R m3_incremental "cd src/dcalc && make -s CC='$CC' tests && cd ../.. && build/dcalc/m3_incremental > build/m3_incremental.out; r=\$?; tail -1 build/m3_incremental.out; exit \$r" || rc=1
 step m3_gates;         $R m3_gates "python3 tests/dcalc/mutations/run_m3_gates.py > build/m3_gates.out; r=\$?; tail -1 build/m3_gates.out; exit \$r" || rc=1
 step m3_tv;            $R m3_tv "sh tests/dcalc/tv/run_tv.sh" || rc=1
+step m4_gates;         $R m4_gates "python3 tests/dcalc/m4/run_m4_gates.py > build/m4_gates.out; r=\$?; tail -1 build/m4_gates.out; exit \$r" || rc=1
+step m4_estimates;     $R m4_estimates "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/m4/test_estimates.c build/dcalc/libdcalc.a -lm -o build/dcalc/test_estimates && build/dcalc/test_estimates docs/e0/docs/06_wmtm_worked_example/validation_bundle > build/m4_estimates.out; r=\$?; tail -1 build/m4_estimates.out; exit \$r" || rc=1
+step m4_coverage;      $R m4_coverage "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/m4/sim_coverage.c build/dcalc/libdcalc.a -lm -o build/dcalc/sim_coverage && build/dcalc/sim_coverage 20261112 2000 > build/m4_coverage.out; r=\$?; tail -1 build/m4_coverage.out; exit \$r" || rc=1
+step m4_coverage_01;   $R m4_coverage_01 "build/dcalc/sim_coverage 20261112 2000 0.01 > build/m4_coverage_01.out; r=\$?; tail -1 build/m4_coverage_01.out; exit \$r" || rc=1
 step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_CETTA=1)"; else $R cetta_smoke "tools/dcalc-cetta-smoke.sh" || rc=1; fi
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"

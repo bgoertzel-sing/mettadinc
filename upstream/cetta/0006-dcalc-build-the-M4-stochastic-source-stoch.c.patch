@@ -1,0 +1,25 @@
+From ab736f3f20691350a138deffb7dff5d5d3884bfd Mon Sep 17 00:00:00 2001
+From: ProtoMegaBot2 <protomega2@hive.local>
+Date: Thu, 12 Nov 2026 00:32:56 +0000
+Subject: [PATCH] dcalc: build the M4 stochastic source (stoch.c)
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 4ce2901c..9834a9e3 100644
+--- a/Makefile
++++ b/Makefile
+@@ -789,7 +789,7 @@ SRC += src/library_dag.c
+ # MeTTaDinC M0 core (native module "dcalc").  DCALC_DIR is the mettadinc
+ # src/dcalc directory; the default assumes CeTTa is the mettadinc submodule.
+ DCALC_DIR ?= ../src/dcalc
+-DCALC_CORE_SRC = rat.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c bdd.c ops_sym.c
++DCALC_CORE_SRC = rat.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c bdd.c ops_sym.c stoch.c
+ SRC += src/library_dcalc.c $(addprefix $(DCALC_DIR)/,$(DCALC_CORE_SRC))
+ CPPFLAGS_DCALC = -I$(DCALC_DIR)
+ SRC += src/u64_index.c
+-- 
+2.34.1
+

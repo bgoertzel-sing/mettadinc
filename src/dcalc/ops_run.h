@@ -43,4 +43,9 @@ Sx *dc_req_induce_approx(DcRun *r, const Sx *q, int slot);
 Sx *dc_req_kernels(DcRun *r, const Sx *q, const char *head, int slot);
 /* M3: requests on a (Carriers Symbolic) module (ops_sym.c) */
 Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot);
+/* M4 (opt-in only): requests on a Dynamics Stochastic module (stoch.c) */
+Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot);
+/* M4-estimates (ops_est.c): EstimateRate over a frozen Stream; Estimated, never Checked. */
+Sx *dc_req_estimates(DcRun *r, const Sx *q, const char *head);
+Sx *dc_req_separated(DcRun *run, const Sx *q);   /* review 1 F3 */
 #endif
