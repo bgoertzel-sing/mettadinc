@@ -12,18 +12,24 @@ def rows(txt): return [l for l in txt.splitlines() if ' => ' in l]
 def replay(fx, out):
     t = subprocess.run([sys.executable, RP, fx, out], capture_output=True, text=True, timeout=120)
     return t.returncode, (t.stdout.strip().splitlines() or [''])[-1]
-CASES = (('affine_contracts.metta', ['Checked', 'Checked', 'Refuted']),)
-for fx, want in CASES:
+# (fixture, module whose rows are M6 Contracts rows, their expected beyond-release statuses); rows of other
+# modules belong to earlier milestones and must answer the same status in both modes
+CASES = (('affine_contracts.metta', 'AffineContracts', ['Checked', 'Checked', 'Refuted']),
+         ('receipt_packets.metta', 'PacketMerges', ['Checked', 'Refuted']))
+mine = lambda ls, mod: [l for l in ls if l.startswith(mod + ' ')]
+for fx, mod, want in CASES:
     f = os.path.join(FX, fx); base = fx[:-6]
-    r = subprocess.run([DCALC, f], capture_output=True, text=True, timeout=120); got = [st(l) for l in rows(r.stdout)]
+    r = subprocess.run([DCALC, f], capture_output=True, text=True, timeout=120); rel = rows(r.stdout); got = [st(l) for l in mine(rel, mod)]
     report('%s release mode: every answer Unsupported' % base, got == ['Unsupported'] * len(want), str(got))
     r = subprocess.run([DCALC, '--beyond-release', f], capture_output=True, text=True, timeout=120)
-    o = os.path.join(OUT, base + '.out'); open(o, 'w').write(r.stdout); ls = rows(r.stdout); got = [st(l) for l in ls]
+    o = os.path.join(OUT, base + '.out'); open(o, 'w').write(r.stdout); allr = rows(r.stdout); ls = mine(allr, mod); got = [st(l) for l in ls]
+    oth = lambda X: [(l.split(' => ')[0], st(l)) for l in X if not l.startswith(mod + ' ')]
+    report('%s other-module rows: same statuses in both modes' % base, oth(rel) == oth(allr), '%d rows' % len(oth(allr)))
     report('%s beyond-release statuses' % base, got == want, str(got))
     report('%s every Checked/Refuted row says Replayed True' % base, all('(Replayed True)' in l for l in ls if st(l) in ('Checked', 'Refuted')))
     rc, last = replay(f, o); report('%s independent replay' % base, rc == 0 and last.endswith('PASS'), last[:70])
     # canaries: each single edit must be rejected by the replayer
-    full = r.stdout.splitlines(); idx = [i for i, l in enumerate(full) if ' => ' in l]
+    full = r.stdout.splitlines(); idx = [i for i, l in enumerate(full) if ' => ' in l and l.startswith(mod + ' ')]
     edits = []
     for i in idx:
         l = full[i]
@@ -31,7 +37,8 @@ for fx, want in CASES:
         if st(l) == 'Refuted':
             edits.append(('Refuted->Checked', i, l.replace('(Status Refuted)', '(Status Checked)', 1)))
             edits.append(('OutputGap changed', i, re.sub(r'\(OutputGap \(Rat (-?\d+) (\d+)\)\)', lambda m: '(OutputGap (Rat %d %s))' % (int(m.group(1)) + 1, m.group(2)), l, 1)))
-            edits.append(('witness not audited', i, re.sub(r'\(Audited \(Rat (-?\d+) (\d+)\)\)', '(Audited (Rat 7777 1))', l, 1)))
+            edits.append(('witness not audited', i, re.sub(r'\(Audited \((Rat -?\d+ \d+|Tuple [^()]*)\)\)', lambda m: '(Audited (Rat 7777 1))' if m.group(1).startswith('Rat') else '(Audited (Tuple Nowhere Nowhere))', l, 1)))
+            edits.append(('witness pair swapped to a meeting pair', i, re.sub(r'\(Reference \((Rat -?\d+ \d+|Tuple [^()]*)\)\)', lambda m: '(Reference (Rat 1 1))' if m.group(1).startswith('Rat') else '(Reference (Tuple Empty Empty))', l, 1)))
         g = re.search(r'\(Value \(Grade \(Rat (-?\d+) (\d+)\) \(Rat (-?\d+) (\d+)\)\)\)', l)
         if g: edits.append(('Grade eta changed', i, l.replace(g.group(0), '(Value (Grade (Rat %s %s) (Rat %d %s)))' % (g.group(1), g.group(2), int(g.group(3)) + 1, g.group(4)), 1)))
     for k, (nm, i, nl) in enumerate(edits):
