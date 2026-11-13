@@ -20,7 +20,7 @@ static const Sx *kid(const Sx *x, const char *h) {
     return NULL;
 }
 static const char *ct_sym(const Sx *d, const char *h) { const Sx *k = kid(d, h); return k && k->n == 2 && k->items[1]->kind == SX_SYM ? k->items[1]->text : NULL; }
-typedef struct { const char *name; int ideal, actual, audit, tin, tout; } CtImpl;
+typedef struct { const char *name; int ideal, actual, audit, tin, tout, rid_unmeasured; } CtImpl;   /* rid_unmeasured: review-2 F1 neg5 */
 /* M6: distance between two carrier values under a tolerance: Trivial 0, Discrete 0/1 by structure,
  * OneMinusAbsoluteDifference |p - q| on rational values. Returns nonzero if not evaluable. */
 static int ct_tol_ok(DcTolKind k) { return k == DC_TOL_TRIVIAL || k == DC_TOL_DISCRETE || k == DC_TOL_ONE_MINUS_ABS; }
@@ -53,6 +53,11 @@ static int ct_load(const DcModule *m, const char *name, CtImpl *c, char *why, si
     if (!d) { snprintf(why, wn, "names no declared Implementation (%s)", name); return -1; }
     const char *ia = ct_sym(d, "Ideal"), *aa = ct_sym(d, "Actual"), *au = ct_sym(d, "Audit"), *di = ct_sym(d, "InputDistance"), *dout = ct_sym(d, "OutputDistance");
     if (!ia || !aa || !au || !di || !dout) { snprintf(why, wn, "Implementation %s needs Ideal, Actual, Audit, InputDistance and OutputDistance", name); return -1; }
+    /* review-2 F1 (negative test 5): (ReceiptIdentities Measured|Unmeasured).  When forks do not record receipt
+     * identities the correspondence is unmeasured and merge-dependent claims answer Unknown (spec Sec. 10.5). */
+    { const char *ri = ct_sym(d, "ReceiptIdentities");
+      if (ri && strcmp(ri, "Measured") && strcmp(ri, "Unmeasured")) { snprintf(why, wn, "Implementation %s: ReceiptIdentities must be Measured or Unmeasured", name); return -1; }
+      c->rid_unmeasured = ri && !strcmp(ri, "Unmeasured"); }
     c->name = name; c->ideal = dc_find_map(m, ia); c->actual = dc_find_map(m, aa); c->audit = dc_find_carrier(m, au); c->tin = dc_find_tol(m, di); c->tout = dc_find_tol(m, dout);
     if (c->ideal < 0 || c->actual < 0) { snprintf(why, wn, "Implementation %s: Ideal/Actual names no declared Map", name); return -1; }
     if (c->audit < 0) { snprintf(why, wn, "Implementation %s: Audit names no declared Carrier", name); return -1; }
@@ -75,6 +80,10 @@ static Sx *ct_check(DcRun *r, const Sx *q) {
     if (rc) return dc_invalid(m, "CheckImplementation: %s", why);
     size_t n = m->car[c.audit].n;
     Sx *subj = dc_form("Subject", dc_form("Implementation", dc_sym(c.name), NULL), NULL);
+    if (c.rid_unmeasured)   /* never assume fresh evidence: no verdict either way */
+        return dc_envelope(m, VERDICT_HOLDS, 0, dc_claim_of(q, "Literal"), subj, NULL,
+                           dc_form("Evidence", dc_form("Open", dc_form("ReceiptIdentities", dc_sym("Unmeasured"), NULL), NULL), NULL),
+                           "receipt identities are not recorded, so the merge correspondence is unmeasured; a merge-dependent claim is Unknown");
     for (size_t i = 0; i < n; i++) for (size_t j = 0; j < n; j++) {
         DcRat din, dout;
         const Sx *xa = ct_el(m, c.audit, (int)i), *xb = ct_el(m, c.audit, (int)j);
@@ -99,6 +108,7 @@ static int ct_slot(DcRun *r, const Sx *x, char *why, size_t wn) {
     if (!res) { snprintf(why, wn, "Derive %s: cyclic reference", x->items[1]->text); return -1; }
     DcStatus st = dc_result_status(res);
     if (st == DC_UNSUPPORTED) { snprintf(why, wn, "premise Derive %s is Unsupported", x->items[1]->text); return -2; }
+    if (st == DC_UNKNOWN) { snprintf(why, wn, "premise Derive %s is Unknown", x->items[1]->text); return -4; }   /* review-2 F1 neg5: Unknown propagates */
     if (st != DC_CHECKED && st != DC_CONDITIONAL) { snprintf(why, wn, "Derive %s is neither Checked nor Conditional (%s)", x->items[1]->text, dc_status_name(st)); return -3; }
     return d;
 }
@@ -108,6 +118,9 @@ static Sx *ct_then(DcRun *r, const Sx *q) {
     for (int k = 0; k < 2; k++) {
         int d = ct_slot(r, q->items[1 + k], why, sizeof why);
         if (d == -2) return dc_unsupported(m, "ThenContracts: %s", why);
+        if (d == -4) return dc_envelope(m, VERDICT_HOLDS, 0, dc_claim_of(q, "Literal"), dc_form("Subject", NULL), NULL,
+                                        dc_form("Evidence", dc_form("Open", dc_form("Premise", sx_copy(q->items[1 + k]), NULL), NULL), NULL),
+                                        "a premise is Unknown (e.g. receipt identities unmeasured), so the composite is Unknown");
         if (d == -3) return dc_invalid(m, "ThenContracts: %s", why);
         if (d < 0) return dc_invalid(m, "ThenContracts: %s", why);
         const Sx *res = dc_run_derive(r, d), *cl = kid(res, "Claim"), *rq = cl && cl->n >= 2 ? cl->items[1] : NULL;

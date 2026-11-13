@@ -1080,6 +1080,11 @@
      "type": "ref:Map",
      "required": false,
      "doc": "a map from ordered audit pairs (x-hat, x) to Bool; only pairs it accepts are audited, for example pairs with equal stimulus or with one member near a boundary"
+    },
+    "ReceiptIdentities": {
+     "type": "enum:Measured|Unmeasured",
+     "required": false,
+     "doc": "Measured|Unmeasured (default Measured). Unmeasured: forks do not record receipt identities, so the merge correspondence is unmeasured and merge-dependent CheckImplementation/ThenContracts answer Unknown (spec Sec. 10.5; review-2 F1 negative test 5). Invented by M6."
     }
    },
    "body": null,
@@ -5311,7 +5316,7 @@
   {
    "name": "m6",
    "file": "registry/patches/m6_registry_patch.json",
-   "sha256": "ee71263de3284b2f89bceefc64767bf0955b605bc4bbfed1fccfcb060093bb06",
+   "sha256": "b14cb8cb35474060ab648253f699bdd6d46f9c5b9990f040d7752d0552008bc9",
    "patch": "m6: local registry patch for t-2026-11-13-mettadinc-m6 (beyond-release only; registers the result shapes the M6 code invents, review-2 F3)",
    "date": "2026-11-13"
   }
@@ -5390,6 +5395,10 @@
   },
   "m6-kernelof-hypotheses": {
    "text": "KernelOf answers Checked only under Proposition 10.4: every edge exact (zero defect) and every method pushforward a bijection (state-independent by construction); otherwise Unsupported with the failing edge named.",
+   "patch": "m6"
+  },
+  "m6-receipt-identities": {
+   "text": "(ReceiptIdentities Measured|Unmeasured) on Implementation is invented by M6 (review-2 F1, negative test 5): Unmeasured makes CheckImplementation answer Unknown with (Evidence (Open (ReceiptIdentities Unmeasured))); never Checked or Refuted.",
    "patch": "m6"
   }
  }

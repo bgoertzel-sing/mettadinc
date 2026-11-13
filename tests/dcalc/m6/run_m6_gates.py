@@ -118,5 +118,16 @@ _zf = os.path.join(OUT, 'neg4_measured_control.metta')
 open(_zf, 'w').write(open(_n4).read().replace('Opposite Unmeasured', 'Opposite Measured'))
 _oz = subprocess.run([DCALC, '--beyond-release', _zf], capture_output=True, text=True, timeout=60).stdout
 report('neg4 control: the same hive measured gives a definite verdict (Refuted), so Unknown is due to Unmeasured', '(Status Refuted)' in _oz, _oz[:120])
-print('NOTE  neg5 merge claim with unmeasured receipt identities -> Unknown: NOT IMPLEMENTED (no receipt-identity/merge construct; posterior-only merge contracts answer Checked/Refuted)')
+# review-2 F1: negative test 5 (merge claims with unmeasured receipt identities answer Unknown)
+_n5 = os.path.join(HERE, 'fixtures', 'neg5_receipts.metta')
+_o5 = subprocess.run([DCALC, '--beyond-release', _n5], capture_output=True, text=True, timeout=60).stdout
+_s5 = [l.split('(Status ', 1)[1].split(')', 1)[0] for l in _o5.splitlines() if '(Status ' in l]
+report('neg5 unmeasured receipt identities -> every merge-dependent claim Unknown (CheckImplementation x2, ThenContracts)', _s5 == ['Unknown'] * 3 and '(Open (ReceiptIdentities Unmeasured))' in _o5, str(_s5))
+_c5 = os.path.join(OUT, 'neg5_measured.metta')
+open(_c5, 'w').write(open(_n5).read().replace(' (ReceiptIdentities Unmeasured)', ''))   # control: identities recorded
+_oc = subprocess.run([DCALC, '--beyond-release', _c5], capture_output=True, text=True, timeout=60).stdout
+_sc = [l.split('(Status ', 1)[1].split(')', 1)[0] for l in _oc.splitlines() if '(Status ' in l]
+report('neg5 control: identities recorded gives definite verdicts (no Unknown), so Unknown is due to the unmeasured identities', len(_sc) == 3 and 'Unknown' not in _sc and all(x in ('Checked', 'Refuted') for x in _sc), str(_sc))
+_r5 = subprocess.run([DCALC, _n5], capture_output=True, text=True, timeout=60).stdout
+report('neg5 release mode: ReceiptIdentities is beyond-release only (no Unknown/Checked from release)', 'Unknown' not in _r5 and '(Status Checked)' not in _r5, _r5[:120])
 print('m6_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)
