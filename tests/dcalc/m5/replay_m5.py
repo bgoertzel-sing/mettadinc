@@ -403,6 +403,41 @@ def check_maytrace_cert(M, req, c):
                 X2, Z2 = post(M, m, a, X1), post(M, m, a, Z1)
                 if X2 or Z2: need(has(X2, Z2, d + 1), 'certificate not closed: %s/%s missing' % (sorted(X2), sorted(Z2)))
 
+
+# ---- m5-rest: iterated refinement rows (Refine on Profile Nondeterministic) ----
+def blocks_of(part, S):
+    seen = [x for b in part[1:] for x in b[1:]]
+    need(sorted(seen) == sorted(S) and len(seen) == len(set(seen)), 'Partition does not cover the states exactly once')
+    return {x: i for i, b in enumerate(part[1:]) for x in b[1:]}
+
+def same_part(a, b, S): return all((a[x] == a[y]) == (b[x] == b[y]) for x in S for y in S)
+
+def refine_step(M, m, blk):
+    S = M.states(m); ac = M.mach[m]['act']
+    key = {x: (blk[x],) + tuple(tuple(sorted({blk[z] for z in M.img(m, a, x)})) for a in sorted(ac)) for x in S}
+    ids = {k: i for i, k in enumerate(sorted(set(key.values()), key=repr))}
+    return {x: ids[key[x]] for x in S}
+
+def check_refine(M, req, res, ev):
+    m, enc = M.rep[req[1]]; S = M.states(m); ob = M.mach[m]['obs']
+    c = [c for c in fields(ev, 'Certificate') if field(c, 'Kind')[1] == 'PartitionRefinement'][0]
+    stages = fields(c, 'Stage'); need(stages, 'no stages in the certificate')
+    seedkey = {x: (M.map[enc].get(x) and tuple(sorted(M.map[enc][x])), tuple(tuple(sorted(M.map[ob[o]].get(x, set()))) for o in sorted(ob))) for x in S}
+    ids = {k: i for i, k in enumerate(sorted(set(seedkey.values()), key=repr))}; seed = {x: ids[seedkey[x]] for x in S}
+    prev = None
+    for i, stg in enumerate(stages):
+        need(int(str(stg[1])) == i, 'stage index %s out of order' % stg[1]); b = blocks_of(field(stg, 'Partition'), S)
+        need(same_part(b, seed if prev is None else refine_step(M, m, prev), S), 'stage %d is not the %s' % (i, 'seed' if prev is None else 'one-round refinement of the previous stage'))
+        prev = b
+    stable = same_part(refine_step(M, m, prev), prev, S); sf = field(c, 'Stable')[1]
+    u = field(req, 'Until'); k = int(str(u[1][1])) if u and isinstance(u[1], list) else None
+    if sf == 'Unconfirmed': need(k is not None and len(stages) - 1 == k, 'Stable Unconfirmed outside a (Steps k) answer'); stable = False
+    else: need((sf == 'True') == stable, 'Stable flag disagrees with a recomputed round')
+    need(stable or (k is not None and len(stages) - 1 == k), 'refinement neither stable nor at the requested (Steps k)')
+    need(k is None or len(stages) - 1 <= k, 'more stages than (Steps k) allows')
+    fin = field(field(res, 'Value'), 'Refinement'); need(same_part(blocks_of(field(fin, 'Partition'), S), prev, S), 'returned Partition differs from the last stage')
+    need(int(str(field(fin, 'Classes')[1])) == len(set(prev.values())), 'Classes count wrong')
+
 def replay_line(M, req, res):
     st = field(res, 'Status')[1]; ev = field(res, 'Evidence') or ['Evidence']; h = head(req)
     did = []
@@ -419,6 +454,7 @@ def replay_line(M, req, res):
             need(field(c, 'Relation')[1] == req[1], 'certificate Relation %s is not the requested simulation %s' % (field(c, 'Relation')[1], req[1]))   # review 2 F7
             check_simulation(M, c, None); did.append('Simulation')
         elif k == 'SafetyTransfer' and h == 'CheckSafety': did.append('SafetyTransfer: ' + check_safety(M, req, c))
+    if h == 'Refine' and st == 'Checked': check_refine(M, req, res, ev); did.append('PartitionRefinement')
     if h == 'OutcomeProbability' and st == 'Checked': check_probability(M, req, res); did.append('Probability')
     if h == 'Outcomes' and st == 'Checked': check_outcomes(M, req, res); did.append('Outcomes')
     for w in find_all(ev, 'ModalTestWitness'):

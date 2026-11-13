@@ -1023,14 +1023,94 @@ static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
     return nd_env_k(m, holds ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
 }
 
+/* ---- m5-rest: iterated refinement for Profile Nondeterministic (registered Refine; spec 3836-3841:
+ * one CEGAR turn splits Start back into S0, S1, S2; guide 3.6). Seed (Preserve Encoding): equal Encode
+ * code and equal observer images. Round l splits states whose a-successor block sets under round l-1
+ * differ for some action a (update compatibility of a set-valued map). (Until Stable) iterates to the
+ * fixed point; (Until (Steps k)) returns the staged partition P_k; (Budget (Unrollings k)) bounds the
+ * rounds computed (confirming stability is one round): exhausted before the answer -> Unknown.
+ * Certificate kind PartitionRefinement (beyond registry, m5rest notes) lists every stage. CheckSafety
+ * (Y04) is untouched. ---- */
+static int g_nd_slot = -1;
+static Sx *nd_partsx(const NdCar *C, int n, const int *blk) {
+    Sx *part = dc_form("Partition", NULL);
+    for (int b = 0; b < n; b++) { if (blk[b] != b) continue;
+        Sx *bl = dc_form("Block", NULL);
+        for (int x = 0; x < n; x++) if (blk[x] == b) sx_push(bl, dc_sym(C->el[x]));
+        sx_push(part, bl); }
+    return part;
+}
+static Sx *nd_refine(DcModule *m, const NdMod *s, const Sx *q) {
+    const char *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL, *e;
+    int hor = -1; long long bud = -1;
+    for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->kind == SX_LIST && o->n ? nm_of(o->items[0]) : NULL;
+        const Sx *v = oh && o->n == 2 ? o->items[1] : NULL; DcRat t;
+        if (v && !strcmp(oh, "Preserve") && nm_of(v) && !strcmp(v->text, "Encoding")) continue;
+        if (v && !strcmp(oh, "Until") && nm_of(v) && !strcmp(v->text, "Stable")) continue;
+        if (oh && !strcmp(oh, "Until")) {
+            if (!v || !sx_head_is(v, "Steps") || v->n != 2 || dc_sx_rat(v->items[1], &t) || t.d != 1 || t.n < 0 || t.n > ND_MAXC)
+                return dc_invalid(m, "Refine: expected (Until Stable) or (Until (Steps k)) with 0 <= k <= %d", ND_MAXC);
+            hor = (int)t.n; continue; }
+        if (v && !strcmp(oh, "Budget") && sx_head_is(v, "Unrollings") && v->n == 2 && !dc_sx_rat(v->items[1], &t) && t.d == 1 && t.n >= 0) { bud = t.n; continue; }
+        return dc_unsupported(m, "Refine: option %s is not implemented for Profile Nondeterministic (it takes (Preserve Encoding), (Until Stable | (Steps k)), (Budget (Unrollings k)))", oh ? oh : "?");
+    }
+    const Sx *d = NULL;
+    for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
+        if (sx_head_is(x, "Representation") && x->n >= 2 && nm_of(x->items[1]) && !strcmp(x->items[1]->text, a1)) d = x; }
+    if (!d) return dc_invalid(m, "Refine: names no declared Representation (%s)", a1 ? a1 : "?");
+    int mi = nd_mach(s, fld1(d, "Of")), ei = nd_map(s, fld1(d, "Encode"));
+    if (mi < 0 || ei < 0) return dc_invalid(m, "Refine %s: (Of M) or (Encode e) names nothing declared", a1);
+    const NdMach *M = &s->mach[mi]; const NdMap *E = &s->map[ei]; const NdCar *C = &s->car[M->states];
+    if (E->from != M->states || E->choice) return dc_invalid(m, "Refine %s: Encode %s is not a function on the states of %s", a1, E->name, M->name);
+    static NdBis B; static int st[ND_MAXC + 1][ND_MAXC];
+    if ((e = nd_bis_setup(&B, s, mi))) return dc_invalid(m, "Refine %s: %s", a1, e);
+    int n = B.n, L = 0, stable = 0;
+    memset(st, 0, sizeof st);
+    for (int x = 0; x < n; x++) { st[0][x] = x;
+        for (int y = 0; y < x; y++) { if (E->img[x] != E->img[y]) continue; int same = 1;
+            for (int j = 0; j < M->nobs; j++) if (s->map[M->obs[j].map].img[x] != s->map[M->obs[j].map].img[y]) same = 0;
+            if (same) { st[0][x] = st[0][y]; break; } } }
+    int confirmed = 0;   /* 1 when the round after the last stage was computed (Stable True/False is then decided) */
+    for (;;) {
+        if ((bud >= 0 && L >= bud) || L >= ND_MAXC) break;
+        int capped = hor >= 0 && L >= hor;
+        int *nx = st[L + 1], *pv = st[L];
+        for (int x = 0; x < n; x++) { nx[x] = x;
+            for (int y = 0; y < x; y++) { if (pv[x] != pv[y]) continue; int same = 1;
+                for (int a = 0; a < M->nact && same; a++) { const NdMap *A = &s->map[M->act[a].map];
+                    if (nd_blkset(pv, A->img[x], n) != nd_blkset(pv, A->img[y], n)) same = 0; }
+                if (same) { nx[x] = nx[y]; break; } } }
+        confirmed = 1;
+        if (!memcmp(nx, pv, sizeof st[0])) { stable = 1; break; }
+        if (capped) break;   /* at (Steps k) the extra round only decides the Stable flag */
+        confirmed = 0; L++;
+    }
+    int known = stable || (hor >= 0 && L >= hor), nb = 0;
+    for (int x = 0; x < n; x++) nb += st[L][x] == x;
+    const char *rn = g_nd_slot >= 0 ? m->der[g_nd_slot].name : a1;
+    if (!known) {
+        char w[200]; snprintf(w, sizeof w, "refinement stopped at the budget of %lld unrollings before it stabilized", bud);
+        Sx *val = dc_form("Value", dc_form("PartialRefinement", dc_form("Stage", dc_int(L), NULL), nd_partsx(C, n, st[L]), dc_form("Classes", dc_int(nb), NULL), NULL), NULL);
+        g_nd_rep = 0;
+        Sx *r = nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)bud), NULL), NULL), NULL), w);
+        g_nd_rep = 1; return r;
+    }
+    Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym("PartitionRefinement"), NULL), dc_form("Seed", dc_sym("Encoding"), NULL), NULL);
+    for (int l = 0; l <= L; l++) sx_push(cert, dc_form("Stage", dc_int(l), nd_partsx(C, n, st[l]), NULL));
+    sx_push(cert, dc_form("Stable", dc_sym(stable ? "True" : confirmed ? "False" : "Unconfirmed"), NULL));   /* Unconfirmed: budget ended at (Steps k) */
+    Sx *val = dc_form("Value", dc_form("Refinement", dc_form("Representation", dc_sym(rn ? rn : "?"), NULL), nd_partsx(C, n, st[L]), dc_form("Classes", dc_int(nb), NULL), NULL), NULL);
+    return nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
+}
+
 static Sx *nd_req_core(DcModule *m, const NdMod *s, const Sx *q, const char *head);
 /* m5-rest: declared read annotations (Read action Shared|Fresh) are part of the interface identity
  * (guide 262, 305); every nondeterministic result of a module that declares any echoes them in its
  * Evidence as (ReadAnnotations (Read machine action mode)..). Not in Assumptions: an assumption would
  * turn Checked into Conditional (ops_core.c 105-110). Modules without annotations are unchanged. */
 Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
-    DcModule *m = r->m; static NdMod S; char err[256]; (void)slot;
+    DcModule *m = r->m; static NdMod S; char err[256];
     if (nd_read(m->source, &S, err, sizeof err)) return dc_invalid(m, "nondeterministic module: %s", err);
+    g_nd_slot = slot;
     Sx *res = nd_req_core(m, &S, q, head), *ra = NULL;
     for (int i = 0; i < S.nmach; i++) for (int a = 0; a < S.mach[i].nact; a++) if (S.mach[i].read[a]) {
         if (!ra) ra = dc_form("ReadAnnotations", NULL);
@@ -1049,6 +1129,7 @@ static Sx *nd_req_core(DcModule *m, const NdMod *s0, const Sx *q, const char *he
     if (!strcmp(head, "BehavioralTolerance")) return nd_bisim(m, &S, q, 0);
     if (!strcmp(head, "CheckBehavioral")) return nd_bisim(m, &S, q, 1);
     if (!strcmp(head, "MeasureBehavioral")) return nd_haus(m, &S, q);
+    if (!strcmp(head, "Refine")) return nd_refine(m, &S, q);
     if (!strcmp(head, "CheckTrace") || !strcmp(head, "MeasureTrace")) return nd_maytrace(m, &S, q);
     return dc_unsupported(m, "request %s: not yet implemented for Profile Nondeterministic (M5 in progress)", head);
 }
