@@ -29,4 +29,18 @@ o3 = run(bad3); report('merge model neg: forked machine without a Merge port -> 
 lf = os.path.join(HERE, 'fixtures', 'lcr_lp.metta'); lo = os.path.join(OUT, 'lcr_lp.out'); open(lo, 'w').write(run(lf))
 rr = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m6rest.py'), lf, lo], capture_output=True, text=True)
 report('LCR exact LP fixtures replay (Fractions)', rr.returncode == 0 and statuses(open(lo).read()) == ['Checked'] * 3, rr.stdout.strip().splitlines()[-1:] )
+# CompleteHive (hive decision 2, our reading of spec l.2896-2906)
+cf = os.path.join(HERE, 'fixtures', 'complete_hive.metta'); co = os.path.join(OUT, 'complete_hive.out'); ctext = run(cf); open(co, 'w').write(ctext)
+cl = [l for l in ctext.splitlines() if ' => ' in l]
+report('CompleteHive statuses: Chain Checked, Split Checked, ParityFull Unsupported, ConsensusCost on unmeasured Unsupported', statuses(ctext) == ['Checked', 'Checked', 'Unsupported', 'Unsupported'], statuses(ctext))
+cr = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m6rest.py'), cf, co], capture_output=True, text=True)
+report('CompleteHive certificates replay (Fractions: Fill paths, NoPath rows, transitivity, alignment cost)', cr.returncode == 0, cr.stdout.strip().splitlines()[-1:])
+report('CompleteHive neg: non-Lipschitz measured hive -> Unsupported naming the measured path', len(cl) > 2 and 'not Lipschitz' in cl[2] and '(Path' not in cl[2] and 'M3[' in cl[2], cl[2][:160] if len(cl) > 2 else '')
+report('CompleteHive neg: ConsensusCost refuses unmeasured entries and points to CompleteHive (no zero fill)', len(cl) > 3 and 'complete them first with (CompleteHive ChainHive)' in cl[3])
+# zero-fill tamper: the Chain answer with its fills removed and cost 0 must be rejected by the replayer
+tz = os.path.join(OUT, 'complete_zero.out')
+zl = re.sub(r'\(Filled .*?\)\)\) \(NoPaths', '(Filled) (NoPaths', cl[0]).replace('(Value (Rat 1 9))', '(Value (Rat 0 1))') if cl else ''
+open(tz, 'w').write(zl + '\n')
+zr = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m6rest.py'), cf, tz], capture_output=True, text=True)
+report('CompleteHive neg: zero-filled completion (no Fill rows, cost 0) is rejected by the replayer', zl != cl[0] and zr.returncode != 0 and 'REJECT' in zr.stdout, zr.stdout.strip().splitlines()[:1])
 print('m6rest_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)

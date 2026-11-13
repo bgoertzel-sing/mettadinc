@@ -137,8 +137,8 @@ static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t w
 }
 static int hv_complete(const Hive *h, char *why, size_t wn) {
     for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] < 0)
-        HV_FAIL(-2, "KernelHive %s: the correspondence between %s and %s is Unmeasured or undeclared; completion (CompleteHive) is outside this milestone",
-                h->name, h->mem[h->mof[a]].name, h->mem[h->mof[b]].name);
+        HV_FAIL(-2, "KernelHive %s: the correspondence between %s and %s is Unmeasured or undeclared; this request reads only measured correspondences; complete them first with (CompleteHive %s)",
+                h->name, h->mem[h->mof[a]].name, h->mem[h->mof[b]].name, h->name);
     return 0;
 }
 /* R[a][c] over the values of cyc[0]: composite of the kernels cyc[0] -> cyc[1] -> ... -> cyc[k-1] -> cyc[0]. */
@@ -399,10 +399,60 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
                      dc_form("EdgeMass", rsx(T), NULL), kept, dual, NULL), NULL);
     return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL), ev, NULL);
 }
+/* M6-rest: CompleteHive (spec Sec. 10.4 l.2896-2906; semantics = hive decision 2, our reading, crisp 0/1 kernels).
+ * A correspondence that was never measured (Unmeasured or undeclared) is completed, never zero-filled silently:
+ * every unmeasured entry gets the least value transitivity forces, i.e. 1 exactly when a path of measured
+ * identifications joins the two nodes (composition along paths), with measured entries held fixed.  If that closure
+ * would change a measured 0 entry, the measured correspondences are not Lipschitz / round-trip coherent and the
+ * answer is Unsupported naming the entry and the path.  Value is the alignment cost: sum of w_a w_b over ordered
+ * node pairs that the completion fills with 1.  Certificate rows (ours, m6rest patch): (Fill a b (Path n1 .. nk))
+ * for each filled identification a < b; (NoPath Mi Mj) for unmeasured member pairs no measured path joins; every
+ * other unmeasured entry is 0, the least value.  Optimality Checked: each filled 1 is forced by its Path. */
+static int hv_bfs(const Hive *h, int s, int *par) {
+    int q[HV_MAXN], qh = 0, qt = 0;
+    for (int i = 0; i < h->nn; i++) par[i] = -2;
+    par[s] = -1; q[qt++] = s;
+    while (qh < qt) { int a = q[qh++]; for (int b = 0; b < h->nn; b++) if (b != a && h->H[a][b] == 1 && par[b] == -2) { par[b] = a; q[qt++] = b; } }
+    return 0;
+}
+static Sx *hv_path(DcModule *m, const Hive *h, const int *par, int b) {
+    int st[HV_MAXN], k = 0; for (int x = b; x >= 0; x = par[x]) st[k++] = x;
+    Sx *p = dc_form("Path", NULL); while (k) sx_push(p, hv_node(m, h, st[--k])); return p;
+}
+static Sx *hv_completehive(DcRun *r, const Sx *q) {
+    DcModule *m = r->m; Hive *h = &g_h; char why[300]; int ovf = 0; static int par[HV_MAXN][HV_MAXN];
+    if (q->n != 2) return dc_invalid(m, "CompleteHive: expected (CompleteHive Hive)");
+    int rc = hv_load(m, q->items[1], h, why, sizeof why);
+    if (rc == -2) return dc_unsupported(m, "CompleteHive: %s", why);
+    if (rc) return dc_invalid(m, "CompleteHive: %s", why);
+    for (int a = 0; a < h->nn; a++) hv_bfs(h, a, par[a]);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] == 0 && par[a][b] != -2) {
+        char pb[200]; int st[HV_MAXN], k = 0, o = 0; for (int x = b; x >= 0; x = par[a][x]) st[k++] = x;
+        while (k && o < (int)sizeof pb - 24) { int x = st[--k]; o += snprintf(pb + o, sizeof pb - o, "%s%s[%d]", o ? " " : "", h->mem[h->mof[x]].name, h->vof[x]); }
+        return dc_unsupported(m, "CompleteHive %s: the measured entry between %s[%d] and %s[%d] is 0 but the measured path %s identifies them; the measured correspondences are not Lipschitz and round-trip coherent, so no coherent completion keeps them (spec l.2902)",
+                              h->name, h->mem[h->mof[a]].name, h->vof[a], h->mem[h->mof[b]].name, h->vof[b], pb);
+    }
+    DcRat cost = rq(0, 1); int nfill = 0, nunm = 0;
+    Sx *fill = dc_form("Filled", NULL), *nop = dc_form("NoPaths", NULL);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] < 0) {
+        nunm++;
+        if (par[a][b] != -2) { cost = dc_rat_add(cost, dc_rat_mul(h->w[a], h->w[b], &ovf), &ovf); if (a < b) { sx_push(fill, dc_form("Fill", hv_node(m, h, a), hv_node(m, h, b), hv_path(m, h, par[a], b), NULL)); nfill++; } }
+    }
+    for (int i = 0; i < h->nm; i++) for (int j = i + 1; j < h->nm; j++) {
+        int A = h->mem[i].base, B = h->mem[j].base; if (h->H[A][B] >= 0) continue;
+        int any = 0; for (int l = 0; l < h->mem[i].nv; l++) for (int r2 = 0; r2 < h->mem[j].nv; r2++) if (par[A + l][B + r2] != -2) any = 1;
+        if (!any) sx_push(nop, dc_form("NoPath", dc_sym(h->mem[i].name), dc_sym(h->mem[j].name), NULL));
+    }
+    if (ovf) return dc_unsupported(m, "CompleteHive: rational overflow");
+    Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Method", dc_sym("PathComposition"), NULL), dc_form("Optimality", dc_sym("Checked"), NULL),
+                     dc_form("UnmeasuredEntries", dc_int(nunm), NULL), fill, nop, NULL), NULL);
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL), ev, NULL);
+}
 Sx *dc_req_hives(DcRun *r, const Sx *q, const char *h) {
     if (!strcmp(h, "CheckKernelCoherence")) return hv_coh(r, q);
     if (!strcmp(h, "Holonomy")) return hv_hol(r, q);
     if (!strcmp(h, "ConsensusCost")) return hv_cost(r, q);
     if (!strcmp(h, "LeastCoherentRefinement")) return hv_lcr(r, q);
+    if (!strcmp(h, "CompleteHive")) return hv_completehive(r, q);   /* M6-rest */
     return dc_unsupported(r->m, "%s is outside the M6 Hives subset", h);
 }

@@ -40,4 +40,67 @@ def replay_hive(M, req, res, st):
     return 'optimality certificate replayed (primal = dual%s)' % (', chords' if any(head(t) == 'Chord' for t in field(cert, 'Dual')[1:]) else '')
 R.replay_hive = replay_hive
 
+# ---- CompleteHive (M6-rest; hive decision 2, our reading of spec l.2896-2906) ----
+def hive_partial(M, name):
+    """Like replay_m6.hive but unmeasured / undeclared correspondences are left out of H (not zero-filled)."""
+    d = M.raw[('KernelHive', name)]; mem = [x for x in d[2:] if head(x) == 'Member']; names = [x[1] for x in mem]
+    W = field(d, 'Weights'); w = {e[0]: R.val(e[1]) for e in W[1:]} if W else {n: Q(1, len(mem)) for n in names}
+    need(set(w) == set(names) and sum(w.values()) == 1, 'member weights')
+    car, nodes, wt, H = {}, [], {}, {}
+    for x in mem:
+        nm, c, t, ms = x[1:5]; tk = head(M.raw[('Tolerance', t)][3])
+        need(head(M.raw[('Measure', ms)][3]) == 'Uniform', 'measure %s not replayable' % ms)
+        need(tk in ('Discrete', 'Trivial'), 'member tolerance %s not replayable' % t)
+        car[nm] = M.dom(c)
+        for v in car[nm]: nodes.append((nm, v)); wt[(nm, v)] = w[nm] / len(car[nm])
+        for a in car[nm]:
+            for b in car[nm]: H[((nm, a), (nm, b))] = Q(1) if a == b or tk == 'Trivial' else Q(0)
+    for x in d[2:]:
+        if head(x) == 'Correspondence' and x[4] == 'Measured':
+            for e in field(M.raw[('CrossKernel', x[3])], 'Entries')[1:]:
+                a, b, v = R.val(e[0]), R.val(e[1]), R.val(e[2]); H[((x[1], a), (x[2], b))] = H[((x[2], b), (x[1], a))] = v
+    return names, car, nodes, wt, H
+def replay_complete(M, req, res, st):
+    need(st == 'Checked', 'CompleteHive replays Checked rows only')
+    names, car, nodes, wt, H = hive_partial(M, req[1])
+    reach = {}
+    for s0 in nodes:
+        seen, todo = {s0}, [s0]
+        while todo:
+            a = todo.pop()
+            for b in nodes:
+                if b not in seen and H.get((a, b)) == 1: seen.add(b); todo.append(b)
+        reach[s0] = seen
+    need(all(H.get((a, b)) != 0 for a in nodes for b in reach[a]), 'a measured 0 entry is joined by a measured path: no coherent completion (should be Unsupported)')
+    unm = [(a, b) for a in nodes for b in nodes if (a, b) not in H]
+    filled = {(a, b) for a, b in unm if b in reach[a]}
+    cert = field(field(res, 'Evidence'), 'Certificate')
+    need(field(cert, 'Method')[1] == 'PathComposition' and field(cert, 'Optimality')[1] == 'Checked', 'certificate method/optimality')
+    need(int(field(cert, 'UnmeasuredEntries')[1]) == len(unm), 'UnmeasuredEntries count differs')
+    got = set()
+    for f in field(cert, 'Filled')[1:]:
+        need(head(f) == 'Fill' and head(f[3]) == 'Path', 'malformed Fill row')
+        a, b = node(f[1]), node(f[2]); pth = [node(x) for x in f[3][1:]]
+        need((a, b) not in H, 'Fill on a measured entry')
+        need(len(pth) >= 2 and pth[0] == a and pth[-1] == b, 'Path does not join the filled pair')
+        need(all(H.get((pth[i], pth[i + 1])) == 1 for i in range(len(pth) - 1)), 'Path step is not a measured identification')
+        got.add(frozenset((a, b)))
+    need(got == {frozenset(e) for e in filled}, 'Fill rows differ from the fills transitivity forces')
+    exp = set()
+    for i, mi in enumerate(names):
+        for mj in names[i + 1:]:
+            pairs = [((mi, u), (mj, v)) for u in car[mi] for v in car[mj]]
+            if all(pp not in H for pp in pairs) and not any(pp[1] in reach[pp[0]] for pp in pairs): exp.add((mi, mj))
+    need({(r[1], r[2]) for r in field(cert, 'NoPaths')[1:]} == exp, 'NoPath rows differ')
+    K = {(a, b): H[(a, b)] if (a, b) in H else Q(1 if (a, b) in filled else 0) for a in nodes for b in nodes}
+    need(all(K[(a, c)] >= K[(a, b)] + K[(b, c)] - 1 for a in nodes for b in nodes for c in nodes), 'completion not transitive')
+    cost = sum((wt[a] * wt[b] for a, b in filled), Q(0))
+    need(rat(field(res, 'Value')[1]) == cost, 'alignment cost %s differs from %s' % (rat(field(res, 'Value')[1]), cost))
+    return 'completion replayed (%d fills, %d no-path pairs, transitive)' % (len(got), len(exp))
+R.HIVE_OPS = tuple(R.HIVE_OPS) + ('CompleteHive',)
+_lcr = replay_hive
+def replay_hive2(M, req, res, st):
+    return replay_complete(M, req, res, st) if head(req) == 'CompleteHive' else _lcr(M, req, res, st)
+R.replay_hive = replay_hive2
+
 if __name__ == '__main__': sys.exit(R.main(sys.argv[1], sys.argv[2]))
