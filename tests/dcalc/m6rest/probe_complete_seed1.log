@@ -1,0 +1,4 @@
+replay_m6: 20 rows, 0 not accepted -> PASS
+stats {'Checked': 20, 'Unsupported': 40, 'other': 0, 'agree': 60, 'disagree': 0, 'fills': 6} tampered 6 rejected 6
+probe_complete: PASS
+rc=0
