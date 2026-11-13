@@ -314,10 +314,10 @@ def check_haus(M, req, ev):
         K = {}
         for p in fields(field(layer, 'Kernel'), 'P'): v = rat(p[3]); K[(p[1], p[2])] = v; K[(p[2], p[1])] = v
         return lambda x, y: Fraction(0) if x == y else K.get((x, y), Fraction(0))
-    for c in [c for c in fields(ev, 'Certificate') if field(c, 'Kind')[1] in ('HausdorffPrefixpoint', 'HausdorffLayers')]:
+    for c in [c for c in fields(ev, 'Certificate') if field(c, 'Kind')[1] in ('Prefixpoint', 'LayeredPrefixpoint')]:
         need(rat(field(c, 'Discount')[1]) == g, 'certificate Discount differs from the request')
         ch = field(c, 'Horizon')[1]; kd = field(c, 'Kind')[1]
-        need((h is None and ch == 'AllFiniteWords' and kd == 'HausdorffPrefixpoint') or (h is not None and isinstance(ch, list) and int(str(ch[1])) == h and kd == 'HausdorffLayers'), 'certificate Horizon/Kind differs from the request')
+        need((h is None and ch == 'AllFiniteWords' and kd == 'Prefixpoint') or (h is not None and isinstance(ch, list) and int(str(ch[1])) == h and kd == 'LayeredPrefixpoint'), 'certificate Horizon/Kind differs from the request')
         layers = fields(c, 'Layer'); need(len(layers) == (1 if h is None else h + 1), 'wrong number of kernel layers')
         prev = None
         for li, L in enumerate(layers):

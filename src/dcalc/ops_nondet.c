@@ -998,7 +998,7 @@ static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
         Sx *r = nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)bud), NULL), NULL), NULL), w);
         g_nd_rep = 1; return r;
     }
-    Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym(hor < 0 ? "HausdorffPrefixpoint" : "HausdorffLayers"), NULL), dc_form("Discount", rsx(g), NULL), dc_form("Horizon", hz, NULL), NULL);
+    Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym(hor < 0 ? "Prefixpoint" : "LayeredPrefixpoint"), NULL), dc_form("Discount", rsx(g), NULL), dc_form("Horizon", hz, NULL), NULL);
     if (hor < 0) sx_push(cert, nd_layer(&T, 0, -1));
     else for (int l = 0; l <= hor; l++) sx_push(cert, nd_layer(&T, l, hor));
     int holds = !chk || dc_rat_cmp(lo, b) <= 0;
