@@ -1,0 +1,29 @@
+{
+ "date": "2026-11-13",
+ "notes": {
+  "m6graded-shapes": "Shapes invented by m6-graded (beyond release only). Graded kernel hives: CrossKernel entries may be rationals in [0, 1] (spec Def 10.1 l.2821); a degree outside [0, 1] is InvalidInput. CheckKernelCoherence Refuted evidence (Witness (Triple a b c) (Degrees c_ab c_bc c_ac)) with Lukasiewicz transitivity c_ac >= c_ab (x) c_bc; Holonomy Value is a Kernel with (Rat) entries (max-(x) composition); ConsensusCost evidence (Closure (Classes n) (Raised (Raise ..)..)); LeastCoherentRefinement uses the same LP certificate with Edge rows x_ab <= c_ab (dual value sum c_ab y_ab) and EdgeMass = sum w_a w_b c_ab; CompleteHive certificate (Method LukasiewiczPathClosure) with (Fill a b (Degree F) (Path ..)) rows, Unsupported when a measured entry is below its closure; HiveAssociator Entries carry (Rat) direct / composite / difference values. Crisp hives keep their M6 / M6-rest shapes byte for byte."
+ },
+ "patch": "m6graded: local registry patch for t-2026-11-13-mettadinc-m6-graded (beyond-release only; every shape here is ours, not in the specification)",
+ "witness_types": {
+  "Open": {
+   "fields": [
+    "(Triple a b c) -- CheckKernelCoherence Unknown evidence on a graded hive with an Unmeasured correspondence: the triple is transitive or not depending on the completion; Unmeasured is never zero-filled (ours, m6-graded)"
+   ],
+   "profiles": [
+    "Graded"
+   ]
+  },
+  "Raise": {
+   "fields": [
+    "Node a",
+    "Node b",
+    "(Measured c_ab)",
+    "(Closure F_ab)",
+    "(Path n1 .. nk) -- ConsensusCost on a graded kernel hive: the Lukasiewicz path closure F (spec l.736-742, l.2665-2683) raises c_ab to F_ab, attained by the path (ours, m6-graded)"
+   ],
+   "profiles": [
+    "Graded"
+   ]
+  }
+ }
+}
