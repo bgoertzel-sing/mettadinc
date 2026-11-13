@@ -1,5 +1,6 @@
 #include "ops_internal.h"
 #include "ops_run.h"
+#include "lp_exact.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,12 +42,40 @@ static int hv_mem(const Hive *h, const char *nm) { for (int i = 0; i < h->nm; i+
 static Sx *hv_node(const DcModule *m, const Hive *h, int a) { const HvMem *M = &h->mem[h->mof[a]]; return dc_form("Node", dc_sym(M->name), sx_copy(m->car[M->car].elems[h->vof[a]]), NULL); }
 
 #define HV_FAIL(rc, ...) do { snprintf(why, wn, __VA_ARGS__); return rc; } while (0)
+static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t wn);
+static int hv_bfs(const Hive *h, int s, int *par);
+/* M6-rest review-1 F1: (Derive C (CompleteHive H)) used as (Output C Hive) returns the completed hive.  Measured entries
+ * stay fixed; an unmeasured entry joined by a measured path becomes 1; the other unmeasured entries of a member pair that
+ * some measured path joins become 0 (the least value); every entry of a NoPath member pair stays Unmeasured (-1), so a
+ * claim that reads it answers Unknown (CheckKernelCoherence) or Unsupported (requests that read only measured entries). */
+static int hv_fillc(const DcModule *m, const Sx *req, Hive *h, char *why, size_t wn) {
+    static int depth = 0; static int par[HV_MAXN][HV_MAXN];
+    if (req->n != 2) HV_FAIL(-1, "expected (CompleteHive Hive)");
+    if (depth > 3) HV_FAIL(-2, "CompleteHive: completions nested more than 4 deep");
+    depth++; int rc = hv_load(m, req->items[1], h, why, wn); depth--;
+    if (rc) return rc;
+    for (int a = 0; a < h->nn; a++) hv_bfs(h, a, par[a]);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] == 0 && par[a][b] != -2)
+        HV_FAIL(-2, "CompleteHive %s: the measured entry between %s[%d] and %s[%d] is 0 but a measured path identifies them; the measured correspondences are not Lipschitz and round-trip coherent",
+                h->name, h->mem[h->mof[a]].name, h->vof[a], h->mem[h->mof[b]].name, h->vof[b]);
+    for (int i = 0; i < h->nm; i++) for (int j = 0; j < h->nm; j++) {
+        const HvMem *I = &h->mem[i], *J = &h->mem[j]; int any = 0;
+        for (int l = 0; l < I->nv; l++) for (int r2 = 0; r2 < J->nv; r2++) if (par[I->base + l][J->base + r2] != -2) any = 1;
+        if (!any) continue;   /* NoPath pair: stays Unmeasured, never zero-filled */
+        for (int l = 0; l < I->nv; l++) for (int r2 = 0; r2 < J->nv; r2++) {
+            int a = I->base + l, b = J->base + r2;
+            if (h->H[a][b] < 0) h->H[a][b] = par[a][b] != -2 ? 1 : 0;
+        }
+    }
+    return 0;
+}
 static int hv_derived(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t wn) {
     const char *names[HV_MAXM]; int cars[HV_MAXM], nvs[HV_MAXM], nm = 0, ovf = 0;
     if (hn->n != 3 || hn->items[1]->kind != SX_SYM || !sx_is_sym(hn->items[2], "Hive")) HV_FAIL(-1, "expected (Output Derive Hive)");
     const Sx *d = hv_decl(m, "Derive", hn->items[1]->text);
     if (!d || d->n != 3) HV_FAIL(-1, "%s names no declared Derive", hn->items[1]->text);
-    if (!sx_head_is(d->items[2], "KernelOf")) HV_FAIL(-1, "Derive %s is not a KernelOf; only derived kernel hives are accepted here", hn->items[1]->text);
+    if (sx_head_is(d->items[2], "CompleteHive")) { int rc = hv_fillc(m, d->items[2], h, why, wn); if (!rc) h->name = d->items[1]->text; return rc; }
+    if (!sx_head_is(d->items[2], "KernelOf")) HV_FAIL(-1, "Derive %s is not a KernelOf or CompleteHive; only derived kernel hives are accepted here", hn->items[1]->text);
     int rc = dc_kernel_of(m, d->items[2], names, cars, nvs, &nm, h->H, why, wn);
     if (rc) return rc;
     h->name = d->items[1]->text; h->nm = nm;
@@ -136,8 +165,8 @@ static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t w
 }
 static int hv_complete(const Hive *h, char *why, size_t wn) {
     for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] < 0)
-        HV_FAIL(-2, "KernelHive %s: the correspondence between %s and %s is Unmeasured or undeclared; completion (CompleteHive) is outside this milestone",
-                h->name, h->mem[h->mof[a]].name, h->mem[h->mof[b]].name);
+        HV_FAIL(-2, "KernelHive %s: the correspondence between %s and %s is Unmeasured or undeclared; this request reads only measured correspondences; complete them first with (CompleteHive %s)",
+                h->name, h->mem[h->mof[a]].name, h->mem[h->mof[b]].name, h->name);
     return 0;
 }
 /* R[a][c] over the values of cyc[0]: composite of the kernels cyc[0] -> cyc[1] -> ... -> cyc[k-1] -> cyc[0]. */
@@ -246,12 +275,103 @@ static Sx *hv_cost(DcRun *r, const Sx *q) {
     return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL),
                        dc_form("Evidence", dc_form("Closure", dc_form("Classes", dc_int(classes), NULL), NULL), NULL), NULL);
 }
+/* M6-rest: general LeastCoherentRefinement as an exact linear program (spec Sec. 10.4, Example 10.5: "optimality over
+ * all graded refinements is a linear-programming fact, and it has an exact certificate").  Variables x_ab for the
+ * identification pairs a < b of H; maximize sum w_a w_b x_ab subject to x_ab <= 1 (Edge rows) and, for every middle
+ * node b and pair a < c with H(a,b) = H(b,c) = 1, x_ab + x_bc - x_ac <= 1 (Triple rows when H(a,c) = 0, so x_ac = 0;
+ * Chord rows otherwise; Chord is ours, M6-rest registry patch).  Every other ordered-triple constraint is implied
+ * by 0 <= x <= 1.  Solved by the exact Bland simplex (lp_exact.c); the primal is re-checked against every ordered
+ * triple and the dual against every variable before anything is reported. */
+#define HV_LP_MAXV 120
+#define HV_LP_MAXR 1200
+static Sx *hv_lcr_lp(DcModule *m, const Hive *h, const Sx *q) {
+    int n = h->nn, ovf = 0, nv = 0, nr = 0, rc;
+    static int vid[HV_MAXN][HV_MAXN]; static DcRat X[HV_MAXN][HV_MAXN];
+    int va[HV_LP_MAXV], vb[HV_LP_MAXV]; static int ra[HV_LP_MAXR], rb[HV_LP_MAXR], rcn[HV_LP_MAXR];
+    for (int a = 0; a < n; a++) for (int b = 0; b < n; b++) vid[a][b] = -1;
+    for (int a = 0; a < n; a++) for (int b = a + 1; b < n; b++) if (h->H[a][b]) {
+        if (nv >= HV_LP_MAXV) return dc_unsupported(m, "LeastCoherentRefinement %s: more than %d identification pairs; the exact linear program is capped there", h->name, HV_LP_MAXV);
+        vid[a][b] = vid[b][a] = nv; va[nv] = a; vb[nv] = b; nv++;
+    }
+    for (int i = 0; i < nv; i++) { ra[nr] = va[i]; rb[nr] = vb[i]; rcn[nr] = -1; nr++; }
+    for (int b = 0; b < n; b++) for (int a = 0; a < n; a++) for (int c = a + 1; c < n; c++)
+        if (a != b && c != b && vid[a][b] >= 0 && vid[b][c] >= 0) {
+            if (nr >= HV_LP_MAXR) return dc_unsupported(m, "LeastCoherentRefinement %s: more than %d constraints; the exact linear program is capped there", h->name, HV_LP_MAXR);
+            ra[nr] = a; rb[nr] = b; rcn[nr] = c; nr++;
+        }
+    DcRat *A = calloc((size_t)nr * (size_t)nv, sizeof(DcRat)), *bb = malloc(sizeof(DcRat) * (size_t)nr), *cc = malloc(sizeof(DcRat) * (size_t)nv),
+          *x = malloc(sizeof(DcRat) * (size_t)nv), *y = malloc(sizeof(DcRat) * (size_t)nr), val;
+    if (!A || !bb || !cc || !x || !y) { free(A); free(bb); free(cc); free(x); free(y); return dc_unsupported(m, "LeastCoherentRefinement: out of memory"); }
+    for (size_t k = 0; k < (size_t)nr * (size_t)nv; k++) A[k] = rq(0, 1);
+    for (int i = 0; i < nr; i++) {
+        bb[i] = rq(1, 1);
+        if (rcn[i] < 0) A[(size_t)i * nv + vid[ra[i]][rb[i]]] = rq(1, 1);
+        else {
+            A[(size_t)i * nv + vid[ra[i]][rb[i]]] = rq(1, 1); A[(size_t)i * nv + vid[rb[i]][rcn[i]]] = rq(1, 1);
+            if (vid[ra[i]][rcn[i]] >= 0) A[(size_t)i * nv + vid[ra[i]][rcn[i]]] = rq(-1, 1);
+        }
+    }
+    for (int j = 0; j < nv; j++) cc[j] = dc_rat_mul(h->w[va[j]], h->w[vb[j]], &ovf);
+    rc = dc_lp_max(nr, nv, A, bb, cc, x, y, &val, &ovf);
+    Sx *out = NULL;
+#define LPFAIL(...) do { out = dc_unsupported(m, __VA_ARGS__); goto done; } while (0)
+    if (ovf) LPFAIL("LeastCoherentRefinement %s: rational overflow in the exact linear program", h->name);
+    if (rc) LPFAIL("LeastCoherentRefinement %s: exact linear program did not finish (code %d)", h->name, rc);
+    /* independent re-check: primal over every ordered triple, dual over every variable, equal values */
+    for (int a = 0; a < n; a++) for (int b = 0; b < n; b++) X[a][b] = a == b ? rq(1, 1) : vid[a][b] >= 0 ? x[vid[a][b]] : rq(0, 1);
+    for (int a = 0; a < n; a++) for (int b = 0; b < n; b++) {
+        if (X[a][b].n < 0 || dc_rat_cmp(X[a][b], rq(h->H[a][b] || a == b, 1)) > 0) LPFAIL("LeastCoherentRefinement: internal primal outside [0, H]");
+        for (int c = 0; c < n; c++) if (dc_rat_cmp(X[a][c], dc_rat_sub(dc_rat_add(X[a][b], X[b][c], &ovf), rq(1, 1), &ovf)) < 0)
+            LPFAIL("LeastCoherentRefinement: internal primal violates transitivity");
+    }
+    DcRat P = rq(0, 1), Dv = rq(0, 1), T = rq(0, 1);
+    for (int i = 0; i < nr; i++) { if (y[i].n < 0) LPFAIL("LeastCoherentRefinement: internal dual negative"); Dv = dc_rat_add(Dv, y[i], &ovf); }
+    for (int j = 0; j < nv; j++) {
+        DcRat cov = rq(0, 1);
+        for (int i = 0; i < nr; i++) if (A[(size_t)i * nv + j].n) cov = dc_rat_add(cov, dc_rat_mul(A[(size_t)i * nv + j], y[i], &ovf), &ovf);
+        if (dc_rat_cmp(cov, cc[j]) < 0) LPFAIL("LeastCoherentRefinement: internal dual infeasible");
+        T = dc_rat_add(T, cc[j], &ovf); P = dc_rat_add(P, dc_rat_mul(cc[j], x[j], &ovf), &ovf);
+    }
+    if (ovf) LPFAIL("LeastCoherentRefinement %s: rational overflow", h->name);
+    if (dc_rat_cmp(P, Dv) || dc_rat_cmp(P, val)) LPFAIL("LeastCoherentRefinement %s: primal and dual values differ; optimality not certified", h->name);
+    {
+        DcRat cost = dc_rat_mul(rq(2, 1), dc_rat_sub(T, P, &ovf), &ovf);
+        Sx *kept = dc_form("Kept", NULL), *dual = dc_form("Dual", NULL);
+        for (int a = 0; a < n; a++) for (int b = a + 1; b < n; b++) if (X[a][b].n) sx_push(kept, dc_form("Pair", hv_node(m, h, a), hv_node(m, h, b), rsx(X[a][b]), NULL));
+        for (int i = 0; i < nr; i++) if (y[i].n) {
+            if (rcn[i] < 0) sx_push(dual, dc_form("Edge", hv_node(m, h, ra[i]), hv_node(m, h, rb[i]), rsx(y[i]), NULL));
+            else sx_push(dual, dc_form(vid[ra[i]][rcn[i]] >= 0 ? "Chord" : "Triple", hv_node(m, h, ra[i]), hv_node(m, h, rb[i]), hv_node(m, h, rcn[i]), rsx(y[i]), NULL));
+        }
+        if (ovf) LPFAIL("LeastCoherentRefinement %s: rational overflow", h->name);
+        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Method", dc_sym("LinearProgram"), NULL), dc_form("PrimalValue", rsx(P), NULL),
+                         dc_form("DualValue", rsx(Dv), NULL), dc_form("EdgeMass", rsx(T), NULL), kept, dual, NULL), NULL);
+        out = dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL), ev, NULL);
+    }
+done:
+#undef LPFAIL
+    free(A); free(bb); free(cc); free(x); free(y);
+    return out;
+}
 static Sx *hv_lcr(DcRun *r, const Sx *q) {
     DcModule *m = r->m; Hive *h = &g_h; char why[300]; int ovf = 0, n;
     static int comp[HV_MAXN], deg[HV_MAXN], ord[HV_MAXN]; static DcRat X[HV_MAXN][HV_MAXN];
     typedef struct { int a, b, c; DcRat y; } Dual;   /* c < 0: capacity x_ab <= 1; else x_ab + x_bc <= 1 (H(a,c) = 0) */
     static Dual D[HV_MAXN * HV_MAXN]; int nd = 0;
-    if (q->n != 2) return dc_invalid(m, "LeastCoherentRefinement: expected (LeastCoherentRefinement Hive)");
+    if (q->n < 2) return dc_invalid(m, "LeastCoherentRefinement: expected (LeastCoherentRefinement Hive [(Search Exhaustive|LinearProgram)] [(Budget b)])");
+    /* M6-rest: registry args (spec registry requests.LeastCoherentRefinement): Search Exhaustive|LinearProgram, default
+     * LinearProgram; Budget is a work limit.  Unsupported options answer Unsupported, never a silent fallback. */
+    { int hs = 0, hb = 0;
+      for (size_t i = 2; i < q->n; i++) {
+          const Sx *f = q->items[i];
+          if (sx_head_is(f, "Search") && f->n == 2 && f->items[1]->kind == SX_SYM && !hs) {
+              hs = 1;
+              if (!strcmp(f->items[1]->text, "LinearProgram")) continue;
+              if (!strcmp(f->items[1]->text, "Exhaustive")) return dc_unsupported(m, "LeastCoherentRefinement: (Search Exhaustive) is not implemented; graded refinements form a continuum, so this release answers through the exact linear program (Search LinearProgram) only");
+              return dc_invalid(m, "LeastCoherentRefinement: Search must be Exhaustive or LinearProgram");
+          }
+          if (sx_head_is(f, "Budget") && !hb) { hb = 1; return dc_unsupported(m, "LeastCoherentRefinement: (Budget ..) is not implemented; answers are exact or Unsupported"); }
+          return dc_invalid(m, "LeastCoherentRefinement: argument %zu is not (Search s) or (Budget b)", i - 1);
+      } }
     HV_LOAD("LeastCoherentRefinement")
     n = h->nn;
     for (int a = 0; a < n; a++) { comp[a] = -1; deg[a] = 0; for (int b = 0; b < n; b++) { X[a][b] = rq(a == b, 1); if (a != b && h->H[a][b]) deg[a]++; } }
@@ -271,7 +391,7 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
         }
         int cyc = cs >= 4;
         for (int i = 0; i < cs; i++) if (deg[ord[i]] != 2) cyc = 0;
-        if (!cyc) return dc_unsupported(m, "LeastCoherentRefinement %s: an identification component is neither a clique nor a chordless cycle; the general linear program is outside this milestone", h->name);
+        if (!cyc) return hv_lcr_lp(m, h, q);   /* M6-rest: general case */
         int path[HV_MAXN], prev = -1, cur = ord[0];
         for (int i = 0; i < cs; i++) {   /* walk the cycle */
             path[i] = cur; int nxt = -1;
@@ -279,10 +399,10 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
             if (nxt < 0) nxt = prev;
             prev = cur; cur = nxt;
         }
-        if (cur != path[0]) return dc_unsupported(m, "LeastCoherentRefinement %s: component walk did not close", h->name);
+        if (cur != path[0]) return hv_lcr_lp(m, h, q);   /* M6-rest: general case */
         DcRat we = dc_rat_mul(h->w[path[0]], h->w[path[1]], &ovf);
         for (int i = 0; i < cs; i++) if (dc_rat_cmp(dc_rat_mul(h->w[path[i]], h->w[path[(i + 1) % cs]], &ovf), we))
-            return dc_unsupported(m, "LeastCoherentRefinement %s: cycle edges of unequal weight are outside this milestone", h->name);
+            return hv_lcr_lp(m, h, q);   /* M6-rest: general case */
         for (int i = 0; i < cs; i++) {
             int a = path[i], b = path[(i + 1) % cs], c = path[(i + 2) % cs];
             X[a][b] = X[b][a] = cs % 2 ? rq(1, 2) : rq(i % 2 == 0, 1);
@@ -321,10 +441,95 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
                      dc_form("EdgeMass", rsx(T), NULL), kept, dual, NULL), NULL);
     return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL), ev, NULL);
 }
+/* M6-rest: CompleteHive (spec Sec. 10.4 l.2896-2906; semantics = hive decision 2, our reading, crisp 0/1 kernels).
+ * A correspondence that was never measured (Unmeasured or undeclared) is completed, never zero-filled silently:
+ * every unmeasured entry gets the least value transitivity forces, i.e. 1 exactly when a path of measured
+ * identifications joins the two nodes (composition along paths), with measured entries held fixed.  If that closure
+ * would change a measured 0 entry, the measured correspondences are not Lipschitz / round-trip coherent and the
+ * answer is Unsupported naming the entry and the path.  Value is the alignment cost: sum of w_a w_b over ordered
+ * node pairs that the completion fills with 1.  Certificate rows (ours, m6rest patch): (Fill a b (Path n1 .. nk))
+ * for each filled identification a < b; (NoPath Mi Mj) for unmeasured member pairs no measured path joins: their
+ * entries stay Unmeasured (never 0) in the completed hive, see hv_fillc.  Other unmeasured entries of a joined member
+ * pair are 0, the least value.  Optimality Checked: each filled 1 is forced by its Path.
+ * The completed hive itself is (Output C Hive) for (Derive C (CompleteHive H)) (HiveResult Hive field). */
+static int hv_bfs(const Hive *h, int s, int *par) {
+    int q[HV_MAXN], qh = 0, qt = 0;
+    for (int i = 0; i < h->nn; i++) par[i] = -2;
+    par[s] = -1; q[qt++] = s;
+    while (qh < qt) { int a = q[qh++]; for (int b = 0; b < h->nn; b++) if (b != a && h->H[a][b] == 1 && par[b] == -2) { par[b] = a; q[qt++] = b; } }
+    return 0;
+}
+static Sx *hv_path(DcModule *m, const Hive *h, const int *par, int b) {
+    int st[HV_MAXN], k = 0; for (int x = b; x >= 0; x = par[x]) st[k++] = x;
+    Sx *p = dc_form("Path", NULL); while (k) sx_push(p, hv_node(m, h, st[--k])); return p;
+}
+static Sx *hv_completehive(DcRun *r, const Sx *q) {
+    DcModule *m = r->m; Hive *h = &g_h; char why[300]; int ovf = 0; static int par[HV_MAXN][HV_MAXN];
+    if (q->n != 2) return dc_invalid(m, "CompleteHive: expected (CompleteHive Hive)");
+    int rc = hv_load(m, q->items[1], h, why, sizeof why);
+    if (rc == -2) return dc_unsupported(m, "CompleteHive: %s", why);
+    if (rc) return dc_invalid(m, "CompleteHive: %s", why);
+    for (int a = 0; a < h->nn; a++) hv_bfs(h, a, par[a]);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] == 0 && par[a][b] != -2) {
+        char pb[200]; int st[HV_MAXN], k = 0, o = 0; for (int x = b; x >= 0; x = par[a][x]) st[k++] = x;
+        while (k && o < (int)sizeof pb - 24) { int x = st[--k]; o += snprintf(pb + o, sizeof pb - o, "%s%s[%d]", o ? " " : "", h->mem[h->mof[x]].name, h->vof[x]); }
+        return dc_unsupported(m, "CompleteHive %s: the measured entry between %s[%d] and %s[%d] is 0 but the measured path %s identifies them; the measured correspondences are not Lipschitz and round-trip coherent, so no coherent completion keeps them (spec l.2902)",
+                              h->name, h->mem[h->mof[a]].name, h->vof[a], h->mem[h->mof[b]].name, h->vof[b], pb);
+    }
+    DcRat cost = rq(0, 1); int nfill = 0, nunm = 0;
+    Sx *fill = dc_form("Filled", NULL), *nop = dc_form("NoPaths", NULL);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] < 0) {
+        nunm++;
+        if (par[a][b] != -2) { cost = dc_rat_add(cost, dc_rat_mul(h->w[a], h->w[b], &ovf), &ovf); if (a < b) { sx_push(fill, dc_form("Fill", hv_node(m, h, a), hv_node(m, h, b), hv_path(m, h, par[a], b), NULL)); nfill++; } }
+    }
+    for (int i = 0; i < h->nm; i++) for (int j = i + 1; j < h->nm; j++) {
+        int A = h->mem[i].base, B = h->mem[j].base; if (h->H[A][B] >= 0) continue;
+        int any = 0; for (int l = 0; l < h->mem[i].nv; l++) for (int r2 = 0; r2 < h->mem[j].nv; r2++) if (par[A + l][B + r2] != -2) any = 1;
+        if (!any) sx_push(nop, dc_form("NoPath", dc_sym(h->mem[i].name), dc_sym(h->mem[j].name), NULL));
+    }
+    if (ovf) return dc_unsupported(m, "CompleteHive: rational overflow");
+    Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Method", dc_sym("PathComposition"), NULL), dc_form("Optimality", dc_sym("Checked"), NULL),
+                     dc_form("UnmeasuredEntries", dc_int(nunm), NULL), fill, nop, NULL), NULL);
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL), ev, NULL);
+}
+/* M6-rest: (Associator Hive Mi Mj Mk) (request shape ours, m6rest patch; definition spec Def 10.1 l.2827:
+ * [i, j, k] = c_ik - c_ij o c_jk, crisp kernels, o the Boolean relational composite as in Holonomy).
+ * Value lists every entry (a c direct composite difference) over V_i x V_k; (Zero True) iff the direct
+ * correspondence equals the path-induced one.  Unmeasured entries answer Unsupported (complete them first). */
+static Sx *hv_assoc(DcRun *r, const Sx *q) {
+    DcModule *m = r->m; Hive *h = &g_h; char why[300]; int mi[3];
+    if (q->n != 5) return dc_invalid(m, "Associator: expected (Associator Hive Mi Mj Mk)");
+    int rc = hv_load(m, q->items[1], h, why, sizeof why);
+    if (rc == -2) return dc_unsupported(m, "Associator: %s", why);
+    if (rc) return dc_invalid(m, "Associator: %s", why);
+    for (int t = 0; t < 3; t++)
+        if (q->items[t + 2]->kind != SX_SYM || (mi[t] = hv_mem(h, q->items[t + 2]->text)) < 0) return dc_invalid(m, "Associator: argument %d is not a member of %s", t + 2, h->name);
+    if (mi[0] == mi[1] || mi[1] == mi[2] || mi[0] == mi[2]) return dc_invalid(m, "Associator: the three members must be distinct");
+    const HvMem *I = &h->mem[mi[0]], *J = &h->mem[mi[1]], *K = &h->mem[mi[2]];
+    for (int a = 0; a < I->nv + J->nv; a++) for (int c = 0; c < J->nv + K->nv; c++) {
+        int x = a < I->nv ? I->base + a : J->base + a - I->nv, y = c < J->nv ? (a < I->nv ? J->base + c : -1) : K->base + c - J->nv;
+        if (y >= 0 && h->H[x][y] < 0) return dc_unsupported(m, "Associator %s: an entry between %s and %s is Unmeasured or undeclared; complete it first with (CompleteHive %s)", h->name, h->mem[h->mof[x]].name, h->mem[h->mof[y]].name, h->name);
+    }
+    for (int a = 0; a < I->nv; a++) for (int c = 0; c < K->nv; c++) if (h->H[I->base + a][K->base + c] < 0)
+        return dc_unsupported(m, "Associator %s: an entry between %s and %s is Unmeasured or undeclared; complete it first with (CompleteHive %s)", h->name, I->name, K->name, h->name);
+    Sx *E = dc_form("Entries", NULL); int zero = 1, npos = 0, nneg = 0;
+    for (int a = 0; a < I->nv; a++) for (int c = 0; c < K->nv; c++) {
+        int d = h->H[I->base + a][K->base + c], comp = 0;
+        for (int b = 0; b < J->nv; b++) comp |= h->H[I->base + a][J->base + b] && h->H[J->base + b][K->base + c];
+        if (d != comp) { zero = 0; if (d > comp) npos++; else nneg++; }
+        sx_push(E, dc_form("Entry", sx_copy(m->car[I->car].elems[a]), sx_copy(m->car[K->car].elems[c]), dc_int(d), dc_int(comp), dc_int(d - comp), NULL));
+    }
+    Sx *val = dc_form("Associator", dc_form("Members", dc_sym(I->name), dc_sym(J->name), dc_sym(K->name), NULL), E,
+                      dc_form("Zero", dc_sym(zero ? "True" : "False"), NULL), dc_form("Positive", dc_int(npos), NULL), dc_form("Negative", dc_int(nneg), NULL), NULL);
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", val, NULL),
+                       dc_form("Evidence", dc_form("Composition", dc_form("Path", dc_sym(I->name), dc_sym(J->name), dc_sym(K->name), NULL), NULL), NULL), NULL);
+}
 Sx *dc_req_hives(DcRun *r, const Sx *q, const char *h) {
     if (!strcmp(h, "CheckKernelCoherence")) return hv_coh(r, q);
     if (!strcmp(h, "Holonomy")) return hv_hol(r, q);
     if (!strcmp(h, "ConsensusCost")) return hv_cost(r, q);
     if (!strcmp(h, "LeastCoherentRefinement")) return hv_lcr(r, q);
+    if (!strcmp(h, "CompleteHive")) return hv_completehive(r, q);   /* M6-rest */
+    if (!strcmp(h, "Associator")) return hv_assoc(r, q);   /* M6-rest */
     return dc_unsupported(r->m, "%s is outside the M6 Hives subset", h);
 }

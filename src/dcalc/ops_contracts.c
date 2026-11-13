@@ -20,7 +20,7 @@ static const Sx *kid(const Sx *x, const char *h) {
     return NULL;
 }
 static const char *ct_sym(const Sx *d, const char *h) { const Sx *k = kid(d, h); return k && k->n == 2 && k->items[1]->kind == SX_SYM ? k->items[1]->text : NULL; }
-typedef struct { const char *name; int ideal, actual, audit, tin, tout, rid_unmeasured; } CtImpl;   /* rid_unmeasured: review-2 F1 neg5 */
+typedef struct { const char *name; int ideal, actual, audit, tin, tout, rid_unmeasured; const char *fork, *fork_mach, *fork_label; } CtImpl;   /* rid_unmeasured: the Fork it is Over has Shared Unmeasured (M6-rest merge model) */
 /* M6: distance between two carrier values under a tolerance: Trivial 0, Discrete 0/1 by structure,
  * OneMinusAbsoluteDifference |p - q| on rational values. Returns nonzero if not evaluable. */
 static int ct_tol_ok(DcTolKind k) { return k == DC_TOL_TRIVIAL || k == DC_TOL_DISCRETE || k == DC_TOL_ONE_MINUS_ABS; }
@@ -53,11 +53,31 @@ static int ct_load(const DcModule *m, const char *name, CtImpl *c, char *why, si
     if (!d) { snprintf(why, wn, "names no declared Implementation (%s)", name); return -1; }
     const char *ia = ct_sym(d, "Ideal"), *aa = ct_sym(d, "Actual"), *au = ct_sym(d, "Audit"), *di = ct_sym(d, "InputDistance"), *dout = ct_sym(d, "OutputDistance");
     if (!ia || !aa || !au || !di || !dout) { snprintf(why, wn, "Implementation %s needs Ideal, Actual, Audit, InputDistance and OutputDistance", name); return -1; }
-    /* review-2 F1 (negative test 5): (ReceiptIdentities Measured|Unmeasured).  When forks do not record receipt
-     * identities the correspondence is unmeasured and merge-dependent claims answer Unknown (spec Sec. 10.5). */
-    { const char *ri = ct_sym(d, "ReceiptIdentities");
-      if (ri && strcmp(ri, "Measured") && strcmp(ri, "Unmeasured")) { snprintf(why, wn, "Implementation %s: ReceiptIdentities must be Measured or Unmeasured", name); return -1; }
-      c->rid_unmeasured = ri && !strcmp(ri, "Unmeasured"); }
+    /* M6-rest merge model (ours, m6rest registry patch; replaces the M6 ReceiptIdentities flag).  Spec 3.4 and
+     * Sec. 10.5 (l.2964-2967, 3018): reconciling forks needs a merge and a correspondence saying which distinctions
+     * the forks share.  (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)) names a Merge port of a
+     * machine (spec l.2976) and the status of the shared-distinction correspondence, with the KernelHive
+     * Correspondence statuses.  An Implementation (Over F) is merge-dependent: with Shared Unmeasured it answers
+     * Unknown; with Shared Measured it is evaluated exactly as without a fork. */
+    if (kid(d, "ReceiptIdentities")) { snprintf(why, wn, "Implementation %s: ReceiptIdentities is replaced by the merge model; declare (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)) and (Over F)", name); return -1; }
+    c->rid_unmeasured = 0; c->fork = NULL;
+    { const char *ov = ct_sym(d, "Over");
+      if (kid(d, "Over") && !ov) { snprintf(why, wn, "Implementation %s: Over expects (Over Fork)", name); return -1; }
+      if (ov) {
+          const Sx *f = NULL;
+          for (size_t i = 2; m->source && i < m->source->n; i++)
+              if (sx_head_is(m->source->items[i], "Fork") && m->source->items[i]->n >= 2 && sx_is_sym(m->source->items[i]->items[1], ov)) { f = m->source->items[i]; break; }
+          if (!f) { snprintf(why, wn, "Implementation %s: Over names no declared Fork (%s)", name, ov); return -1; }
+          const char *of = ct_sym(f, "Of"), *lab = ct_sym(f, "Merge"), *sh = ct_sym(f, "Shared");
+          if (!of || !lab || !sh) { snprintf(why, wn, "Fork %s needs (Of Machine), (Merge label) and (Shared Measured|Unmeasured)", ov); return -1; }
+          int mi = dc_find_machine(m, of);
+          if (mi < 0) { snprintf(why, wn, "Fork %s: Of names no declared Machine (%s)", ov, of); return -1; }
+          int found = 0;
+          for (size_t k = 0; k < m->mach[mi].nmerge; k++) if (!strcmp(m->mach[mi].merge[k].label, lab)) found = 1;
+          if (!found) { snprintf(why, wn, "Fork %s: Machine %s has no Merge port %s, so there is nothing to reconcile the forks", ov, of, lab); return -1; }
+          if (strcmp(sh, "Measured") && strcmp(sh, "Unmeasured")) { snprintf(why, wn, "Fork %s: Shared must be Measured or Unmeasured", ov); return -1; }
+          c->fork = ov; c->fork_mach = of; c->fork_label = lab; c->rid_unmeasured = !strcmp(sh, "Unmeasured");
+      } }
     c->name = name; c->ideal = dc_find_map(m, ia); c->actual = dc_find_map(m, aa); c->audit = dc_find_carrier(m, au); c->tin = dc_find_tol(m, di); c->tout = dc_find_tol(m, dout);
     if (c->ideal < 0 || c->actual < 0) { snprintf(why, wn, "Implementation %s: Ideal/Actual names no declared Map", name); return -1; }
     if (c->audit < 0) { snprintf(why, wn, "Implementation %s: Audit names no declared Carrier", name); return -1; }
@@ -82,8 +102,8 @@ static Sx *ct_check(DcRun *r, const Sx *q) {
     Sx *subj = dc_form("Subject", dc_form("Implementation", dc_sym(c.name), NULL), NULL);
     if (c.rid_unmeasured)   /* never assume fresh evidence: no verdict either way */
         return dc_envelope(m, VERDICT_HOLDS, 0, dc_claim_of(q, "Literal"), subj, NULL,
-                           dc_form("Evidence", dc_form("Open", dc_form("ReceiptIdentities", dc_sym("Unmeasured"), NULL), NULL), NULL),
-                           "receipt identities are not recorded, so the merge correspondence is unmeasured; a merge-dependent claim is Unknown");
+                           dc_form("Evidence", dc_form("Open", dc_form("Fork", dc_sym(c.fork), dc_form("Of", dc_sym(c.fork_mach), NULL), dc_form("Merge", dc_sym(c.fork_label), NULL), dc_form("Shared", dc_sym("Unmeasured"), NULL), NULL), NULL), NULL),
+                           "the fork's shared-distinction correspondence is unmeasured (receipt identities not recorded), so the merge cannot be reconciled and a merge-dependent claim is Unknown");
     for (size_t i = 0; i < n; i++) for (size_t j = 0; j < n; j++) {
         DcRat din, dout;
         const Sx *xa = ct_el(m, c.audit, (int)i), *xb = ct_el(m, c.audit, (int)j);

@@ -1,4 +1,5 @@
-;; M6 review-2 F1 (negative test 5): forks without receipt identities -> merge-dependent claims Unknown (spec Sec. 10.5).
+;; M6 review-2 F1 (negative test 5), M6-rest merge model: First is Over a Fork of ForkMemory whose shared-distinction
+;; correspondence (receipt identities) is Unmeasured -> merge-dependent claims Unknown (spec Sec. 3.4, 10.5 l.2964-2967, 3018).
 (DC.Module Neg5Receipts
   (Profile Graded)
   (Use Contracts)
@@ -11,7 +12,11 @@
   (Map gf     (From X) (To Rational) (Body ($x) (g (f $x))))
   (Map gf-hat (From X) (To Rational) (Body ($x) (g-hat (f-hat $x))))
   (Tolerance Gap (On Rational) (OneMinusAbsoluteDifference))
-  (Implementation First   (Ideal f)  (Actual f-hat)  (Audit X) (InputDistance Gap) (OutputDistance Gap) (ReceiptIdentities Unmeasured))
+  (Carrier XX (Of (Tuple Rational Rational)) (Product X X))
+  (Map keep-left (From XX) (To X) (Cases ((Tuple 0 0) 0) ((Tuple 0 1) 0) ((Tuple 1 0) 1) ((Tuple 1 1) 1)))
+  (Machine ForkMemory (States X) (Merge join keep-left))
+  (Fork Copies (Of ForkMemory) (Merge join) (Shared Unmeasured))
+  (Implementation First   (Ideal f)  (Actual f-hat)  (Audit X) (InputDistance Gap) (OutputDistance Gap) (Over Copies))
   (Implementation Second  (Ideal g)  (Actual g-hat)  (Audit Y) (InputDistance Gap) (OutputDistance Gap))
   (Implementation Direct  (Ideal gf) (Actual gf-hat) (Audit X) (InputDistance Gap) (OutputDistance Gap))
   (Derive FirstChecked  (CheckImplementation First  (Grade 2 (Rat 1 10))))

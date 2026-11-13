@@ -1,0 +1,183 @@
+{
+  "patch": "m6rest: local registry patch for t-2026-11-13-mettadinc-m6-rest (beyond-release only; every shape here is ours, not in the specification)",
+  "date": "2026-11-13",
+  "declarations": {
+    "Fork": {
+      "library": "Contracts",
+      "positional": [
+        [
+          "name",
+          "name"
+        ]
+      ],
+      "fields": {
+        "Of": {
+          "type": "ref:Machine",
+          "required": true,
+          "doc": "the machine whose state is forked (spec 3.4: fork x -> (x, x))"
+        },
+        "Merge": {
+          "type": "name",
+          "required": true,
+          "doc": "a Merge port label of that machine (spec l.2976 (Merge label map)); the merge that reconciles the forks"
+        },
+        "Shared": {
+          "type": "enum:Measured|Unmeasured",
+          "required": true,
+          "doc": "status of the correspondence saying which distinctions the forks share (receipt identities), with the KernelHive Correspondence statuses (spec 10.5 l.2964-2967, 3018)"
+        }
+      },
+      "body": null,
+      "declares": "Fork",
+      "doc": "Ours (M6-rest merge model). An Implementation (Over F) is merge-dependent: Shared Unmeasured -> Unknown; Shared Measured -> evaluated exactly as without a fork."
+    }
+  },
+  "declaration_fields": {
+    "Implementation": {
+      "Over": {
+        "type": "ref:Fork",
+        "required": false,
+        "doc": "(Over Fork): the implementation is merge-dependent on that fork (ours, M6-rest; replaces M6's ReceiptIdentities flag, which now answers InvalidInput)"
+      }
+    }
+  },
+  "witness_types": {
+    "Chord": {
+      "fields": [
+        "Node a",
+        "Node b",
+        "Node c",
+        "dual value y -- LeastCoherentRefinement dual row x_ab + x_bc - x_ac <= 1 on an identified pair (a, c); covers ab and bc by +y and ac by -y (ours, M6-rest)"
+      ],
+      "profiles": [
+        "Crisp"
+      ]
+    },
+    "Fill": {
+      "fields": [
+        "Node a",
+        "Node b",
+        "(Path n1 .. nk) -- CompleteHive: unmeasured entry (a, b) filled with 1, forced by a path of measured identifications (ours, M6-rest; hive decision 2)"
+      ],
+      "profiles": [
+        "Crisp"
+      ]
+    },
+    "NoPath": {
+      "fields": [
+        "Member i",
+        "Member j -- CompleteHive: unmeasured member pair that no measured path joins; its entries stay Unmeasured (never 0) in the completed hive (Output C Hive), so a claim reading them answers Unknown (ours, M6-rest)"
+      ],
+      "profiles": [
+        "Crisp"
+      ]
+    }
+  },
+  "notes": {
+    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable). (Associator Hive Mi Mj Mk) -> HiveAssociator (request and result shape ours; definition spec l.2827). Top-level arrow_kinds section (ours, documentation only: no code reads it): Table 4 kinds with grade and composition law and the request that composes them, if any. Completed hive: (Derive C (CompleteHive H)) used as (Output C Hive) (ours, review 1 F1); NoPath entries stay Unmeasured. Translation actions (MergeLeft m y) and (MergeRight m y): the one-argument contexts x -> m(x,y) and x -> m(y,x) of a Merge port (ours; built in M2, ops_refine.c, listed here per hive answer 1 item 3; nothing new built in M6-rest)."
+  },
+  "requests": {
+    "Associator": {
+      "library": "Hives",
+      "positional": [
+        [
+          "hive",
+          "ref:KernelHive"
+        ],
+        [
+          "i",
+          "name"
+        ],
+        [
+          "j",
+          "name"
+        ],
+        [
+          "k",
+          "name"
+        ]
+      ],
+      "args": {},
+      "result": "HiveAssociator",
+      "statuses": [
+        "Checked"
+      ],
+      "profiles": [
+        "Deterministic",
+        "Stochastic",
+        "Nondeterministic"
+      ],
+      "carriers": [
+        "Enumerated",
+        "Symbolic",
+        "Snapshot"
+      ],
+      "first_release": [],
+      "claim": "associator [i, j, k] = c_ik - c_ij o c_jk of a kernel hive (definition spec Def 10.1 l.2827; request shape ours, M6-rest)"
+    }
+  },
+  "result_types": {
+    "HiveAssociator": {
+      "fields": {
+        "Members": "names",
+        "Entries": "(Entry a c direct composite difference)..",
+        "Zero": "True|False",
+        "Positive": "count",
+        "Negative": "count"
+      },
+      "doc": "ours (M6-rest): crisp associator entries over V_i x V_k; Zero True iff the direct correspondence equals the composite through j"
+    }
+  },
+  "arrow_kinds": {
+    "Quotient": {
+      "result": "CheckedAbstractionMap (Kind Quotient)",
+      "grade": "none (0)",
+      "compose": "function composition; Quotient after Quotient is Quotient; composite classified by its own image",
+      "then": "Then (ops_abs.c)",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Homomorphism": {
+      "result": "CheckedAbstractionMap (Kind Homomorphism)",
+      "grade": "none (0)",
+      "compose": "function composition; grade 0",
+      "then": "Then (ops_abs.c)",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Graded": {
+      "result": "CheckedGradedArrow",
+      "grade": "defect d >= 0",
+      "compose": "defects add: d(g.f) <= d(f) + d(g)",
+      "then": "not composed in this release: Then over two graded arrows answers InvalidInput (\"Derive TightMachine produced no arrow\"); the law is documentation only",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Simulation": {
+      "result": "CheckedSimulation",
+      "grade": "directed grade",
+      "compose": "directed grades add",
+      "then": "not composed in this release: Then over two simulations answers Unsupported (request not implemented for Profile Nondeterministic); the law is documentation only",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Linear": {
+      "result": "CheckedLinearArrow",
+      "grade": "(lambda, rho)",
+      "compose": "(lL lK, rL lK + lL rK)",
+      "then": "Then (stoch.c L03)",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Transfer": {
+      "result": "CheckedTransfer",
+      "grade": "defect",
+      "compose": "composition in Poly; defects add",
+      "then": "ComposeTransfers (ops_transfers.c)",
+      "spec": "spec Table 4, l.893-912; Sec. 10.2"
+    },
+    "AffineContract": {
+      "result": "CheckedImplementation (Grade L eta)",
+      "grade": "(L, eta)",
+      "compose": "(L2 L1, L2 eta1 + eta2)",
+      "then": "ThenContracts (ops_contracts.c)",
+      "spec": "spec Prop 9.1"
+    },
+    "_doc": "Ours (M6-rest): one registry of arrow kinds, grades and composition laws. Documentation only: no code reads this section. Mixing kinds in one Then is refused (InvalidInput) by the pre-existing binding type check, never silently coerced."
+  }
+}

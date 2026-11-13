@@ -66,7 +66,15 @@ static Sx *m6_inline_imports(const Sx *all, const Sx *raw) {
         if (!only || !src) continue;
         for (size_t k = 2; k < src->n; k++) {
             const Sx *e = src->items[k];
-            if (!(sx_head_is(e, "Carrier") || sx_head_is(e, "Map") || sx_head_is(e, "Tolerance")) || e->n < 2 || e->items[1]->kind != SX_SYM) continue;
+            /* m6-rest review 2 F1: a Machine named in Only is copied too, but only when a Fork of the importing
+             * module names it in (Of Machine), so the spec's split (merge machine in one module, contract in another)
+             * can carry a Fork.  Nothing else changes for modules without such a Fork. */
+            int forked = 0;
+            if (sx_head_is(e, "Machine") && e->n >= 2 && e->items[1]->kind == SX_SYM)
+                for (size_t q = 2; q < raw->n; q++) { const Sx *f = raw->items[q];
+                    if (!sx_head_is(f, "Fork")) continue;
+                    for (size_t r = 2; r < f->n; r++) if (sx_head_is(f->items[r], "Of") && f->items[r]->n == 2 && sx_is_sym(f->items[r]->items[1], e->items[1]->text)) forked = 1; }
+            if (!(sx_head_is(e, "Carrier") || sx_head_is(e, "Map") || sx_head_is(e, "Tolerance") || forked) || e->n < 2 || e->items[1]->kind != SX_SYM) continue;
             for (size_t j = 1; j < only->n; j++) if (sx_is_sym(only->items[j], e->items[1]->text)) { sx_push(out, sx_copy(e)); any = 1; break; }
         }
     }

@@ -126,18 +126,21 @@ _pw = _pb.replace('(DC.Module ParityTriangle', '(DC.Module LcrWeighted', 1).repl
 assert _pw != _pb
 _lw = os.path.join(OUT, 'lcr_weighted.metta'); open(_lw, 'w').write(_pw + '\n!(dc.run LcrWeighted (LeastCoherentRefinement Triangle))\n!(dc.run LcrWeighted (ConsensusCost Triangle))\n')
 _ol = subprocess.run([DCALC, '--beyond-release', _lw], capture_output=True, text=True, timeout=60).stdout.splitlines()
-report('F6 LCR on unequal-weight parity triangle -> Unsupported naming unequal cycle weights', len(_ol) == 2 and '(Status Unsupported)' in _ol[0] and 'unequal weight' in _ol[0], (_ol or [''])[0][:140])
+# M6-rest: the general exact LP lifts the F6 scope limit; the same hive is now Checked and its certificate must replay.
+_lo = os.path.join(OUT, 'lcr_weighted.out'); open(_lo, 'w').write('\n'.join(_ol) + '\n')
+_rr = subprocess.run([sys.executable, os.path.join(HERE, '..', 'm6rest', 'replay_m6rest.py'), _lw, _lo], capture_output=True, text=True)
+report('F6 (M6-rest) LCR on unequal-weight parity triangle -> Checked by the exact LP, certificate replayed', len(_ol) == 2 and '(Status Checked)' in _ol[0] and '(Method LinearProgram)' in _ol[0] and _rr.returncode == 0, (_ol or [''])[0][:140])
 report('F6 control: ConsensusCost on the same weighted hive is still evaluated (scope limit is LCR only)', len(_ol) == 2 and '(Status Unsupported)' not in _ol[1] and '(Status InvalidInput)' not in _ol[1], (_ol + ['', ''])[1][:120])
 # review-2 F1: negative test 5 (merge claims with unmeasured receipt identities answer Unknown)
 _n5 = os.path.join(HERE, 'fixtures', 'neg5_receipts.metta')
 _o5 = subprocess.run([DCALC, '--beyond-release', _n5], capture_output=True, text=True, timeout=60).stdout
 _s5 = [l.split('(Status ', 1)[1].split(')', 1)[0] for l in _o5.splitlines() if '(Status ' in l]
-report('neg5 unmeasured receipt identities -> every merge-dependent claim Unknown (CheckImplementation x2, ThenContracts)', _s5 == ['Unknown'] * 3 and '(Open (ReceiptIdentities Unmeasured))' in _o5, str(_s5))
+report('neg5 merge model: fork with unmeasured shared distinctions -> every merge-dependent claim Unknown (CheckImplementation x2, ThenContracts), refused through the Fork', _s5 == ['Unknown'] * 3 and '(Open (Fork Copies (Of ForkMemory) (Merge join) (Shared Unmeasured)))' in _o5 and 'ReceiptIdentities' not in _o5, str(_s5))
 _c5 = os.path.join(OUT, 'neg5_measured.metta')
-open(_c5, 'w').write(open(_n5).read().replace(' (ReceiptIdentities Unmeasured)', ''))   # control: identities recorded
+open(_c5, 'w').write(open(_n5).read().replace('(Shared Unmeasured)', '(Shared Measured)'))   # control: shared distinctions measured
 _oc = subprocess.run([DCALC, '--beyond-release', _c5], capture_output=True, text=True, timeout=60).stdout
 _sc = [l.split('(Status ', 1)[1].split(')', 1)[0] for l in _oc.splitlines() if '(Status ' in l]
 report('neg5 control: identities recorded gives definite verdicts (no Unknown), so Unknown is due to the unmeasured identities', len(_sc) == 3 and 'Unknown' not in _sc and all(x in ('Checked', 'Refuted') for x in _sc), str(_sc))
 _r5 = subprocess.run([DCALC, _n5], capture_output=True, text=True, timeout=60).stdout
-report('neg5 release mode: ReceiptIdentities is beyond-release only (no Unknown/Checked from release)', 'Unknown' not in _r5 and '(Status Checked)' not in _r5, _r5[:120])
+report('neg5 release mode: Fork is beyond-release only (no Unknown/Checked from release)', 'Unknown' not in _r5 and '(Status Checked)' not in _r5, _r5[:120])
 print('m6_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)
