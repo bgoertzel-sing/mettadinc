@@ -22,7 +22,8 @@
 #define HV_MAXM 8
 #define HV_MAXN 64
 typedef struct { const char *name; int car, nv, base, trivial; DcRat w; } HvMem;
-typedef struct { const char *name; int nm, nn; HvMem mem[HV_MAXM]; int mof[HV_MAXN], vof[HV_MAXN]; DcRat w[HV_MAXN]; signed char H[HV_MAXN][HV_MAXN]; } Hive;
+typedef struct { const char *name; int nm, nn; HvMem mem[HV_MAXM]; int mof[HV_MAXN], vof[HV_MAXN]; DcRat w[HV_MAXN]; signed char H[HV_MAXN][HV_MAXN];
+                 DcRat G[HV_MAXN][HV_MAXN]; int graded; } Hive;   /* m6-graded: G = exact degree (H = -1 Unmeasured, else G > 0); graded = some degree outside {0, 1} */
 
 static DcRat rq(long n, long d) { DcRat r; r.n = n; r.d = d; return r; }
 static Sx *rsx(DcRat r) { return dc_form("Rat", dc_int((long)r.n), dc_int((long)r.d), NULL); }
@@ -44,6 +45,8 @@ static Sx *hv_node(const DcModule *m, const Hive *h, int a) { const HvMem *M = &
 #define HV_FAIL(rc, ...) do { snprintf(why, wn, __VA_ARGS__); return rc; } while (0)
 static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t wn);
 static int hv_bfs(const Hive *h, int s, int *par);
+static void hv_sp(const Hive *h, int s, DcRat *D, int *par, int *ovf);
+static Sx *hv_completehive_g(DcModule *m, const Sx *q, const Hive *h);
 /* M6-rest review-1 F1: (Derive C (CompleteHive H)) used as (Output C Hive) returns the completed hive.  Measured entries
  * stay fixed; an unmeasured entry joined by a measured path becomes 1; the other unmeasured entries of a member pair that
  * some measured path joins become 0 (the least value); every entry of a NoPath member pair stays Unmeasured (-1), so a
@@ -54,6 +57,27 @@ static int hv_fillc(const DcModule *m, const Sx *req, Hive *h, char *why, size_t
     if (depth > 3) HV_FAIL(-2, "CompleteHive: completions nested more than 4 deep");
     depth++; int rc = hv_load(m, req->items[1], h, why, wn); depth--;
     if (rc) return rc;
+    if (h->graded) {   /* m6-graded: least completion = Lukasiewicz path closure of the measured entries (spec l.2665-2683) */
+        static DcRat Dg[HV_MAXN][HV_MAXN]; static int pg[HV_MAXN][HV_MAXN]; int ovf = 0;
+        for (int a = 0; a < h->nn; a++) hv_sp(h, a, Dg[a], pg[a], &ovf);
+        for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (a != b && h->H[a][b] >= 0) {
+            DcRat F = pg[a][b] != -2 ? dc_rat_sub(rq(1, 1), Dg[a][b], &ovf) : rq(0, 1);
+            if (dc_rat_cmp(h->G[a][b], F) < 0)
+                HV_FAIL(-2, "CompleteHive %s: the measured entry between %s[%d] and %s[%d] is below its Lukasiewicz path closure; the measured correspondences are not transitive, so no completion keeps them fixed",
+                        h->name, h->mem[h->mof[a]].name, h->vof[a], h->mem[h->mof[b]].name, h->vof[b]);
+        }
+        for (int i = 0; i < h->nm; i++) for (int j = 0; j < h->nm; j++) {
+            const HvMem *I = &h->mem[i], *J = &h->mem[j]; int any = 0;
+            for (int l = 0; l < I->nv; l++) for (int r2 = 0; r2 < J->nv; r2++) if (pg[I->base + l][J->base + r2] != -2) any = 1;
+            if (!any) continue;   /* NoPath pair: stays Unmeasured, never zero-filled */
+            for (int l = 0; l < I->nv; l++) for (int r2 = 0; r2 < J->nv; r2++) {
+                int a = I->base + l, b = J->base + r2;
+                if (h->H[a][b] < 0) { h->G[a][b] = pg[a][b] != -2 ? dc_rat_sub(rq(1, 1), Dg[a][b], &ovf) : rq(0, 1); h->H[a][b] = (signed char)(h->G[a][b].n > 0); }
+            }
+        }
+        if (ovf) HV_FAIL(-2, "CompleteHive %s: rational overflow", h->name);
+        return 0;
+    }
     for (int a = 0; a < h->nn; a++) hv_bfs(h, a, par[a]);
     for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] == 0 && par[a][b] != -2)
         HV_FAIL(-2, "CompleteHive %s: the measured entry between %s[%d] and %s[%d] is 0 but a measured path identifies them; the measured correspondences are not Lipschitz and round-trip coherent",
@@ -84,6 +108,7 @@ static int hv_derived(const DcModule *m, const Sx *hn, Hive *h, char *why, size_
         for (int v = 0; v < M->nv; v++) { h->mof[h->nn] = i; h->vof[h->nn] = v; h->nn++; }
     }
     for (int a = 0; a < h->nn; a++) h->w[a] = dc_rat_mul(h->mem[h->mof[a]].w, rq(1, h->mem[h->mof[a]].nv), &ovf);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) h->G[a][b] = rq(h->H[a][b] > 0, 1);   /* KernelOf is crisp */
     if (ovf) HV_FAIL(-2, "KernelHive %s: rational overflow", h->name);
     return 0;
 }
@@ -133,8 +158,10 @@ static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t w
         if (seen != h->nm || dc_rat_cmp(s, rq(1, 1))) HV_FAIL(-1, "KernelHive %s: Weights must give every member once and sum to 1", h->name);
     }
     for (int a = 0; a < h->nn; a++) h->w[a] = dc_rat_mul(h->mem[h->mof[a]].w, rq(1, h->mem[h->mof[a]].nv), &ovf);
-    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++)
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) {
         h->H[a][b] = h->mof[a] != h->mof[b] ? -1 : a == b ? 1 : h->mem[h->mof[a]].trivial;
+        h->G[a][b] = rq(h->H[a][b] > 0, 1);
+    }
     for (size_t k = 2; k < d->n; k++) {
         const Sx *x = d->items[k];
         if (!sx_head_is(x, "Correspondence")) continue;
@@ -154,8 +181,10 @@ static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t w
             const Sx *t = E->items[e]; int l, r; DcRat v;
             if (t->kind != SX_LIST || t->n != 3 || (l = hv_elem(m, A->car, t->items[0])) < 0 || (r = hv_elem(m, B->car, t->items[1])) < 0 || dc_sx_rat(t->items[2], &v))
                 HV_FAIL(-1, "CrossKernel %s: entry %zu is not (left right degree) over its carriers", x->items[3]->text, e);
-            if (!(v.n == 0 || (v.n == 1 && v.d == 1))) HV_FAIL(-2, "CrossKernel %s: graded degrees are not evaluated (crisp 0/1 kernels only)", x->items[3]->text);
-            h->H[A->base + l][B->base + r] = h->H[B->base + r][A->base + l] = (signed char)v.n;
+            if (v.n < 0 || dc_rat_cmp(v, rq(1, 1)) > 0) HV_FAIL(-1, "CrossKernel %s: entry %zu has a degree outside [0, 1] (spec Def 10.1: c_ij takes values in [0, 1])", x->items[3]->text, e);
+            if (!(v.n == 0 || (v.n == 1 && v.d == 1))) h->graded = 1;   /* m6-graded: rational degrees (spec Def 10.1, l.2821) */
+            h->H[A->base + l][B->base + r] = h->H[B->base + r][A->base + l] = (signed char)(v.n > 0);
+            h->G[A->base + l][B->base + r] = h->G[B->base + r][A->base + l] = v;
         }
         for (int l = 0; l < A->nv; l++) for (int r = 0; r < B->nv; r++)
             if (h->H[A->base + l][B->base + r] < 0) HV_FAIL(-1, "CrossKernel %s: Entries do not cover every pair", x->items[3]->text);
@@ -202,6 +231,105 @@ static Sx *hv_kernel(const DcModule *m, const Hive *h, int mi, unsigned char R[H
                    dc_form("Identity", dc_sym(id ? "True" : "False"), NULL), NULL);
 }
 static Sx *hv_subj(const Hive *h) { return dc_form("Subject", dc_form("Hive", dc_sym(h->name), NULL), NULL); }
+
+/* m6-graded: graded kernel hives.  Spec Def 10.1 (l.2821-2830): c_ij : V_i x V_j -> [0, 1]; the Lukasiewicz product
+ * a (x) b = max(0, a + b - 1) and composition (alpha o beta)(x, z) = max_y alpha(x, y) (x) beta(y, z) (l.288-289,
+ * l.736-742); a kernel is metric (coherent) when it is transitive for (x); H-flat is the metric closure (l.2665-2683,
+ * PathClosure) and C-flat = <w2 | H-flat - H> (l.2828).  With d = 1 - c the closure is 1 - min(1, shortest path), so
+ * hv_sp is an exact rational Dijkstra over the measured positive entries; it returns the witness path for every entry. */
+static Sx *hv_path(DcModule *m, const Hive *h, const int *par, int b);
+static DcRat hv_lk(DcRat a, DcRat b, int *ovf) { DcRat s = dc_rat_sub(dc_rat_add(a, b, ovf), rq(1, 1), ovf); return s.n > 0 ? s : rq(0, 1); }
+static void hv_sp(const Hive *h, int s, DcRat *D, int *par, int *ovf) {
+    int done[HV_MAXN];
+    for (int i = 0; i < h->nn; i++) { D[i] = rq(1, 1); par[i] = -2; done[i] = 0; }
+    D[s] = rq(0, 1); par[s] = -1;
+    for (;;) {
+        int a = -1;
+        for (int i = 0; i < h->nn; i++) if (!done[i] && par[i] != -2 && (a < 0 || dc_rat_cmp(D[i], D[a]) < 0)) a = i;
+        if (a < 0) break;
+        done[a] = 1;
+        for (int b = 0; b < h->nn; b++) if (b != a && !done[b] && h->H[a][b] > 0) {
+            DcRat t = dc_rat_add(D[a], dc_rat_sub(rq(1, 1), h->G[a][b], ovf), ovf);
+            if (dc_rat_cmp(t, rq(1, 1)) < 0 && (par[b] == -2 || dc_rat_cmp(t, D[b]) < 0)) { D[b] = t; par[b] = a; }
+        }
+    }
+}
+static int hv_holo_g(const Hive *h, const int *cyc, int k, DcRat R[HV_MAXN][HV_MAXN], char *why, size_t wn) {
+    static DcRat nx[HV_MAXN][HV_MAXN]; int ovf = 0;
+    const HvMem *S = &h->mem[cyc[0]]; int u = cyc[0];
+    for (int a = 0; a < S->nv; a++) for (int b = 0; b < S->nv; b++) R[a][b] = rq(a == b, 1);
+    for (int s = 1; s <= k; s++) {
+        int v = cyc[s % k]; const HvMem *U = &h->mem[u], *V = &h->mem[v];
+        if (u == v) HV_FAIL(-1, "Cycle: member %s follows itself", U->name);
+        for (int a = 0; a < S->nv; a++) for (int c = 0; c < V->nv; c++) {
+            DcRat x = rq(0, 1);
+            for (int b = 0; b < U->nv; b++) {
+                if (h->H[U->base + b][V->base + c] < 0) HV_FAIL(-2, "Holonomy: the correspondence between %s and %s is Unmeasured or undeclared", U->name, V->name);
+                x = dc_rat_max(x, hv_lk(R[a][b], h->G[U->base + b][V->base + c], &ovf));
+            }
+            nx[a][c] = x;
+        }
+        for (int a = 0; a < S->nv; a++) for (int c = 0; c < V->nv; c++) R[a][c] = nx[a][c];
+        u = v;
+    }
+    if (ovf) HV_FAIL(-2, "Holonomy: rational overflow");
+    return 0;
+}
+static Sx *hv_kernel_g(const DcModule *m, const Hive *h, int mi, DcRat R[HV_MAXN][HV_MAXN]) {
+    const HvMem *M = &h->mem[mi]; Sx *E = sx_list(); int id = 1;
+    sx_push(E, dc_sym("Entries"));
+    for (int a = 0; a < M->nv; a++) for (int c = 0; c < M->nv; c++) {
+        Sx *t = sx_list(); sx_push(t, sx_copy(m->car[M->car].elems[a])); sx_push(t, sx_copy(m->car[M->car].elems[c])); sx_push(t, rsx(R[a][c]));
+        sx_push(E, t); if (dc_rat_cmp(R[a][c], rq(a == c, 1))) id = 0;
+    }
+    return dc_form("Kernel", dc_form("From", dc_sym(M->name), NULL), dc_form("On", dc_sym(m->car[M->car].name), NULL), E,
+                   dc_form("Identity", dc_sym(id ? "True" : "False"), NULL), NULL);
+}
+static Sx *hv_coh_g(DcModule *m, const Sx *q, const Hive *h) {
+    static DcRat R[HV_MAXN][HV_MAXN]; char why[300]; int ovf = 0, ua = -1, ub = -1, uc = -1;
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) for (int c = 0; c < h->nn; c++)
+        if (a != b && b != c && a != c && h->H[a][b] >= 0 && h->H[b][c] >= 0 && h->H[a][c] >= 0
+            && dc_rat_cmp(h->G[a][c], hv_lk(h->G[a][b], h->G[b][c], &ovf)) < 0) {
+            Sx *ev = dc_form("Evidence", dc_form("Witness", dc_form("Triple", hv_node(m, h, a), hv_node(m, h, b), hv_node(m, h, c), NULL),
+                             dc_form("Degrees", rsx(h->G[a][b]), rsx(h->G[b][c]), rsx(h->G[a][c]), NULL), NULL), NULL);
+            int cyc[HV_MAXM]; for (int i = 0; i < h->nm; i++) cyc[i] = i;
+            if (h->nm >= 3 && !hv_holo_g(h, cyc, h->nm, R, why, sizeof why)) sx_push(ev, dc_form("Holonomy", hv_kernel_g(m, h, 0, R), NULL));
+            return dc_envelope(m, VERDICT_FAILS, 1, dc_claim_of(q, "Literal"), hv_subj(h), NULL, ev, NULL);
+        }
+    /* an Unmeasured entry ranges over [0, 1]: the triple is open when its best case for the product beats its worst case for c_ac */
+    for (int a = 0; a < h->nn && ua < 0; a++) for (int b = 0; b < h->nn && ua < 0; b++) for (int c = 0; c < h->nn && ua < 0; c++)
+        if (a != b && b != c && a != c && (h->H[a][b] < 0 || h->H[b][c] < 0 || h->H[a][c] < 0)
+            && dc_rat_cmp(h->H[a][c] < 0 ? rq(0, 1) : h->G[a][c], hv_lk(h->H[a][b] < 0 ? rq(1, 1) : h->G[a][b], h->H[b][c] < 0 ? rq(1, 1) : h->G[b][c], &ovf)) < 0) { ua = a; ub = b; uc = c; }
+    if (ovf) return dc_unsupported(m, "CheckKernelCoherence: rational overflow");
+    if (ua >= 0) {
+        char rs[300]; snprintf(rs, sizeof rs, "an Unmeasured correspondence is not zero-filled; triple (%s %s %s) is transitive or not depending on its completion",
+                               h->mem[h->mof[ua]].name, h->mem[h->mof[ub]].name, h->mem[h->mof[uc]].name);
+        return dc_envelope(m, VERDICT_HOLDS, 0, dc_claim_of(q, "Literal"), hv_subj(h), NULL,
+                           dc_form("Evidence", dc_form("Open", dc_form("Triple", hv_node(m, h, ua), hv_node(m, h, ub), hv_node(m, h, uc), NULL), NULL), NULL), rs);
+    }
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), NULL,
+                       dc_form("Evidence", dc_form("Transitive", dc_form("Triples", dc_int((long)h->nn * h->nn * h->nn), NULL), NULL), NULL), NULL);
+}
+static Sx *hv_cost_g(DcModule *m, const Sx *q, const Hive *h) {
+    static DcRat D[HV_MAXN][HV_MAXN]; static int par[HV_MAXN][HV_MAXN]; int ovf = 0, classes = 0;
+    DcRat cost = rq(0, 1); Sx *rs = dc_form("Raised", NULL);
+    for (int a = 0; a < h->nn; a++) hv_sp(h, a, D[a], par[a], &ovf);
+    for (int a = 0; a < h->nn; a++) {
+        int first = 1;
+        for (int b = 0; b < a; b++) if (par[a][b] != -2 && D[a][b].n == 0) first = 0;
+        classes += first;
+        for (int b = 0; b < h->nn; b++) {
+            DcRat F = par[a][b] != -2 ? dc_rat_sub(rq(1, 1), D[a][b], &ovf) : rq(0, 1);
+            if (b == a || dc_rat_cmp(F, h->G[a][b]) <= 0) continue;
+            cost = dc_rat_add(cost, dc_rat_mul(dc_rat_mul(h->w[a], h->w[b], &ovf), dc_rat_sub(F, h->G[a][b], &ovf), &ovf), &ovf);
+            if (a < b) sx_push(rs, dc_form("Raise", hv_node(m, h, a), hv_node(m, h, b), dc_form("Measured", rsx(h->G[a][b]), NULL),
+                                           dc_form("Closure", rsx(F), NULL), hv_path(m, h, par[a], b), NULL));
+        }
+    }
+    if (ovf) return dc_unsupported(m, "ConsensusCost: rational overflow");
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL),
+                       dc_form("Evidence", dc_form("Closure", dc_form("Classes", dc_int(classes), NULL), rs, NULL), NULL), NULL);
+}
 #define HV_LOAD(op) \
     int rc = hv_load(m, q->n >= 2 ? q->items[1] : NULL, h, why, sizeof why); \
     if (!rc) rc = hv_complete(h, why, sizeof why); \
@@ -217,6 +345,7 @@ static Sx *hv_coh(DcRun *r, const Sx *q) {
     int rc = hv_load(m, q->items[1], h, why, sizeof why);
     if (rc == -2) return dc_unsupported(m, "CheckKernelCoherence: %s", why);
     if (rc) return dc_invalid(m, "CheckKernelCoherence: %s", why);
+    if (h->graded) return hv_coh_g(m, q, h);   /* m6-graded */
     int ua = -1, ub = -1, uc = -1;
     for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) for (int c = 0; c < h->nn; c++)
         if (ua < 0 && a != b && b != c && a != c   /* a degenerate triple shares an entry, so no completion breaks it */
@@ -250,6 +379,16 @@ static Sx *hv_hol(DcRun *r, const Sx *q) {
         if (k >= HV_MAXM * 4 || C->items[i]->kind != SX_SYM || (cyc[k] = hv_mem(h, C->items[i]->text)) < 0) return dc_invalid(m, "Holonomy: Cycle entry %zu is not a member of %s", i, h->name);
         k++;
     }
+    if (h->graded) {   /* m6-graded: max-Lukasiewicz composition around the cycle */
+        static DcRat RG[HV_MAXN][HV_MAXN];
+        rc = hv_holo_g(h, cyc, k, RG, why, sizeof why);
+        if (rc == -2) return dc_unsupported(m, "%s", why);
+        if (rc) return dc_invalid(m, "Holonomy: %s", why);
+        Sx *pg = dc_form("Path", NULL);
+        for (int i = 0; i <= k; i++) sx_push(pg, dc_sym(h->mem[cyc[i % k]].name));
+        return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", hv_kernel_g(m, h, cyc[0], RG), NULL),
+                           dc_form("Evidence", dc_form("Composition", pg, NULL), NULL), NULL);
+    }
     rc = hv_holo(h, cyc, k, R, why, sizeof why);
     if (rc == -2) return dc_unsupported(m, "%s", why);
     if (rc) return dc_invalid(m, "Holonomy: %s", why);
@@ -262,6 +401,7 @@ static Sx *hv_cost(DcRun *r, const Sx *q) {
     DcModule *m = r->m; Hive *h = &g_h; char why[300]; static unsigned char Hb[HV_MAXN][HV_MAXN]; int ovf = 0;
     if (q->n != 2) return dc_invalid(m, "ConsensusCost: expected (ConsensusCost Hive)");
     HV_LOAD("ConsensusCost")
+    if (h->graded) return hv_cost_g(m, q, h);   /* m6-graded */
     for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) Hb[a][b] = (unsigned char)(h->H[a][b] > 0);
     for (int k = 0; k < h->nn; k++) for (int a = 0; a < h->nn; a++) if (Hb[a][k]) for (int b = 0; b < h->nn; b++) if (Hb[k][b]) Hb[a][b] = 1;
     DcRat cost = rq(0, 1); int classes = 0;
@@ -304,7 +444,7 @@ static Sx *hv_lcr_lp(DcModule *m, const Hive *h, const Sx *q) {
     if (!A || !bb || !cc || !x || !y) { free(A); free(bb); free(cc); free(x); free(y); return dc_unsupported(m, "LeastCoherentRefinement: out of memory"); }
     for (size_t k = 0; k < (size_t)nr * (size_t)nv; k++) A[k] = rq(0, 1);
     for (int i = 0; i < nr; i++) {
-        bb[i] = rq(1, 1);
+        bb[i] = rcn[i] < 0 ? h->G[ra[i]][rb[i]] : rq(1, 1);   /* m6-graded: Edge rows x_ab <= c_ab (1 when crisp) */
         if (rcn[i] < 0) A[(size_t)i * nv + vid[ra[i]][rb[i]]] = rq(1, 1);
         else {
             A[(size_t)i * nv + vid[ra[i]][rb[i]]] = rq(1, 1); A[(size_t)i * nv + vid[rb[i]][rcn[i]]] = rq(1, 1);
@@ -320,17 +460,17 @@ static Sx *hv_lcr_lp(DcModule *m, const Hive *h, const Sx *q) {
     /* independent re-check: primal over every ordered triple, dual over every variable, equal values */
     for (int a = 0; a < n; a++) for (int b = 0; b < n; b++) X[a][b] = a == b ? rq(1, 1) : vid[a][b] >= 0 ? x[vid[a][b]] : rq(0, 1);
     for (int a = 0; a < n; a++) for (int b = 0; b < n; b++) {
-        if (X[a][b].n < 0 || dc_rat_cmp(X[a][b], rq(h->H[a][b] || a == b, 1)) > 0) LPFAIL("LeastCoherentRefinement: internal primal outside [0, H]");
+        if (X[a][b].n < 0 || dc_rat_cmp(X[a][b], a == b ? rq(1, 1) : h->G[a][b]) > 0) LPFAIL("LeastCoherentRefinement: internal primal outside [0, H]");
         for (int c = 0; c < n; c++) if (dc_rat_cmp(X[a][c], dc_rat_sub(dc_rat_add(X[a][b], X[b][c], &ovf), rq(1, 1), &ovf)) < 0)
             LPFAIL("LeastCoherentRefinement: internal primal violates transitivity");
     }
     DcRat P = rq(0, 1), Dv = rq(0, 1), T = rq(0, 1);
-    for (int i = 0; i < nr; i++) { if (y[i].n < 0) LPFAIL("LeastCoherentRefinement: internal dual negative"); Dv = dc_rat_add(Dv, y[i], &ovf); }
+    for (int i = 0; i < nr; i++) { if (y[i].n < 0) LPFAIL("LeastCoherentRefinement: internal dual negative"); Dv = dc_rat_add(Dv, dc_rat_mul(bb[i], y[i], &ovf), &ovf); }
     for (int j = 0; j < nv; j++) {
         DcRat cov = rq(0, 1);
         for (int i = 0; i < nr; i++) if (A[(size_t)i * nv + j].n) cov = dc_rat_add(cov, dc_rat_mul(A[(size_t)i * nv + j], y[i], &ovf), &ovf);
         if (dc_rat_cmp(cov, cc[j]) < 0) LPFAIL("LeastCoherentRefinement: internal dual infeasible");
-        T = dc_rat_add(T, cc[j], &ovf); P = dc_rat_add(P, dc_rat_mul(cc[j], x[j], &ovf), &ovf);
+        T = dc_rat_add(T, dc_rat_mul(cc[j], h->G[va[j]][vb[j]], &ovf), &ovf); P = dc_rat_add(P, dc_rat_mul(cc[j], x[j], &ovf), &ovf);
     }
     if (ovf) LPFAIL("LeastCoherentRefinement %s: rational overflow", h->name);
     if (dc_rat_cmp(P, Dv) || dc_rat_cmp(P, val)) LPFAIL("LeastCoherentRefinement %s: primal and dual values differ; optimality not certified", h->name);
@@ -373,6 +513,7 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
           return dc_invalid(m, "LeastCoherentRefinement: argument %zu is not (Search s) or (Budget b)", i - 1);
       } }
     HV_LOAD("LeastCoherentRefinement")
+    if (h->graded) return hv_lcr_lp(m, h, q);   /* m6-graded: the exact LP with Edge rows x_ab <= c_ab */
     n = h->nn;
     for (int a = 0; a < n; a++) { comp[a] = -1; deg[a] = 0; for (int b = 0; b < n; b++) { X[a][b] = rq(a == b, 1); if (a != b && h->H[a][b]) deg[a]++; } }
     for (int s = 0, nc = 0; s < n; s++) if (comp[s] < 0) {
@@ -463,12 +604,46 @@ static Sx *hv_path(DcModule *m, const Hive *h, const int *par, int b) {
     int st[HV_MAXN], k = 0; for (int x = b; x >= 0; x = par[x]) st[k++] = x;
     Sx *p = dc_form("Path", NULL); while (k) sx_push(p, hv_node(m, h, st[--k])); return p;
 }
+/* m6-graded: CompleteHive on a graded hive.  The least completion that keeps every measured entry is the Lukasiewicz
+ * path closure F = 1 - min(1, shortest path in d = 1 - c) (spec l.736-742, l.2665-2683); it exists iff no measured
+ * entry is below F.  Cost = sum over filled ordered pairs of w_a w_b F; (Fill a b (Degree F) Path) shape is ours. */
+static Sx *hv_completehive_g(DcModule *m, const Sx *q, const Hive *h) {
+    static DcRat D[HV_MAXN][HV_MAXN]; static int par[HV_MAXN][HV_MAXN]; int ovf = 0, nunm = 0;
+    for (int a = 0; a < h->nn; a++) hv_sp(h, a, D[a], par[a], &ovf);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (a != b && h->H[a][b] >= 0) {
+        DcRat F = par[a][b] != -2 ? dc_rat_sub(rq(1, 1), D[a][b], &ovf) : rq(0, 1);
+        if (dc_rat_cmp(h->G[a][b], F) < 0) {
+            char gs[48], fs[48]; dc_rat_str(h->G[a][b], gs, sizeof gs); dc_rat_str(F, fs, sizeof fs);
+            return dc_unsupported(m, "CompleteHive %s: the measured entry between %s[%d] and %s[%d] is %s but the Lukasiewicz path closure of the measured entries gives %s; the measured correspondences are not transitive, so no completion keeps them fixed",
+                                  h->name, h->mem[h->mof[a]].name, h->vof[a], h->mem[h->mof[b]].name, h->vof[b], gs, fs);
+        }
+    }
+    DcRat cost = rq(0, 1);
+    Sx *fill = dc_form("Filled", NULL), *nop = dc_form("NoPaths", NULL);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] < 0) {
+        nunm++;
+        if (par[a][b] == -2) continue;
+        DcRat F = dc_rat_sub(rq(1, 1), D[a][b], &ovf);
+        cost = dc_rat_add(cost, dc_rat_mul(dc_rat_mul(h->w[a], h->w[b], &ovf), F, &ovf), &ovf);
+        if (a < b) sx_push(fill, dc_form("Fill", hv_node(m, h, a), hv_node(m, h, b), dc_form("Degree", rsx(F), NULL), hv_path(m, h, par[a], b), NULL));
+    }
+    for (int i = 0; i < h->nm; i++) for (int j = i + 1; j < h->nm; j++) {
+        int A = h->mem[i].base, B = h->mem[j].base; if (h->H[A][B] >= 0) continue;
+        int any = 0; for (int l = 0; l < h->mem[i].nv; l++) for (int r2 = 0; r2 < h->mem[j].nv; r2++) if (par[A + l][B + r2] != -2) any = 1;
+        if (!any) sx_push(nop, dc_form("NoPath", dc_sym(h->mem[i].name), dc_sym(h->mem[j].name), NULL));
+    }
+    if (ovf) return dc_unsupported(m, "CompleteHive: rational overflow");
+    Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Method", dc_sym("LukasiewiczPathClosure"), NULL), dc_form("Optimality", dc_sym("Checked"), NULL),
+                     dc_form("UnmeasuredEntries", dc_int(nunm), NULL), fill, nop, NULL), NULL);
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL), ev, NULL);
+}
 static Sx *hv_completehive(DcRun *r, const Sx *q) {
     DcModule *m = r->m; Hive *h = &g_h; char why[300]; int ovf = 0; static int par[HV_MAXN][HV_MAXN];
     if (q->n != 2) return dc_invalid(m, "CompleteHive: expected (CompleteHive Hive)");
     int rc = hv_load(m, q->items[1], h, why, sizeof why);
     if (rc == -2) return dc_unsupported(m, "CompleteHive: %s", why);
     if (rc) return dc_invalid(m, "CompleteHive: %s", why);
+    if (h->graded) return hv_completehive_g(m, q, h);   /* m6-graded */
     for (int a = 0; a < h->nn; a++) hv_bfs(h, a, par[a]);
     for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] == 0 && par[a][b] != -2) {
         char pb[200]; int st[HV_MAXN], k = 0, o = 0; for (int x = b; x >= 0; x = par[a][x]) st[k++] = x;
@@ -512,6 +687,21 @@ static Sx *hv_assoc(DcRun *r, const Sx *q) {
     }
     for (int a = 0; a < I->nv; a++) for (int c = 0; c < K->nv; c++) if (h->H[I->base + a][K->base + c] < 0)
         return dc_unsupported(m, "Associator %s: an entry between %s and %s is Unmeasured or undeclared; complete it first with (CompleteHive %s)", h->name, I->name, K->name, h->name);
+    if (h->graded) {   /* m6-graded: entry c_ik - (c_ij o c_jk) with Lukasiewicz composition (spec l.736-742); Rat entries are ours */
+        Sx *Eg = dc_form("Entries", NULL); int zg = 1, pg = 0, ng = 0, ovf = 0;
+        for (int a = 0; a < I->nv; a++) for (int c = 0; c < K->nv; c++) {
+            DcRat d = h->G[I->base + a][K->base + c], comp = rq(0, 1);
+            for (int b = 0; b < J->nv; b++) comp = dc_rat_max(comp, hv_lk(h->G[I->base + a][J->base + b], h->G[J->base + b][K->base + c], &ovf));
+            int s = dc_rat_cmp(d, comp);
+            if (s) { zg = 0; if (s > 0) pg++; else ng++; }
+            sx_push(Eg, dc_form("Entry", sx_copy(m->car[I->car].elems[a]), sx_copy(m->car[K->car].elems[c]), rsx(d), rsx(comp), rsx(dc_rat_sub(d, comp, &ovf)), NULL));
+        }
+        if (ovf) return dc_unsupported(m, "Associator: rational overflow");
+        Sx *vg = dc_form("Associator", dc_form("Members", dc_sym(I->name), dc_sym(J->name), dc_sym(K->name), NULL), Eg,
+                         dc_form("Zero", dc_sym(zg ? "True" : "False"), NULL), dc_form("Positive", dc_int(pg), NULL), dc_form("Negative", dc_int(ng), NULL), NULL);
+        return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", vg, NULL),
+                           dc_form("Evidence", dc_form("Composition", dc_form("Path", dc_sym(I->name), dc_sym(J->name), dc_sym(K->name), NULL), NULL), NULL), NULL);
+    }
     Sx *E = dc_form("Entries", NULL); int zero = 1, npos = 0, nneg = 0;
     for (int a = 0; a < I->nv; a++) for (int c = 0; c < K->nv; c++) {
         int d = h->H[I->base + a][K->base + c], comp = 0;
