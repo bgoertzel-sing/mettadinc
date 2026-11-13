@@ -403,7 +403,7 @@ static Sx *nd_checksim_core(DcModule *m, const NdMod *s, const Sx *q) {
 }
 /* ---- safety transfer along a simulation (H14, Y03, Y04): the three registered forms
  * (Shows o v), (EnterFrom X (Not Y)), (ReachWithin X k), each under Never. ---- */
-typedef struct { int kind; NdSet X, Y; int k; const char *o, *v; } NdProp;   /* kind 1 Shows, 2 EnterFrom, 3 ReachWithin */
+typedef struct { int kind; NdSet X, Y, F; int k; const char *o, *v; } NdProp;   /* F: EnterFrom from-side (review 2 F1) */   /* kind 1 Shows, 2 EnterFrom, 3 ReachWithin */
 static int nd_bfs(const NdMod *s, const NdMach *M, NdSet init, const NdProp *P, int *par, int *pact, int *dep, int *bad, int *bact, int *bnxt) {
     const NdCar *C = &s->car[M->states]; int qu[ND_MAXC], h = 0, t = 0;
     for (int x = 0; x < C->n; x++) { par[x] = -1; pact[x] = -1; dep[x] = -1; if ((init >> x) & 1) { dep[x] = 0; qu[t++] = x; } }
@@ -416,7 +416,7 @@ static int nd_bfs(const NdMod *s, const NdMach *M, NdSet init, const NdProp *P, 
         for (int a = 0; a < M->nact; a++) {
             NdSet sx = s->map[M->act[a].map].img[x];
             for (int y = 0; y < C->n; y++) if ((sx >> y) & 1) {
-                if (P->kind == 2 && !((P->X >> x) & 1) && !((P->Y >> x) & 1) && ((P->X >> y) & 1)) { *bad = x; *bact = a; *bnxt = y; return 1; }
+                if (P->kind == 2 && ((P->F >> x) & 1) && ((P->X >> y) & 1)) { *bad = x; *bact = a; *bnxt = y; return 1; }
                 if (dep[y] < 0) { dep[y] = dep[x] + 1; par[y] = x; pact[y] = a; qu[t++] = y; }
             }
         }
@@ -471,7 +471,7 @@ static Sx *nd_cegar(DcModule *m, const NdMod *s, const NdSim *S, const NdProp *P
     for (int x = 0; x < n; x++) {
         int j = 0;
         for (; j < nb; j++) { int y = __builtin_ctzll(blk[j]);
-            if (S->rel[y] == S->rel[x] && nd_cg_bad(s, PC, om, y) == nd_cg_bad(s, PC, om, x) && ((PC->X >> y) & 1) == ((PC->X >> x) & 1) && ((PC->Y >> y) & 1) == ((PC->Y >> x) & 1)) break; }
+            if (S->rel[y] == S->rel[x] && nd_cg_bad(s, PC, om, y) == nd_cg_bad(s, PC, om, x) && ((PC->X >> y) & 1) == ((PC->X >> x) & 1) && ((PC->Y >> y) & 1) == ((PC->Y >> x) & 1) && ((PC->F >> y) & 1) == ((PC->F >> x) & 1)) break; }
         if (j == nb) blk[nb++] = 0;
         blk[j] |= (NdSet)1 << x;
     }
@@ -486,7 +486,7 @@ static Sx *nd_cegar(DcModule *m, const NdMod *s, const NdSim *S, const NdProp *P
                 NdSet po = nd_post(&s->map[A->act[a].map], blk[j]);
                 for (int j2 = 0; j2 < nb; j2++) if (po & blk[j2]) {
                     int y2 = __builtin_ctzll(blk[j2]);
-                    if (PC->kind == 2 && !((PC->X >> y0) & 1) && !((PC->Y >> y0) & 1) && ((PC->X >> y2) & 1)) { bad = j; ba = a; bn = j2; break; }
+                    if (PC->kind == 2 && ((PC->F >> y0) & 1) && ((PC->X >> y2) & 1)) { bad = j; ba = a; bn = j2; break; }
                     if (dep[j2] < 0) { dep[j2] = dep[j] + 1; par[j2] = j; pact[j2] = a; qu[t++] = j2; }
                 }
             }
@@ -588,7 +588,8 @@ static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
         Sx *r = nd_env(m, VERDICT_HOLDS, q, tn, NULL, dc_form("Evidence", dc_form("Witness", dc_form("UncoveredInit", dc_sym(CA->el[x]), NULL), NULL), dc_form("Coverage", dc_sym("Vacuous"), NULL), NULL), w);
         g_nd_rep = 1; return r;
     }
-    if (ck >= 0) { NdProp PC = P; PC.X = nd_down(S, CA->n, P.X); PC.Y = nd_down(S, CA->n, P.Y); return nd_cegar(m, s, S, &PC, I, ck, q, tn); }
+    P.F = ~(P.X | P.Y);   /* review 2 F1: abstract from-side of EnterFrom */
+    if (ck >= 0) { NdProp PC = P; PC.X = nd_down(S, CA->n, P.X); PC.Y = nd_down(S, CA->n, P.Y); PC.F = nd_down(S, CA->n, P.F); return nd_cegar(m, s, S, &PC, I, ck, q, tn); }
     NdSet AI = 0; for (int x = 0; x < CA->n; x++) if ((I >> x) & 1) AI |= S->rel[x];
     int par[ND_MAXC], pact[ND_MAXC], dep[ND_MAXC], bad = -1, ba = -1, bn = -1;
     if (!nd_bfs(s, B, AI, &P, par, pact, dep, &bad, &ba, &bn)) {
@@ -601,7 +602,7 @@ static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
     int ys[ND_MAXC + 1], as[ND_MAXC + 1], L = nd_trace(par, pact, bad, ba, bn, ys, as);
     Sx *acx = dc_form("AbstractCounterexample", nd_pathsx(s, B, ys, as, L), NULL);
     /* concrete check: the property pulled back along the relation, explored on the source */
-    NdProp PC = P; PC.X = nd_down(S, CA->n, P.X); PC.Y = nd_down(S, CA->n, P.Y);
+    NdProp PC = P; PC.X = nd_down(S, CA->n, P.X); PC.Y = nd_down(S, CA->n, P.Y); PC.F = nd_down(S, CA->n, P.F);   /* review 2 F1: down of the complement */
     int cpar[ND_MAXC], cpact[ND_MAXC], cdep[ND_MAXC], cb = -1, cba = -1, cbn = -1;
     if (nd_bfs(s, A, I, &PC, cpar, cpact, cdep, &cb, &cba, &cbn)) {
         int xs[ND_MAXC + 1], xa[ND_MAXC + 1], n = nd_trace(cpar, cpact, cb, cba, cbn, xs, xa);

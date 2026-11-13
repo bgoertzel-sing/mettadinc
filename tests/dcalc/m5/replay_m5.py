@@ -222,6 +222,7 @@ def check_cegar(M, req, cert):
     need(hp in ('Shows', 'ReachWithin', 'EnterFrom'), 'property %s has no CegarQuotient replay rule' % hp)
     X = down([p[1]]) if hp in ('ReachWithin', 'EnterFrom') else set()
     Y = down(p[2][1:]) if hp == 'EnterFrom' and head(p[2]) == 'Not' else set()
+    F = down([y for y in M.states(tgt) if y != p[1] and y not in p[2][1:]]) if hp == 'EnterFrom' else set()   # review 2 F1 from-side: down of the complement
     dep = {}; todo = []
     for x in init:
         if x in idx and idx[x] not in dep: dep[idx[x]] = 0; todo.append(idx[x])
@@ -232,7 +233,7 @@ def check_cegar(M, req, cert):
             if hp == 'ReachWithin': need(not (x in X and dep[j] <= int(p[2])), 'quotient reaches %s within %s steps' % (x, p[2]))
             for a in M.mach[src]['act']:
                 for x2 in M.img(src, a, x):
-                    if hp == 'EnterFrom': need(not (x not in X and x not in Y and x2 in X), 'quotient move %s -%s-> %s enters the pulled-back set' % (x, a, x2))
+                    if hp == 'EnterFrom': need(not (x in F and x2 in X), 'quotient move %s -%s-> %s enters the pulled-back set' % (x, a, x2))   # review 2 F1 from-side
                     j2 = idx[x2]
                     if j2 not in dep: dep[j2] = dep[j] + 1; todo.append(j2)
     return 'CegarQuotient replayed (%d blocks)' % len(blocks)
@@ -258,7 +259,8 @@ def check_concrete(M, req, w):
     elif head(p) == 'EnterFrom':
         X = down([p[1]]); Y = down(p[2][1:]) if head(p[2]) == 'Not' else None
         need(Y is not None and len(st) >= 2, 'EnterFrom form not replayable')
-        need(st[-1] in X and st[-2] not in X and st[-2] not in Y, 'last step does not enter the pulled-back set from outside')
+        F = down([y for y in M.states(tgt) if y != p[1] and y not in p[2][1:]])   # review 2 F1 from-side: down of the complement
+        need(st[-1] in X and st[-2] in F, 'last step does not enter the pulled-back set from the pulled-back from-side')
     elif head(p) == 'ReachWithin':
         need(st[-1] in down([p[1]]) and len(st) - 1 <= int(p[2]), 'path does not reach the pulled-back set within %s steps' % p[2])
     else: fail('property %s has no concrete replay rule' % head(p))

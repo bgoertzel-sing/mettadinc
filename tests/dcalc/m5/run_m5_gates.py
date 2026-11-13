@@ -165,11 +165,6 @@ for b, rows in sorted(exp.items()):
                 report('m5-rest smoke %s: no row claims Replayed True' % b, all(g in ('InvalidInput', 'Unsupported') for _, g in got), 'nothing to replay'); continue
             t = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m5.py'), src, op], capture_output=True, text=True, timeout=300)
             report('m5-rest smoke %s replay' % b, t.returncode == 0, (t.stdout.strip().splitlines() or [''])[-1][:60])
-# m5-rest review 1 F2: the four random cross-checks with fixed seeds (small N, deterministic)
-for scr, seed, n in (('bis', 11, 20), ('h', 11, 20), ('mt', 11, 20), ('rf', 11, 20)):
-    r = subprocess.run([sys.executable, os.path.join(HERE, 'bisim', scr + '_random.py'), str(seed), str(n)], cwd=ROOT, capture_output=True, text=True, timeout=600)
-    last = (r.stdout.strip().splitlines() or [''])[-1]
-    report('m5-rest random %s seed %d n %d' % (scr, seed, n), r.returncode == 0 and last.endswith('-> PASS') and ' 0 bad' in last, last[:60])
 # m5-rest review 1 F3/F4 canaries: budget-stopped rows, one tamper each must be rejected by replay_m5.py
 bsrc = os.path.join(HERE, 'bisim', 'budget_canary.metta')
 r = subprocess.run([DCALC, '--beyond-release', bsrc], capture_output=True, text=True, timeout=120)
@@ -185,9 +180,9 @@ for name, key, a, b in CAN:
     ls[i] = ls[i].replace(a, b); tp = os.path.join(OUT, 'budget_canary_tamper.out'); open(tp, 'w').write('\n'.join(ls) + '\n')
     t = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m5.py'), bsrc, tp], capture_output=True, text=True, timeout=300)
     report('m5-rest canary: %s is rejected' % name, t.returncode != 0 and 'REJECT' in t.stdout, (t.stdout.strip().splitlines() or [''])[-1][:60])
-# m5-rest review 1 F2b: the four randomized differential scripts, fixed seed, small N; each must end '-> PASS'
+# m5-rest review 1 F2b / review 2 F2+F5: the five randomized differential scripts, run once each, fixed seed, small N; each must end '-> PASS'
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-for nm in ('bis', 'h', 'mt', 'rf'):
+for nm in ('bis', 'h', 'mt', 'rf', 'cs'):   # cs: review 2 F2, random CheckSafety incl. refinement loop
     t = subprocess.run([sys.executable, os.path.join(HERE, 'bisim', nm + '_random.py'), '11', '20'], cwd=ROOT, capture_output=True, text=True, timeout=600)
     last = (t.stdout.strip().splitlines() or [''])[-1]
     report('m5-rest random %s_random seed 11 N 20' % nm, t.returncode == 0 and last.endswith('-> PASS') and ' 0 bad' in last, last[:70])
@@ -210,5 +205,26 @@ for name, key, a, b in CCAN:
     ls[i] = ls[i].replace(a, b, 1); tp = os.path.join(OUT, 'cegar_canary_tamper.out'); open(tp, 'w').write('\n'.join(ls) + '\n')
     t = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m5.py'), csrc, tp], capture_output=True, text=True, timeout=300)
     report('m5-rest F1 canary: %s is rejected' % name, t.returncode != 0 and 'REJECT' in t.stdout, (t.stdout.strip().splitlines() or [''])[-1][:60])
+# m5-rest review 2 F1: EnterFrom under a multi-image Via relation (S2 ~ {T0, T1}, S0 ~ {T1}); every answer must be Checked
+esrc = os.path.join(HERE, 'enterfrom_multi.metta')
+r = subprocess.run([DCALC, '--beyond-release', esrc], capture_output=True, text=True, timeout=120)
+eo = os.path.join(OUT, 'enterfrom_multi.out'); open(eo, 'w').write(r.stdout)
+got = [st(l) for l in r.stdout.splitlines() if ' => ' in l]
+report('m5-rest review2 F1 EnterFrom multi-image: all Checked (no budget, Unrollings 5, Unrollings 0)', got == ['Checked'] * 4, str(got)[:60])
+t = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m5.py'), esrc, eo], capture_output=True, text=True, timeout=300)
+report('m5-rest review2 F1 EnterFrom multi-image replays', t.returncode == 0, (t.stdout.strip().splitlines() or [''])[-1][:60])
+# m5-rest review 2 F1 canary: the old unsound Refuted (Path S2 (Step a0 S0)) forged onto the Unrollings 5 row must be rejected
+import re as _re
+ls = r.stdout.splitlines(); i = next((k for k, l in enumerate(ls) if '(Unrollings 5)' in l.split(' => ')[0]), None)
+if i is None: report('m5-rest review2 F1 canary: forged multi-image Refuted is rejected', False, 'row absent')
+else:
+    l = ls[i].replace('(Status Checked)', '(Status Refuted)', 1); j = l.index('(Evidence '); d = 0
+    for k in range(j, len(l)):
+        d += l[k] == '('; d -= l[k] == ')'
+        if d == 0: break
+    ls[i] = l[:j] + '(Evidence (Witness (ConcreteCounterexample (Path S2 (Step a0 S0)))) (Rounds 0))' + l[k + 1:]
+    tp = os.path.join(OUT, 'enterfrom_multi_forged_refuted.out'); open(tp, 'w').write('\n'.join(ls) + '\n')
+    t = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m5.py'), esrc, tp], capture_output=True, text=True, timeout=300)
+    report('m5-rest review2 F1 canary: forged multi-image Refuted is rejected', t.returncode != 0 and 'from-side' in t.stdout, (t.stdout.strip().splitlines() or [''])[-1][:60])
 print('m5_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
