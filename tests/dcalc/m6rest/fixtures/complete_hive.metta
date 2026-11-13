@@ -1,6 +1,6 @@
 ;; M6-rest: CompleteHive (spec Sec. 10.4 l.2896-2906; hive decision 2: our reading, crisp kernels).
 ;; ChainHive: M1-M2 and M2-M3 measured Equal, M3-M1 Unmeasured -> filled Equal along the path (forest completion).
-;; SplitHive: only M1-M2 measured; M3 has no measured path -> NoPath rows, entries stay 0 (marked, not silent).
+;; SplitHive: only M1-M2 measured; M3 has no measured path -> NoPath rows; those entries stay Unmeasured (never 0).
 ;; ParityFull: fully measured parity triangle; closure would change a measured 0 -> Unsupported (not Lipschitz/round-trip).
 (DC.Module CompleteFx
   (Profile Graded)

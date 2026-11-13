@@ -66,7 +66,7 @@
     "NoPath": {
       "fields": [
         "Member i",
-        "Member j -- CompleteHive: unmeasured member pair that no measured path joins; its entries stay 0, the least value (marked, not silent zero-fill; ours, M6-rest)"
+        "Member j -- CompleteHive: unmeasured member pair that no measured path joins; its entries stay Unmeasured (never 0) in the completed hive (Output C Hive), so a claim reading them answers Unknown (ours, M6-rest)"
       ],
       "profiles": [
         "Crisp"

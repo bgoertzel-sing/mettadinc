@@ -42,12 +42,40 @@ static int hv_mem(const Hive *h, const char *nm) { for (int i = 0; i < h->nm; i+
 static Sx *hv_node(const DcModule *m, const Hive *h, int a) { const HvMem *M = &h->mem[h->mof[a]]; return dc_form("Node", dc_sym(M->name), sx_copy(m->car[M->car].elems[h->vof[a]]), NULL); }
 
 #define HV_FAIL(rc, ...) do { snprintf(why, wn, __VA_ARGS__); return rc; } while (0)
+static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t wn);
+static int hv_bfs(const Hive *h, int s, int *par);
+/* M6-rest review-1 F1: (Derive C (CompleteHive H)) used as (Output C Hive) returns the completed hive.  Measured entries
+ * stay fixed; an unmeasured entry joined by a measured path becomes 1; the other unmeasured entries of a member pair that
+ * some measured path joins become 0 (the least value); every entry of a NoPath member pair stays Unmeasured (-1), so a
+ * claim that reads it answers Unknown (CheckKernelCoherence) or Unsupported (requests that read only measured entries). */
+static int hv_fillc(const DcModule *m, const Sx *req, Hive *h, char *why, size_t wn) {
+    static int depth = 0; static int par[HV_MAXN][HV_MAXN];
+    if (req->n != 2) HV_FAIL(-1, "expected (CompleteHive Hive)");
+    if (depth > 3) HV_FAIL(-2, "CompleteHive: completions nested more than 4 deep");
+    depth++; int rc = hv_load(m, req->items[1], h, why, wn); depth--;
+    if (rc) return rc;
+    for (int a = 0; a < h->nn; a++) hv_bfs(h, a, par[a]);
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) if (h->H[a][b] == 0 && par[a][b] != -2)
+        HV_FAIL(-2, "CompleteHive %s: the measured entry between %s[%d] and %s[%d] is 0 but a measured path identifies them; the measured correspondences are not Lipschitz and round-trip coherent",
+                h->name, h->mem[h->mof[a]].name, h->vof[a], h->mem[h->mof[b]].name, h->vof[b]);
+    for (int i = 0; i < h->nm; i++) for (int j = 0; j < h->nm; j++) {
+        const HvMem *I = &h->mem[i], *J = &h->mem[j]; int any = 0;
+        for (int l = 0; l < I->nv; l++) for (int r2 = 0; r2 < J->nv; r2++) if (par[I->base + l][J->base + r2] != -2) any = 1;
+        if (!any) continue;   /* NoPath pair: stays Unmeasured, never zero-filled */
+        for (int l = 0; l < I->nv; l++) for (int r2 = 0; r2 < J->nv; r2++) {
+            int a = I->base + l, b = J->base + r2;
+            if (h->H[a][b] < 0) h->H[a][b] = par[a][b] != -2 ? 1 : 0;
+        }
+    }
+    return 0;
+}
 static int hv_derived(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t wn) {
     const char *names[HV_MAXM]; int cars[HV_MAXM], nvs[HV_MAXM], nm = 0, ovf = 0;
     if (hn->n != 3 || hn->items[1]->kind != SX_SYM || !sx_is_sym(hn->items[2], "Hive")) HV_FAIL(-1, "expected (Output Derive Hive)");
     const Sx *d = hv_decl(m, "Derive", hn->items[1]->text);
     if (!d || d->n != 3) HV_FAIL(-1, "%s names no declared Derive", hn->items[1]->text);
-    if (!sx_head_is(d->items[2], "KernelOf")) HV_FAIL(-1, "Derive %s is not a KernelOf; only derived kernel hives are accepted here", hn->items[1]->text);
+    if (sx_head_is(d->items[2], "CompleteHive")) { int rc = hv_fillc(m, d->items[2], h, why, wn); if (!rc) h->name = d->items[1]->text; return rc; }
+    if (!sx_head_is(d->items[2], "KernelOf")) HV_FAIL(-1, "Derive %s is not a KernelOf or CompleteHive; only derived kernel hives are accepted here", hn->items[1]->text);
     int rc = dc_kernel_of(m, d->items[2], names, cars, nvs, &nm, h->H, why, wn);
     if (rc) return rc;
     h->name = d->items[1]->text; h->nm = nm;
@@ -420,8 +448,10 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
  * would change a measured 0 entry, the measured correspondences are not Lipschitz / round-trip coherent and the
  * answer is Unsupported naming the entry and the path.  Value is the alignment cost: sum of w_a w_b over ordered
  * node pairs that the completion fills with 1.  Certificate rows (ours, m6rest patch): (Fill a b (Path n1 .. nk))
- * for each filled identification a < b; (NoPath Mi Mj) for unmeasured member pairs no measured path joins; every
- * other unmeasured entry is 0, the least value.  Optimality Checked: each filled 1 is forced by its Path. */
+ * for each filled identification a < b; (NoPath Mi Mj) for unmeasured member pairs no measured path joins: their
+ * entries stay Unmeasured (never 0) in the completed hive, see hv_fillc.  Other unmeasured entries of a joined member
+ * pair are 0, the least value.  Optimality Checked: each filled 1 is forced by its Path.
+ * The completed hive itself is (Output C Hive) for (Derive C (CompleteHive H)) (HiveResult Hive field). */
 static int hv_bfs(const Hive *h, int s, int *par) {
     int q[HV_MAXN], qh = 0, qt = 0;
     for (int i = 0; i < h->nn; i++) par[i] = -2;

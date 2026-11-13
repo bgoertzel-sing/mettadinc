@@ -43,6 +43,11 @@ zl = re.sub(r'\(Filled .*?\)\)\) \(NoPaths', '(Filled) (NoPaths', cl[0]).replace
 open(tz, 'w').write(zl + '\n')
 zr = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m6rest.py'), cf, tz], capture_output=True, text=True)
 report('CompleteHive neg: zero-filled completion (no Fill rows, cost 0) is rejected by the replayer', zl != cl[0] and zr.returncode != 0 and 'REJECT' in zr.stdout, zr.stdout.strip().splitlines()[:1])
+# Completed hive as (Output C Hive) (review 1 F1): NoPath pairs stay Unmeasured, a claim reading them answers Unknown
+xf = os.path.join(HERE, 'fixtures', 'complete_hive_output.metta'); xo = os.path.join(OUT, 'complete_hive_output.out'); xtext = run(xf); open(xo, 'w').write(xtext)
+xl = [l for l in xtext.splitlines() if ' => ' in l]
+report('CompleteHive output: (CheckKernelCoherence (Output ChainDone Hive)) Checked; (Output SplitDone Hive) and SplitHive Unknown', statuses(xtext) == ['Checked', 'Unknown', 'Unknown'], statuses(xtext))
+report('CompleteHive output: NoPath entries are not zero-filled (SplitDone answer is Unknown via an Unmeasured correspondence, naming M3)', len(xl) > 1 and 'Unmeasured' in xl[1] and 'M3' in xl[1] and '(Status Checked)' not in xl[1], xl[1][:200] if len(xl) > 1 else '')
 # LeastCoherentRefinement registry args (Search default LinearProgram; Exhaustive / Budget answer Unsupported, never a fallback)
 la = os.path.join(OUT, 'lcr_args.metta')
 lt = open(lf).read().split('\n!(dc.run')[0] + '\n' + '\n'.join('!(dc.run LcrLp (LeastCoherentRefinement UnequalTriangle%s))' % a for a in
