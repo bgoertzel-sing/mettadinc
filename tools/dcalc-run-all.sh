@@ -45,6 +45,9 @@ step m4_estimates;     $R m4_estimates "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dca
 step m4_coverage;      $R m4_coverage "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/m4/sim_coverage.c build/dcalc/libdcalc.a -lm -o build/dcalc/sim_coverage && build/dcalc/sim_coverage 20261112 2000 > build/m4_coverage.out; r=\$?; tail -1 build/m4_coverage.out; exit \$r" || rc=1
 step m4_coverage_01;   $R m4_coverage_01 "build/dcalc/sim_coverage 20261112 2000 0.01 > build/m4_coverage_01.out; r=\$?; tail -1 build/m4_coverage_01.out; exit \$r" || rc=1
 step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_CETTA=1)"; else $R cetta_smoke "tools/dcalc-cetta-smoke.sh" || rc=1; fi
+# review 1 F3: record the CeTTa weak-barbed script verdicts whenever the scratch CeTTa exists
+# (built by cetta_smoke).  Recorded only: (ScriptCostBudget d), Horizon None, Oracle False.
+step m5_weakbarbed;    if [ -x build/cetta-dcalc/cetta ] && [ -f build/cetta-dcalc/scripts/rhocalc_bounded_bisimulation.py ]; then $R m5_weakbarbed "python3 tests/dcalc/m5/weakbarbed_record.py build/cetta-dcalc \"$ROOT/build/cetta-dcalc/cetta\" build/m5_weakbarbed.tsv" || rc=1; else echo "skipped (no CeTTa scratch build at build/cetta-dcalc; run cetta_smoke first)"; fi
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc
