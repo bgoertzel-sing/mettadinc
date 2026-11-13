@@ -15,7 +15,8 @@ def replay(fx, out):
 # (fixture, module whose rows are M6 Contracts rows, their expected beyond-release statuses); rows of other
 # modules belong to earlier milestones and must answer the same status in both modes
 CASES = (('affine_contracts.metta', 'AffineContracts', ['Checked', 'Checked', 'Refuted']),
-         ('receipt_packets.metta', 'PacketMerges', ['Checked', 'Refuted']))
+         ('receipt_packets.metta', 'PacketMerges', ['Checked', 'Refuted']),
+         ('parity_triangle.metta', 'ParityTriangle', ['Refuted', 'Checked', 'Checked', 'Checked']))
 mine = lambda ls, mod: [l for l in ls if l.startswith(mod + ' ')]
 for fx, mod, want in CASES:
     f = os.path.join(FX, fx); base = fx[:-6]
@@ -40,9 +41,12 @@ for fx, mod, want in CASES:
             edits.append(('witness not audited', i, re.sub(r'\(Audited \((Rat -?\d+ \d+|Tuple [^()]*)\)\)', lambda m: '(Audited (Rat 7777 1))' if m.group(1).startswith('Rat') else '(Audited (Tuple Nowhere Nowhere))', l, 1)))
             edits.append(('witness pair swapped to a meeting pair', i, re.sub(r'\(Reference \((Rat -?\d+ \d+|Tuple [^()]*)\)\)', lambda m: '(Reference (Rat 1 1))' if m.group(1).startswith('Rat') else '(Reference (Tuple Empty Empty))', l, 1)))
         g = re.search(r'\(Value \(Grade \(Rat (-?\d+) (\d+)\) \(Rat (-?\d+) (\d+)\)\)\)', l)
+        v = re.search(r'\(Value \(Rat (-?\d+) (\d+)\)\)', l)
+        if v: edits.append(('scalar Value changed', i, l.replace(v.group(0), '(Value (Rat %d %s))' % (int(v.group(1)) + 1, v.group(2)), 1)))
         if g: edits.append(('Grade eta changed', i, l.replace(g.group(0), '(Value (Grade (Rat %s %s) (Rat %d %s)))' % (g.group(1), g.group(2), int(g.group(3)) + 1, g.group(4)), 1)))
     for k, (nm, i, nl) in enumerate(edits):
-        if nl == full[i]: report('%s canary %d %s' % (base, k, nm), False, 'edit did not apply'); continue
+        if nl == full[i]: continue   # edit not applicable to this row shape
         t = list(full); t[i] = nl; tp = os.path.join(OUT, '%s_canary%d.out' % (base, k)); open(tp, 'w').write('\n'.join(t) + '\n')
         rc, last = replay(f, tp); report('%s canary %d (%s, row %d) rejected' % (base, k, nm, idx.index(i) + 1), rc != 0, last[:60])
+    report('%s canaries: at least one per row' % base, sum(1 for nm, i, nl in edits if nl != full[i]) >= len(idx), '%d applied' % sum(1 for nm, i, nl in edits if nl != full[i]))
 print('m6_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)

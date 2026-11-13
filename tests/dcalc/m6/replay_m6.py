@@ -61,6 +61,7 @@ class Mod:
                 names = set(only[1:])
                 decls += [e for e in forms[d[1]][2:] if isinstance(e, list) and len(e) > 1 and isinstance(e[1], str) and head(e) != 'Import' and e[1] in names]
             else: decls.append(d)
+        self.raw = {(head(d), d[1]): d for d in decls if isinstance(d, list) and len(d) > 1 and isinstance(d[1], str)}
         for d in decls:
             h = head(d)
             if h == 'Carrier': self.cdecl[d[1]] = d[3]
@@ -112,6 +113,77 @@ class Mod:
 def need(c, msg):
     if not c: raise AssertionError(msg)
 
+# ---- M6 Hives (crisp kernel hives), own semantics ----
+HIVE_OPS = ('CheckKernelCoherence', 'Holonomy', 'ConsensusCost', 'LeastCoherentRefinement')
+def hive(M, name):
+    d = M.raw[('KernelHive', name)]; mem = [x for x in d[2:] if head(x) == 'Member']; names = [x[1] for x in mem]
+    W = field(d, 'Weights'); w = {e[0]: val(e[1]) for e in W[1:]} if W else {n: Q(1, len(mem)) for n in names}
+    need(set(w) == set(names) and sum(w.values()) == 1, 'member weights')
+    car, nodes, wt, H = {}, [], {}, {}
+    for x in mem:
+        nm, c, t, ms = x[1:5]; tk = head(M.raw[('Tolerance', t)][3])
+        need(head(M.raw[('Measure', ms)][3]) == 'Uniform', 'measure %s not replayable' % ms)
+        need(tk in ('Discrete', 'Trivial'), 'member tolerance %s not replayable' % t)
+        car[nm] = M.dom(c)
+        for v in car[nm]: nodes.append((nm, v)); wt[(nm, v)] = w[nm] / len(car[nm])
+        for a in car[nm]:
+            for b in car[nm]: H[((nm, a), (nm, b))] = Q(1) if a == b or tk == 'Trivial' else Q(0)
+    for x in d[2:]:
+        if head(x) == 'Correspondence' and x[4] == 'Measured':
+            for e in field(M.raw[('CrossKernel', x[3])], 'Entries')[1:]:
+                a, b, v = val(e[0]), val(e[1]), val(e[2]); H[((x[1], a), (x[2], b))] = H[((x[2], b), (x[1], a))] = v
+    need(all((a, b) in H for a in nodes for b in nodes), 'kernel not fully measured')
+    return names, car, nodes, wt, H
+def holo(car, H, cyc):
+    s = u = cyc[0]; R = {(a, b): a == b for a in car[s] for b in car[s]}
+    for v in cyc[1:] + [s]:
+        R = {(a, c): any(R[(a, b)] and H[((u, b), (v, c))] == 1 for b in car[u]) for a in car[s] for c in car[v]}; u = v
+    return R
+def kern_ok(K, R): return {(val(e[0]), val(e[1])): val(e[2]) == 1 for e in field(K, 'Entries')[1:]} == R
+def node(n): need(head(n) == 'Node', 'not a Node'); return (n[1], val(n[2]))
+def replay_hive(M, req, res, st):
+    h = head(req); names, car, nodes, wt, H = hive(M, req[1]); ev = field(res, 'Evidence')
+    if h != 'CheckKernelCoherence': need(st == 'Checked', '%s replays Checked rows only' % h)
+    if h == 'CheckKernelCoherence':
+        bad = [(a, b, c) for a in nodes for b in nodes for c in nodes if H[(a, c)] < H[(a, b)] + H[(b, c)] - 1]
+        if st == 'Checked': need(not bad, 'Checked but %s is not transitive' % (bad[:1],)); return 'transitive over %d triples' % len(nodes) ** 3
+        need(bad, 'Refuted but the kernel is transitive'); a, b, c = map(node, field(field(ev, 'Witness'), 'Triple')[1:4])
+        need(H[(a, c)] < H[(a, b)] + H[(b, c)] - 1, 'witness triple is transitive')
+        hk = field(ev, 'Holonomy')
+        if hk: need(kern_ok(field(hk, 'Kernel'), holo(car, H, names)), 'evidence holonomy differs')
+        return 'intransitive triple replayed'
+    if h == 'Holonomy':
+        need(st == 'Checked', 'Holonomy replays Checked rows only')
+        need(kern_ok(field(field(res, 'Value'), 'Kernel'), holo(car, H, list(req[2][1:]))), 'holonomy kernel differs'); return 'holonomy recomposed'
+    if h == 'ConsensusCost':
+        C = {k: v == 1 for k, v in H.items()}
+        for k in nodes:
+            for a in nodes:
+                if C[(a, k)]:
+                    for b in nodes:
+                        if C[(k, b)]: C[(a, b)] = True
+        cost = sum(wt[a] * wt[b] for a in nodes for b in nodes if C[(a, b)] and H[(a, b)] == 0)
+        need(rat(field(res, 'Value')[1]) == cost, 'closure cost is %s' % cost); return 'closure cost recomputed'
+    if h == 'LeastCoherentRefinement':
+        cert = field(ev, 'Certificate'); X = {(a, b): Q(1 if a == b else 0) for a in nodes for b in nodes}
+        for p in field(cert, 'Kept')[1:]: a, b = node(p[1]), node(p[2]); X[(a, b)] = X[(b, a)] = rat(p[3])
+        need(all(0 <= X[k] <= H[k] for k in X), 'kept pair outside [0, H]')
+        need(all(X[(a, c)] >= X[(a, b)] + X[(b, c)] - 1 for a in nodes for b in nodes for c in nodes), 'refinement not transitive')
+        E = [(a, b) for i, a in enumerate(nodes) for b in nodes[i + 1:] if H[(a, b)] == 1]
+        cov = {frozenset(e): Q(0) for e in E}; Dv = Q(0)
+        for t in field(cert, 'Dual')[1:]:
+            y = rat(t[-1]); need(y >= 0, 'negative dual'); Dv += y
+            if head(t) == 'Edge': ks = [frozenset((node(t[1]), node(t[2])))]
+            else:
+                a, b, c = node(t[1]), node(t[2]), node(t[3]); need(H[(a, c)] == 0, 'dual triple closes on an identified pair'); ks = [frozenset((a, b)), frozenset((b, c))]
+            for k in ks:
+                if k in cov: cov[k] += y
+        need(all(cov[frozenset((a, b))] >= wt[a] * wt[b] for a, b in E), 'dual infeasible')
+        P = sum(wt[a] * wt[b] * X[(a, b)] for a, b in E); T = sum(wt[a] * wt[b] for a, b in E)
+        need(P == Dv, 'primal %s != dual %s' % (P, Dv)); need(rat(field(cert, 'PrimalValue')[1]) == P and rat(field(cert, 'DualValue')[1]) == Dv, 'certificate values differ')
+        need(rat(field(res, 'Value')[1]) == 2 * (T - P), 'cost is not 2(EdgeMass - kept)'); return 'optimality certificate replayed (primal = dual)'
+    raise AssertionError('no hive rule for %s' % h)
+
 def replay(M, req, res):
     st = field(res, 'Status')[1]; h = head(req)
     if h == 'CheckImplementation':
@@ -140,6 +212,7 @@ def replay(M, req, res):
             for f in (I1['Ideal'], I1['Actual']): need(M.app(f, x) in M.dom(I2['Audit']), 'value of %s outside %s audit' % (f, n2))
         g = field(field(res, 'Value'), 'Grade'); need(g and (rat(g[1]), rat(g[2])) == (L2 * L1, L2 * e1 + e2), 'composite Grade is not Proposition 9.1')
         return 'Proposition 9.1 composite grade'
+    if h in HIVE_OPS: return replay_hive(M, req, res, st)
     raise AssertionError('no replay rule for %s' % h)
 
 def main(fx, out):
@@ -151,7 +224,7 @@ def main(fx, out):
         asr = field(res, 'Assurance'); rep = field(asr, 'Replayed') if asr else None
         if st not in ('Checked', 'Refuted') or not rep or rep[1] != 'True': continue
         mod = line.split(' ', 1)[0]; req = field(res, 'Claim')[1]
-        if head(req) not in ('CheckImplementation', 'ThenContracts'): continue   # other milestones have their own replayers
+        if head(req) not in ('CheckImplementation', 'ThenContracts') + HIVE_OPS: continue   # other milestones have their own replayers
         rows += 1
         try:
             if mod not in mods: mods[mod] = Mod(fm[mod], fm)
