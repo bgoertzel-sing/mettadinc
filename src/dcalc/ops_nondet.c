@@ -33,7 +33,7 @@ typedef uint64_t NdSet;
 typedef struct { char name[DC_MAX_NAME]; int n; char el[ND_MAXC][DC_MAX_NAME]; } NdCar;
 typedef struct { char name[DC_MAX_NAME]; int from, to, choice; NdSet img[ND_MAXC]; } NdMap;   /* img[x]: successor set */
 typedef struct { char name[DC_MAX_NAME]; int map; } NdNamed;
-typedef struct { char name[DC_MAX_NAME]; int states; NdNamed obs[8]; int nobs; NdNamed act[8]; int nact; int bag_multiset, has_bag; } NdMach;
+typedef struct { char name[DC_MAX_NAME]; int states; NdNamed obs[8]; int nobs; NdNamed act[8]; int nact; int bag_multiset, has_bag; int read[8]; } NdMach;   /* read[a]: 0 undeclared, 1 Shared, 2 Fresh (m5-rest) */
 typedef struct { char name[DC_MAX_NAME]; char rule[DC_MAX_NAME]; } NdSched;
 typedef struct { char name[DC_MAX_NAME]; int src, tgt, map; int pairs; NdSet rel[ND_MAXC]; char unsup[200]; } NdSim;   /* unsup: declared semantics the check does not implement (review 2 F2) */   /* rel[x]: related abstract states */
 typedef struct {
@@ -116,6 +116,19 @@ static int nd_read(const Sx *src, NdMod *s, char *err, size_t es) {
                 if (sx_head_is(f, "Observe")) { if (nd_read_named(s, f, M->obs, &M->nobs, dn, err, es)) return -1; }
                 else if (sx_head_is(f, "Action")) { if (nd_read_named(s, f, M->act, &M->nact, dn, err, es)) return -1; }
                 else if (sx_head_is(f, "Bag") && f->n == 2) { M->has_bag = 1; M->bag_multiset = nm_of(f->items[1]) && !strcmp(f->items[1]->text, "Multiset"); }
+            }
+            /* m5-rest: (Read action Shared|Fresh), declared never inferred (guide invariant 14); beyond registry */
+            for (size_t k = 2; k < d->n; k++) {
+                const Sx *f = d->items[k];
+                if (!sx_head_is(f, "Read")) continue;
+                const char *an = f->n == 3 ? nm_of(f->items[1]) : NULL, *mode = f->n == 3 ? nm_of(f->items[2]) : NULL;
+                int a = -1;   /* action index (nd_named returns the map, and is defined later) */
+                for (int i = 0; an && i < M->nact && a < 0; i++) if (!strcmp(M->act[i].name, an)) a = i;
+                if (a < 0) return nd_err(err, es, "Machine %s: (Read action Shared|Fresh) names no Action of the machine (%s)", dn, an ? an : "?");
+                int md = mode && !strcmp(mode, "Shared") ? 1 : mode && !strcmp(mode, "Fresh") ? 2 : 0;
+                if (!md) return nd_err(err, es, "Machine %s: Read %s must be Shared or Fresh", dn, an);
+                if (M->read[a]) return nd_err(err, es, "Machine %s: Read %s declared twice", dn, an);
+                M->read[a] = md;
             }
             s->nmach++;
         } else if (!strcmp(h, "Scheduler")) {
@@ -390,7 +403,7 @@ static Sx *nd_checksim_core(DcModule *m, const NdMod *s, const Sx *q) {
 }
 /* ---- safety transfer along a simulation (H14, Y03, Y04): the three registered forms
  * (Shows o v), (EnterFrom X (Not Y)), (ReachWithin X k), each under Never. ---- */
-typedef struct { int kind; NdSet X, Y; int k; const char *o, *v; } NdProp;   /* kind 1 Shows, 2 EnterFrom, 3 ReachWithin */
+typedef struct { int kind; NdSet X, Y, F; int k; const char *o, *v; } NdProp;   /* F: EnterFrom from-side (review 2 F1) */   /* kind 1 Shows, 2 EnterFrom, 3 ReachWithin */
 static int nd_bfs(const NdMod *s, const NdMach *M, NdSet init, const NdProp *P, int *par, int *pact, int *dep, int *bad, int *bact, int *bnxt) {
     const NdCar *C = &s->car[M->states]; int qu[ND_MAXC], h = 0, t = 0;
     for (int x = 0; x < C->n; x++) { par[x] = -1; pact[x] = -1; dep[x] = -1; if ((init >> x) & 1) { dep[x] = 0; qu[t++] = x; } }
@@ -403,7 +416,7 @@ static int nd_bfs(const NdMod *s, const NdMach *M, NdSet init, const NdProp *P, 
         for (int a = 0; a < M->nact; a++) {
             NdSet sx = s->map[M->act[a].map].img[x];
             for (int y = 0; y < C->n; y++) if ((sx >> y) & 1) {
-                if (P->kind == 2 && !((P->X >> x) & 1) && !((P->Y >> x) & 1) && ((P->X >> y) & 1)) { *bad = x; *bact = a; *bnxt = y; return 1; }
+                if (P->kind == 2 && ((P->F >> x) & 1) && ((P->X >> y) & 1)) { *bad = x; *bact = a; *bnxt = y; return 1; }
                 if (dep[y] < 0) { dep[y] = dep[x] + 1; par[y] = x; pact[y] = a; qu[t++] = y; }
             }
         }
@@ -435,6 +448,77 @@ static Sx *nd_checksim(DcModule *m, const NdMod *s, const Sx *q) {
     int si = nd_sim(s, q->n >= 2 ? nm_of(q->items[1]) : NULL);
     if (si >= 0 && r && sx_find(r, "Binding", 1)) nd_bind(r, s, &s->sim[si], NULL);
     return r;
+}
+/* m5-rest review 1 F1: counterexample-guided refinement loop, opted in by (Budget (Unrollings k)) on
+ * CheckSafety.  It works on the Source machine: blocks start from the abstraction the Via relation
+ * induces (same related abstract states), split by the property's atoms; the existential quotient is
+ * searched; a feasible abstract path is a concrete counterexample (Refuted), a quotient without a bad
+ * path is Checked (certificate: the final partition), a spurious path splits the block where every
+ * concrete run leaves it.  k splits without a verdict: Unknown.  Without the option nothing changes. */
+static int nd_cg_bad(const NdMod *s, const NdProp *PC, int om, int x) {
+    if (PC->kind == 1) { const char *v = om >= 0 ? nd_obsval(s, om, x) : NULL; return v && !strcmp(v, PC->v); }
+    return PC->kind == 3 && ((PC->X >> x) & 1);
+}
+static Sx *nd_cgpart(const NdCar *CA, const NdSet *blk, int nb) {
+    Sx *p = dc_form("Partition", NULL);
+    for (int j = 0; j < nb; j++) { Sx *b = dc_form("Block", NULL); for (int x = 0; x < CA->n; x++) if ((blk[j] >> x) & 1) sx_push(b, dc_sym(CA->el[x])); sx_push(p, b); }
+    return p;
+}
+static Sx *nd_cegar(DcModule *m, const NdMod *s, const NdSim *S, const NdProp *PC, NdSet I, long kmax, const Sx *q, const char *tn) {
+    const NdMach *A = &s->mach[S->src]; const NdCar *CA = &s->car[A->states]; const int n = CA->n;
+    const int om = PC->kind == 1 ? nd_named(A->obs, A->nobs, PC->o) : -1;
+    NdSet blk[ND_MAXC]; int nb = 0;
+    for (int x = 0; x < n; x++) {
+        int j = 0;
+        for (; j < nb; j++) { int y = __builtin_ctzll(blk[j]);
+            if (S->rel[y] == S->rel[x] && nd_cg_bad(s, PC, om, y) == nd_cg_bad(s, PC, om, x) && ((PC->X >> y) & 1) == ((PC->X >> x) & 1) && ((PC->Y >> y) & 1) == ((PC->Y >> x) & 1) && ((PC->F >> y) & 1) == ((PC->F >> x) & 1)) break; }
+        if (j == nb) blk[nb++] = 0;
+        blk[j] |= (NdSet)1 << x;
+    }
+    Sx *refs = dc_form("Refinements", NULL);
+    for (long round = 0; ; round++) {
+        int par[ND_MAXC], pact[ND_MAXC], dep[ND_MAXC], qu[ND_MAXC], h = 0, t = 0, bad = -1, ba = -1, bn = -1;
+        for (int j = 0; j < nb; j++) { par[j] = -1; pact[j] = -1; dep[j] = -1; if (blk[j] & I) { dep[j] = 0; qu[t++] = j; } }
+        while (h < t && bad < 0) {
+            int j = qu[h++], y0 = __builtin_ctzll(blk[j]);
+            if (nd_cg_bad(s, PC, om, y0) && (PC->kind != 3 || dep[j] <= PC->k)) { bad = j; break; }
+            for (int a = 0; a < A->nact && bad < 0; a++) {
+                NdSet po = nd_post(&s->map[A->act[a].map], blk[j]);
+                for (int j2 = 0; j2 < nb; j2++) if (po & blk[j2]) {
+                    int y2 = __builtin_ctzll(blk[j2]);
+                    if (PC->kind == 2 && ((PC->F >> y0) & 1) && ((PC->X >> y2) & 1)) { bad = j; ba = a; bn = j2; break; }
+                    if (dep[j2] < 0) { dep[j2] = dep[j] + 1; par[j2] = j; pact[j2] = a; qu[t++] = j2; }
+                }
+            }
+        }
+        if (bad < 0) {
+            Sx *c = dc_form("Certificate", dc_form("Kind", dc_sym("CegarQuotient"), NULL), dc_form("Rounds", dc_int((int)round), NULL), nd_cgpart(CA, blk, nb), refs, NULL);
+            return nd_env(m, VERDICT_HOLDS, q, tn, dc_form("Value", dc_sym("True"), NULL), dc_form("Evidence", c, NULL), NULL);
+        }
+        int js[ND_MAXC + 1], as[ND_MAXC + 1], L = nd_trace(par, pact, bad, ba, bn, js, as);
+        NdSet Cs[ND_MAXC + 1]; int cut = -1; Cs[0] = I & blk[js[0]];
+        for (int i = 1; i < L; i++) { Cs[i] = nd_post(&s->map[A->act[as[i]].map], Cs[i - 1]) & blk[js[i]]; if (!Cs[i]) { cut = i; break; } }
+        if (cut < 0) {   /* feasible: a concrete run follows the abstract path */
+            int xs[ND_MAXC + 1]; xs[L - 1] = __builtin_ctzll(Cs[L - 1]);
+            for (int i = L - 1; i > 0; i--) { const NdMap *mp = &s->map[A->act[as[i]].map];
+                for (int x = 0; x < n; x++) if (((Cs[i - 1] >> x) & 1) && ((mp->img[x] >> xs[i]) & 1)) { xs[i - 1] = x; break; } }
+            sx_free(refs);
+            return nd_env(m, VERDICT_FAILS, q, tn, NULL, dc_form("Evidence", dc_form("Witness", dc_form("ConcreteCounterexample", nd_pathsx(s, A, xs, as, L), NULL), NULL), dc_form("Rounds", dc_int((int)round), NULL), NULL),
+                          "a concrete run from Init violates the property (found by refinement)");
+        }
+        if (round >= kmax) {
+            g_nd_rep = 0;
+            Sx *r = nd_env(m, VERDICT_HOLDS, q, tn, NULL, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)kmax), NULL), NULL), dc_form("Spurious", dc_sym("True"), NULL), nd_cgpart(CA, blk, nb), refs, NULL),
+                           "refinement stopped at the Unrollings budget with a spurious abstract counterexample left");
+            g_nd_rep = 1; return r;
+        }
+        NdSet Pr = blk[js[cut - 1]], tg = blk[js[cut]], good = 0; const NdMap *mp = &s->map[A->act[as[cut]].map];
+        for (int x = 0; x < n; x++) if (((Pr >> x) & 1) && (mp->img[x] & tg)) good |= (NdSet)1 << x;
+        Sx *gs = dc_form("CanStep", NULL), *bs = dc_form("CannotStep", NULL);
+        for (int x = 0; x < n; x++) if ((Pr >> x) & 1) sx_push((good >> x) & 1 ? gs : bs, dc_sym(CA->el[x]));
+        sx_push(refs, dc_form("Split", dc_form("Action", dc_sym(A->act[as[cut]].name), NULL), gs, bs, NULL));
+        blk[js[cut - 1]] = good; blk[nb++] = Pr & ~good;
+    }
 }
 static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
     const char *tn = q->n >= 2 ? nm_of(q->items[1]) : NULL; int ti = nd_mach(s, tn); char err[256];
@@ -476,8 +560,13 @@ static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
     const Sx *in = ropt(q, "Init"); NdSet I = 0;
     for (size_t k = 1; in && k < in->n; k++) { int x = nd_el(CA, nm_of(in->items[k])); if (x < 0) return dc_invalid(m, "CheckSafety: Init %s is not a state of %s", nm_of(in->items[k]) ? nm_of(in->items[k]) : "?", A->name); I |= (NdSet)1 << x; }
     if (!I) return dc_invalid(m, "CheckSafety: (Init s ..) names no state");
-    const Sx *bu = ropt(q, "Budget");
-    if (bu) {   /* review 1 F2: honour the budget; it bounds the related pairs examined, never a horizon */
+    const Sx *bu = ropt(q, "Budget"); long ck = -1;
+    if (bu && bu->n == 2 && sx_head_is(bu->items[1], "Unrollings") && bu->items[1]->n == 2) {   /* review 1 F1: refinement loop */
+        const Sx *kv = bu->items[1]->items[1]; char *e = NULL;
+        ck = kv->kind == SX_SYM ? strtol(kv->text, &e, 10) : -1;
+        if (ck < 0 || !e || *e) return dc_invalid(m, "CheckSafety: (Budget (Unrollings k)) needs a natural number k");
+    }
+    if (bu && ck < 0) {   /* review 1 F2: honour the budget; it bounds the related pairs examined, never a horizon */
         const char *bunit; long b = nd_budget(bu, &bunit); int np = 0;
         for (int x = 0; x < ND_MAXC; x++) np += popc(S->rel[x]);
         if (b == -2) return dc_unsupported(m, "CheckSafety: budget unit %s is not counted by the simulation check (it counts PairExpansions)", bunit);
@@ -499,6 +588,8 @@ static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
         Sx *r = nd_env(m, VERDICT_HOLDS, q, tn, NULL, dc_form("Evidence", dc_form("Witness", dc_form("UncoveredInit", dc_sym(CA->el[x]), NULL), NULL), dc_form("Coverage", dc_sym("Vacuous"), NULL), NULL), w);
         g_nd_rep = 1; return r;
     }
+    P.F = ~(P.X | P.Y);   /* review 2 F1: abstract from-side of EnterFrom */
+    if (ck >= 0) { NdProp PC = P; PC.X = nd_down(S, CA->n, P.X); PC.Y = nd_down(S, CA->n, P.Y); PC.F = nd_down(S, CA->n, P.F); return nd_cegar(m, s, S, &PC, I, ck, q, tn); }
     NdSet AI = 0; for (int x = 0; x < CA->n; x++) if ((I >> x) & 1) AI |= S->rel[x];
     int par[ND_MAXC], pact[ND_MAXC], dep[ND_MAXC], bad = -1, ba = -1, bn = -1;
     if (!nd_bfs(s, B, AI, &P, par, pact, dep, &bad, &ba, &bn)) {
@@ -511,7 +602,7 @@ static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
     int ys[ND_MAXC + 1], as[ND_MAXC + 1], L = nd_trace(par, pact, bad, ba, bn, ys, as);
     Sx *acx = dc_form("AbstractCounterexample", nd_pathsx(s, B, ys, as, L), NULL);
     /* concrete check: the property pulled back along the relation, explored on the source */
-    NdProp PC = P; PC.X = nd_down(S, CA->n, P.X); PC.Y = nd_down(S, CA->n, P.Y);
+    NdProp PC = P; PC.X = nd_down(S, CA->n, P.X); PC.Y = nd_down(S, CA->n, P.Y); PC.F = nd_down(S, CA->n, P.F);   /* review 2 F1: down of the complement */
     int cpar[ND_MAXC], cpact[ND_MAXC], cdep[ND_MAXC], cb = -1, cba = -1, cbn = -1;
     if (nd_bfs(s, A, I, &PC, cpar, cpact, cdep, &cb, &cba, &cbn)) {
         int xs[ND_MAXC + 1], xa[ND_MAXC + 1], n = nd_trace(cpar, cpact, cb, cba, cbn, xs, xa);
@@ -594,13 +685,541 @@ static Sx *nd_induce(DcModule *m, const NdMod *s, const Sx *q) {
                     dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ExactQuotient"), NULL), dc_form("Encode", dc_sym(E->name), NULL), NULL), NULL), NULL);
 }
 
+/* ---- m5-rest: strong bisimulation on a nondeterministic machine (spec 1377-1379, 2550-2553).
+ * Partition refinement from the observer partition (level 0: equal observer image sets; level l:
+ * equal level l-1 block sets under every action). A pair first split at level l is told apart by
+ * a Hennessy-Milner formula graph with shared subformulas (ModalTestWitness, spec 5058):
+ * (Indicator o v) holds at x iff v is in o's image of x; (Not k); (And k..), empty = true;
+ * (Diamond a k) holds at x iff some a-successor of x satisfies k. Node names are beyond registry. ---- */
+#define ND_MAXF (3 * ND_MAXC * ND_MAXC)
+typedef struct { const NdMod *s; const NdMach *M; int n, L; int blk[ND_MAXC + 1][ND_MAXC]; int memo[ND_MAXC][ND_MAXC];
+                 Sx *body[ND_MAXF]; NdSet sat[ND_MAXF]; int nn, bad; } NdBis;
+static NdSet nd_blkset(const int *blk, NdSet X, int n) { NdSet r = 0; for (int y = 0; y < n; y++) if ((X >> y) & 1) r |= (NdSet)1 << blk[y]; return r; }
+static void nd_bis_refine(NdBis *B) {
+    const NdMod *s = B->s; const NdMach *M = B->M; int n = B->n;
+    for (int x = 0; x < n; x++) { B->blk[0][x] = x;
+        for (int y = 0; y < x; y++) { int same = 1;
+            for (int j = 0; j < M->nobs; j++) if (s->map[M->obs[j].map].img[x] != s->map[M->obs[j].map].img[y]) same = 0;
+            if (same) { B->blk[0][x] = B->blk[0][y]; break; } } }
+    for (int l = 1; l <= n; l++) {
+        for (int x = 0; x < n; x++) { B->blk[l][x] = x;
+            for (int y = 0; y < x; y++) { if (B->blk[l - 1][x] != B->blk[l - 1][y]) continue; int same = 1;
+                for (int a = 0; a < M->nact && same; a++) { const NdMap *A = &s->map[M->act[a].map];
+                    if (nd_blkset(B->blk[l - 1], A->img[x], n) != nd_blkset(B->blk[l - 1], A->img[y], n)) same = 0; }
+                if (same) { B->blk[l][x] = B->blk[l][y]; break; } } }
+        if (!memcmp(B->blk[l], B->blk[l - 1], sizeof B->blk[l])) { B->L = l - 1; return; }
+    }
+    B->L = n;
+}
+static int nd_fnode(NdBis *B, Sx *body, NdSet sat) {
+    if (B->nn >= ND_MAXF) { B->bad = 1; sx_free(body); return 0; }
+    B->body[B->nn] = body; B->sat[B->nn] = sat; return B->nn++;
+}
+static int nd_dist(NdBis *B, int x, int y, int depth) {
+    if (B->memo[x][y] >= 0) return B->memo[x][y];
+    if (depth > 2 * ND_MAXC + 4 || B->bad) { B->bad = 1; return 0; }
+    const NdMod *s = B->s; const NdMach *M = B->M; int n = B->n, l = 0, k = -1;
+    NdSet all = n >= 64 ? ~(NdSet)0 : (((NdSet)1 << n) - 1);
+    while (l <= B->L && B->blk[l][x] == B->blk[l][y]) l++;
+    if (l > B->L) { B->bad = 1; return 0; }   /* bisimilar: no formula exists */
+    if (l == 0) {
+        for (int j = 0; j < M->nobs && k < 0; j++) { const NdMap *O = &s->map[M->obs[j].map]; NdSet d = O->img[x] & ~O->img[y];
+            if (!d) continue;
+            int v = __builtin_ctzll(d); NdSet st = 0;
+            for (int z = 0; z < n; z++) if ((O->img[z] >> v) & 1) st |= (NdSet)1 << z;
+            k = nd_fnode(B, dc_form("Indicator", dc_sym(M->obs[j].name), dc_sym(s->car[O->to].el[v]), NULL), st); }
+    } else {
+        for (int a = 0; a < M->nact && k < 0; a++) { const NdMap *A = &s->map[M->act[a].map];
+            for (int x2 = 0; x2 < n && k < 0; x2++) { if (!((A->img[x] >> x2) & 1)) continue; int ok = 1;
+                for (int y2 = 0; y2 < n; y2++) if (((A->img[y] >> y2) & 1) && B->blk[l - 1][y2] == B->blk[l - 1][x2]) ok = 0;
+                if (!ok) continue;
+                Sx *conj = dc_form("And", NULL); NdSet cs = all;
+                for (int y2 = 0; y2 < n; y2++) if ((A->img[y] >> y2) & 1) { int c = nd_dist(B, x2, y2, depth + 1); sx_push(conj, dc_int(c)); cs &= B->sat[c]; }
+                int c = nd_fnode(B, conj, cs); NdSet ds = 0;
+                for (int z = 0; z < n; z++) if (A->img[z] & B->sat[c]) ds |= (NdSet)1 << z;
+                k = nd_fnode(B, dc_form("Diamond", dc_sym(M->act[a].name), dc_int(c), NULL), ds); } }
+    }
+    if (k < 0) { int c = nd_dist(B, y, x, depth + 1); k = nd_fnode(B, dc_form("Not", dc_int(c), NULL), all & ~B->sat[c]); }
+    return B->memo[x][y] = k;
+}
+static Sx *nd_part(const NdBis *B, const NdCar *C, int *nb) {
+    Sx *part = dc_form("Partition", NULL); *nb = 0;
+    for (int b = 0; b < B->n; b++) { if (B->blk[B->L][b] != b) continue; Sx *bl = dc_form("Block", NULL);
+        for (int x = 0; x < B->n; x++) if (B->blk[B->L][x] == b) sx_push(bl, dc_sym(C->el[x]));
+        sx_push(part, bl); (*nb)++; }
+    return part;
+}
+static const char *nd_bis_setup(NdBis *B, const NdMod *s, int mi) {
+    static char why[200]; const NdMach *M = &s->mach[mi];
+    memset(B, 0, sizeof *B); memset(B->memo, -1, sizeof B->memo);
+    B->s = s; B->M = M; B->n = s->car[M->states].n;
+    for (int a = 0; a < M->nact; a++) { const NdMap *A = &s->map[M->act[a].map];
+        if (A->from != M->states || A->to != M->states) { snprintf(why, sizeof why, "Action map %s is not States -> States", A->name); return why; } }
+    for (int j = 0; j < M->nobs; j++) if (s->map[M->obs[j].map].from != M->states) { snprintf(why, sizeof why, "observer map %s is not on States", s->map[M->obs[j].map].name); return why; }
+    nd_bis_refine(B); return NULL;
+}
+/* (BehavioralTolerance M) -> the coarsest bisimulation; (CheckBehavioral R [(Discount 1)]
+ * [(Horizon AllFiniteWords)] [(Within 0)]) on a Representation R: Holds iff every same-code pair is
+ * bisimilar, else a ModalTestWitness for the first such pair. Other options: Unsupported. */
+static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q);
+static Sx *nd_bisim(DcModule *m, const NdMod *s, const Sx *q, int chk) {
+    const char *hd = q->items[0]->text, *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL, *e;
+    static NdBis B; int nb = 0;
+    if (!chk) {
+        int mi = nd_mach(s, a1);
+        if (mi < 0) return dc_invalid(m, "%s: names no declared Machine (%s)", hd, a1 ? a1 : "?");
+        if (q->n > 2) return dc_unsupported(m, "%s: options are not implemented for Profile Nondeterministic", hd);
+        if ((e = nd_bis_setup(&B, s, mi))) return dc_invalid(m, "%s %s: %s", hd, a1, e);
+        Sx *part = nd_part(&B, &s->car[s->mach[mi].states], &nb);
+        return nd_env(m, VERDICT_HOLDS, q, a1, dc_form("Value", dc_form("Bisimulation", part, dc_form("Classes", dc_int(nb), NULL), NULL), NULL),
+                      dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("PartitionRefinement"), NULL), dc_form("Rounds", dc_int(B.L), NULL), NULL), NULL), NULL);
+    }
+    for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->n ? nm_of(o->items[0]) : NULL; DcRat g;
+        if (oh && !strcmp(oh, "Horizon") && o->n == 2 && nm_of(o->items[1]) && !strcmp(o->items[1]->text, "AllFiniteWords")) continue;
+        if (oh && (!strcmp(oh, "Discount") || !strcmp(oh, "Within")) && o->n == 2 && !dc_sx_rat(o->items[1], &g)) {
+            if (g.n == (strcmp(oh, "Discount") ? 0 : g.d)) continue;
+            return nd_haus(m, s, q); }
+        return nd_haus(m, s, q);
+    }
+    const Sx *d = NULL;
+    for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
+        if (sx_head_is(x, "Representation") && x->n >= 2 && nm_of(x->items[1]) && !strcmp(x->items[1]->text, a1)) d = x; }
+    if (!d) return dc_invalid(m, "%s: names no declared Representation (%s)", hd, a1 ? a1 : "?");
+    int mi = nd_mach(s, fld1(d, "Of")), ei = nd_map(s, fld1(d, "Encode"));
+    if (mi < 0 || ei < 0) return dc_invalid(m, "%s %s: (Of M) or (Encode e) names nothing declared", hd, a1);
+    const NdMach *M = &s->mach[mi]; const NdMap *E = &s->map[ei]; const NdCar *C = &s->car[M->states];
+    if (E->from != M->states || E->choice) return dc_invalid(m, "%s %s: Encode %s is not a function on the states of %s", hd, a1, E->name, M->name);
+    if ((e = nd_bis_setup(&B, s, mi))) return dc_invalid(m, "%s %s: %s", hd, a1, e);
+    for (int x = 0; x < C->n; x++) for (int z = x + 1; z < C->n; z++) {
+        if (E->img[x] != E->img[z] || B.blk[B.L][x] == B.blk[B.L][z]) continue;
+        int root = nd_dist(&B, x, z, 0);
+        if (B.bad || !((B.sat[root] >> x) & 1) || ((B.sat[root] >> z) & 1)) {   /* self-check: refuse, never emit a wrong witness */
+            for (int k = 0; k < B.nn; k++) sx_free(B.body[k]);
+            return dc_unsupported(m, "%s %s: distinguishing formula construction failed its self-check", hd, a1); }
+        Sx *fg = dc_form("Formula", dc_form("Root", dc_int(root), NULL), NULL);
+        for (int k = 0; k < B.nn; k++) sx_push(fg, dc_form("Node", dc_int(k), B.body[k], NULL));
+        char w[240]; snprintf(w, sizeof w, "%s and %s share a code but are not bisimilar", C->el[x], C->el[z]);
+        Sx *wit = dc_form("Witness", dc_form("ModalTestWitness", dc_form("Pair", dc_sym(C->el[x]), dc_sym(C->el[z]), NULL), fg,
+                                               dc_form("Left", dc_sym("True"), NULL), dc_form("Right", dc_sym("False"), NULL), NULL), NULL);
+        return nd_env_k(m, VERDICT_FAILS, q, "Representation", a1, NULL, dc_form("Evidence", wit, NULL), w);
+    }
+    Sx *part = nd_part(&B, C, &nb);
+    return nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, dc_form("Value", dc_sym("True"), NULL),
+                    dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("Bisimulation"), NULL), dc_form("Encode", dc_sym(E->name), NULL), part, NULL), NULL), NULL);
+}
+
+/* ---- m5-rest: may-trace equivalence on a Representation (spec 1068-1073: for nondeterministic
+ * machines only the crisp claim is defined, equal sets of possible observation traces under every
+ * word; 2554-2556: PSPACE-complete, reported under a budget). Subset-pair exploration: a pair
+ * (X, Z) holds the states each side may occupy before the next observation; observation vector y
+ * filters both, action a takes post-images. A pair where exactly one filtered side is empty yields a
+ * may-trace word (MayTraceWitness, name beyond registry). Exhausted budget or pair table: Unknown. ---- */
+#define ND_MAXY 256
+#define ND_TCAP 4096
+typedef struct { NdSet x, z; int par, y, a, d; } NdTP;
+static NdTP g_tp[ND_TCAP];
+static int nd_obsvecs(const NdMod *s, const NdMach *M, int n, int vec[ND_MAXY][8], NdSet *mask) {
+    int ny = 0;
+    for (int x = 0; x < n; x++) {
+        int cnt[8], el[8][64], idx[8] = {0}, empty = 0;
+        for (int j = 0; j < M->nobs; j++) { NdSet I = s->map[M->obs[j].map].img[x]; cnt[j] = 0;
+            for (int b = 0; b < 64; b++) if ((I >> b) & 1) el[j][cnt[j]++] = b;
+            if (!cnt[j]) empty = 1; }
+        if (empty) continue;
+        for (;;) {
+            int v[8] = {0}, y;
+            for (int j = 0; j < M->nobs; j++) v[j] = el[j][idx[j]];
+            for (y = 0; y < ny; y++) if (!memcmp(vec[y], v, sizeof(int) * (size_t)M->nobs)) break;
+            if (y == ny) { if (ny >= ND_MAXY) return -1; memcpy(vec[ny], v, sizeof v); mask[ny++] = 0; }
+            mask[y] |= (NdSet)1 << x;
+            int j = 0;
+            while (j < M->nobs && ++idx[j] == cnt[j]) idx[j++] = 0;
+            if (j == M->nobs) break;
+        }
+    }
+    return ny;
+}
+static int nd_tp_put(int *ht, int *np, NdSet X, NdSet Z, int par, int y, int a, int d) {
+    uint64_t h = (X * 0x9E3779B97F4A7C15ULL) ^ ((Z + 0x632BE59BD9B4E019ULL) * 0xC2B2AE3D27D4EB4FULL);
+    for (unsigned k = (unsigned)(h >> 50);; k = (k + 1) & 16383u) {
+        if (ht[k] < 0) { if (*np >= ND_TCAP) return -1; NdTP t = { X, Z, par, y, a, d }; g_tp[*np] = t; ht[k] = (*np)++; return 1; }
+        if (g_tp[ht[k]].x == X && g_tp[ht[k]].z == Z) return 0;
+    }
+}
+static Sx *nd_shows(const NdMod *s, const NdMach *M, const int *v) {
+    Sx *r = dc_form("Shows", NULL);
+    for (int j = 0; j < M->nobs; j++) sx_push(r, dc_form(M->obs[j].name, dc_sym(s->car[s->map[M->obs[j].map].to].el[v[j]]), NULL));
+    return r;
+}
+static Sx *nd_states(const char *h, const NdCar *C, NdSet X) {
+    Sx *r = dc_form(h, NULL);
+    for (int x = 0; x < C->n; x++) if ((X >> x) & 1) sx_push(r, dc_sym(C->el[x]));
+    return r;
+}
+static Sx *nd_maytrace(DcModule *m, const NdMod *s, const Sx *q) {
+    const char *hd = q->items[0]->text, *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL;
+    if (!strcmp(hd, "MeasureTrace")) return dc_unsupported(m, "MeasureTrace: for nondeterministic machines only the crisp claim (CheckTrace, may-trace equivalence) is defined (spec 1072-1073)");
+    long long budget = -1; int hor = -1;
+    for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->n ? nm_of(o->items[0]) : NULL;
+        const Sx *v = oh && o->n == 2 ? o->items[1] : NULL; DcRat g;
+        if (v && !strcmp(oh, "Horizon") && nm_of(v) && !strcmp(v->text, "AllFiniteWords")) continue;
+        if (v && !strcmp(oh, "Horizon") && sx_head_is(v, "Steps") && v->n == 2 && !dc_sx_rat(v->items[1], &g) && g.d == 1 && g.n >= 0 && g.n <= 64) { hor = (int)g.n; continue; }
+        if (v && !strcmp(oh, "Policies") && nm_of(v) && !strcmp(v->text, "Words")) continue;
+        if (v && !strcmp(oh, "Within") && !dc_sx_rat(v, &g) && g.n == 0) continue;
+        if (v && !strcmp(oh, "Budget") && sx_head_is(v, "PairExpansions") && v->n == 2 && !dc_sx_rat(v->items[1], &g) && g.d == 1 && g.n >= 0) { budget = g.n; continue; }
+        return dc_unsupported(m, "%s: option %s is not implemented for Profile Nondeterministic (crisp may-trace only)", hd, oh ? oh : "?");
+    }
+    const Sx *d = NULL;
+    for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
+        if (sx_head_is(x, "Representation") && x->n >= 2 && nm_of(x->items[1]) && !strcmp(x->items[1]->text, a1)) d = x; }
+    if (!d) return dc_invalid(m, "%s: names no declared Representation (%s)", hd, a1 ? a1 : "?");
+    int mi = nd_mach(s, fld1(d, "Of")), ei = nd_map(s, fld1(d, "Encode"));
+    if (mi < 0 || ei < 0) return dc_invalid(m, "%s %s: (Of M) or (Encode e) names nothing declared", hd, a1);
+    const NdMach *M = &s->mach[mi]; const NdMap *E = &s->map[ei]; const NdCar *C = &s->car[M->states];
+    if (E->from != M->states || E->choice) return dc_invalid(m, "%s %s: Encode %s is not a function on the states of %s", hd, a1, E->name, M->name);
+    for (int a = 0; a < M->nact; a++) { const NdMap *A = &s->map[M->act[a].map];
+        if (A->from != M->states || A->to != M->states) return dc_invalid(m, "%s %s: Action map %s is not States -> States", hd, a1, A->name); }
+    if (M->nobs > 8) return dc_unsupported(m, "%s %s: more than 8 observers", hd, a1);
+    static int vec[ND_MAXY][8], ht[16384]; NdSet mk[ND_MAXY];
+    int n = C->n, ny = nd_obsvecs(s, M, n, vec, mk), np = 0, hit = -1, hy = -1, over = 0; long long exp = 0;
+    if (ny < 0) return dc_unsupported(m, "%s %s: more than %d distinct observation vectors", hd, a1, ND_MAXY);
+    for (int k = 0; k < 16384; k++) ht[k] = -1;
+    for (int x = 0; x < n && !over; x++) for (int z = x + 1; z < n && !over; z++)
+        if (E->img[x] == E->img[z] && nd_tp_put(ht, &np, (NdSet)1 << x, (NdSet)1 << z, -1, -1, -1, 0) < 0) over = 2;
+    for (int i = 0; i < np && hit < 0 && !over; i++) {
+        if (budget >= 0 && exp >= budget) { over = 1; break; }
+        exp++;
+        for (int y = 0; y < ny && hit < 0 && !over; y++) {
+            NdSet X = g_tp[i].x & mk[y], Z = g_tp[i].z & mk[y];
+            if (!X && !Z) continue;
+            if (!X || !Z) { hit = i; hy = y; break; }
+            if (hor >= 0 && g_tp[i].d >= hor) continue;
+            for (int a = 0; a < M->nact && !over; a++) { const NdMap *A = &s->map[M->act[a].map];
+                NdSet X2 = nd_post(A, X), Z2 = nd_post(A, Z);
+                if ((X2 || Z2) && nd_tp_put(ht, &np, X2, Z2, i, y, a, g_tp[i].d + 1) < 0) over = 2; }
+        }
+    }
+    if (hit >= 0) {
+        int chain[ND_TCAP], nc = 0;
+        for (int c = hit; c >= 0; c = g_tp[c].par) chain[nc++] = c;
+        const NdTP *s0 = &g_tp[chain[nc - 1]]; int x = __builtin_ctzll(s0->x), z = __builtin_ctzll(s0->z);
+        Sx *word = dc_form("Word", NULL), *tr = dc_form("Trace", NULL);
+        for (int k = nc - 2; k >= 0; k--) { const NdTP *t = &g_tp[chain[k]];
+            sx_push(tr, nd_shows(s, M, vec[t->y])); sx_push(tr, dc_sym(M->act[t->a].name)); sx_push(word, dc_sym(M->act[t->a].name)); }
+        sx_push(tr, nd_shows(s, M, vec[hy]));
+        int lx = (g_tp[hit].x & mk[hy]) != 0;
+        char w[240]; snprintf(w, sizeof w, "%s and %s share a code but only %s can show this observation trace", C->el[x], C->el[z], lx ? C->el[x] : C->el[z]);
+        Sx *wit = dc_form("Witness", dc_form("MayTraceWitness", dc_form("Pair", dc_sym(C->el[x]), dc_sym(C->el[z]), NULL), word, tr,
+                                             dc_form("Left", dc_sym(lx ? "True" : "False"), NULL), dc_form("Right", dc_sym(lx ? "False" : "True"), NULL), NULL), NULL);
+        return nd_env_k(m, VERDICT_FAILS, q, "Representation", a1, NULL, dc_form("Evidence", wit, NULL), w);
+    }
+    if (over) {
+        char w[240]; snprintf(w, sizeof w, over == 1 ? "may-trace exploration stopped at the budget of %lld pair expansions with no difference found" : "may-trace exploration stopped at this implementation's limit of %lld pairs with no difference found",
+                              over == 1 ? budget : (long long)ND_TCAP);
+        g_nd_rep = 0;
+        Sx *r = nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, NULL, dc_form("Evidence", dc_form("Explored", dc_form("PairExpansions", dc_int(exp), NULL), dc_form("Pairs", dc_int(np), NULL), NULL), NULL), w);
+        g_nd_rep = 1; return r;
+    }
+    Sx *ps = dc_form("Pairs", NULL);
+    for (int i = 0; i < np; i++) sx_push(ps, dc_form("P", dc_int(g_tp[i].d), nd_states("Left", C, g_tp[i].x), nd_states("Right", C, g_tp[i].z), NULL));
+    return nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, dc_form("Value", dc_sym("True"), NULL),
+                    dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("MayTraceSubsetPairs"), NULL), dc_form("Horizon", hor >= 0 ? dc_form("Steps", dc_int(hor), NULL) : dc_sym("AllFiniteWords"), NULL), ps, NULL), NULL), NULL);
+}
+
+/* ---- m5-rest: discounted behavioral distance on a nondeterministic machine (spec 951 Hausdorff
+ * lifting, Def 4.1, Def 4.9 tests with the gamma-max modality, Prop 4.10(1)(3)). With functional
+ * observers d^g(x,y) = g^s, s the first refinement round that splits x and y (0 when never split);
+ * through (Horizon (Steps h)) only rounds s <= h count. Lower certificate: a test phi with
+ * phi(x) - phi(y) = g^s; nodes Indicator, Not, Min (empty = 1), Sub (max(0, phi - r)), Diamond a k g
+ * (g times the max over a-successors, 0 when none). Upper certificate: kernel layers with, per pair and
+ * action, a forward and a backward matching (Prop 4.10(3)); one side without successors needs K >= g.
+ * Node and Kind names are beyond registry. (Budget (Unrollings k)) below the stabilizing round: Unknown. ---- */
+typedef struct { NdBis *B; DcRat g, gp[ND_MAXC + 3], zero, one; int memo[ND_MAXC][ND_MAXC]; DcRat *V; int nn, bad, ovf; Sx *body[ND_MAXF]; } NdQt;
+#define QV(T, k, z) ((T)->V[(size_t)(k) * ND_MAXC + (size_t)(z)])
+static int nd_split(const NdBis *B, int x, int y) { int l = 0; while (l <= B->L && B->blk[l][x] == B->blk[l][y]) l++; return l; }
+static DcRat nd_dval(const NdQt *T, int x, int y, int h) {   /* h < 0: the fixed point */
+    int sl = nd_split(T->B, x, y);
+    return (sl > T->B->L || (h >= 0 && sl > h)) ? T->zero : T->gp[sl];
+}
+static int nd_qnode(NdQt *T, Sx *body) {
+    if (T->nn >= ND_MAXF) { T->bad = 1; sx_free(body); return -1; }
+    T->body[T->nn] = body; return T->nn++;
+}
+static int nd_qt(NdQt *T, int x, int y, int depth) {
+    NdBis *B = T->B; const NdMod *s = B->s; const NdMach *M = B->M; int n = B->n, k = -1;
+    if (T->memo[x][y] >= 0) return T->memo[x][y];
+    if (T->bad || depth > 2 * ND_MAXC + 4) { T->bad = 1; return -1; }
+    int sl = nd_split(B, x, y);
+    if (sl > B->L) { T->bad = 1; return -1; }
+    if (sl == 0) {
+        for (int j = 0; j < M->nobs && k < 0; j++) { const NdMap *O = &s->map[M->obs[j].map]; NdSet d = O->img[x] & ~O->img[y];
+            if (!d) continue;
+            int v = __builtin_ctzll(d);
+            if ((k = nd_qnode(T, dc_form("Indicator", dc_sym(M->obs[j].name), dc_sym(s->car[O->to].el[v]), NULL))) < 0) return -1;
+            for (int z = 0; z < n; z++) QV(T, k, z) = ((O->img[z] >> v) & 1) ? T->one : T->zero;
+        }
+    } else {
+        for (int a = 0; a < M->nact && k < 0; a++) { const NdMap *A = &s->map[M->act[a].map];
+            for (int x2 = 0; x2 < n && k < 0; x2++) {
+                if (!((A->img[x] >> x2) & 1)) continue;
+                int ok = 1;
+                for (int y2 = 0; y2 < n; y2++) if (((A->img[y] >> y2) & 1) && B->blk[sl - 1][y2] == B->blk[sl - 1][x2]) ok = 0;
+                if (!ok) continue;
+                int ch[ND_MAXC], nc = 0;
+                for (int y2 = 0; y2 < n; y2++) if ((A->img[y] >> y2) & 1) { if ((ch[nc++] = nd_qt(T, x2, y2, depth + 1)) < 0) return -1; }
+                Sx *mn = dc_form("Min", NULL);
+                for (int i = 0; i < nc; i++) sx_push(mn, dc_int(ch[i]));
+                int c = nd_qnode(T, mn);
+                if (c < 0) return -1;
+                for (int z = 0; z < n; z++) { DcRat v = T->one; for (int i = 0; i < nc; i++) v = dc_rat_min(v, QV(T, ch[i], z)); QV(T, c, z) = v; }
+                if ((k = nd_qnode(T, dc_form("Diamond", dc_sym(M->act[a].name), dc_int(c), rsx(T->g), NULL))) < 0) return -1;
+                for (int z = 0; z < n; z++) { DcRat v = T->zero;
+                    for (int z2 = 0; z2 < n; z2++) if ((A->img[z] >> z2) & 1) v = dc_rat_max(v, QV(T, c, z2));
+                    QV(T, k, z) = dc_rat_mul(T->g, v, &T->ovf); }
+            }
+        }
+    }
+    if (k < 0) {   /* the difference is on y's side: Sub(Not psi_{y,x}, 1 - g^s) */
+        int c = nd_qt(T, y, x, depth + 1);
+        if (c < 0) return -1;
+        int nt = nd_qnode(T, dc_form("Not", dc_int(c), NULL));
+        if (nt < 0) return -1;
+        for (int z = 0; z < n; z++) QV(T, nt, z) = dc_rat_sub(T->one, QV(T, c, z), &T->ovf);
+        DcRat r = dc_rat_sub(T->one, T->gp[sl], &T->ovf);
+        if ((k = nd_qnode(T, dc_form("Sub", dc_int(nt), rsx(r), NULL))) < 0) return -1;
+        for (int z = 0; z < n; z++) { DcRat v = dc_rat_sub(QV(T, nt, z), r, &T->ovf); QV(T, k, z) = dc_rat_cmp(v, T->zero) > 0 ? v : T->zero; }
+    }
+    return T->memo[x][y] = k;
+}
+static Sx *nd_layer(NdQt *T, int l, int h) {   /* kernel at horizon l (h < 0: fixed point), matchings into layer l-1 (or itself) */
+    NdBis *B = T->B; const NdMod *s = B->s; const NdMach *M = B->M; const NdCar *C = &s->car[M->states]; int n = B->n;
+    int hl = h < 0 ? -1 : l, hp = h < 0 ? -1 : l - 1;
+    Sx *K = dc_form("Kernel", NULL), *Mt = dc_form("Matchings", NULL);
+    for (int x = 0; x < n; x++) for (int y = x + 1; y < n; y++) {
+        DcRat v = nd_dval(T, x, y, hl);
+        if (!dc_rat_is_zero(v)) sx_push(K, dc_form("P", dc_sym(C->el[x]), dc_sym(C->el[y]), rsx(v), NULL));
+        if ((h >= 0 && l == 0) || dc_rat_cmp(v, T->one) >= 0) continue;
+        for (int a = 0; a < M->nact; a++) { const NdMap *A = &s->map[M->act[a].map];
+            if (!A->img[x] || !A->img[y]) continue;
+            Sx *f = dc_form("Fwd", NULL), *b = dc_form("Bwd", NULL);
+            for (int x2 = 0; x2 < n; x2++) if ((A->img[x] >> x2) & 1) { int by = -1;
+                for (int y2 = 0; y2 < n; y2++) if (((A->img[y] >> y2) & 1) && (by < 0 || dc_rat_cmp(nd_dval(T, x2, y2, hp), nd_dval(T, x2, by, hp)) < 0)) by = y2;
+                sx_push(f, dc_form(C->el[x2], dc_sym(C->el[by]), NULL)); }
+            for (int y2 = 0; y2 < n; y2++) if ((A->img[y] >> y2) & 1) { int bx = -1;
+                for (int x2 = 0; x2 < n; x2++) if (((A->img[x] >> x2) & 1) && (bx < 0 || dc_rat_cmp(nd_dval(T, x2, y2, hp), nd_dval(T, bx, y2, hp)) < 0)) bx = x2;
+                sx_push(b, dc_form(C->el[y2], dc_sym(C->el[bx]), NULL)); }
+            sx_push(Mt, dc_form("Match", dc_sym(C->el[x]), dc_sym(C->el[y]), dc_sym(M->act[a].name), f, b, NULL));
+        }
+    }
+    return dc_form("Layer", dc_int(l), K, Mt, NULL);
+}
+static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
+    const char *hd = q->items[0]->text, *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL, *e;
+    int chk = !strcmp(hd, "CheckBehavioral"), hor = -1, ovf = 0; long long bud = -1, pex = -1;
+    DcRat g = dc_rat(1, 1, &ovf), b = dc_rat(0, 1, &ovf);
+    for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->n ? nm_of(o->items[0]) : NULL;
+        const Sx *v = oh && o->n == 2 ? o->items[1] : NULL; DcRat t;
+        if (v && !strcmp(oh, "Discount")) {
+            if (dc_sx_rat(v, &g) || g.n < 0 || g.n > g.d) return dc_invalid(m, "%s: expected (Discount g) with 0 <= g <= 1", hd);
+            continue; }
+        if (v && !strcmp(oh, "Horizon") && nm_of(v) && !strcmp(v->text, "AllFiniteWords")) continue;
+        if (v && !strcmp(oh, "Horizon")) {
+            if (!sx_head_is(v, "Steps") || v->n != 2 || dc_sx_rat(v->items[1], &t) || t.d != 1 || t.n < 0 || t.n > 64)
+                return dc_invalid(m, "%s: expected (Horizon (Steps h)) with 0 <= h <= 64", hd);
+            hor = (int)t.n; continue; }
+        if (v && !strcmp(oh, "Within") && chk) {
+            if (dc_sx_rat(v, &b) || b.n < 0) return dc_invalid(m, "%s: expected (Within b) with b >= 0", hd);
+            continue; }
+        if (v && !strcmp(oh, "Precision") && !chk) {
+            if (dc_sx_rat(v, &t) || t.n < 0) return dc_invalid(m, "%s: expected (Precision r) with r >= 0", hd);
+            continue; }
+        if (v && !strcmp(oh, "Budget") && sx_head_is(v, "Unrollings") && v->n == 2 && !dc_sx_rat(v->items[1], &t) && t.d == 1 && t.n >= 0) { bud = t.n; continue; }
+        if (v && !strcmp(oh, "Budget")) {   /* review 1 F4: (Budget (PairExpansions k)) / (Budget k) */
+            const char *u; long k = nd_budget(o, &u);
+            if (k >= 0) { pex = k; continue; } }
+        return dc_unsupported(m, "%s: option %s is not implemented for Profile Nondeterministic", hd, oh ? oh : "?");
+    }
+    const Sx *d = NULL;
+    for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
+        if (sx_head_is(x, "Representation") && x->n >= 2 && nm_of(x->items[1]) && !strcmp(x->items[1]->text, a1)) d = x; }
+    if (!d) return dc_invalid(m, "%s: names no declared Representation (%s)", hd, a1 ? a1 : "?");
+    int mi = nd_mach(s, fld1(d, "Of")), ei = nd_map(s, fld1(d, "Encode"));
+    if (mi < 0 || ei < 0) return dc_invalid(m, "%s %s: (Of M) or (Encode e) names nothing declared", hd, a1);
+    const NdMach *M = &s->mach[mi]; const NdMap *E = &s->map[ei]; const NdCar *C = &s->car[M->states];
+    if (E->from != M->states || E->choice) return dc_invalid(m, "%s %s: Encode %s is not a function on the states of %s", hd, a1, E->name, M->name);
+    for (int j = 0; j < M->nobs; j++) if (s->map[M->obs[j].map].choice)
+        return dc_unsupported(m, "%s %s: observer %s is set-valued (Choice); the quantitative distance needs functional observers", hd, a1, M->obs[j].name);
+    static NdBis B; static NdQt T;
+    if ((e = nd_bis_setup(&B, s, mi))) return dc_invalid(m, "%s %s: %s", hd, a1, e);
+    memset(&T, 0, sizeof T); memset(T.memo, -1, sizeof T.memo);
+    static DcRat *Vbuf; if (!Vbuf) Vbuf = malloc(sizeof(DcRat) * (size_t)ND_MAXF * ND_MAXC);
+    if (!Vbuf) return dc_unsupported(m, "%s: out of memory", hd);
+    T.V = Vbuf; T.B = &B; T.g = g; T.zero = dc_rat(0, 1, &ovf); T.one = dc_rat(1, 1, &ovf); T.gp[0] = T.one;
+    for (int k = 1; k <= B.L + 2 && k < ND_MAXC + 3; k++) T.gp[k] = dc_rat_mul(T.gp[k - 1], g, &T.ovf);
+    if (ovf || T.ovf) return dc_unsupported(m, "%s %s: rational overflow (64-bit limit) in the powers of the discount", hd, a1);
+    if (pex >= 0) {   /* review 1 F4: one refinement round examines every pair of states once */
+        long long np = (long long)C->n * (C->n - 1) / 2, r = pex / (np < 1 ? 1 : np);
+        if (bud < 0 || r < bud) bud = r; }
+    int n = C->n, known = bud < 0 || bud >= B.L || (hor >= 0 && hor <= bud);
+    int eh = known ? hor : (hor >= 0 && hor < bud ? hor : (int)bud);   /* rounds whose splits are counted */
+    DcRat lo = T.zero; int wx = -1, wy = -1, open = 0;
+    for (int x = 0; x < n; x++) for (int y = x + 1; y < n; y++) {
+        if (E->img[x] != E->img[y]) continue;
+        DcRat v = nd_dval(&T, x, y, eh);
+        if (dc_rat_cmp(v, lo) > 0) { lo = v; wx = x; wy = y; }
+        if (!known && nd_split(&B, x, y) > bud) open = 1;
+    }
+    Sx *wit = NULL;
+    if (wx >= 0) {
+        int root = nd_qt(&T, wx, wy, 0);
+        if (root < 0 || T.bad || T.ovf || dc_rat_cmp(dc_rat_sub(QV(&T, root, wx), QV(&T, root, wy), &T.ovf), lo) || T.ovf) {
+            for (int k = 0; k < T.nn; k++) sx_free(T.body[k]);
+            return dc_unsupported(m, "%s %s: the lower-certificate test failed its self-check", hd, a1); }
+        Sx *fg = dc_form("Formula", dc_form("Root", dc_int(root), NULL), NULL);
+        for (int k = 0; k < T.nn; k++) sx_push(fg, dc_form("Node", dc_int(k), T.body[k], NULL));
+        wit = dc_form("ModalTestWitness", dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[wy]), NULL), fg,
+                      dc_form("Left", rsx(QV(&T, root, wx)), NULL), dc_form("Right", rsx(QV(&T, root, wy)), NULL), NULL);
+    }
+    Sx *hz = hor >= 0 ? dc_form("Steps", dc_int(hor), NULL) : dc_sym("AllFiniteWords");
+    if (!known) {
+        DcRat up = open ? dc_rat_max(lo, T.gp[bud + 1]) : lo;
+        if (chk && dc_rat_cmp(lo, b) > 0) {
+            Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym("False"), NULL), dc_form("BehavioralInterval", dc_form("Lower", rsx(lo), NULL), dc_form("Upper", rsx(up), NULL), NULL), NULL);
+            sx_free(hz);
+            return nd_env_k(m, VERDICT_FAILS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Witness", wit, NULL), NULL), "the lower-certificate test already exceeds the Within bound");
+        }
+        if (chk && dc_rat_cmp(up, b) <= 0) {   /* review 1 F4: registered rule, Checked when the upper end is at most Within */
+            if (wit) sx_free(wit);
+            Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym("True"), NULL), dc_form("BehavioralInterval", dc_form("Lower", rsx(lo), NULL), dc_form("Upper", rsx(up), NULL), NULL), dc_form("Discount", rsx(g), NULL), dc_form("Horizon", hz, NULL), NULL);
+            return nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)bud), NULL), NULL), NULL), "the upper end of the budget interval is at most the Within bound");
+        }
+        if (wit) sx_free(wit);
+        char w[200]; snprintf(w, sizeof w, "refinement stopped at the budget of %lld unrollings before it stabilized", bud);
+        Sx *val = dc_form("Value", dc_form("BehavioralInterval", dc_form("Lower", rsx(lo), NULL), dc_form("Upper", rsx(up), NULL), NULL), dc_form("Discount", rsx(g), NULL), dc_form("Horizon", hz, NULL), NULL);
+        g_nd_rep = 0;
+        Sx *r = nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)bud), NULL), NULL), NULL), w);
+        g_nd_rep = 1; return r;
+    }
+    Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym(hor < 0 ? "Prefixpoint" : "LayeredPrefixpoint"), NULL), dc_form("Discount", rsx(g), NULL), dc_form("Horizon", hz, NULL), NULL);
+    if (hor < 0) sx_push(cert, nd_layer(&T, 0, -1));
+    else for (int l = 0; l <= hor; l++) sx_push(cert, nd_layer(&T, l, hor));
+    int holds = !chk || dc_rat_cmp(lo, b) <= 0;
+    Sx *val = dc_form("Value", dc_form("BehavioralDefect", rsx(lo), NULL), dc_form("Discount", rsx(g), NULL), NULL);
+    if (chk) sx_push(val, dc_form("WithinBound", dc_sym(holds ? "True" : "False"), NULL));
+    Sx *ev = dc_form("Evidence", NULL);
+    if (chk && !holds) { sx_free(cert); sx_push(ev, dc_form("Witness", wit, NULL)); }
+    else { sx_push(ev, cert); if (wit) sx_push(ev, dc_form("Test", wit, NULL)); }
+    return nd_env_k(m, holds ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
+}
+
+/* ---- m5-rest: iterated refinement for Profile Nondeterministic (registered Refine; spec 3836-3841:
+ * one CEGAR turn splits Start back into S0, S1, S2; guide 3.6). Seed (Preserve Encoding): equal Encode
+ * code and equal observer images. Round l splits states whose a-successor block sets under round l-1
+ * differ for some action a (update compatibility of a set-valued map). (Until Stable) iterates to the
+ * fixed point; (Until (Steps k)) returns the staged partition P_k; (Budget (Unrollings k)) bounds the
+ * rounds computed (confirming stability is one round): exhausted before the answer -> Unknown.
+ * Certificate kind PartitionRefinement (beyond registry, m5rest notes) lists every stage. CheckSafety
+ * (Y04) is untouched. ---- */
+static int g_nd_slot = -1;
+static Sx *nd_partsx(const NdCar *C, int n, const int *blk) {
+    Sx *part = dc_form("Partition", NULL);
+    for (int b = 0; b < n; b++) { if (blk[b] != b) continue;
+        Sx *bl = dc_form("Block", NULL);
+        for (int x = 0; x < n; x++) if (blk[x] == b) sx_push(bl, dc_sym(C->el[x]));
+        sx_push(part, bl); }
+    return part;
+}
+static Sx *nd_refine(DcModule *m, const NdMod *s, const Sx *q) {
+    const char *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL, *e;
+    int hor = -1; long long bud = -1;
+    for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->kind == SX_LIST && o->n ? nm_of(o->items[0]) : NULL;
+        const Sx *v = oh && o->n == 2 ? o->items[1] : NULL; DcRat t;
+        if (v && !strcmp(oh, "Preserve") && nm_of(v) && !strcmp(v->text, "Encoding")) continue;
+        if (v && !strcmp(oh, "Until") && nm_of(v) && !strcmp(v->text, "Stable")) continue;
+        if (oh && !strcmp(oh, "Until")) {
+            if (!v || !sx_head_is(v, "Steps") || v->n != 2 || dc_sx_rat(v->items[1], &t) || t.d != 1 || t.n < 0 || t.n > ND_MAXC)
+                return dc_invalid(m, "Refine: expected (Until Stable) or (Until (Steps k)) with 0 <= k <= %d", ND_MAXC);
+            hor = (int)t.n; continue; }
+        if (v && !strcmp(oh, "Budget") && sx_head_is(v, "Unrollings") && v->n == 2 && !dc_sx_rat(v->items[1], &t) && t.d == 1 && t.n >= 0) { bud = t.n; continue; }
+        return dc_unsupported(m, "Refine: option %s is not implemented for Profile Nondeterministic (it takes (Preserve Encoding), (Until Stable | (Steps k)), (Budget (Unrollings k)))", oh ? oh : "?");
+    }
+    const Sx *d = NULL;
+    for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
+        if (sx_head_is(x, "Representation") && x->n >= 2 && nm_of(x->items[1]) && !strcmp(x->items[1]->text, a1)) d = x; }
+    if (!d) return dc_invalid(m, "Refine: names no declared Representation (%s)", a1 ? a1 : "?");
+    int mi = nd_mach(s, fld1(d, "Of")), ei = nd_map(s, fld1(d, "Encode"));
+    if (mi < 0 || ei < 0) return dc_invalid(m, "Refine %s: (Of M) or (Encode e) names nothing declared", a1);
+    const NdMach *M = &s->mach[mi]; const NdMap *E = &s->map[ei]; const NdCar *C = &s->car[M->states];
+    if (E->from != M->states || E->choice) return dc_invalid(m, "Refine %s: Encode %s is not a function on the states of %s", a1, E->name, M->name);
+    static NdBis B; static int st[ND_MAXC + 1][ND_MAXC];
+    if ((e = nd_bis_setup(&B, s, mi))) return dc_invalid(m, "Refine %s: %s", a1, e);
+    int n = B.n, L = 0, stable = 0;
+    memset(st, 0, sizeof st);
+    for (int x = 0; x < n; x++) { st[0][x] = x;
+        for (int y = 0; y < x; y++) { if (E->img[x] != E->img[y]) continue; int same = 1;
+            for (int j = 0; j < M->nobs; j++) if (s->map[M->obs[j].map].img[x] != s->map[M->obs[j].map].img[y]) same = 0;
+            if (same) { st[0][x] = st[0][y]; break; } } }
+    int confirmed = 0;   /* 1 when the round after the last stage was computed (Stable True/False is then decided) */
+    for (;;) {
+        if ((bud >= 0 && L >= bud) || L >= ND_MAXC) break;
+        int capped = hor >= 0 && L >= hor;
+        int *nx = st[L + 1], *pv = st[L];
+        for (int x = 0; x < n; x++) { nx[x] = x;
+            for (int y = 0; y < x; y++) { if (pv[x] != pv[y]) continue; int same = 1;
+                for (int a = 0; a < M->nact && same; a++) { const NdMap *A = &s->map[M->act[a].map];
+                    if (nd_blkset(pv, A->img[x], n) != nd_blkset(pv, A->img[y], n)) same = 0; }
+                if (same) { nx[x] = nx[y]; break; } } }
+        confirmed = 1;
+        if (!memcmp(nx, pv, sizeof st[0])) { stable = 1; break; }
+        if (capped) break;   /* at (Steps k) the extra round only decides the Stable flag */
+        confirmed = 0; L++;
+    }
+    int known = stable || (hor >= 0 && L >= hor), nb = 0;
+    for (int x = 0; x < n; x++) nb += st[L][x] == x;
+    const char *rn = g_nd_slot >= 0 ? m->der[g_nd_slot].name : a1;
+    if (!known) {
+        char w[200]; snprintf(w, sizeof w, "refinement stopped at the budget of %lld unrollings before it stabilized", bud);
+        Sx *val = dc_form("Value", dc_form("PartialRefinement", dc_form("Stage", dc_int(L), NULL), nd_partsx(C, n, st[L]), dc_form("Classes", dc_int(nb), NULL), NULL), NULL);
+        g_nd_rep = 0;
+        Sx *r = nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)bud), NULL), NULL), NULL), w);
+        g_nd_rep = 1; return r;
+    }
+    Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym("PartitionRefinement"), NULL), dc_form("Seed", dc_sym("Encoding"), NULL), NULL);
+    for (int l = 0; l <= L; l++) sx_push(cert, dc_form("Stage", dc_int(l), nd_partsx(C, n, st[l]), NULL));
+    sx_push(cert, dc_form("Stable", dc_sym(stable ? "True" : confirmed ? "False" : "Unconfirmed"), NULL));   /* Unconfirmed: budget ended at (Steps k) */
+    Sx *val = dc_form("Value", dc_form("Refinement", dc_form("Representation", dc_sym(rn ? rn : "?"), NULL), nd_partsx(C, n, st[L]), dc_form("Classes", dc_int(nb), NULL), NULL), NULL);
+    return nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
+}
+
+static Sx *nd_req_core(DcModule *m, const NdMod *s, const Sx *q, const char *head);
+/* m5-rest: declared read annotations (Read action Shared|Fresh) are part of the interface identity
+ * (guide 262, 305); every nondeterministic result of a module that declares any echoes them in its
+ * Evidence as (ReadAnnotations (Read machine action mode)..). Not in Assumptions: an assumption would
+ * turn Checked into Conditional (ops_core.c 105-110). Modules without annotations are unchanged. */
 Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
-    DcModule *m = r->m; static NdMod S; char err[256]; (void)slot;
+    DcModule *m = r->m; static NdMod S; char err[256];
     if (nd_read(m->source, &S, err, sizeof err)) return dc_invalid(m, "nondeterministic module: %s", err);
+    g_nd_slot = slot;
+    Sx *res = nd_req_core(m, &S, q, head), *ra = NULL;
+    for (int i = 0; i < S.nmach; i++) for (int a = 0; a < S.mach[i].nact; a++) if (S.mach[i].read[a]) {
+        if (!ra) ra = dc_form("ReadAnnotations", NULL);
+        sx_push(ra, dc_form("Read", dc_sym(S.mach[i].name), dc_sym(S.mach[i].act[a].name), dc_sym(S.mach[i].read[a] == 1 ? "Shared" : "Fresh"), NULL)); }
+    Sx *ev = ra && res ? (Sx *)sx_find(res, "Evidence", 1) : NULL;
+    if (ev) sx_push(ev, ra); else if (ra) sx_free(ra);
+    return res;
+}
+static Sx *nd_req_core(DcModule *m, const NdMod *s0, const Sx *q, const char *head) {
+#define S (*s0)
     if (!strcmp(head, "Outcomes")) return nd_outcomes(m, &S, q, 0);
     if (!strcmp(head, "OutcomeProbability")) return nd_outcomes(m, &S, q, 1);
     if (!strcmp(head, "CheckSimulation")) return nd_checksim(m, &S, q);
     if (!strcmp(head, "CheckSafety")) return nd_safety(m, &S, q);
     if (!strcmp(head, "InduceExact")) return nd_induce(m, &S, q);
+    if (!strcmp(head, "BehavioralTolerance")) return nd_bisim(m, &S, q, 0);
+    if (!strcmp(head, "CheckBehavioral")) return nd_bisim(m, &S, q, 1);
+    if (!strcmp(head, "MeasureBehavioral")) return nd_haus(m, &S, q);
+    if (!strcmp(head, "Refine")) return nd_refine(m, &S, q);
+    if (!strcmp(head, "CheckTrace") || !strcmp(head, "MeasureTrace")) return nd_maytrace(m, &S, q);
     return dc_unsupported(m, "request %s: not yet implemented for Profile Nondeterministic (M5 in progress)", head);
 }
+#undef S

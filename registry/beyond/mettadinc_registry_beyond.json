@@ -1,5 +1,5 @@
 {
- "registry": "MeTTaDinC request and declaration registry, with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted, and the local patches m4est (beyond release only)",
+ "registry": "MeTTaDinC request and declaration registry, with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted, and the local patches m4est, m5rest (beyond release only)",
  "date": "2026-11-05",
  "statuses": {
   "Checked": "The claim is established within its scope by an exact method that the core runs on the frozen model, or by a certificate that the core's replay checker validates.",
@@ -194,6 +194,18 @@
     "Nondeterministic"
    ],
    "doc": "a valid record on which the old and the new goal, each read through its declared decoder, call for different decisions"
+  },
+  "MayTraceWitness": {
+   "fields": [
+    "Pair",
+    "Word",
+    "Trace (alternating Shows vectors and actions)",
+    "Left",
+    "Right"
+   ],
+   "profiles": [
+    "Nondeterministic"
+   ]
   }
  },
  "witness_order": "replay accepts any witness that replays; the canonical witness, recorded in the manifest, is the least one: shortest word first, then pairs in lexicographic order of carrier declaration, then actions and queries in declaration order, then words in numeric order; policy trees of least depth first, then actions in declaration order at nodes taken in order of their histories",
@@ -510,6 +522,12 @@
      "type": "ref:Machine",
      "required": false,
      "doc": "the observe and action entries of another machine; States may differ (a scope)"
+    },
+    "Read": {
+     "type": "expr",
+     "required": false,
+     "repeatable": true,
+     "doc": "nondeterministic profile: (Read action Shared|Fresh) declares whether repeated reads of the choice made by action return the same value (Shared) or an independent one (Fresh); declared, never inferred (guide invariant 14); part of the interface identity"
     }
    },
    "body": null,
@@ -5232,6 +5250,13 @@
    "sha256": "87000ddd263f9911fd6872e11cff609dcee766ce206c7229d5d7d591f5ab6b39",
    "patch": "m4est: local registry patch for t-2026-11-12-mettadinc-m4-estimates review 1 (F2, F4, F5). Approved by the hive 2026-11-12 18:32 (block decision: opt-in, reversible deviation from Ben's decision 1, recorded in workspace DECISIONS.md). Adds the estimator choice, seeded sampling and policy reuse to EstimateRate and CompareRates, and the request EstimateDupRate. Every addition is first_release [] (beyond release only).",
    "date": "2026-11-12"
+  },
+  {
+   "name": "m5rest",
+   "file": "registry/patches/m5rest_registry_patch.json",
+   "sha256": "98045e52735fff63a9f72cafb3cd5e0f5ffba2b82249ed0444d380ab473989c9",
+   "patch": "m5rest: local registry patch for t-2026-11-13-mettadinc-m5-rest (beyond-release only; the order says names the specification does not register go beyond the registry). Adds the Machine read annotation (Read action Shared|Fresh), the MayTraceWitness witness type, and notes for the formula node and certificate kind names the nondeterministic handlers emit.",
+   "date": "2026-11-13"
   }
  ],
  "budget_units": [
@@ -5285,6 +5310,18 @@
   "Detect": {
    "text": "a monitor started at the first observation accumulates evidence for the null while the stream is healthy, and a change that comes late must first overcome it; the Shiryaev-Roberts scheme restarts implicitly at every observation, at the price of a guarantee on the mean time to a false alarm instead of on the probability of any false alarm",
    "patch": "wx"
+  },
+  "m5rest-formula-nodes": {
+   "text": "ModalTestWitness Formula nodes for Profile Nondeterministic: (Indicator o v), (Not k), (And k..) and (Min k..) (empty = 1), (Sub k r) = max(0, phi_k - r), (Diamond a k [g]) = g times the max over a-successors (0 when none).",
+   "patch": "m5rest"
+  },
+  "m5rest-certificate-kinds": {
+   "text": "Certificate kinds emitted by Profile Nondeterministic beyond the registered Test/Prefixpoint/LayeredPrefixpoint: PartitionRefinement (BehavioralTolerance; Refine, with Seed, Stage k Partition and Stable True|False|Unconfirmed), Bisimulation (CheckBehavioral, crisp), MayTraceSubsetPairs (CheckTrace, closed subset-pair table).",
+   "patch": "m5rest"
+  },
+  "m5rest-result-forms": {
+   "text": "Result forms emitted by Profile Nondeterministic beyond the registry: (ReadAnnotations (Read machine action Shared|Fresh)..) in Evidence of every result of a module that declares read annotations; (BehavioralInterval (Lower r) (Upper r)) and (PartialRefinement (Stage k) Partition Classes) in the Value of an Unknown answer whose budget ran out; (Explored (PairExpansions k) | (Unrollings k)) in its Evidence.",
+   "patch": "m5rest"
   }
  }
 }

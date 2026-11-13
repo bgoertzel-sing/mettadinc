@@ -91,6 +91,17 @@ Sx *dc_req_estimates(DcRun *run, const Sx *q, const char *head) {
     if (hs && !hd) return dc_invalid(m, "%s: (Sample %lld) needs (Seed s); the seed is recorded so the sample replays", head, K);
     if (hd && !hs) return dc_invalid(m, "%s: (Seed %lld) without (Sample k)", head, seed);
     const char *pol = fld(d, "Policy"), *dep = fld(d, "SelectionDependsOnPolicy");
+    /* m5-rest (estimates gaps leftover): the Estimate record carries (Policy digest), the version
+     * under which the rows were produced (spec 2510-2511, 4899-4902). A Stream with no Policy has
+     * none, so the request is InvalidInput before any row is read; the result never carries the
+     * literal (Policy "undeclared"), which a consumer would read as a policy name. */
+    if (!pol)
+        return dc_invalid(m, "%s: Stream %s declares no (Policy digest); an Estimate records the policy version under which its rows were produced", head, sn);
+    /* same rule for the other two envelope fields the record names (spec 4899-4900): a missing
+     * Population or Selection is InvalidInput, never the literal "undeclared". */
+    if (!fld(d, "Population") || !fld(d, "Selection"))
+        return dc_invalid(m, "%s: Stream %s declares no (%s ...); an Estimate states its estimand over a declared population and selection rule",
+                          head, sn, !fld(d, "Population") ? "Population" : "Selection");
     int seldep = dep && !strcmp(dep, "True");
     const Sx *ru = arg(q, "ReuseUnder");
     if (ru) {                                     /* F5: policy transport, decided before any row is read */
@@ -170,9 +181,9 @@ Sx *dc_req_estimates(DcRun *run, const Sx *q, const char *head) {
              : cs ? "confidence sequence of the uniform-prior (Beta(1,1)) binomial mixture"
              : hf ? "Hoeffding interval: sample proportion +- sqrt(log(2/delta)/(2n))" : "two-sided exact-binomial (Clopper-Pearson) interval");
     Sx *estimate = dc_form("Estimate", dc_form("Estimand", sx_str(estimand), NULL),
-        dc_form("Population", sx_str(fld(d, "Population") ? fld(d, "Population") : "undeclared"), NULL),
-        dc_form("Selection", sx_str(fld(d, "Selection") ? fld(d, "Selection") : "undeclared"), NULL),
-        dc_form("Policy", sx_str(pol ? pol : "undeclared"), NULL),
+        dc_form("Population", sx_str(fld(d, "Population")), NULL),
+        dc_form("Selection", sx_str(fld(d, "Selection")), NULL),
+        dc_form("Policy", sx_str(pol), NULL),
         dc_form("Estimator", sx_str(estname), NULL),
         dc_form("Protocol", sx_str(proto), NULL),
         dc_form("SampleSize", dc_int(dup ? (long)nr : n), NULL),   /* CompareRates: the discordant rows, as before */

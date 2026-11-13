@@ -1,0 +1,41 @@
+# m5-rest review 1 F2: expected statuses of the smoke fixtures (fixture, request head, beyond-release status, release status)
+bis_smoke	Bis (BehavioralTolerance M)	Checked	Unsupported
+bis_smoke	Bis (CheckBehavioral Bad)	Refuted	Unsupported
+bis_smoke	Bis (CheckBehavioral Ok)	Checked	Unsupported
+bis_smoke	Bis (CheckBehavioral Ok (Discount 1) (Horizon AllFiniteWords) (Within 0))	Checked	Unsupported
+bis_smoke	Bis (CheckBehavioral Ok (Within (Rat 1 2)))	Checked	Unsupported
+bis_smoke	Bis (CheckBehavioral Ok (Within (Rat 0 1)) (Discount (Rat 1 1)))	Checked	Unsupported
+bis_smoke	Bis (CheckBehavioral Bad (Discount (Rat 1 2)))	Refuted	Unsupported
+bis_smoke	Bis (CheckBehavioral Bad (Budget (Unit 3)))	Unknown	Unsupported
+bis_smoke	Bis (BehavioralTolerance M (Discount (Rat 1 2)))	Unsupported	Unsupported
+bis_smoke	Bis (CheckBehavioral Nope)	InvalidInput	InvalidInput
+h_smoke	Bis (MeasureBehavioral Bad (Discount (Rat 1 2)))	Checked	Unsupported
+h_smoke	Bis (MeasureBehavioral Ok (Discount (Rat 1 2)))	Checked	Unsupported
+h_smoke	Bis (MeasureBehavioral Bad)	Checked	Unsupported
+h_smoke	Bis (MeasureBehavioral Bad (Discount (Rat 1 2)) (Horizon (Steps 1)))	Checked	Unsupported
+h_smoke	Bis (MeasureBehavioral Bad (Discount (Rat 1 2)) (Budget (Unrollings 1)))	Unknown	Unsupported
+h_smoke	Bis (CheckBehavioral Bad (Discount (Rat 1 2)) (Within (Rat 1 4)))	Checked	Unsupported
+h_smoke	Bis (CheckBehavioral Bad (Discount (Rat 1 2)) (Within (Rat 1 8)))	Refuted	Unsupported
+h_smoke	Bis (CheckBehavioral Bad (Within (Rat 1 2)))	Refuted	Unsupported
+mt_smoke	Bis (CheckTrace Bad)	Refuted	Unsupported
+mt_smoke	Bis (CheckTrace Ok)	Checked	Unsupported
+mt_smoke	Bis (CheckTrace Bad (Horizon (Steps 1)))	Checked	Unsupported
+mt_smoke	Bis (CheckTrace Bad (Budget (PairExpansions 1)))	Unknown	Unsupported
+mt_smoke	Bis (MeasureTrace Bad)	InvalidInput	InvalidInput
+mt_smoke	Bis (CheckTrace Bad (Policies ObservationBased))	Unsupported	Unsupported
+mt_smoke	Tr (CheckTrace P)	Refuted	Unsupported
+rd_badact	Reads (Outcomes Shared (From Start) (After (Do read)) (Observe agree))	InvalidInput	InvalidInput
+rd_badact	Reads (Outcomes Fresh (From Start) (After (Do read)) (Observe agree))	InvalidInput	InvalidInput
+rd_badmode	Reads (Outcomes Shared (From Start) (After (Do read)) (Observe agree))	InvalidInput	InvalidInput
+rd_badmode	Reads (Outcomes Fresh (From Start) (After (Do read)) (Observe agree))	InvalidInput	InvalidInput
+rd_dup	Reads (Outcomes Shared (From Start) (After (Do read)) (Observe agree))	InvalidInput	InvalidInput
+rd_dup	Reads (Outcomes Fresh (From Start) (After (Do read)) (Observe agree))	InvalidInput	InvalidInput
+rd_ok	Reads (Outcomes Shared (From Start) (After (Do read)) (Observe agree))	Checked	InvalidInput
+rd_ok	Reads (Outcomes Fresh (From Start) (After (Do read)) (Observe agree))	Checked	InvalidInput
+rf_smoke	AccessProtocol (Refine StageQuotient (Preserve Encoding) (Until Stable))	Checked	Unsupported
+rf_smoke	AccessProtocol (Refine StageQuotient)	Checked	Unsupported
+rf_smoke	AccessProtocol (Refine StageQuotient (Until (Steps 1)))	Checked	Unsupported
+rf_smoke	AccessProtocol (Refine StageQuotient (Budget (Unrollings 0)))	Unknown	Unsupported
+rf_smoke	AccessProtocol (Refine StageQuotient (Budget (Unrollings 5)))	Checked	Unsupported
+rf_smoke	AccessProtocol (Refine StageQuotient (Under Foo))	InvalidInput	InvalidInput
+rf_smoke	AccessProtocol Lockout	Unknown	Unsupported
