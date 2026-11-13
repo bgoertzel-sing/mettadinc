@@ -329,7 +329,21 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
     static int comp[HV_MAXN], deg[HV_MAXN], ord[HV_MAXN]; static DcRat X[HV_MAXN][HV_MAXN];
     typedef struct { int a, b, c; DcRat y; } Dual;   /* c < 0: capacity x_ab <= 1; else x_ab + x_bc <= 1 (H(a,c) = 0) */
     static Dual D[HV_MAXN * HV_MAXN]; int nd = 0;
-    if (q->n != 2) return dc_invalid(m, "LeastCoherentRefinement: expected (LeastCoherentRefinement Hive)");
+    if (q->n < 2) return dc_invalid(m, "LeastCoherentRefinement: expected (LeastCoherentRefinement Hive [(Search Exhaustive|LinearProgram)] [(Budget b)])");
+    /* M6-rest: registry args (spec registry requests.LeastCoherentRefinement): Search Exhaustive|LinearProgram, default
+     * LinearProgram; Budget is a work limit.  Unsupported options answer Unsupported, never a silent fallback. */
+    { int hs = 0, hb = 0;
+      for (size_t i = 2; i < q->n; i++) {
+          const Sx *f = q->items[i];
+          if (sx_head_is(f, "Search") && f->n == 2 && f->items[1]->kind == SX_SYM && !hs) {
+              hs = 1;
+              if (!strcmp(f->items[1]->text, "LinearProgram")) continue;
+              if (!strcmp(f->items[1]->text, "Exhaustive")) return dc_unsupported(m, "LeastCoherentRefinement: (Search Exhaustive) is not implemented; graded refinements form a continuum, so this release answers through the exact linear program (Search LinearProgram) only");
+              return dc_invalid(m, "LeastCoherentRefinement: Search must be Exhaustive or LinearProgram");
+          }
+          if (sx_head_is(f, "Budget") && !hb) { hb = 1; return dc_unsupported(m, "LeastCoherentRefinement: (Budget ..) is not implemented; answers are exact or Unsupported"); }
+          return dc_invalid(m, "LeastCoherentRefinement: argument %zu is not (Search s) or (Budget b)", i - 1);
+      } }
     HV_LOAD("LeastCoherentRefinement")
     n = h->nn;
     for (int a = 0; a < n; a++) { comp[a] = -1; deg[a] = 0; for (int b = 0; b < n; b++) { X[a][b] = rq(a == b, 1); if (a != b && h->H[a][b]) deg[a]++; } }

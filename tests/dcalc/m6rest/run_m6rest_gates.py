@@ -43,4 +43,12 @@ zl = re.sub(r'\(Filled .*?\)\)\) \(NoPaths', '(Filled) (NoPaths', cl[0]).replace
 open(tz, 'w').write(zl + '\n')
 zr = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m6rest.py'), cf, tz], capture_output=True, text=True)
 report('CompleteHive neg: zero-filled completion (no Fill rows, cost 0) is rejected by the replayer', zl != cl[0] and zr.returncode != 0 and 'REJECT' in zr.stdout, zr.stdout.strip().splitlines()[:1])
+# LeastCoherentRefinement registry args (Search default LinearProgram; Exhaustive / Budget answer Unsupported, never a fallback)
+la = os.path.join(OUT, 'lcr_args.metta')
+lt = open(lf).read().split('\n!(dc.run')[0] + '\n' + '\n'.join('!(dc.run LcrLp (LeastCoherentRefinement UnequalTriangle%s))' % a for a in
+     ['', ' (Search LinearProgram)', ' (Search Exhaustive)', ' (Budget (Pivots 10))', ' (Search Greedy)']) + '\n'
+open(la, 'w').write(lt); lao = run(la); ls_ = statuses(lao); ll = [l for l in lao.splitlines() if ' => ' in l]
+report('LCR args: default and (Search LinearProgram) Checked and identical up to the claim', ls_[:2] == ['Checked', 'Checked'] and len(ll) > 1 and ll[0].split('(Value', 1)[1] == ll[1].split('(Value', 1)[1], ls_)
+report('LCR args neg: (Search Exhaustive) and (Budget ..) -> Unsupported with a reason (no silent fallback)', ls_[2:4] == ['Unsupported', 'Unsupported'] and 'not implemented' in ll[2] and 'not implemented' in ll[3], ls_)
+report('LCR args neg: unregistered Search value -> InvalidInput', ls_[4:5] == ['InvalidInput'], ls_)
 print('m6rest_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)
