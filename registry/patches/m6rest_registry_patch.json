@@ -74,6 +74,58 @@
     }
   },
   "notes": {
-    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable)."
+    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable). (Associator Hive Mi Mj Mk) -> HiveAssociator (request and result shape ours; definition spec l.2827)."
+  },
+  "requests": {
+    "Associator": {
+      "library": "Hives",
+      "positional": [
+        [
+          "hive",
+          "ref:KernelHive"
+        ],
+        [
+          "i",
+          "name"
+        ],
+        [
+          "j",
+          "name"
+        ],
+        [
+          "k",
+          "name"
+        ]
+      ],
+      "args": {},
+      "result": "HiveAssociator",
+      "statuses": [
+        "Checked"
+      ],
+      "profiles": [
+        "Deterministic",
+        "Stochastic",
+        "Nondeterministic"
+      ],
+      "carriers": [
+        "Enumerated",
+        "Symbolic",
+        "Snapshot"
+      ],
+      "first_release": [],
+      "claim": "associator [i, j, k] = c_ik - c_ij o c_jk of a kernel hive (definition spec Def 10.1 l.2827; request shape ours, M6-rest)"
+    }
+  },
+  "result_types": {
+    "HiveAssociator": {
+      "fields": {
+        "Members": "names",
+        "Entries": "(Entry a c direct composite difference)..",
+        "Zero": "True|False",
+        "Positive": "count",
+        "Negative": "count"
+      },
+      "doc": "ours (M6-rest): crisp associator entries over V_i x V_k; Zero True iff the direct correspondence equals the composite through j"
+    }
   }
 }

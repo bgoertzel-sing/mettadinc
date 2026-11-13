@@ -103,4 +103,30 @@ def replay_hive2(M, req, res, st):
     return replay_complete(M, req, res, st) if head(req) == 'CompleteHive' else _lcr(M, req, res, st)
 R.replay_hive = replay_hive2
 
+# ---- Associator (M6-rest; request shape ours, definition spec Def 10.1 l.2827) ----
+def replay_assoc(M, req, res, st):
+    need(st == 'Checked', 'Associator replays Checked rows only')
+    names, car, nodes, wt, H = R.hive(M, req[1]); i, j, k = req[2], req[3], req[4]
+    need(len({i, j, k}) == 3 and all(x in names for x in (i, j, k)), 'members')
+    v = field(res, 'Value'); A = field(v, 'Associator')
+    need(list(field(A, 'Members')[1:]) == [i, j, k], 'Members differ')
+    exp = {}
+    for a in car[i]:
+        for c in car[k]:
+            d = H[((i, a), (k, c))]; comp = Q(1) if any(H[((i, a), (j, b))] == 1 and H[((j, b), (k, c))] == 1 for b in car[j]) else Q(0)
+            exp[(a, c)] = (d, comp, d - comp)
+    got = {}
+    for e in field(A, 'Entries')[1:]:
+        need(head(e) == 'Entry', 'malformed Entry'); got[(R.val(e[1]), R.val(e[2]))] = tuple(Q(R.val(x)) for x in e[3:6])
+    need(got == exp, 'associator entries differ from c_ik - c_ij o c_jk')
+    zero = all(t[2] == 0 for t in exp.values())
+    need(field(A, 'Zero')[1] == ('True' if zero else 'False'), 'Zero flag differs')
+    need(int(field(A, 'Positive')[1]) == sum(1 for t in exp.values() if t[2] > 0) and int(field(A, 'Negative')[1]) == sum(1 for t in exp.values() if t[2] < 0), 'counts differ')
+    return 'associator recomputed (%d entries, zero=%s)' % (len(exp), zero)
+R.HIVE_OPS = tuple(R.HIVE_OPS) + ('Associator',)
+_prev = R.replay_hive
+def replay_hive3(M, req, res, st):
+    return replay_assoc(M, req, res, st) if head(req) == 'Associator' else _prev(M, req, res, st)
+R.replay_hive = replay_hive3
+
 if __name__ == '__main__': sys.exit(R.main(sys.argv[1], sys.argv[2]))

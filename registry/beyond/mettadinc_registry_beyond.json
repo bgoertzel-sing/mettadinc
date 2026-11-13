@@ -2197,6 +2197,16 @@
     "SecondLower": "Rational"
    },
    "doc": "m4est: interval separation of two Estimated rates"
+  },
+  "HiveAssociator": {
+   "fields": {
+    "Members": "names",
+    "Entries": "(Entry a c direct composite difference)..",
+    "Zero": "True|False",
+    "Positive": "count",
+    "Negative": "count"
+   },
+   "doc": "ours (M6-rest): crisp associator entries over V_i x V_k; Zero True iff the direct correspondence equals the composite through j"
   }
  },
  "requests": {
@@ -4860,6 +4870,44 @@
    ],
    "first_release": [],
    "claim": "Checked comparison of two Estimated rates (review 1 F3): Holds when the first estimate's Upper is strictly below the second's Lower (exact rationals). The answer is derived from Estimated premises, so it is Conditional on (EstimatedPremise digest delta) for each, and (EstimatedDelta sum) adds their deltas; never Checked"
+  },
+  "Associator": {
+   "library": "Hives",
+   "positional": [
+    [
+     "hive",
+     "ref:KernelHive"
+    ],
+    [
+     "i",
+     "name"
+    ],
+    [
+     "j",
+     "name"
+    ],
+    [
+     "k",
+     "name"
+    ]
+   ],
+   "args": {},
+   "result": "HiveAssociator",
+   "statuses": [
+    "Checked"
+   ],
+   "profiles": [
+    "Deterministic",
+    "Stochastic",
+    "Nondeterministic"
+   ],
+   "carriers": [
+    "Enumerated",
+    "Symbolic",
+    "Snapshot"
+   ],
+   "first_release": [],
+   "claim": "associator [i, j, k] = c_ik - c_ij o c_jk of a kernel hive (definition spec Def 10.1 l.2827; request shape ours, M6-rest)"
   }
  },
  "libraries": {
@@ -5387,7 +5435,7 @@
   {
    "name": "m6rest",
    "file": "registry/patches/m6rest_registry_patch.json",
-   "sha256": "64525edac8510c026fb0738895f6ee261effdd112908976667408a2498ad659c",
+   "sha256": "b6f0c00d89919bda246c19759d0b47a52457f5d93e48d3491d4d7757ff5158dd",
    "patch": "m6rest: local registry patch for t-2026-11-13-mettadinc-m6-rest (beyond-release only; every shape here is ours, not in the specification)",
    "date": "2026-11-13"
   }
@@ -5473,7 +5521,7 @@
    "patch": "m6"
   },
   "m6rest-shapes": {
-   "text": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable).",
+   "text": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable). (Associator Hive Mi Mj Mk) -> HiveAssociator (request and result shape ours; definition spec l.2827).",
    "patch": "m6rest"
   }
  }

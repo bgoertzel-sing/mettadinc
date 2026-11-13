@@ -462,11 +462,44 @@ static Sx *hv_completehive(DcRun *r, const Sx *q) {
                      dc_form("UnmeasuredEntries", dc_int(nunm), NULL), fill, nop, NULL), NULL);
     return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL), ev, NULL);
 }
+/* M6-rest: (Associator Hive Mi Mj Mk) (request shape ours, m6rest patch; definition spec Def 10.1 l.2827:
+ * [i, j, k] = c_ik - c_ij o c_jk, crisp kernels, o the Boolean relational composite as in Holonomy).
+ * Value lists every entry (a c direct composite difference) over V_i x V_k; (Zero True) iff the direct
+ * correspondence equals the path-induced one.  Unmeasured entries answer Unsupported (complete them first). */
+static Sx *hv_assoc(DcRun *r, const Sx *q) {
+    DcModule *m = r->m; Hive *h = &g_h; char why[300]; int mi[3];
+    if (q->n != 5) return dc_invalid(m, "Associator: expected (Associator Hive Mi Mj Mk)");
+    int rc = hv_load(m, q->items[1], h, why, sizeof why);
+    if (rc == -2) return dc_unsupported(m, "Associator: %s", why);
+    if (rc) return dc_invalid(m, "Associator: %s", why);
+    for (int t = 0; t < 3; t++)
+        if (q->items[t + 2]->kind != SX_SYM || (mi[t] = hv_mem(h, q->items[t + 2]->text)) < 0) return dc_invalid(m, "Associator: argument %d is not a member of %s", t + 2, h->name);
+    if (mi[0] == mi[1] || mi[1] == mi[2] || mi[0] == mi[2]) return dc_invalid(m, "Associator: the three members must be distinct");
+    const HvMem *I = &h->mem[mi[0]], *J = &h->mem[mi[1]], *K = &h->mem[mi[2]];
+    for (int a = 0; a < I->nv + J->nv; a++) for (int c = 0; c < J->nv + K->nv; c++) {
+        int x = a < I->nv ? I->base + a : J->base + a - I->nv, y = c < J->nv ? (a < I->nv ? J->base + c : -1) : K->base + c - J->nv;
+        if (y >= 0 && h->H[x][y] < 0) return dc_unsupported(m, "Associator %s: an entry between %s and %s is Unmeasured or undeclared; complete it first with (CompleteHive %s)", h->name, h->mem[h->mof[x]].name, h->mem[h->mof[y]].name, h->name);
+    }
+    for (int a = 0; a < I->nv; a++) for (int c = 0; c < K->nv; c++) if (h->H[I->base + a][K->base + c] < 0)
+        return dc_unsupported(m, "Associator %s: an entry between %s and %s is Unmeasured or undeclared; complete it first with (CompleteHive %s)", h->name, I->name, K->name, h->name);
+    Sx *E = dc_form("Entries", NULL); int zero = 1, npos = 0, nneg = 0;
+    for (int a = 0; a < I->nv; a++) for (int c = 0; c < K->nv; c++) {
+        int d = h->H[I->base + a][K->base + c], comp = 0;
+        for (int b = 0; b < J->nv; b++) comp |= h->H[I->base + a][J->base + b] && h->H[J->base + b][K->base + c];
+        if (d != comp) { zero = 0; if (d > comp) npos++; else nneg++; }
+        sx_push(E, dc_form("Entry", sx_copy(m->car[I->car].elems[a]), sx_copy(m->car[K->car].elems[c]), dc_int(d), dc_int(comp), dc_int(d - comp), NULL));
+    }
+    Sx *val = dc_form("Associator", dc_form("Members", dc_sym(I->name), dc_sym(J->name), dc_sym(K->name), NULL), E,
+                      dc_form("Zero", dc_sym(zero ? "True" : "False"), NULL), dc_form("Positive", dc_int(npos), NULL), dc_form("Negative", dc_int(nneg), NULL), NULL);
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", val, NULL),
+                       dc_form("Evidence", dc_form("Composition", dc_form("Path", dc_sym(I->name), dc_sym(J->name), dc_sym(K->name), NULL), NULL), NULL), NULL);
+}
 Sx *dc_req_hives(DcRun *r, const Sx *q, const char *h) {
     if (!strcmp(h, "CheckKernelCoherence")) return hv_coh(r, q);
     if (!strcmp(h, "Holonomy")) return hv_hol(r, q);
     if (!strcmp(h, "ConsensusCost")) return hv_cost(r, q);
     if (!strcmp(h, "LeastCoherentRefinement")) return hv_lcr(r, q);
     if (!strcmp(h, "CompleteHive")) return hv_completehive(r, q);   /* M6-rest */
+    if (!strcmp(h, "Associator")) return hv_assoc(r, q);   /* M6-rest */
     return dc_unsupported(r->m, "%s is outside the M6 Hives subset", h);
 }
