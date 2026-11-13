@@ -5254,7 +5254,7 @@
   {
    "name": "m5rest",
    "file": "registry/patches/m5rest_registry_patch.json",
-   "sha256": "e83dff8b1752bdb457a7ff75d2d73586222b7969c22441e8ce9c465e98be14fb",
+   "sha256": "98045e52735fff63a9f72cafb3cd5e0f5ffba2b82249ed0444d380ab473989c9",
    "patch": "m5rest: local registry patch for t-2026-11-13-mettadinc-m5-rest (beyond-release only; the order says names the specification does not register go beyond the registry). Adds the Machine read annotation (Read action Shared|Fresh), the MayTraceWitness witness type, and notes for the formula node and certificate kind names the nondeterministic handlers emit.",
    "date": "2026-11-13"
   }
@@ -5316,7 +5316,11 @@
    "patch": "m5rest"
   },
   "m5rest-certificate-kinds": {
-   "text": "Certificate kinds emitted by Profile Nondeterministic beyond the registered Test/Prefixpoint/LayeredPrefixpoint: PartitionRefinement (BehavioralTolerance), Bisimulation (CheckBehavioral, crisp), MayTraceSubsetPairs (CheckTrace, closed subset-pair table).",
+   "text": "Certificate kinds emitted by Profile Nondeterministic beyond the registered Test/Prefixpoint/LayeredPrefixpoint: PartitionRefinement (BehavioralTolerance; Refine, with Seed, Stage k Partition and Stable True|False|Unconfirmed), Bisimulation (CheckBehavioral, crisp), MayTraceSubsetPairs (CheckTrace, closed subset-pair table).",
+   "patch": "m5rest"
+  },
+  "m5rest-result-forms": {
+   "text": "Result forms emitted by Profile Nondeterministic beyond the registry: (ReadAnnotations (Read machine action Shared|Fresh)..) in Evidence of every result of a module that declares read annotations; (BehavioralInterval (Lower r) (Upper r)) and (PartialRefinement (Stage k) Partition Classes) in the Value of an Unknown answer whose budget ran out; (Explored (PairExpansions k) | (Unrollings k)) in its Evidence.",
    "patch": "m5rest"
   }
  }

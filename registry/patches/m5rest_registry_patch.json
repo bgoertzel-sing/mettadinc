@@ -27,6 +27,7 @@
  },
  "notes": {
   "m5rest-formula-nodes": "ModalTestWitness Formula nodes for Profile Nondeterministic: (Indicator o v), (Not k), (And k..) and (Min k..) (empty = 1), (Sub k r) = max(0, phi_k - r), (Diamond a k [g]) = g times the max over a-successors (0 when none).",
-  "m5rest-certificate-kinds": "Certificate kinds emitted by Profile Nondeterministic beyond the registered Test/Prefixpoint/LayeredPrefixpoint: PartitionRefinement (BehavioralTolerance), Bisimulation (CheckBehavioral, crisp), MayTraceSubsetPairs (CheckTrace, closed subset-pair table)."
+  "m5rest-certificate-kinds": "Certificate kinds emitted by Profile Nondeterministic beyond the registered Test/Prefixpoint/LayeredPrefixpoint: PartitionRefinement (BehavioralTolerance; Refine, with Seed, Stage k Partition and Stable True|False|Unconfirmed), Bisimulation (CheckBehavioral, crisp), MayTraceSubsetPairs (CheckTrace, closed subset-pair table).",
+  "m5rest-result-forms": "Result forms emitted by Profile Nondeterministic beyond the registry: (ReadAnnotations (Read machine action Shared|Fresh)..) in Evidence of every result of a module that declares read annotations; (BehavioralInterval (Lower r) (Upper r)) and (PartialRefinement (Stage k) Partition Classes) in the Value of an Unknown answer whose budget ran out; (Explored (PairExpansions k) | (Unrollings k)) in its Evidence."
  }
 }
