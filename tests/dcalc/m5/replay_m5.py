@@ -203,6 +203,40 @@ def check_obsmismatch(M, sname, w):
     vx, vy = M.obs(src, o, x), M.obs(tgt, o, y)
     need(vx is None or vy is None or vx != vy, 'observer %s agrees on (%s,%s)' % (o, x, y))
 
+def check_cegar(M, req, cert):
+    # m5-rest review 1 F1: (Certificate (Kind CegarQuotient) (Rounds r) (Partition (Block ..) ..) (Refinements (Split ..) ..)).
+    # Independent check: the blocks partition the Via source's states; the existential quotient, searched
+    # from the blocks meeting Init, has no block that could violate the pulled-back property.  Blocks need
+    # not be homogeneous: a block counts as bad if ANY member is bad (conservative, hence sound).
+    sname = field(req, 'Via')[1]; src, tgt, _ = M.sim[sname]; R = M.rel(sname)
+    need(req[1] == tgt, 'CheckSafety subject is not the simulation target')
+    S = list(M.states(src)); blocks = [list(b[1:]) for b in fields(field(cert, 'Partition'), 'Block')]
+    flat = [x for b in blocks for x in b]
+    need(sorted(flat) == sorted(S) and len(flat) == len(set(flat)), 'Partition is not a partition of the source states')
+    need(int(str(field(cert, 'Rounds')[1])) == len(fields(field(cert, 'Refinements') or ['Refinements'], 'Split')), 'Rounds differs from the number of Splits')
+    idx = {x: j for j, b in enumerate(blocks) for x in b}
+    def down(T):
+        T = set(T); xs = {x for (x, y) in R}
+        return {x for x in xs if {y for (x1, y) in R if x1 == x} <= T}
+    init = set(field(req, 'Init')[1:]); p = field(req, 'Never')[1]; hp = head(p)
+    need(hp in ('Shows', 'ReachWithin', 'EnterFrom'), 'property %s has no CegarQuotient replay rule' % hp)
+    X = down([p[1]]) if hp in ('ReachWithin', 'EnterFrom') else set()
+    Y = down(p[2][1:]) if hp == 'EnterFrom' and head(p[2]) == 'Not' else set()
+    dep = {}; todo = []
+    for x in init:
+        if x in idx and idx[x] not in dep: dep[idx[x]] = 0; todo.append(idx[x])
+    while todo:
+        j = todo.pop(0)
+        for x in blocks[j]:
+            if hp == 'Shows': need(M.obs(src, p[1], x) != p[2], 'reachable quotient block holds %s showing %s %s' % (x, p[1], p[2]))
+            if hp == 'ReachWithin': need(not (x in X and dep[j] <= int(p[2])), 'quotient reaches %s within %s steps' % (x, p[2]))
+            for a in M.mach[src]['act']:
+                for x2 in M.img(src, a, x):
+                    if hp == 'EnterFrom': need(not (x not in X and x not in Y and x2 in X), 'quotient move %s -%s-> %s enters the pulled-back set' % (x, a, x2))
+                    j2 = idx[x2]
+                    if j2 not in dep: dep[j2] = dep[j] + 1; todo.append(j2)
+    return 'CegarQuotient replayed (%d blocks)' % len(blocks)
+
 def check_concrete(M, req, w):
     # (ConcreteCounterexample (Path s0 (Step a s1) ..)): a run of the Via source from Init that
     # violates the property pulled back along the relation (target sets X become the source
@@ -453,6 +487,7 @@ def replay_line(M, req, res):
         if k == 'Simulation' and h == 'CheckSimulation':
             need(field(c, 'Relation')[1] == req[1], 'certificate Relation %s is not the requested simulation %s' % (field(c, 'Relation')[1], req[1]))   # review 2 F7
             check_simulation(M, c, None); did.append('Simulation')
+        elif k == 'CegarQuotient' and h == 'CheckSafety': did.append(check_cegar(M, req, c))
         elif k == 'SafetyTransfer' and h == 'CheckSafety': did.append('SafetyTransfer: ' + check_safety(M, req, c))
     if h == 'Refine' and st == 'Checked': check_refine(M, req, res, ev); did.append('PartitionRefinement')
     if h == 'OutcomeProbability' and st == 'Checked': check_probability(M, req, res); did.append('Probability')
@@ -468,10 +503,48 @@ def replay_line(M, req, res):
         else: need(h == 'CheckBehavioral' and lo > b, 'Refuted but the lower test does not exceed Within')
         if h == 'CheckBehavioral': need((field(field(res, 'Value'), 'WithinBound')[1] == 'True') == (st == 'Checked'), 'WithinBound disagrees with status')
         did.append('Hausdorff')
+    bi = field(field(res, 'Value') or ['Value'], 'BehavioralInterval')
+    if h in ('CheckBehavioral', 'MeasureBehavioral') and bi and not bd:   # review 1 F3: budget-stopped rows
+        from fractions import Fraction
+        lo = max([check_modal(M, req, w, req_disc(req)) for w in find_all(ev, 'ModalTestWitness')], default=Fraction(0))
+        bl = rat(field(bi, 'Lower')[1]); bu = rat(field(bi, 'Upper')[1])
+        if find_all(ev, 'ModalTestWitness') or st != 'Checked': need(lo == bl, 'lower test gives %s, claimed BehavioralInterval Lower %s' % (lo, bl))
+        need(bl <= bu, 'BehavioralInterval Lower exceeds Upper')
+        if h == 'CheckBehavioral':
+            b = rat(field(req, 'Within')[1]) if field(req, 'Within') else 0
+            wb = field(field(res, 'Value'), 'WithinBound')
+            if st == 'Refuted':
+                need(bl > b, 'Refuted but the lower test does not exceed Within'); need(wb and wb[1] == 'False', 'WithinBound disagrees with status')
+            elif st == 'Unknown':
+                need(bl <= b, 'Unknown but the lower test already exceeds Within')
+        did.append('BehavioralInterval')
     if h == 'BehavioralTolerance' and st == 'Checked':
         bs = field(field(res, 'Value'), 'Bisimulation'); check_partition(M, req[1], field(bs, 'Partition'), True)
         need(int(str(field(bs, 'Classes')[1])) == len(field(bs, 'Partition')) - 1, 'Classes count wrong'); did.append('Bisimulation')
-    if h == 'CheckBehavioral' and st == 'Checked' and not bd:
+    if h == 'CheckBehavioral' and st == 'Checked' and bi and not bd:   # review 1 F4: budget-stopped Checked, recompute the defect
+        from fractions import Fraction
+        m, enc = M.rep[req[1]]; S = M.states(m); ob = M.mach[m]['obs']; g = req_disc(req)
+        hz = field(req, 'Horizon'); hh = int(str(hz[1][1])) if hz and isinstance(hz[1], list) else None
+        key = {x: tuple(tuple(sorted(M.map[ob[o]].get(x, set()))) for o in sorted(ob)) for x in S}
+        ids = {k: i for i, k in enumerate(sorted(set(key.values()), key=repr))}; stg = [{x: ids[key[x]] for x in S}]
+        while True:
+            nb = refine_step(M, m, stg[-1])
+            if same_part(nb, stg[-1], S): break
+            stg.append(nb)
+        tv = Fraction(0)
+        for i, x in enumerate(S):
+            for y in S[i + 1:]:
+                if M.map[enc].get(x) != M.map[enc].get(y): continue
+                sp = next((l for l, bk in enumerate(stg) if bk[x] != bk[y]), None)
+                if sp is not None and (hh is None or sp <= hh): tv = max(tv, g ** sp)
+        bl = rat(field(bi, 'Lower')[1]); bu = rat(field(bi, 'Upper')[1])
+        wthn = rat(field(req, 'Within')[1]) if field(req, 'Within') else Fraction(0)
+        need(bl <= tv, 'BehavioralInterval Lower %s exceeds the recomputed defect %s' % (bl, tv))
+        need(tv <= bu, 'recomputed defect %s exceeds BehavioralInterval Upper %s' % (tv, bu))
+        need(bu <= wthn, 'Checked but Upper %s exceeds Within %s' % (bu, wthn))
+        need(field(ev, 'Explored'), 'budget-stopped Checked without an Explored record')
+        did.append('BehavioralIntervalChecked')
+    elif h == 'CheckBehavioral' and st == 'Checked' and not bd:
         c = [c for c in fields(ev, 'Certificate') if field(c, 'Kind')[1] == 'Bisimulation'][0]; m, enc = M.rep[req[1]]
         blk = check_partition(M, m, field(c, 'Partition'), False)
         for x in M.states(m):

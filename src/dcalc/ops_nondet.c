@@ -449,6 +449,77 @@ static Sx *nd_checksim(DcModule *m, const NdMod *s, const Sx *q) {
     if (si >= 0 && r && sx_find(r, "Binding", 1)) nd_bind(r, s, &s->sim[si], NULL);
     return r;
 }
+/* m5-rest review 1 F1: counterexample-guided refinement loop, opted in by (Budget (Unrollings k)) on
+ * CheckSafety.  It works on the Source machine: blocks start from the abstraction the Via relation
+ * induces (same related abstract states), split by the property's atoms; the existential quotient is
+ * searched; a feasible abstract path is a concrete counterexample (Refuted), a quotient without a bad
+ * path is Checked (certificate: the final partition), a spurious path splits the block where every
+ * concrete run leaves it.  k splits without a verdict: Unknown.  Without the option nothing changes. */
+static int nd_cg_bad(const NdMod *s, const NdProp *PC, int om, int x) {
+    if (PC->kind == 1) { const char *v = om >= 0 ? nd_obsval(s, om, x) : NULL; return v && !strcmp(v, PC->v); }
+    return PC->kind == 3 && ((PC->X >> x) & 1);
+}
+static Sx *nd_cgpart(const NdCar *CA, const NdSet *blk, int nb) {
+    Sx *p = dc_form("Partition", NULL);
+    for (int j = 0; j < nb; j++) { Sx *b = dc_form("Block", NULL); for (int x = 0; x < CA->n; x++) if ((blk[j] >> x) & 1) sx_push(b, dc_sym(CA->el[x])); sx_push(p, b); }
+    return p;
+}
+static Sx *nd_cegar(DcModule *m, const NdMod *s, const NdSim *S, const NdProp *PC, NdSet I, long kmax, const Sx *q, const char *tn) {
+    const NdMach *A = &s->mach[S->src]; const NdCar *CA = &s->car[A->states]; const int n = CA->n;
+    const int om = PC->kind == 1 ? nd_named(A->obs, A->nobs, PC->o) : -1;
+    NdSet blk[ND_MAXC]; int nb = 0;
+    for (int x = 0; x < n; x++) {
+        int j = 0;
+        for (; j < nb; j++) { int y = __builtin_ctzll(blk[j]);
+            if (S->rel[y] == S->rel[x] && nd_cg_bad(s, PC, om, y) == nd_cg_bad(s, PC, om, x) && ((PC->X >> y) & 1) == ((PC->X >> x) & 1) && ((PC->Y >> y) & 1) == ((PC->Y >> x) & 1)) break; }
+        if (j == nb) blk[nb++] = 0;
+        blk[j] |= (NdSet)1 << x;
+    }
+    Sx *refs = dc_form("Refinements", NULL);
+    for (long round = 0; ; round++) {
+        int par[ND_MAXC], pact[ND_MAXC], dep[ND_MAXC], qu[ND_MAXC], h = 0, t = 0, bad = -1, ba = -1, bn = -1;
+        for (int j = 0; j < nb; j++) { par[j] = -1; pact[j] = -1; dep[j] = -1; if (blk[j] & I) { dep[j] = 0; qu[t++] = j; } }
+        while (h < t && bad < 0) {
+            int j = qu[h++], y0 = __builtin_ctzll(blk[j]);
+            if (nd_cg_bad(s, PC, om, y0) && (PC->kind != 3 || dep[j] <= PC->k)) { bad = j; break; }
+            for (int a = 0; a < A->nact && bad < 0; a++) {
+                NdSet po = nd_post(&s->map[A->act[a].map], blk[j]);
+                for (int j2 = 0; j2 < nb; j2++) if (po & blk[j2]) {
+                    int y2 = __builtin_ctzll(blk[j2]);
+                    if (PC->kind == 2 && !((PC->X >> y0) & 1) && !((PC->Y >> y0) & 1) && ((PC->X >> y2) & 1)) { bad = j; ba = a; bn = j2; break; }
+                    if (dep[j2] < 0) { dep[j2] = dep[j] + 1; par[j2] = j; pact[j2] = a; qu[t++] = j2; }
+                }
+            }
+        }
+        if (bad < 0) {
+            Sx *c = dc_form("Certificate", dc_form("Kind", dc_sym("CegarQuotient"), NULL), dc_form("Rounds", dc_int((int)round), NULL), nd_cgpart(CA, blk, nb), refs, NULL);
+            return nd_env(m, VERDICT_HOLDS, q, tn, dc_form("Value", dc_sym("True"), NULL), dc_form("Evidence", c, NULL), NULL);
+        }
+        int js[ND_MAXC + 1], as[ND_MAXC + 1], L = nd_trace(par, pact, bad, ba, bn, js, as);
+        NdSet Cs[ND_MAXC + 1]; int cut = -1; Cs[0] = I & blk[js[0]];
+        for (int i = 1; i < L; i++) { Cs[i] = nd_post(&s->map[A->act[as[i]].map], Cs[i - 1]) & blk[js[i]]; if (!Cs[i]) { cut = i; break; } }
+        if (cut < 0) {   /* feasible: a concrete run follows the abstract path */
+            int xs[ND_MAXC + 1]; xs[L - 1] = __builtin_ctzll(Cs[L - 1]);
+            for (int i = L - 1; i > 0; i--) { const NdMap *mp = &s->map[A->act[as[i]].map];
+                for (int x = 0; x < n; x++) if (((Cs[i - 1] >> x) & 1) && ((mp->img[x] >> xs[i]) & 1)) { xs[i - 1] = x; break; } }
+            sx_free(refs);
+            return nd_env(m, VERDICT_FAILS, q, tn, NULL, dc_form("Evidence", dc_form("Witness", dc_form("ConcreteCounterexample", nd_pathsx(s, A, xs, as, L), NULL), NULL), dc_form("Rounds", dc_int((int)round), NULL), NULL),
+                          "a concrete run from Init violates the property (found by refinement)");
+        }
+        if (round >= kmax) {
+            g_nd_rep = 0;
+            Sx *r = nd_env(m, VERDICT_HOLDS, q, tn, NULL, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)kmax), NULL), NULL), dc_form("Spurious", dc_sym("True"), NULL), nd_cgpart(CA, blk, nb), refs, NULL),
+                           "refinement stopped at the Unrollings budget with a spurious abstract counterexample left");
+            g_nd_rep = 1; return r;
+        }
+        NdSet Pr = blk[js[cut - 1]], tg = blk[js[cut]], good = 0; const NdMap *mp = &s->map[A->act[as[cut]].map];
+        for (int x = 0; x < n; x++) if (((Pr >> x) & 1) && (mp->img[x] & tg)) good |= (NdSet)1 << x;
+        Sx *gs = dc_form("CanStep", NULL), *bs = dc_form("CannotStep", NULL);
+        for (int x = 0; x < n; x++) if ((Pr >> x) & 1) sx_push((good >> x) & 1 ? gs : bs, dc_sym(CA->el[x]));
+        sx_push(refs, dc_form("Split", dc_form("Action", dc_sym(A->act[as[cut]].name), NULL), gs, bs, NULL));
+        blk[js[cut - 1]] = good; blk[nb++] = Pr & ~good;
+    }
+}
 static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
     const char *tn = q->n >= 2 ? nm_of(q->items[1]) : NULL; int ti = nd_mach(s, tn); char err[256];
     const Sx *nv = ropt(q, "Never");
@@ -489,8 +560,13 @@ static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
     const Sx *in = ropt(q, "Init"); NdSet I = 0;
     for (size_t k = 1; in && k < in->n; k++) { int x = nd_el(CA, nm_of(in->items[k])); if (x < 0) return dc_invalid(m, "CheckSafety: Init %s is not a state of %s", nm_of(in->items[k]) ? nm_of(in->items[k]) : "?", A->name); I |= (NdSet)1 << x; }
     if (!I) return dc_invalid(m, "CheckSafety: (Init s ..) names no state");
-    const Sx *bu = ropt(q, "Budget");
-    if (bu) {   /* review 1 F2: honour the budget; it bounds the related pairs examined, never a horizon */
+    const Sx *bu = ropt(q, "Budget"); long ck = -1;
+    if (bu && bu->n == 2 && sx_head_is(bu->items[1], "Unrollings") && bu->items[1]->n == 2) {   /* review 1 F1: refinement loop */
+        const Sx *kv = bu->items[1]->items[1]; char *e = NULL;
+        ck = kv->kind == SX_SYM ? strtol(kv->text, &e, 10) : -1;
+        if (ck < 0 || !e || *e) return dc_invalid(m, "CheckSafety: (Budget (Unrollings k)) needs a natural number k");
+    }
+    if (bu && ck < 0) {   /* review 1 F2: honour the budget; it bounds the related pairs examined, never a horizon */
         const char *bunit; long b = nd_budget(bu, &bunit); int np = 0;
         for (int x = 0; x < ND_MAXC; x++) np += popc(S->rel[x]);
         if (b == -2) return dc_unsupported(m, "CheckSafety: budget unit %s is not counted by the simulation check (it counts PairExpansions)", bunit);
@@ -512,6 +588,7 @@ static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
         Sx *r = nd_env(m, VERDICT_HOLDS, q, tn, NULL, dc_form("Evidence", dc_form("Witness", dc_form("UncoveredInit", dc_sym(CA->el[x]), NULL), NULL), dc_form("Coverage", dc_sym("Vacuous"), NULL), NULL), w);
         g_nd_rep = 1; return r;
     }
+    if (ck >= 0) { NdProp PC = P; PC.X = nd_down(S, CA->n, P.X); PC.Y = nd_down(S, CA->n, P.Y); return nd_cegar(m, s, S, &PC, I, ck, q, tn); }
     NdSet AI = 0; for (int x = 0; x < CA->n; x++) if ((I >> x) & 1) AI |= S->rel[x];
     int par[ND_MAXC], pact[ND_MAXC], dep[ND_MAXC], bad = -1, ba = -1, bn = -1;
     if (!nd_bfs(s, B, AI, &P, par, pact, dep, &bad, &ba, &bn)) {
@@ -937,7 +1014,7 @@ static Sx *nd_layer(NdQt *T, int l, int h) {   /* kernel at horizon l (h < 0: fi
 }
 static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
     const char *hd = q->items[0]->text, *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL, *e;
-    int chk = !strcmp(hd, "CheckBehavioral"), hor = -1, ovf = 0; long long bud = -1;
+    int chk = !strcmp(hd, "CheckBehavioral"), hor = -1, ovf = 0; long long bud = -1, pex = -1;
     DcRat g = dc_rat(1, 1, &ovf), b = dc_rat(0, 1, &ovf);
     for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->n ? nm_of(o->items[0]) : NULL;
         const Sx *v = oh && o->n == 2 ? o->items[1] : NULL; DcRat t;
@@ -956,6 +1033,9 @@ static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
             if (dc_sx_rat(v, &t) || t.n < 0) return dc_invalid(m, "%s: expected (Precision r) with r >= 0", hd);
             continue; }
         if (v && !strcmp(oh, "Budget") && sx_head_is(v, "Unrollings") && v->n == 2 && !dc_sx_rat(v->items[1], &t) && t.d == 1 && t.n >= 0) { bud = t.n; continue; }
+        if (v && !strcmp(oh, "Budget")) {   /* review 1 F4: (Budget (PairExpansions k)) / (Budget k) */
+            const char *u; long k = nd_budget(o, &u);
+            if (k >= 0) { pex = k; continue; } }
         return dc_unsupported(m, "%s: option %s is not implemented for Profile Nondeterministic", hd, oh ? oh : "?");
     }
     const Sx *d = NULL;
@@ -976,6 +1056,9 @@ static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
     T.V = Vbuf; T.B = &B; T.g = g; T.zero = dc_rat(0, 1, &ovf); T.one = dc_rat(1, 1, &ovf); T.gp[0] = T.one;
     for (int k = 1; k <= B.L + 2 && k < ND_MAXC + 3; k++) T.gp[k] = dc_rat_mul(T.gp[k - 1], g, &T.ovf);
     if (ovf || T.ovf) return dc_unsupported(m, "%s %s: rational overflow (64-bit limit) in the powers of the discount", hd, a1);
+    if (pex >= 0) {   /* review 1 F4: one refinement round examines every pair of states once */
+        long long np = (long long)C->n * (C->n - 1) / 2, r = pex / (np < 1 ? 1 : np);
+        if (bud < 0 || r < bud) bud = r; }
     int n = C->n, known = bud < 0 || bud >= B.L || (hor >= 0 && hor <= bud);
     int eh = known ? hor : (hor >= 0 && hor < bud ? hor : (int)bud);   /* rounds whose splits are counted */
     DcRat lo = T.zero; int wx = -1, wy = -1, open = 0;
@@ -1003,6 +1086,11 @@ static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
             Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym("False"), NULL), dc_form("BehavioralInterval", dc_form("Lower", rsx(lo), NULL), dc_form("Upper", rsx(up), NULL), NULL), NULL);
             sx_free(hz);
             return nd_env_k(m, VERDICT_FAILS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Witness", wit, NULL), NULL), "the lower-certificate test already exceeds the Within bound");
+        }
+        if (chk && dc_rat_cmp(up, b) <= 0) {   /* review 1 F4: registered rule, Checked when the upper end is at most Within */
+            if (wit) sx_free(wit);
+            Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym("True"), NULL), dc_form("BehavioralInterval", dc_form("Lower", rsx(lo), NULL), dc_form("Upper", rsx(up), NULL), NULL), dc_form("Discount", rsx(g), NULL), dc_form("Horizon", hz, NULL), NULL);
+            return nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)bud), NULL), NULL), NULL), "the upper end of the budget interval is at most the Within bound");
         }
         if (wit) sx_free(wit);
         char w[200]; snprintf(w, sizeof w, "refinement stopped at the budget of %lld unrollings before it stabilized", bud);
