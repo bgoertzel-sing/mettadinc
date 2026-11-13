@@ -33,7 +33,7 @@ typedef uint64_t NdSet;
 typedef struct { char name[DC_MAX_NAME]; int n; char el[ND_MAXC][DC_MAX_NAME]; } NdCar;
 typedef struct { char name[DC_MAX_NAME]; int from, to, choice; NdSet img[ND_MAXC]; } NdMap;   /* img[x]: successor set */
 typedef struct { char name[DC_MAX_NAME]; int map; } NdNamed;
-typedef struct { char name[DC_MAX_NAME]; int states; NdNamed obs[8]; int nobs; NdNamed act[8]; int nact; int bag_multiset, has_bag; } NdMach;
+typedef struct { char name[DC_MAX_NAME]; int states; NdNamed obs[8]; int nobs; NdNamed act[8]; int nact; int bag_multiset, has_bag; int read[8]; } NdMach;   /* read[a]: 0 undeclared, 1 Shared, 2 Fresh (m5-rest) */
 typedef struct { char name[DC_MAX_NAME]; char rule[DC_MAX_NAME]; } NdSched;
 typedef struct { char name[DC_MAX_NAME]; int src, tgt, map; int pairs; NdSet rel[ND_MAXC]; char unsup[200]; } NdSim;   /* unsup: declared semantics the check does not implement (review 2 F2) */   /* rel[x]: related abstract states */
 typedef struct {
@@ -116,6 +116,19 @@ static int nd_read(const Sx *src, NdMod *s, char *err, size_t es) {
                 if (sx_head_is(f, "Observe")) { if (nd_read_named(s, f, M->obs, &M->nobs, dn, err, es)) return -1; }
                 else if (sx_head_is(f, "Action")) { if (nd_read_named(s, f, M->act, &M->nact, dn, err, es)) return -1; }
                 else if (sx_head_is(f, "Bag") && f->n == 2) { M->has_bag = 1; M->bag_multiset = nm_of(f->items[1]) && !strcmp(f->items[1]->text, "Multiset"); }
+            }
+            /* m5-rest: (Read action Shared|Fresh), declared never inferred (guide invariant 14); beyond registry */
+            for (size_t k = 2; k < d->n; k++) {
+                const Sx *f = d->items[k];
+                if (!sx_head_is(f, "Read")) continue;
+                const char *an = f->n == 3 ? nm_of(f->items[1]) : NULL, *mode = f->n == 3 ? nm_of(f->items[2]) : NULL;
+                int a = -1;   /* action index (nd_named returns the map, and is defined later) */
+                for (int i = 0; an && i < M->nact && a < 0; i++) if (!strcmp(M->act[i].name, an)) a = i;
+                if (a < 0) return nd_err(err, es, "Machine %s: (Read action Shared|Fresh) names no Action of the machine (%s)", dn, an ? an : "?");
+                int md = mode && !strcmp(mode, "Shared") ? 1 : mode && !strcmp(mode, "Fresh") ? 2 : 0;
+                if (!md) return nd_err(err, es, "Machine %s: Read %s must be Shared or Fresh", dn, an);
+                if (M->read[a]) return nd_err(err, es, "Machine %s: Read %s declared twice", dn, an);
+                M->read[a] = md;
             }
             s->nmach++;
         } else if (!strcmp(h, "Scheduler")) {
@@ -1010,9 +1023,24 @@ static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
     return nd_env_k(m, holds ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
 }
 
+static Sx *nd_req_core(DcModule *m, const NdMod *s, const Sx *q, const char *head);
+/* m5-rest: declared read annotations (Read action Shared|Fresh) are part of the interface identity
+ * (guide 262, 305); every nondeterministic result of a module that declares any echoes them in its
+ * Evidence as (ReadAnnotations (Read machine action mode)..). Not in Assumptions: an assumption would
+ * turn Checked into Conditional (ops_core.c 105-110). Modules without annotations are unchanged. */
 Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     DcModule *m = r->m; static NdMod S; char err[256]; (void)slot;
     if (nd_read(m->source, &S, err, sizeof err)) return dc_invalid(m, "nondeterministic module: %s", err);
+    Sx *res = nd_req_core(m, &S, q, head), *ra = NULL;
+    for (int i = 0; i < S.nmach; i++) for (int a = 0; a < S.mach[i].nact; a++) if (S.mach[i].read[a]) {
+        if (!ra) ra = dc_form("ReadAnnotations", NULL);
+        sx_push(ra, dc_form("Read", dc_sym(S.mach[i].name), dc_sym(S.mach[i].act[a].name), dc_sym(S.mach[i].read[a] == 1 ? "Shared" : "Fresh"), NULL)); }
+    Sx *ev = ra && res ? (Sx *)sx_find(res, "Evidence", 1) : NULL;
+    if (ev) sx_push(ev, ra); else if (ra) sx_free(ra);
+    return res;
+}
+static Sx *nd_req_core(DcModule *m, const NdMod *s0, const Sx *q, const char *head) {
+#define S (*s0)
     if (!strcmp(head, "Outcomes")) return nd_outcomes(m, &S, q, 0);
     if (!strcmp(head, "OutcomeProbability")) return nd_outcomes(m, &S, q, 1);
     if (!strcmp(head, "CheckSimulation")) return nd_checksim(m, &S, q);
@@ -1024,3 +1052,4 @@ Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     if (!strcmp(head, "CheckTrace") || !strcmp(head, "MeasureTrace")) return nd_maytrace(m, &S, q);
     return dc_unsupported(m, "request %s: not yet implemented for Profile Nondeterministic (M5 in progress)", head);
 }
+#undef S
