@@ -183,15 +183,30 @@ static Hive g_h;
 static Sx *hv_coh(DcRun *r, const Sx *q) {
     DcModule *m = r->m; Hive *h = &g_h; char why[300]; static unsigned char R[HV_MAXN][HV_MAXN];
     if (q->n != 2) return dc_invalid(m, "CheckKernelCoherence: expected (CheckKernelCoherence Hive)");
-    HV_LOAD("CheckKernelCoherence")
+    /* review-2 F1 (negative test 4): an Unmeasured correspondence is never zero-filled.  Refuted needs a fully
+     * measured intransitive triple; a triple that some completion of the Unmeasured entries could break gives Unknown. */
+    int rc = hv_load(m, q->items[1], h, why, sizeof why);
+    if (rc == -2) return dc_unsupported(m, "CheckKernelCoherence: %s", why);
+    if (rc) return dc_invalid(m, "CheckKernelCoherence: %s", why);
+    int ua = -1, ub = -1, uc = -1;
     for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) for (int c = 0; c < h->nn; c++)
-        if (h->H[a][b] && h->H[b][c] && !h->H[a][c]) {
+        if (ua < 0 && a != b && b != c && a != c   /* a degenerate triple shares an entry, so no completion breaks it */
+            && h->H[a][b] && h->H[b][c] && h->H[a][c] != 1 && (h->H[a][b] < 0 || h->H[b][c] < 0 || h->H[a][c] < 0)
+            && !(h->H[a][b] == 1 && h->H[b][c] == 1 && h->H[a][c] == 0)) { ua = a; ub = b; uc = c; }
+    for (int a = 0; a < h->nn; a++) for (int b = 0; b < h->nn; b++) for (int c = 0; c < h->nn; c++)
+        if (h->H[a][b] == 1 && h->H[b][c] == 1 && h->H[a][c] == 0) {
             Sx *ev = dc_form("Evidence", dc_form("Witness", dc_form("Triple", hv_node(m, h, a), hv_node(m, h, b), hv_node(m, h, c), NULL),
                              dc_form("Degrees", dc_int(1), dc_int(1), dc_int(0), NULL), NULL), NULL);
             int cyc[HV_MAXM]; for (int i = 0; i < h->nm; i++) cyc[i] = i;
             if (h->nm >= 3 && !hv_holo(h, cyc, h->nm, R, why, sizeof why)) sx_push(ev, dc_form("Holonomy", hv_kernel(m, h, 0, R), NULL));
             return dc_envelope(m, VERDICT_FAILS, 1, dc_claim_of(q, "Literal"), hv_subj(h), NULL, ev, NULL);
         }
+    if (ua >= 0) {
+        char rs[300]; snprintf(rs, sizeof rs, "an Unmeasured correspondence is not zero-filled; triple (%s %s %s) is transitive or not depending on its completion",
+                               h->mem[h->mof[ua]].name, h->mem[h->mof[ub]].name, h->mem[h->mof[uc]].name);
+        return dc_envelope(m, VERDICT_HOLDS, 0, dc_claim_of(q, "Literal"), hv_subj(h), NULL,
+                           dc_form("Evidence", dc_form("Open", dc_form("Triple", hv_node(m, h, ua), hv_node(m, h, ub), hv_node(m, h, uc), NULL), NULL), NULL), rs);
+    }
     return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), NULL,
                        dc_form("Evidence", dc_form("Transitive", dc_form("Triples", dc_int((long)h->nn * h->nn * h->nn), NULL), NULL), NULL), NULL);
 }

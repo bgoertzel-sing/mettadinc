@@ -110,6 +110,13 @@ for k, (old, new) in enumerate([(' 1) (Entry', ' 0) (Entry'), (' 0) (Entry', ' 1
     u[i[0]] = u[i[0]].replace(old, new, 1); tp = os.path.join(OUT, 'kernelof_t%d.out' % k); open(tp, 'w').write('\n'.join(u) + '\n')
     rc, last = replay(kf, tp); report('KernelOf tamper %d (entry %s->%s) rejected' % (k, old.strip()[0], new.strip()[0]), rc != 0, last)
 # neg4 / neg5 have no mechanism in this milestone (review-1 F2): stated as NOT IMPLEMENTED, never counted as PASS
-print('NOTE  neg4 zero-filled unmeasured correspondence: NOT IMPLEMENTED (no CompleteHive; such requests answer Unsupported, which the order does not accept as the gate)')
+# review-2 F1: negative test 4 (an Unmeasured correspondence is not zero-filled)
+_n4 = os.path.join(HERE, 'fixtures', 'neg4_unmeasured.metta')
+_o4 = subprocess.run([DCALC, '--beyond-release', _n4], capture_output=True, text=True, timeout=60).stdout
+report('neg4 Unmeasured correspondence -> Unknown with an Open Triple (not zero-filled)', '(Status Unknown)' in _o4 and '(Open (Triple' in _o4 and '(Status Refuted)' not in _o4, _o4[:160])
+_zf = os.path.join(OUT, 'neg4_measured_control.metta')
+open(_zf, 'w').write(open(_n4).read().replace('Opposite Unmeasured', 'Opposite Measured'))
+_oz = subprocess.run([DCALC, '--beyond-release', _zf], capture_output=True, text=True, timeout=60).stdout
+report('neg4 control: the same hive measured gives a definite verdict (Refuted), so Unknown is due to Unmeasured', '(Status Refuted)' in _oz, _oz[:120])
 print('NOTE  neg5 merge claim with unmeasured receipt identities -> Unknown: NOT IMPLEMENTED (no receipt-identity/merge construct; posterior-only merge contracts answer Checked/Refuted)')
 print('m6_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)
