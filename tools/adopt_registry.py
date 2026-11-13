@@ -60,7 +60,7 @@ SOURCES = os.path.join(REPO, "registry", "SOURCES.md")
 # digest stay those of the bundle patches alone.  A local patch whose file is absent is skipped: deleting
 # registry/patches/m4est_registry_patch.json and rerunning this script makes the beyond registry equal the release one.
 LOCAL_PATCHES = [("m4est", "registry/patches/m4est_registry_patch.json"), ("m5rest", "registry/patches/m5rest_registry_patch.json"),
-                 ("m6", "registry/patches/m6_registry_patch.json")]   # review-2 F3: M6 invented result shapes
+                 ("m6", "registry/patches/m6_registry_patch.json"), ("m6rest", "registry/patches/m6rest_registry_patch.json")]   # review-2 F3: M6 invented result shapes
 BOUT = os.path.join(REPO, "registry", "beyond", "mettadinc_registry_beyond.json")
 BDIGEST = os.path.join(REPO, "registry", "beyond", "DIGEST")
 WHOLE = [("libraries", "libraries"), ("declarations", "declarations"), ("requests", "requests"),
