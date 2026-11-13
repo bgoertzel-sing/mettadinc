@@ -118,6 +118,16 @@ _zf = os.path.join(OUT, 'neg4_measured_control.metta')
 open(_zf, 'w').write(open(_n4).read().replace('Opposite Unmeasured', 'Opposite Measured'))
 _oz = subprocess.run([DCALC, '--beyond-release', _zf], capture_output=True, text=True, timeout=60).stdout
 report('neg4 control: the same hive measured gives a definite verdict (Refuted), so Unknown is due to Unmeasured', '(Status Refuted)' in _oz, _oz[:120])
+# review-2 F6: LeastCoherentRefinement scope is cliques + equal-weight chordless cycles; anything else must be
+# Unsupported with a reason that names the gap (never a wrong optimum, never a silent fallback).
+_pt = os.path.join(FX, 'parity_triangle.metta'); _pts = open(_pt).read()
+_pb = _pts[_pts.index('(DC.Module'):_pts.index(';; @end')].rstrip()
+_pw = _pb.replace('(DC.Module ParityTriangle', '(DC.Module LcrWeighted', 1).replace('(Weights (M1 (Rat 1 3)) (M2 (Rat 1 3)) (M3 (Rat 1 3)))', '(Weights (M1 (Rat 1 2)) (M2 (Rat 1 4)) (M3 (Rat 1 4)))')
+assert _pw != _pb
+_lw = os.path.join(OUT, 'lcr_weighted.metta'); open(_lw, 'w').write(_pw + '\n!(dc.run LcrWeighted (LeastCoherentRefinement Triangle))\n!(dc.run LcrWeighted (ConsensusCost Triangle))\n')
+_ol = subprocess.run([DCALC, '--beyond-release', _lw], capture_output=True, text=True, timeout=60).stdout.splitlines()
+report('F6 LCR on unequal-weight parity triangle -> Unsupported naming unequal cycle weights', len(_ol) == 2 and '(Status Unsupported)' in _ol[0] and 'unequal weight' in _ol[0], (_ol or [''])[0][:140])
+report('F6 control: ConsensusCost on the same weighted hive is still evaluated (scope limit is LCR only)', len(_ol) == 2 and '(Status Unsupported)' not in _ol[1] and '(Status InvalidInput)' not in _ol[1], (_ol + ['', ''])[1][:120])
 # review-2 F1: negative test 5 (merge claims with unmeasured receipt identities answer Unknown)
 _n5 = os.path.join(HERE, 'fixtures', 'neg5_receipts.metta')
 _o5 = subprocess.run([DCALC, '--beyond-release', _n5], capture_output=True, text=True, timeout=60).stdout
