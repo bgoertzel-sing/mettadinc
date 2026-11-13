@@ -1048,7 +1048,8 @@ void dc_admission_free(DcAdmission *a) {
  * beyond the first release; every other first-release gap still answers. */
 /* M4-estimates: Estimates (EstimateRate, CompareRates) joins the opt-in set. */
 /* M5: Dynamics Nondeterministic and the Simulation library join the opt-in set. */
-static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", "Simulation", NULL };
+/* M6: Contracts joins the opt-in set. */
+static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", "Simulation", "Contracts", NULL };
 static int m4_allowed(const char *key, const char *val) {
     if (!val) return 0;
     if (!strcmp(key, "dynamics")) return !strcmp(val, "Stochastic") || !strcmp(val, "Nondeterministic");   /* M5 */

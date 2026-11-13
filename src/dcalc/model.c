@@ -142,8 +142,10 @@ static int admit_carrier(DcModule *m, const Sx *d, char *err, size_t es) {
     if (sx_head_is(body, "Enum")) {
         c->n = body->n - 1; c->elems = calloc(c->n ? c->n : 1, sizeof(Sx *));
         for (size_t i = 0; i < c->n; i++) {
-            if (body->items[i + 1]->kind == SX_LIST) { car_drop(c); return fail(err, es, "[M0] Carrier %s: Enum element %zu is not atomic", nm, i); }
-            for (size_t j = 0; j < i; j++) if (sx_equal(c->elems[j], body->items[i + 1])) { int rc = fail(err, es, "Carrier %s: duplicate Enum element %s", nm, body->items[i + 1]->text); car_drop(c); return rc; }
+            DcRat rq;   /* M6 opt-in: a (Use Contracts) carrier of Rational may list (Rat p q) elements */
+            int ratel = body->items[i + 1]->kind == SX_LIST && m->contracts && sx_head_is(body->items[i + 1], "Rat") && !dc_sx_rat(body->items[i + 1], &rq);
+            if (body->items[i + 1]->kind == SX_LIST && !ratel) { car_drop(c); return fail(err, es, "[M0] Carrier %s: Enum element %zu is not atomic", nm, i); }
+            for (size_t j = 0; j < i; j++) if (sx_equal(c->elems[j], body->items[i + 1])) { int rc = fail(err, es, "Carrier %s: duplicate Enum element %zu", nm, i); car_drop(c); return rc; }
             c->elems[i] = sx_copy(body->items[i + 1]);
         }
     } else if (sx_head_is(body, "Product") && body->n >= 2) {
@@ -204,6 +206,37 @@ static int receipt_bits(const Sx *v) {
 }
 /* Body expressions: the bound variable, literals, (GetTuple e i), (ReceiptUnion a b).
  * *ok: 1 fine, 0 ill-formed, 2 an operator outside the M2 Body fragment. */
+/* M6 (Use Contracts, beyond release): rational Body expressions: the bound variable, rational
+ * literals, (Add a b), (Sub a b), (Mul a b), and (h e) for an earlier declared Map h whose From
+ * carrier holds the value of e (matched by rational value).  *ok: 1 fine, 0 ill-formed. */
+static Sx *rat_sx(DcRat r);
+static Sx *eval_rat_body(const DcModule *m, const Sx *b, const char *var, const Sx *val, int *ok) {
+    DcRat r; int ovf = 0;
+    if (b->kind == SX_SYM && !strcmp(b->text, var)) return sx_copy(val);
+    if (!dc_sx_rat(b, &r)) return rat_sx(r);
+    if (b->kind == SX_LIST && b->n == 3 && b->items[0]->kind == SX_SYM
+        && (!strcmp(b->items[0]->text, "Add") || !strcmp(b->items[0]->text, "Sub") || !strcmp(b->items[0]->text, "Mul"))) {
+        Sx *x = eval_rat_body(m, b->items[1], var, val, ok), *y = eval_rat_body(m, b->items[2], var, val, ok); DcRat u, v;
+        int bad = *ok != 1 || dc_sx_rat(x, &u) || dc_sx_rat(y, &v); sx_free(x); sx_free(y);
+        if (bad) { *ok = 0; return sx_sym("?"); }
+        const char *op = b->items[0]->text;
+        r = !strcmp(op, "Add") ? dc_rat_add(u, v, &ovf) : !strcmp(op, "Sub") ? dc_rat_sub(u, v, &ovf) : dc_rat_mul(u, v, &ovf);
+        if (ovf) { *ok = 0; return sx_sym("?"); }
+        return rat_sx(r);
+    }
+    if (b->kind == SX_LIST && b->n == 2 && b->items[0]->kind == SX_SYM) {
+        int k = dc_find_map(m, b->items[0]->text);
+        if (k >= 0) {
+            Sx *x = eval_rat_body(m, b->items[1], var, val, ok); DcRat u, w;
+            const DcMap *g = &m->map[k]; const DcCarrier *G = &m->car[g->from];
+            int bad = *ok != 1 || dc_sx_rat(x, &u); sx_free(x);
+            if (!bad) for (size_t i = 0; i < G->n; i++)
+                if (!dc_sx_rat(G->elems[i], &w) && !dc_rat_cmp(u, w) && g->table[i] >= 0) return sx_copy(m->car[g->to].elems[g->table[i]]);
+            *ok = 0; return sx_sym("?");
+        }
+    }
+    *ok = 0; return sx_sym("?");
+}
 static Sx *eval_set_body(const Sx *b, const char *var, const Sx *val, int *ok) {
     if (b->kind == SX_SYM) {
         if (!strcmp(b->text, var)) return sx_copy(val);
@@ -292,6 +325,18 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 char *xs = sx_print(F->elems[i]), *vs = sx_print(v);
                 fail(err, es, "Map %s: Body sends %s to %s, which is not in carrier %s", nm, xs, vs, T->name);
                 free(xs); free(vs); sx_free(v); free(mp->table); return -1;
+            }
+            sx_free(v); mp->table[i] = b;
+        }
+    } else if (sx_head_is(body, "Body") && body->n == 3 && m->contracts && T->value && body->items[1]->kind == SX_LIST
+               && body->items[1]->n == 1 && body->items[1]->items[0]->kind == SX_SYM && body->items[1]->items[0]->text[0] == '$') {   /* M6 opt-in */
+        const char *var = body->items[1]->items[0]->text;
+        for (size_t i = 0; i < F->n; i++) {
+            int ok = 1; Sx *v = eval_rat_body(m, body->items[2], var, F->elems[i], &ok);
+            int b = ok == 1 ? dc_value_add(T, v) : -1;
+            if (b < 0) {
+                char *xs = sx_print(F->elems[i]); fail(err, es, "Map %s: Body has no rational value in %s on %s", nm, T->name, xs);
+                free(xs); sx_free(v); free(mp->table); return -1;
             }
             sx_free(v); mp->table[i] = b;
         }
@@ -569,6 +614,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
     snprintf(m->name, sizeof m->name, "%s", form->items[1]->text);
     m->source = sx_copy(form);
     char *canon = sx_print(form); dc_sha256_hex(canon, strlen(canon), m->digest); free(canon);
+    m->contracts = uses_lib(m, "Contracts") && dc_eval_beyond_release();   /* M6 opt-in */
     for (size_t i = 2; i < form->n; i++) {
         const Sx *d = form->items[i]; int rc = 0;
         if (d->kind != SX_LIST || d->n == 0 || d->items[0]->kind != SX_SYM)
@@ -606,6 +652,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
             continue;
         }
         else if (m->stochastic && strcmp(h, "Derive")) continue;   /* M4: stochastic decls are read by stoch.c from m->source */
+        else if (m->contracts && !strcmp(h, "Implementation")) continue;   /* M6: read by ops_contracts.c from m->source */
         else if (m->nondet && strcmp(h, "Derive")) continue;   /* M5: nondeterministic decls are read by ops_nondet.c from m->source */
         else if (m->symbolic && strcmp(h, "Derive")) continue;   /* M3: symbolic decls are read by sym.c from m->source */
         else if (!strcmp(h, "Carrier")) rc = admit_carrier(m, d, err, es);

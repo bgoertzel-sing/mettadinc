@@ -86,6 +86,7 @@ typedef struct {
     int unsupported_decls;   /* declarations outside the M0 fragment */
     int symbolic;            /* M3: (Carriers Symbolic); requests go to ops_sym.c, nothing tabulated */
     int stochastic;          /* M4 (opt-in only): Dynamics Stochastic; requests go to stoch.c, nothing tabulated */
+    int contracts;           /* M6 (opt-in only): (Use Contracts) in beyond-release; Implementation decls read by ops_contracts.c from m->source */
     int nondet;              /* M5 (opt-in only): Dynamics Nondeterministic; requests go to ops_nondet.c, nothing tabulated */
     char basedir[512];       /* M4-estimates: directory Stream sources resolve against (set by dc_eval_request) */
     char profile_unsupported[2 * DC_MAX_NAME + 64];  /* non-empty: the whole module is outside M0 (reason) */
