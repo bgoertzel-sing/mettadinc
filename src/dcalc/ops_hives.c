@@ -1,5 +1,6 @@
 #include "ops_internal.h"
 #include "ops_run.h"
+#include "lp_exact.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -246,6 +247,83 @@ static Sx *hv_cost(DcRun *r, const Sx *q) {
     return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL),
                        dc_form("Evidence", dc_form("Closure", dc_form("Classes", dc_int(classes), NULL), NULL), NULL), NULL);
 }
+/* M6-rest: general LeastCoherentRefinement as an exact linear program (spec Sec. 10.4, Example 10.5: "optimality over
+ * all graded refinements is a linear-programming fact, and it has an exact certificate").  Variables x_ab for the
+ * identification pairs a < b of H; maximize sum w_a w_b x_ab subject to x_ab <= 1 (Edge rows) and, for every middle
+ * node b and pair a < c with H(a,b) = H(b,c) = 1, x_ab + x_bc - x_ac <= 1 (Triple rows when H(a,c) = 0, so x_ac = 0;
+ * Chord rows otherwise; Chord is ours, M6-rest registry patch).  Every other ordered-triple constraint is implied
+ * by 0 <= x <= 1.  Solved by the exact Bland simplex (lp_exact.c); the primal is re-checked against every ordered
+ * triple and the dual against every variable before anything is reported. */
+#define HV_LP_MAXV 120
+#define HV_LP_MAXR 1200
+static Sx *hv_lcr_lp(DcModule *m, const Hive *h, const Sx *q) {
+    int n = h->nn, ovf = 0, nv = 0, nr = 0, rc;
+    static int vid[HV_MAXN][HV_MAXN]; static DcRat X[HV_MAXN][HV_MAXN];
+    int va[HV_LP_MAXV], vb[HV_LP_MAXV]; static int ra[HV_LP_MAXR], rb[HV_LP_MAXR], rcn[HV_LP_MAXR];
+    for (int a = 0; a < n; a++) for (int b = 0; b < n; b++) vid[a][b] = -1;
+    for (int a = 0; a < n; a++) for (int b = a + 1; b < n; b++) if (h->H[a][b]) {
+        if (nv >= HV_LP_MAXV) return dc_unsupported(m, "LeastCoherentRefinement %s: more than %d identification pairs; the exact linear program is capped there", h->name, HV_LP_MAXV);
+        vid[a][b] = vid[b][a] = nv; va[nv] = a; vb[nv] = b; nv++;
+    }
+    for (int i = 0; i < nv; i++) { ra[nr] = va[i]; rb[nr] = vb[i]; rcn[nr] = -1; nr++; }
+    for (int b = 0; b < n; b++) for (int a = 0; a < n; a++) for (int c = a + 1; c < n; c++)
+        if (a != b && c != b && vid[a][b] >= 0 && vid[b][c] >= 0) {
+            if (nr >= HV_LP_MAXR) return dc_unsupported(m, "LeastCoherentRefinement %s: more than %d constraints; the exact linear program is capped there", h->name, HV_LP_MAXR);
+            ra[nr] = a; rb[nr] = b; rcn[nr] = c; nr++;
+        }
+    DcRat *A = calloc((size_t)nr * (size_t)nv, sizeof(DcRat)), *bb = malloc(sizeof(DcRat) * (size_t)nr), *cc = malloc(sizeof(DcRat) * (size_t)nv),
+          *x = malloc(sizeof(DcRat) * (size_t)nv), *y = malloc(sizeof(DcRat) * (size_t)nr), val;
+    if (!A || !bb || !cc || !x || !y) { free(A); free(bb); free(cc); free(x); free(y); return dc_unsupported(m, "LeastCoherentRefinement: out of memory"); }
+    for (size_t k = 0; k < (size_t)nr * (size_t)nv; k++) A[k] = rq(0, 1);
+    for (int i = 0; i < nr; i++) {
+        bb[i] = rq(1, 1);
+        if (rcn[i] < 0) A[(size_t)i * nv + vid[ra[i]][rb[i]]] = rq(1, 1);
+        else {
+            A[(size_t)i * nv + vid[ra[i]][rb[i]]] = rq(1, 1); A[(size_t)i * nv + vid[rb[i]][rcn[i]]] = rq(1, 1);
+            if (vid[ra[i]][rcn[i]] >= 0) A[(size_t)i * nv + vid[ra[i]][rcn[i]]] = rq(-1, 1);
+        }
+    }
+    for (int j = 0; j < nv; j++) cc[j] = dc_rat_mul(h->w[va[j]], h->w[vb[j]], &ovf);
+    rc = dc_lp_max(nr, nv, A, bb, cc, x, y, &val, &ovf);
+    Sx *out = NULL;
+#define LPFAIL(...) do { out = dc_unsupported(m, __VA_ARGS__); goto done; } while (0)
+    if (ovf) LPFAIL("LeastCoherentRefinement %s: rational overflow in the exact linear program", h->name);
+    if (rc) LPFAIL("LeastCoherentRefinement %s: exact linear program did not finish (code %d)", h->name, rc);
+    /* independent re-check: primal over every ordered triple, dual over every variable, equal values */
+    for (int a = 0; a < n; a++) for (int b = 0; b < n; b++) X[a][b] = a == b ? rq(1, 1) : vid[a][b] >= 0 ? x[vid[a][b]] : rq(0, 1);
+    for (int a = 0; a < n; a++) for (int b = 0; b < n; b++) {
+        if (X[a][b].n < 0 || dc_rat_cmp(X[a][b], rq(h->H[a][b] || a == b, 1)) > 0) LPFAIL("LeastCoherentRefinement: internal primal outside [0, H]");
+        for (int c = 0; c < n; c++) if (dc_rat_cmp(X[a][c], dc_rat_sub(dc_rat_add(X[a][b], X[b][c], &ovf), rq(1, 1), &ovf)) < 0)
+            LPFAIL("LeastCoherentRefinement: internal primal violates transitivity");
+    }
+    DcRat P = rq(0, 1), Dv = rq(0, 1), T = rq(0, 1);
+    for (int i = 0; i < nr; i++) { if (y[i].n < 0) LPFAIL("LeastCoherentRefinement: internal dual negative"); Dv = dc_rat_add(Dv, y[i], &ovf); }
+    for (int j = 0; j < nv; j++) {
+        DcRat cov = rq(0, 1);
+        for (int i = 0; i < nr; i++) if (A[(size_t)i * nv + j].n) cov = dc_rat_add(cov, dc_rat_mul(A[(size_t)i * nv + j], y[i], &ovf), &ovf);
+        if (dc_rat_cmp(cov, cc[j]) < 0) LPFAIL("LeastCoherentRefinement: internal dual infeasible");
+        T = dc_rat_add(T, cc[j], &ovf); P = dc_rat_add(P, dc_rat_mul(cc[j], x[j], &ovf), &ovf);
+    }
+    if (ovf) LPFAIL("LeastCoherentRefinement %s: rational overflow", h->name);
+    if (dc_rat_cmp(P, Dv) || dc_rat_cmp(P, val)) LPFAIL("LeastCoherentRefinement %s: primal and dual values differ; optimality not certified", h->name);
+    {
+        DcRat cost = dc_rat_mul(rq(2, 1), dc_rat_sub(T, P, &ovf), &ovf);
+        Sx *kept = dc_form("Kept", NULL), *dual = dc_form("Dual", NULL);
+        for (int a = 0; a < n; a++) for (int b = a + 1; b < n; b++) if (X[a][b].n) sx_push(kept, dc_form("Pair", hv_node(m, h, a), hv_node(m, h, b), rsx(X[a][b]), NULL));
+        for (int i = 0; i < nr; i++) if (y[i].n) {
+            if (rcn[i] < 0) sx_push(dual, dc_form("Edge", hv_node(m, h, ra[i]), hv_node(m, h, rb[i]), rsx(y[i]), NULL));
+            else sx_push(dual, dc_form(vid[ra[i]][rcn[i]] >= 0 ? "Chord" : "Triple", hv_node(m, h, ra[i]), hv_node(m, h, rb[i]), hv_node(m, h, rcn[i]), rsx(y[i]), NULL));
+        }
+        if (ovf) LPFAIL("LeastCoherentRefinement %s: rational overflow", h->name);
+        Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Method", dc_sym("LinearProgram"), NULL), dc_form("PrimalValue", rsx(P), NULL),
+                         dc_form("DualValue", rsx(Dv), NULL), dc_form("EdgeMass", rsx(T), NULL), kept, dual, NULL), NULL);
+        out = dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), hv_subj(h), dc_form("Value", rsx(cost), NULL), ev, NULL);
+    }
+done:
+#undef LPFAIL
+    free(A); free(bb); free(cc); free(x); free(y);
+    return out;
+}
 static Sx *hv_lcr(DcRun *r, const Sx *q) {
     DcModule *m = r->m; Hive *h = &g_h; char why[300]; int ovf = 0, n;
     static int comp[HV_MAXN], deg[HV_MAXN], ord[HV_MAXN]; static DcRat X[HV_MAXN][HV_MAXN];
@@ -271,7 +349,7 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
         }
         int cyc = cs >= 4;
         for (int i = 0; i < cs; i++) if (deg[ord[i]] != 2) cyc = 0;
-        if (!cyc) return dc_unsupported(m, "LeastCoherentRefinement %s: an identification component is neither a clique nor a chordless cycle; the general linear program is outside this milestone", h->name);
+        if (!cyc) return hv_lcr_lp(m, h, q);   /* M6-rest: general case */
         int path[HV_MAXN], prev = -1, cur = ord[0];
         for (int i = 0; i < cs; i++) {   /* walk the cycle */
             path[i] = cur; int nxt = -1;
@@ -279,10 +357,10 @@ static Sx *hv_lcr(DcRun *r, const Sx *q) {
             if (nxt < 0) nxt = prev;
             prev = cur; cur = nxt;
         }
-        if (cur != path[0]) return dc_unsupported(m, "LeastCoherentRefinement %s: component walk did not close", h->name);
+        if (cur != path[0]) return hv_lcr_lp(m, h, q);   /* M6-rest: general case */
         DcRat we = dc_rat_mul(h->w[path[0]], h->w[path[1]], &ovf);
         for (int i = 0; i < cs; i++) if (dc_rat_cmp(dc_rat_mul(h->w[path[i]], h->w[path[(i + 1) % cs]], &ovf), we))
-            return dc_unsupported(m, "LeastCoherentRefinement %s: cycle edges of unequal weight are outside this milestone", h->name);
+            return hv_lcr_lp(m, h, q);   /* M6-rest: general case */
         for (int i = 0; i < cs; i++) {
             int a = path[i], b = path[(i + 1) % cs], c = path[(i + 2) % cs];
             X[a][b] = X[b][a] = cs % 2 ? rq(1, 2) : rq(i % 2 == 0, 1);
