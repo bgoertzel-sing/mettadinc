@@ -28,10 +28,14 @@ for i in range(N):
         for a in CAR[m[1]]:
             for b in CAR[m[1]]: H[((m[0], a), (m[0], b))] = 1 if a == b or m[2] == 'CoarseBit' else 0
     hv = ['  (KernelHive C%d' % i] + ['    (Member %s %s %s %s)' % m for m in mem]
-    for a in range(k):
-        for b in range(a + 1, k):
-            ma, mb = mem[a], mem[b]; st = rnd.choice(['Measured', 'Measured', 'Unmeasured', 'none'])
+    # review 1 F4: a hive whose pairs all draw 'none' has no Correspondence and the whole module is InvalidInput;
+    # then add one Measured M1-M2 correspondence (extra draws happen only in that case, so other seeds are unchanged)
+    pairs = [(a, b) for a in range(k) for b in range(a + 1, k)]; ncorr = 0; forced = None
+    while True:
+        for a, b in (pairs if forced is None else [forced]):
+            ma, mb = mem[a], mem[b]; st = 'Measured' if forced else rnd.choice(['Measured', 'Measured', 'Unmeasured', 'none'])
             if st == 'none': continue
+            ncorr += 1
             kn = 'K%d_%d_%d' % (i, a, b); ents = []
             # mostly partial bijections so that many hives are completable
             perm = list(CAR[mb[1]]); rnd.shuffle(perm); sparse = rnd.random() < 0.3
@@ -42,6 +46,8 @@ for i in range(N):
                     if st == 'Measured': H[((ma[0], x), (mb[0], y))] = H[((mb[0], y), (ma[0], x))] = e
             body.append('  (CrossKernel %s (Left %s) (Right %s) (Entries %s))' % (kn, ma[1], mb[1], ' '.join(ents)))
             hv.append('    (Correspondence %s %s %s %s)' % (ma[0], mb[0], kn, st))
+        if ncorr or forced: break
+        forced = (0, 1)
     hv.append('    (Weights %s))' % ' '.join('(%s %s)' % (m[0], rs(w)) for m, w in zip(mem, W)))
     body += hv; reqs.append('!(dc.run CompleteProbe (CompleteHive C%d))' % i); truth['C%d' % i] = (nodes, wt, H)
 fx = os.path.join(od, 'probe_complete.metta'); open(fx, 'w').write('\n'.join(hdr + body) + ')\n' + '\n'.join(reqs) + '\n')
