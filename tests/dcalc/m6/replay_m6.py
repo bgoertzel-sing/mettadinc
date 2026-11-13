@@ -187,7 +187,7 @@ def replay_hive(M, req, res, st):
     raise AssertionError('no hive rule for %s' % h)
 
 # ---- M6 Transfers (spec 10.2/10.4), own semantics ----
-TRANSFER_OPS = ('CheckTransfer', 'CheckValuePullback', 'LibraryGap', 'ComposeTransfers', 'CheckTransferHive')
+TRANSFER_OPS = ('CheckTransfer', 'CheckValuePullback', 'LibraryGap', 'ComposeTransfers', 'CheckTransferHive', 'KernelOf')
 def cases(M, name): mp = M.maps[name]; need(mp[1] == 'cases', 'map %s not replayable' % name); return mp[2]
 def msys(M, name):
     d = M.raw[('MethodSystem', name)]
@@ -255,7 +255,8 @@ def thive(M, name):
             y = a
             for T in es: y = T['iota'][y]
             ha[a] = y
-        if (hs, ha) not in G[cyc[0]]: return False, {}
+        hinv = {v: k for k, v in ha.items()}   # spec Def 10.2: (phi, iota^-1) must lie in G
+        if len(hinv) != len(ha) or (hs, hinv) not in G[cyc[0]]: return False, {}
         hol[tuple(cyc)] = (hs, ha)
     return True, hol
 def ents(e): return {val(x[1]): val(x[2]) for x in e[1:]}
@@ -279,6 +280,19 @@ def kernel_of(M, kreq):
     return mem, car, nodes, wt, H
 def replay_transfer(M, req, res, st):
     h = head(req); ev = field(res, 'Evidence')
+    if h == 'KernelOf':   # review-1 F4: the construction certificate is recomputed entry by entry
+        need(st == 'Checked', 'KernelOf replays Checked rows only')
+        mem, car, nodes, wt, H = kernel_of(M, req)
+        con = field(field(res, 'Evidence'), 'Construction'); need(con is not None, 'no construction certificate')
+        nl = [node(n) for n in field(con, 'Nodes')[1:]]
+        need(len(nl) == len(nodes) and set(nl) == set(nodes), 'node list differs')
+        got = {}
+        for e in field(con, 'Entries')[1:]: got[(node(e[1]), node(e[2]))] = e[3]
+        need(len(got) == len(nodes) * (len(nodes) + 1) // 2, 'entry count differs')
+        for (a, b), v in got.items(): need(v != 'Unmeasured' and val(v) == H[(a, b)], 'entry %s %s differs' % (a, b))
+        rel = sum(1 for v in got.values() if val(v) == 1)
+        need(val(field(con, 'Related')[1]) == rel and val(field(con, 'Unmeasured')[1]) == 0, 'Related/Unmeasured counts differ')
+        return 'KernelOf construction recomputed (%d entries)' % len(got)
     if h == 'CheckTransfer':
         T = tload(M, req[1]); met = metric(req); obs, d, w = tcheck(M, T, met)
         if st == 'Checked':

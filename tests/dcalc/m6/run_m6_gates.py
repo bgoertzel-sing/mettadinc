@@ -17,11 +17,12 @@ def replay(fx, out):
 CASES = (('affine_contracts.metta', 'AffineContracts', ['Checked', 'Checked', 'Refuted']),
          ('receipt_packets.metta', 'PacketMerges', ['Checked', 'Refuted']),
          ('parity_triangle.metta', 'ParityTriangle', ['Refuted', 'Checked', 'Checked', 'Checked']),
-         ('skill_hive.metta', 'SkillHive|SkillHiveOriented|TickLibrary', ['Refuted', 'Checked', 'Checked', 'Checked', 'Checked', 'Refuted', 'Refuted', 'Checked', 'Checked', 'Refuted', 'Checked', 'Checked', 'Refuted', 'Refuted']))
+         ('skill_hive.metta', 'SkillHive|SkillHiveOriented|TickLibrary', ['Refuted', 'Checked', 'Checked', 'Checked', 'Checked', 'Refuted', 'Refuted', 'Checked', 'Checked', 'Refuted', 'Checked', 'Checked', 'Refuted', 'Refuted']),
+         (os.path.join(HERE, 'fixtures', 'holo3.metta'), 'Holo3', ['Checked', 'Checked']))   # review-1 F3: (phi, iota^-1) in G
 ismod = lambda l, mod: l.split(' ', 1)[0] in mod.split('|')   # mod may name several modules: 'A|B'
 mine = lambda ls, mod: [l for l in ls if ismod(l, mod)]
 for fx, mod, want in CASES:
-    f = os.path.join(FX, fx); base = fx[:-6]
+    f = os.path.join(FX, fx); base = os.path.basename(fx)[:-6]   # fx may be an absolute path (review fixtures)
     r = subprocess.run([DCALC, f], capture_output=True, text=True, timeout=120); rel = rows(r.stdout); got = [st(l) for l in mine(rel, mod)]
     report('%s release mode: every answer Unsupported' % base, got == ['Unsupported'] * len(want), str(got))
     r = subprocess.run([DCALC, '--beyond-release', f], capture_output=True, text=True, timeout=120)
@@ -53,4 +54,59 @@ for fx, mod, want in CASES:
         t = list(full); t[i] = nl; tp = os.path.join(OUT, '%s_canary%d.out' % (base, k)); open(tp, 'w').write('\n'.join(t) + '\n')
         rc, last = replay(f, tp); report('%s canary %d (%s, row %d) rejected' % (base, k, nm, idx.index(i) + 1), rc != 0, last[:60])
     report('%s canaries: at least one per row' % base, sum(1 for nm, i, nl in edits if nl != full[i]) >= len(idx), '%d applied' % sum(1 for nm, i, nl in edits if nl != full[i]))
+# negative gates (MILESTONES.md M6, negative tests 1-8; review-1 F2): mutants of skill_hive built at run time
+SH = os.path.join(FX, 'skill_hive.metta'); _s = open(SH).read(); _i = _s.index('!(dc.run SkillHive'); SH_BODY, SH_REQS = _s[:_i], _s[_i:]
+def neg(name, body, reqs):
+    f = os.path.join(OUT, 'neg_%s.metta' % name); open(f, 'w').write(body + reqs)
+    t = subprocess.run([DCALC, '--beyond-release', f], capture_output=True, text=True, timeout=60)
+    return rows(t.stdout)
+def run1(name, req): return neg(name, SH_BODY, '!(dc.run SkillHive %s)\n' % req)
+r = run1('n1', '(ComposeTransfers (Output GoodCAchecked Transfer) (Output BCchecked Transfer) (Output ABchecked Transfer))')
+report('neg1 wrong-direction composition -> InvalidInput', [st(l) for l in r] == ['InvalidInput'], r[0][-80:] if r else 'no row')
+r = run1('n2', '(CheckKernelCoherence (Output GoodCAchecked Transfer))')
+report('neg2 checked transfer read as a kernel/hive -> InvalidInput', [st(l) for l in r] == ['InvalidInput'], r[0][-80:] if r else 'no row')
+_g = '    (Gauge A MirrorA) (Gauge B MirrorB) (Gauge C MirrorC))'; assert SH_BODY.count(_g) == 1
+r = [l for l in neg('n3a', SH_BODY.replace(_g, '    (Gauge A MirrorA))'), SH_REQS) if '(Output Saturated Hive)' in l and 'CheckKernelCoherence' in l]
+report('neg3a gauge saturated only at the base member -> Refuted with an intransitive triple', len(r) == 1 and st(r[0]) == 'Refuted' and '(Witness (Triple' in r[0], str([st(l) for l in r]))
+_m = '(Symmetry MirrorB (Of B) (States flip-state) (Methods flip-method))'; assert SH_BODY.count(_m) == 1
+r = [l for l in neg('n3b', SH_BODY.replace(_m, '(Symmetry MirrorB (Of B) (States same-state) (Methods same-method))'), SH_REQS) if '(Output Saturated Hive)' in l and 'CheckKernelCoherence' in l]
+report('neg3b gauges at every member but not intertwined -> Refuted with an intransitive triple', len(r) == 1 and st(r[0]) == 'Refuted' and '(Witness (Triple' in r[0], str([st(l) for l in r]))
+_e = '(Derive Saturated (KernelOf Beacons (Saturate Gauge))))'; assert SH_BODY.count(_e) == 1
+_b7 = SH_BODY.replace(_e, '(Derive Saturated (KernelOf Beacons (Saturate Gauge)))\n  (Derive VPBad (CheckValuePullback BadCA)))')
+r = neg('n7', _b7, ''.join('!(dc.run SkillHive %s)\n' % q for q in [
+    '(ComposeTransfers (Output ABchecked Transfer) (Output BCchecked Transfer) (Output VPBad Transfer))',
+    '(ComposeTransfers (Output ABchecked Transfer) (Output BCchecked Transfer) (Output VPBad ValueCertificate))',
+    '(CheckKernelCoherence (Output VPBad Transfer))']))
+report('neg7 value-pullback (sensitivity) certificate used as an adequacy/transfer premise -> InvalidInput', [st(l) for l in r] == ['InvalidInput'] * 3, str([st(l) for l in r]))
+GC = os.path.join(FX, 'graded_closure.metta')
+t = subprocess.run([DCALC, '--beyond-release', GC], capture_output=True, text=True, timeout=60)
+r = [l for l in rows(t.stdout) if '(CheckTransitive (Output Thresholded Relation)' in l]
+report('neg6 thresholded closure is not an equivalence closure -> Refuted with a transitivity witness', len(r) == 1 and st(r[0]) == 'Refuted' and 'TransitivityWitness' in r[0], str([st(l) for l in r]))
+AC = os.path.join(FX, 'affine_contracts.metta')
+t = subprocess.run([DCALC, '--beyond-release', AC], capture_output=True, text=True, timeout=60); full = t.stdout.splitlines()
+ci = [i for i, l in enumerate(full) if l.startswith('AffineContracts Composite =>')]
+ok8 = len(ci) == 1 and '(Grade (Rat 6 1) (Rat 1 2))' in full[ci[0]]
+if ok8:
+    u = list(full); u[ci[0]] = u[ci[0]].replace('(Grade (Rat 6 1) (Rat 1 2))', '(Grade (Rat 6 1) (Rat 3 10))', 1)
+    tp = os.path.join(OUT, 'neg8_unamplified.out'); open(tp, 'w').write('\n'.join(u) + '\n')
+    rc, last = replay(AC, tp); ok8 = rc != 0
+report('neg8 composite residual 1/10+1/5 without amplification (6, 3/10) -> rejected by the replayer', ok8, '')
+# KernelOf as a request (review-1 F4): Checked with a construction certificate, replayed; one tampered entry is rejected
+_kq = ''.join('!(dc.run SkillHive %s)\n' % q for q in ['(KernelOf Beacons)', '(KernelOf Beacons (Saturate Gauge))'])
+kf = os.path.join(OUT, 'kernelof.metta'); open(kf, 'w').write(SH_BODY + _kq)
+tb = subprocess.run([DCALC, '--beyond-release', kf], capture_output=True, text=True, timeout=60).stdout
+tr = subprocess.run([DCALC, kf], capture_output=True, text=True, timeout=60).stdout
+kr = rows(tb)
+report('KernelOf as a request: beyond-release Checked with a construction certificate', [st(l) for l in kr] == ['Checked'] * 2 and all('(Construction (Kind KernelOf)' in l for l in kr), str([st(l) for l in kr]))
+report('KernelOf as a request: release mode Unsupported', [st(l) for l in rows(tr)] == ['Unsupported'] * 2, str([st(l) for l in rows(tr)]))
+ko = os.path.join(OUT, 'kernelof.out'); open(ko, 'w').write(tb)
+rc, last = replay(kf, ko); report('KernelOf rows replayed (construction recomputed)', rc == 0, last)
+for k, (old, new) in enumerate([(' 1) (Entry', ' 0) (Entry'), (' 0) (Entry', ' 1) (Entry')]):
+    u = tb.splitlines(); i = [j for j, l in enumerate(u) if old in l]
+    if not i: report('KernelOf tamper %d applicable' % k, False, 'pattern absent'); continue
+    u[i[0]] = u[i[0]].replace(old, new, 1); tp = os.path.join(OUT, 'kernelof_t%d.out' % k); open(tp, 'w').write('\n'.join(u) + '\n')
+    rc, last = replay(kf, tp); report('KernelOf tamper %d (entry %s->%s) rejected' % (k, old.strip()[0], new.strip()[0]), rc != 0, last)
+# neg4 / neg5 have no mechanism in this milestone (review-1 F2): stated as NOT IMPLEMENTED, never counted as PASS
+print('NOTE  neg4 zero-filled unmeasured correspondence: NOT IMPLEMENTED (no CompleteHive; such requests answer Unsupported, which the order does not accept as the gate)')
+print('NOTE  neg5 merge claim with unmeasured receipt identities -> Unknown: NOT IMPLEMENTED (no receipt-identity/merge construct; posterior-only merge contracts answer Checked/Refuted)')
 print('m6_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)

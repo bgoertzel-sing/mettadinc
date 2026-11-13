@@ -345,7 +345,11 @@ static Sx *tr_hive(DcRun *r, const Sx *q) {
         for (int s = 0; s < U->ns; s++) { int y = s; for (int j = k - 1; j >= 0; j--) y = th_e[eix[j]].phi[y]; h.s[s] = y; }
         for (int a = 0; a < U->na; a++) { int y = a; for (int j = 0; j < k; j++) y = th_e[eix[j]].iota[y]; h.a[a] = y; }
         Sx *ho = dc_form("Holonomy", sx_copy(x), dc_form("States", th_ent(m, U->sys.xs, h.s), NULL), dc_form("Methods", th_ent(m, U->sys.ms, h.a), NULL), NULL);
-        if (th_find(U, &h) < 0) { sx_free(hols); return th_fail(m, q, hn, dc_form("Witness", ho, dc_form("OutsideGauge", dc_sym(U->sys.name), dc_form("Order", dc_int(U->ng), NULL), NULL), NULL)); }
+        /* spec Def 10.2: the holonomy (phi, iota) lies in the gauge when (phi, iota^-1) is in G */
+        Perm hg; int bij = 1, hit[TH_MAXV] = {0};
+        for (int s = 0; s < U->ns; s++) hg.s[s] = h.s[s];
+        for (int a = 0; a < U->na; a++) { if (hit[h.a[a]]++) bij = 0; hg.a[h.a[a]] = a; }
+        if (!bij || th_find(U, &hg) < 0) { sx_free(hols); return th_fail(m, q, hn, dc_form("Witness", ho, dc_form("OutsideGauge", dc_sym(U->sys.name), dc_form("Order", dc_int(U->ng), NULL), NULL), NULL)); }
         sx_push(hols, ho); ncyc++;
     }
     Sx *ord = dc_form("GaugeOrders", NULL);
@@ -461,7 +465,37 @@ int dc_kernel_of(const DcModule *m, const Sx *req, const char **names, int *cars
     *nmo = nm;
     return 0;
 }
+/* review-1 F4: (KernelOf TransferHive (Saturate Gauge)?) as a request.  Checked, with a construction certificate:
+ * the member list, every node, and every block-kernel entry (Kernel 1 = related, 0 = not, Unmeasured = no edge). */
+static Sx *tr_kernelof(DcRun *r, const Sx *q) {
+    DcModule *m = r->m; char why[300]; const char *names[TH_MAXM]; int cars[TH_MAXM], nvs[TH_MAXM], nm = 0, base[TH_MAXM], nn = 0;
+    static signed char H[64][64];
+    int rc = dc_kernel_of(m, q, names, cars, nvs, &nm, H, why, sizeof why);
+    if (rc == -1) return dc_invalid(m, "%s", why);
+    if (rc) return dc_unsupported(m, "%s", why);
+    Sx *mem = dc_form("Members", NULL), *nodes = dc_form("Nodes", NULL), *ent = dc_form("Entries", NULL);
+    for (int i = 0; i < nm; i++) {
+        base[i] = nn; nn += nvs[i];
+        sx_push(mem, dc_form("Member", dc_sym(names[i]), dc_sym(m->car[cars[i]].name), dc_form("States", dc_int((long)nvs[i]), NULL), NULL));
+        for (int v = 0; v < nvs[i]; v++) sx_push(nodes, dc_form("Node", dc_sym(names[i]), sx_copy(m->car[cars[i]].elems[v]), NULL));
+    }
+    long ones = 0, unm = 0;
+    for (int i = 0; i < nm; i++) for (int j = i; j < nm; j++) for (int a = 0; a < nvs[i]; a++) for (int b = 0; b < nvs[j]; b++) {
+        int P = base[i] + a, Q = base[j] + b; if (P > Q) continue;
+        Sx *e = dc_form("Entry", dc_form("Node", dc_sym(names[i]), sx_copy(m->car[cars[i]].elems[a]), NULL),
+                        dc_form("Node", dc_sym(names[j]), sx_copy(m->car[cars[j]].elems[b]), NULL),
+                        H[P][Q] < 0 ? dc_sym("Unmeasured") : dc_int((long)H[P][Q]), NULL);
+        if (H[P][Q] < 0) unm++; else if (H[P][Q]) ones++;
+        sx_push(ent, e);
+    }
+    Sx *subj = dc_form("Subject", dc_form("TransferHive", sx_copy(q->items[1]), NULL), NULL);
+    Sx *val = dc_form("Value", dc_form("KernelHive", mem, NULL), NULL);
+    Sx *ev = dc_form("Evidence", dc_form("Construction", dc_form("Kind", dc_sym("KernelOf"), NULL), nodes, ent,
+                     dc_form("Related", dc_int(ones), NULL), dc_form("Unmeasured", dc_int(unm), NULL), NULL), NULL);
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), subj, val, ev, NULL);
+}
 Sx *dc_req_transfers(DcRun *r, const Sx *q, const char *h) {
+    if (!strcmp(h, "KernelOf")) return tr_kernelof(r, q);
     if (!strcmp(h, "CheckTransferHive")) return tr_hive(r, q);
     if (!strcmp(h, "CheckTransfer")) return tr_check(r, q);
     if (!strcmp(h, "CheckValuePullback")) return tr_vpb(r, q);

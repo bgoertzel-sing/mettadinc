@@ -49,6 +49,7 @@ step cetta_smoke;      if [ "${DCALC_SKIP_CETTA:-0}" = 1 ]; then echo "skipped (
 step m5_weakbarbed;    if [ -x build/cetta-dcalc/cetta ] && [ -f build/cetta-dcalc/scripts/rhocalc_bounded_bisimulation.py ]; then $R m5_weakbarbed "python3 tests/dcalc/m5/weakbarbed_record.py build/cetta-dcalc \"$ROOT/build/cetta-dcalc/cetta\" build/m5_weakbarbed.tsv" || rc=1; else echo "skipped (no CeTTa scratch build at build/cetta-dcalc; run cetta_smoke first)"; fi
 # review 2 F5: m5_gates runs after m5_weakbarbed so the recorded-verdict row sees build/m5_weakbarbed.tsv on a fresh tree
 step m5_gates;         $R m5_gates "python3 tests/dcalc/m5/run_m5_gates.py > build/m5_gates.out; r=\$?; tail -1 build/m5_gates.out; exit \$r" || rc=1   # M5 (t-2026-11-12-mettadinc-m5)
+step m6_gates;         $R m6_gates "python3 tests/dcalc/m6/run_m6_gates.py > build/m6_gates.out; r=\$?; tail -1 build/m6_gates.out; exit \$r" || rc=1   # M6 (t-2026-11-13-mettadinc-m6, review-1 F5)
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc
