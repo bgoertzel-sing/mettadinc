@@ -267,6 +267,25 @@
    "profiles": [
     "Crisp"
    ]
+  },
+  "Fill": {
+   "fields": [
+    "Node a",
+    "Node b",
+    "(Path n1 .. nk) -- CompleteHive: unmeasured entry (a, b) filled with 1, forced by a path of measured identifications (ours, M6-rest; hive decision 2)"
+   ],
+   "profiles": [
+    "Crisp"
+   ]
+  },
+  "NoPath": {
+   "fields": [
+    "Member i",
+    "Member j -- CompleteHive: unmeasured member pair that no measured path joins; its entries stay 0, the least value (marked, not silent zero-fill; ours, M6-rest)"
+   ],
+   "profiles": [
+    "Crisp"
+   ]
   }
  },
  "witness_order": "replay accepts any witness that replays; the canonical witness, recorded in the manifest, is the least one: shortest word first, then pairs in lexicographic order of carrier declaration, then actions and queries in declaration order, then words in numeric order; policy trees of least depth first, then actions in declaration order at nodes taken in order of their histories",
@@ -5368,7 +5387,7 @@
   {
    "name": "m6rest",
    "file": "registry/patches/m6rest_registry_patch.json",
-   "sha256": "420f85728635fcffac64b4bfd6d4143232f8c34e256b9559a8013f80cd0b0b1e",
+   "sha256": "64525edac8510c026fb0738895f6ee261effdd112908976667408a2498ad659c",
    "patch": "m6rest: local registry patch for t-2026-11-13-mettadinc-m6-rest (beyond-release only; every shape here is ours, not in the specification)",
    "date": "2026-11-13"
   }
@@ -5454,7 +5473,7 @@
    "patch": "m6"
   },
   "m6rest-shapes": {
-   "text": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows.",
+   "text": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable).",
    "patch": "m6rest"
   }
  }

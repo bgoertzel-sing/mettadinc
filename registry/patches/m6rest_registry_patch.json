@@ -2,19 +2,78 @@
   "patch": "m6rest: local registry patch for t-2026-11-13-mettadinc-m6-rest (beyond-release only; every shape here is ours, not in the specification)",
   "date": "2026-11-13",
   "declarations": {
-    "Fork": {"library": "Contracts", "positional": [["name", "name"]], "fields": {
-      "Of": {"type": "ref:Machine", "required": true, "doc": "the machine whose state is forked (spec 3.4: fork x -> (x, x))"},
-      "Merge": {"type": "name", "required": true, "doc": "a Merge port label of that machine (spec l.2976 (Merge label map)); the merge that reconciles the forks"},
-      "Shared": {"type": "enum:Measured|Unmeasured", "required": true, "doc": "status of the correspondence saying which distinctions the forks share (receipt identities), with the KernelHive Correspondence statuses (spec 10.5 l.2964-2967, 3018)"}},
-      "body": null, "declares": "Fork", "doc": "Ours (M6-rest merge model). An Implementation (Over F) is merge-dependent: Shared Unmeasured -> Unknown; Shared Measured -> evaluated exactly as without a fork."}
+    "Fork": {
+      "library": "Contracts",
+      "positional": [
+        [
+          "name",
+          "name"
+        ]
+      ],
+      "fields": {
+        "Of": {
+          "type": "ref:Machine",
+          "required": true,
+          "doc": "the machine whose state is forked (spec 3.4: fork x -> (x, x))"
+        },
+        "Merge": {
+          "type": "name",
+          "required": true,
+          "doc": "a Merge port label of that machine (spec l.2976 (Merge label map)); the merge that reconciles the forks"
+        },
+        "Shared": {
+          "type": "enum:Measured|Unmeasured",
+          "required": true,
+          "doc": "status of the correspondence saying which distinctions the forks share (receipt identities), with the KernelHive Correspondence statuses (spec 10.5 l.2964-2967, 3018)"
+        }
+      },
+      "body": null,
+      "declares": "Fork",
+      "doc": "Ours (M6-rest merge model). An Implementation (Over F) is merge-dependent: Shared Unmeasured -> Unknown; Shared Measured -> evaluated exactly as without a fork."
+    }
   },
   "declaration_fields": {
-    "Implementation": {"Over": {"type": "ref:Fork", "required": false, "doc": "(Over Fork): the implementation is merge-dependent on that fork (ours, M6-rest; replaces M6's ReceiptIdentities flag, which now answers InvalidInput)"}}
+    "Implementation": {
+      "Over": {
+        "type": "ref:Fork",
+        "required": false,
+        "doc": "(Over Fork): the implementation is merge-dependent on that fork (ours, M6-rest; replaces M6's ReceiptIdentities flag, which now answers InvalidInput)"
+      }
+    }
   },
   "witness_types": {
-    "Chord": {"fields": ["Node a", "Node b", "Node c", "dual value y -- LeastCoherentRefinement dual row x_ab + x_bc - x_ac <= 1 on an identified pair (a, c); covers ab and bc by +y and ac by -y (ours, M6-rest)"], "profiles": ["Crisp"]}
+    "Chord": {
+      "fields": [
+        "Node a",
+        "Node b",
+        "Node c",
+        "dual value y -- LeastCoherentRefinement dual row x_ab + x_bc - x_ac <= 1 on an identified pair (a, c); covers ab and bc by +y and ac by -y (ours, M6-rest)"
+      ],
+      "profiles": [
+        "Crisp"
+      ]
+    },
+    "Fill": {
+      "fields": [
+        "Node a",
+        "Node b",
+        "(Path n1 .. nk) -- CompleteHive: unmeasured entry (a, b) filled with 1, forced by a path of measured identifications (ours, M6-rest; hive decision 2)"
+      ],
+      "profiles": [
+        "Crisp"
+      ]
+    },
+    "NoPath": {
+      "fields": [
+        "Member i",
+        "Member j -- CompleteHive: unmeasured member pair that no measured path joins; its entries stay 0, the least value (marked, not silent zero-fill; ours, M6-rest)"
+      ],
+      "profiles": [
+        "Crisp"
+      ]
+    }
   },
   "notes": {
-    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows."
+    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable)."
   }
 }
