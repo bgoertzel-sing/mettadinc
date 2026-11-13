@@ -9,7 +9,7 @@ tested by `tools/dcalc-run-all.sh`) with its independent replay checker and suit
 on it (M3's symbolic carriers need the pinned proof backend, see [docs/PROOF-BACKEND.md](docs/PROOF-BACKEND.md); M4's stochastic
 fragment answers only with `dcalc --beyond-release`, release 1 still answers Unsupported, gates in `tests/dcalc/m4/`); M5's nondeterministic
 fragment (simulation, safety transfer, outcome sets and probabilities) also answers only with `dcalc --beyond-release`,
-gates and an independent replayer in `tests/dcalc/m5/`; M6–M7 are not implemented yet. Cetta is the git submodule
+gates and an independent replayer in `tests/dcalc/m5/`; M6 (Contracts, Hives, Transfers; crisp profile, `--beyond-release` only) has gates and an independent replayer in `tests/dcalc/m6/`; M7 is not implemented yet. Cetta is the git submodule
 `cetta/`, pinned to the plan's commit and unmodified (see "M0 prerequisites" below); fetch it with
 `git submodule update --init`.
 

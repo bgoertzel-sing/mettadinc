@@ -47,6 +47,33 @@ static int m1_admission(const Sx *all, const char *mn, const Sx *req, char *why,
     return rc;
 }
 
+/* M6 opt-in (beyond release, (Use Contracts)): a same-file (Import M (Only n ...)) copies M's Carrier,
+ * Map and Tolerance declarations named in Only into the importing module at the Import, in M's order.
+ * Returns a new module form, or NULL when nothing changes. */
+static Sx *m6_inline_imports(const Sx *all, const Sx *raw) {
+    int uses = 0, any = 0;
+    for (size_t i = 2; i < raw->n; i++) if (sx_head_is(raw->items[i], "Use"))
+        for (size_t k = 1; k < raw->items[i]->n; k++) if (sx_is_sym(raw->items[i]->items[k], "Contracts") || sx_is_sym(raw->items[i]->items[k], "Transfers")) uses = 1;   /* M6: Contracts, Transfers */
+    if (!uses) return NULL;
+    Sx *out = sx_list();
+    for (size_t i = 0; i < raw->n; i++) {
+        const Sx *d = raw->items[i]; sx_push(out, sx_copy(d));
+        if (i < 2 || !sx_head_is(d, "Import") || d->n < 3 || d->items[1]->kind != SX_SYM) continue;
+        const Sx *only = NULL, *src = NULL;
+        for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Only")) only = d->items[k];
+        for (size_t k = 0; all && k < all->n; k++)
+            if (sx_head_is(all->items[k], "DC.Module") && all->items[k]->n >= 2 && sx_is_sym(all->items[k]->items[1], d->items[1]->text)) { src = all->items[k]; break; }
+        if (!only || !src) continue;
+        for (size_t k = 2; k < src->n; k++) {
+            const Sx *e = src->items[k];
+            if (!(sx_head_is(e, "Carrier") || sx_head_is(e, "Map") || sx_head_is(e, "Tolerance")) || e->n < 2 || e->items[1]->kind != SX_SYM) continue;
+            for (size_t j = 1; j < only->n; j++) if (sx_is_sym(only->items[j], e->items[1]->text)) { sx_push(out, sx_copy(e)); any = 1; break; }
+        }
+    }
+    if (!any) { sx_free(out); return NULL; }
+    return out;
+}
+
 Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx *req) {
     const Sx *raw = NULL;
     for (size_t i = 0; all && i < all->n; i++) {
@@ -63,13 +90,14 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
     else if ((adm = m1_admission(all, mn, req, why, sizeof why)) != 0) res = bare(adm == 1 ? "InvalidInput" : "Unsupported", mn, why);
     else {
         DcModule *m = calloc(1, sizeof *m); char err[512];
-        if (dc_admit(raw, m, err, sizeof err) != 0) {
+        Sx *inl = g_beyond ? m6_inline_imports(all, raw) : NULL;   /* M6 opt-in */
+        if (dc_admit(inl ? inl : raw, m, err, sizeof err) != 0) {
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
             dc_module_free(m);   /* review 2 F6: release partially admitted carrier tables */
         }
         else { if (basedir) snprintf(m->basedir, sizeof m->basedir, "%s", basedir);
                DcRun *run = dc_run_new(m); res = dc_run(run, req); dc_run_free(run); dc_module_free(m); }
-        free(m);
+        free(m); if (inl) sx_free(inl);
     }
     free(bad);
     return res;

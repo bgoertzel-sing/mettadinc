@@ -46,6 +46,10 @@ Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot);
 /* M4 (opt-in only): requests on a Dynamics Stochastic module (stoch.c) */
 Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot);
 Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot);   /* M5 opt-in: ops_nondet.c */
+Sx *dc_req_contracts(DcRun *r, const Sx *q, const char *h);   /* M6 opt-in: ops_contracts.c */
+Sx *dc_req_hives(DcRun *r, const Sx *q, const char *h);   /* M6 opt-in: ops_hives.c */
+Sx *dc_req_transfers(DcRun *r, const Sx *q, const char *h);   /* M6 opt-in: ops_transfers.c */
+int dc_kernel_of(const DcModule *m, const Sx *req, const char **names, int *cars, int *nvs, int *nm, signed char H[64][64], char *why, size_t wn);   /* M6: derived kernel hive */
 /* M4-estimates (ops_est.c): EstimateRate over a frozen Stream; Estimated, never Checked. */
 Sx *dc_req_estimates(DcRun *r, const Sx *q, const char *head);
 Sx *dc_req_separated(DcRun *run, const Sx *q);   /* review 1 F3 */

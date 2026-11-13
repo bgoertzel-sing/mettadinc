@@ -1,0 +1,71 @@
+{
+ "patch": "m6: local registry patch for t-2026-11-13-mettadinc-m6 (beyond-release only; registers the result shapes the M6 code invents, review-2 F3)",
+ "date": "2026-11-13",
+ "witness_types": {
+  "NotIntertwined": {
+   "fields": [
+    "Edge (transfer name)",
+    "(Member a)",
+    "(Member b) -- Def 10.2: no method-part generator of G_b equals iota^-1 g iota for a generator g of G_a"
+   ],
+   "profiles": [
+    "Crisp"
+   ]
+  },
+  "OutsideGauge": {
+   "fields": [
+    "Member",
+    "(Order k) -- order of the member gauge; the holonomy (phi, iota^-1) is not in it"
+   ],
+   "profiles": [
+    "Crisp"
+   ]
+  },
+  "InexactEdge": {
+   "fields": [
+    "Edge",
+    "(State x)",
+    "(Method m) -- a pair with nonzero transfer defect"
+   ],
+   "profiles": [
+    "Crisp"
+   ]
+  },
+  "NotASymmetry": {
+   "fields": [
+    "Symmetry",
+    "(State x)",
+    "(Method m) -- response not preserved"
+   ],
+   "profiles": [
+    "Crisp"
+   ]
+  },
+  "Triple": {
+   "fields": [
+    "Node a",
+    "Node b",
+    "Node c",
+    "optional degree value y (LeastCoherentRefinement listing) -- intransitive triple of a kernel hive; CheckKernelCoherence emits it inside (Witness (Triple a b c) (Degrees ab bc ac))"
+   ],
+   "profiles": [
+    "Crisp"
+   ]
+  }
+ },
+ "notes": {
+  "m6-evidence-shapes": "Evidence shapes emitted beyond release by M6 (Contracts, Hives, Transfers), invented by this implementation (not in the specification): (Construction (Kind KernelOf) (Nodes ..) (Entries ..) (Related n) (Unmeasured 0)); (Composition (Rule PolyComposition|AffineComposition) path); (OptimalValues (States ..) (Note NotATransferCertificate)); (Closure (Classes n)); (Certificate (PrimalValue v) (DualValue v) (Kept ..) (Dual ..)) for LeastCoherentRefinement; (WorstState ..); (AuditedPairs ..); (Transitive (Triples n)); (GaugeOrders ..) for holonomy checks.",
+  "m6-witness-shapes": "Witness heads NotIntertwined, OutsideGauge, InexactEdge, NotASymmetry, Triple and its sibling Degrees are invented by M6 and registered by this patch; profile Crisp only.",
+  "m6-kernelof-hypotheses": "KernelOf answers Checked only under Proposition 10.4: every edge exact (zero defect) and every method pushforward a bijection (state-independent by construction); otherwise Unsupported with the failing edge named.",
+  "m6-receipt-identities": "(ReceiptIdentities Measured|Unmeasured) on Implementation is invented by M6 (review-2 F1, negative test 5): Unmeasured makes CheckImplementation answer Unknown with (Evidence (Open (ReceiptIdentities Unmeasured))); never Checked or Refuted."
+ },
+ "declaration_fields": {
+  "Implementation": {
+   "ReceiptIdentities": {
+    "type": "enum:Measured|Unmeasured",
+    "required": false,
+    "doc": "Measured|Unmeasured (default Measured). Unmeasured: forks do not record receipt identities, so the merge correspondence is unmeasured and merge-dependent CheckImplementation/ThenContracts answer Unknown (spec Sec. 10.5; review-2 F1 negative test 5). Invented by M6."
+   }
+  }
+ }
+}

@@ -33,6 +33,9 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
     if ((!strcmp(h, "EstimateRate") || !strcmp(h, "CompareRates") || !strcmp(h, "EstimateDupRate")) && !m->profile_unsupported[0]) return dc_req_estimates(r, q, h);   /* M4-estimates opt-in */
     if (!strcmp(h, "RatesSeparated") && !m->profile_unsupported[0]) return dc_req_separated(r, q);   /* review 1 F3 */
     if (m->stochastic && !m->profile_unsupported[0]) return dc_req_stoch(r, q, h, slot);   /* M4 opt-in */
+    if (m->contracts && !m->profile_unsupported[0] && (!strcmp(h, "CheckImplementation") || !strcmp(h, "ThenContracts"))) return dc_req_contracts(r, q, h);   /* M6 opt-in */
+    if (m->hives && !m->profile_unsupported[0] && (!strcmp(h, "CheckKernelCoherence") || !strcmp(h, "Holonomy") || !strcmp(h, "ConsensusCost") || !strcmp(h, "LeastCoherentRefinement"))) return dc_req_hives(r, q, h);   /* M6 opt-in */
+    if (m->transfers && !m->profile_unsupported[0] && (!strcmp(h, "CheckTransfer") || !strcmp(h, "CheckValuePullback") || !strcmp(h, "LibraryGap") || !strcmp(h, "ComposeTransfers") || !strcmp(h, "CheckTransferHive") || !strcmp(h, "KernelOf"))) return dc_req_transfers(r, q, h);   /* M6 opt-in */
     if (m->nondet && !m->profile_unsupported[0]) return dc_req_nondet(r, q, h, slot);   /* M5 opt-in */
     if (m->symbolic && !m->profile_unsupported[0]) return dc_req_sym(r, q, h, slot);   /* M3 */
     if (m->profile_unsupported[0]) return dc_unsupported(m, "request %s: %s", h, m->profile_unsupported);
