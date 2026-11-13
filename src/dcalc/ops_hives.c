@@ -41,9 +41,26 @@ static int hv_mem(const Hive *h, const char *nm) { for (int i = 0; i < h->nm; i+
 static Sx *hv_node(const DcModule *m, const Hive *h, int a) { const HvMem *M = &h->mem[h->mof[a]]; return dc_form("Node", dc_sym(M->name), sx_copy(m->car[M->car].elems[h->vof[a]]), NULL); }
 
 #define HV_FAIL(rc, ...) do { snprintf(why, wn, __VA_ARGS__); return rc; } while (0)
+static int hv_derived(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t wn) {
+    const char *names[HV_MAXM]; int cars[HV_MAXM], nvs[HV_MAXM], nm = 0, ovf = 0;
+    if (hn->n != 3 || hn->items[1]->kind != SX_SYM || !sx_is_sym(hn->items[2], "Hive")) HV_FAIL(-1, "expected (Output Derive Hive)");
+    const Sx *d = hv_decl(m, "Derive", hn->items[1]->text);
+    if (!d || d->n != 3) HV_FAIL(-1, "%s names no declared Derive", hn->items[1]->text);
+    if (!sx_head_is(d->items[2], "KernelOf")) HV_FAIL(-1, "Derive %s is not a KernelOf; only derived kernel hives are accepted here", hn->items[1]->text);
+    int rc = dc_kernel_of(m, d->items[2], names, cars, nvs, &nm, h->H, why, wn);
+    if (rc) return rc;
+    h->name = d->items[1]->text; h->nm = nm;
+    for (int i = 0; i < nm; i++) {
+        HvMem *M = &h->mem[i]; M->name = names[i]; M->car = cars[i]; M->nv = nvs[i]; M->base = h->nn; M->w = rq(1, nm);
+        for (int v = 0; v < M->nv; v++) { h->mof[h->nn] = i; h->vof[h->nn] = v; h->nn++; }
+    }
+    for (int a = 0; a < h->nn; a++) h->w[a] = dc_rat_mul(h->mem[h->mof[a]].w, rq(1, h->mem[h->mof[a]].nv), &ovf);
+    if (ovf) HV_FAIL(-2, "KernelHive %s: rational overflow", h->name);
+    return 0;
+}
 static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t wn) {
     memset(h, 0, sizeof *h); int ovf = 0;
-    if (hn && sx_head_is(hn, "Output")) HV_FAIL(-2, "derived hives ((Output Derive Hive), KernelOf) are not evaluated yet");
+    if (hn && sx_head_is(hn, "Output")) return hv_derived(m, hn, h, why, wn);   /* M6: KernelOf */
     if (!hn || hn->kind != SX_SYM) HV_FAIL(-1, "expected a KernelHive name");
     const Sx *d = hv_decl(m, "KernelHive", hn->text);
     if (!d) HV_FAIL(-1, "%s names no declared KernelHive", hn->text);

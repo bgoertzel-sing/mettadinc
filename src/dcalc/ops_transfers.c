@@ -353,6 +353,114 @@ static Sx *tr_hive(DcRun *r, const Sx *q) {
     return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), th_subj(hn), hols,
                        dc_form("Evidence", dc_form("ExactEdges", dc_int(ne), NULL), dc_form("Intertwined", dc_sym("True"), NULL), dc_form("Cycles", dc_int(ncyc), NULL), ord, NULL), NULL);
 }
+/* ---- KernelOf (spec 10.4, derived kernel hive of a transfer hive), crisp case.
+ * Nodes are (member, state).  Member tolerance alpha(x, x') = 1 - max_m |r(x, m) - r(x', m)|; an Edge T (A -> B)
+ * gives the correspondence c(x, y) = 1 - max_m |r_A(x, m) - r_B(y, iota m)|.  With (Saturate Gauge) the member
+ * tolerance is alpha^G(x, x') = max over the gauge group g of 1 - max_m |r(x, m) - r(x', g m)|, and the cross block is
+ * the crisp composite alpha_A o c o alpha_B.  Degrees other than 0/1 answer Unsupported (-2). */
+static int kd(const DcModule *m, const TrSys *A, int x, const TrSys *B, int y, const int *f, int *out) {
+    const DcCarrier *MA = &m->car[A->ms], *MB = &m->car[B->ms]; DcRat worst = rq(0, 1); int ovf = 0;
+    for (size_t a = 0; a < MA->n; a++) {
+        DcRat p, q;
+        if (dc_sx_rat(tr_resp(m, A, m->car[A->xs].elems[x], MA->elems[a]), &p) || dc_sx_rat(tr_resp(m, B, m->car[B->xs].elems[y], MB->elems[f ? f[a] : (int)a]), &q)) return -2;
+        DcRat dd = dc_rat_abs(dc_rat_sub(p, q, &ovf));
+        if (dc_rat_cmp(dd, worst) > 0) worst = dd;
+    }
+    if (ovf) return -2;
+    if (dc_rat_cmp(worst, rq(1, 1)) >= 0) { *out = 0; return 0; }
+    if (!worst.n) { *out = 1; return 0; }
+    return -3;
+}
+int dc_kernel_of(const DcModule *m, const Sx *req, const char **names, int *cars, int *nvs, int *nmo, signed char H[64][64], char *why, size_t wn) {
+    static unsigned char al[TH_MAXM][TH_MAXV][TH_MAXV], cc[TH_MAXV][TH_MAXV];
+    int nm = 0, sat = 0, base[TH_MAXM], nn = 0, ngen[TH_MAXM] = {0}, rc, v, iot[TH_MAXV];
+    if (!sx_head_is(req, "KernelOf") || req->n < 2 || req->items[1]->kind != SX_SYM) TR_FAIL(-1, "expected (KernelOf TransferHive (Saturate Gauge)?)");
+    for (size_t i = 2; i < req->n; i++) {
+        const Sx *o = req->items[i];
+        if (sx_head_is(o, "Saturate") && o->n == 2 && sx_is_sym(o->items[1], "Gauge")) sat = 1;
+        else TR_FAIL(-2, "KernelOf: only the (Saturate Gauge) option is evaluated");
+    }
+    const Sx *d = decl(m, "TransferHive", req->items[1]->text);
+    if (!d) TR_FAIL(-1, "KernelOf: %s names no declared TransferHive", req->items[1]->text);
+    const char *hn = d->items[1]->text;
+    for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], "Member")) {
+        const Sx *x = d->items[i];
+        if (x->n != 2 || x->items[1]->kind != SX_SYM) TR_FAIL(-1, "KernelOf %s: expected (Member MethodSystem)", hn);
+        if (nm >= TH_MAXM) TR_FAIL(-2, "KernelOf %s: more than %d members", hn, TH_MAXM);
+        ThMem *M = &th_m[nm];
+        if ((rc = tr_sys(m, x->items[1]->text, &M->sys, why, wn))) return rc;
+        if (th_mi(nm, M->sys.name) >= 0) TR_FAIL(-1, "KernelOf %s: Member %s declared twice", hn, M->sys.name);
+        M->ns = (int)m->car[M->sys.xs].n; M->na = (int)m->car[M->sys.ms].n;
+        if (M->na > TH_MAXV || nn + M->ns > 64) TR_FAIL(-2, "KernelOf %s: more than 64 nodes", hn);
+        M->ng = 1; for (int s = 0; s < M->ns; s++) M->g[0].s[s] = s; for (int a = 0; a < M->na; a++) M->g[0].a[a] = a;
+        base[nm] = nn; nn += M->ns; names[nm] = M->sys.name; cars[nm] = M->sys.xs; nvs[nm] = M->ns; nm++;
+    }
+    if (nm < 2) TR_FAIL(-1, "KernelOf %s: needs at least two Members", hn);
+    if (sat) {
+        for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], "Gauge")) {
+            const Sx *x = d->items[i]; int mi, seen[TH_MAXV];
+            if (x->n != 3 || x->items[1]->kind != SX_SYM || x->items[2]->kind != SX_SYM || (mi = th_mi(nm, x->items[1]->text)) < 0) TR_FAIL(-1, "KernelOf %s: expected (Gauge Member Symmetry)", hn);
+            ThMem *M = &th_m[mi]; const Sx *sy = decl(m, "Symmetry", x->items[2]->text);
+            if (!sy || !arg1(sy, "Of") || strcmp(arg1(sy, "Of"), M->sys.name)) TR_FAIL(-1, "KernelOf %s: Symmetry %s is not declared Of %s", hn, x->items[2]->text, M->sys.name);
+            if (ngen[mi] >= TH_MAXG) TR_FAIL(-2, "KernelOf %s: too many gauge generators", hn);
+            Perm *p = &th_gen[mi][ngen[mi]];
+            if (th_tab(m, arg1(sy, "States"), M->sys.xs, M->sys.xs, p->s) || th_tab(m, arg1(sy, "Methods"), M->sys.ms, M->sys.ms, p->a)) TR_FAIL(-1, "KernelOf %s: Symmetry %s maps are not total", hn, x->items[2]->text);
+            memset(seen, 0, sizeof seen); for (int a = 0; a < M->na; a++) seen[p->a[a]]++;
+            for (int a = 0; a < M->na; a++) if (seen[a] != 1) TR_FAIL(-1, "KernelOf %s: Symmetry %s: Methods map is not a bijection", hn, x->items[2]->text);
+            const DcCarrier *X = &m->car[M->sys.xs], *A = &m->car[M->sys.ms];
+            for (int s = 0; s < M->ns; s++) for (int a = 0; a < M->na; a++)
+                if (!sx_equal(tr_resp(m, &M->sys, X->elems[p->s[s]], A->elems[p->a[a]]), tr_resp(m, &M->sys, X->elems[s], A->elems[a])))
+                    TR_FAIL(-1, "KernelOf %s: Symmetry %s does not preserve the response of %s", hn, x->items[2]->text, M->sys.name);
+            ngen[mi]++;
+        }
+        for (int i = 0; i < nm; i++) {
+            ThMem *M = &th_m[i];
+            for (int g = 0; g < M->ng; g++) for (int j = 0; j < ngen[i]; j++) {
+                Perm p; const Perm *G = &th_gen[i][j];
+                for (int s = 0; s < M->ns; s++) p.s[s] = G->s[M->g[g].s[s]];
+                for (int a = 0; a < M->na; a++) p.a[a] = G->a[M->g[g].a[a]];
+                if (th_find(M, &p) < 0) { if (M->ng >= TH_MAXG) TR_FAIL(-2, "KernelOf %s: gauge group above %d elements", hn, TH_MAXG); M->g[M->ng++] = p; }
+            }
+        }
+    }
+    for (int a = 0; a < 64; a++) for (int b = 0; b < 64; b++) H[a][b] = -1;
+    for (int i = 0; i < nm; i++) {
+        ThMem *M = &th_m[i];
+        for (int x = 0; x < M->ns; x++) for (int y = 0; y < M->ns; y++) {
+            int best = 0;
+            for (int g = 0; g < (sat ? M->ng : 1); g++) {
+                rc = kd(m, &M->sys, x, &M->sys, y, M->g[g].a, &v);
+                if (rc == -2) TR_FAIL(-2, "KernelOf %s: member tolerances need rational responses", hn);
+                if (rc == -3) TR_FAIL(-2, "KernelOf %s: graded member tolerance (crisp 0/1 degrees only)", hn);
+                best |= v;
+            }
+            al[i][x][y] = (unsigned char)best; H[base[i] + x][base[i] + y] = (signed char)best;
+        }
+    }
+    for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Edge")) {
+        const Sx *x = d->items[k]; TrT t; int i, j;
+        if (x->n != 2) TR_FAIL(-1, "KernelOf %s: expected (Edge Transfer)", hn);
+        if ((rc = tr_load(m, x->items[1], &t, why, wn))) return rc;
+        if ((i = th_mi(nm, t.a.name)) < 0 || (j = th_mi(nm, t.b.name)) < 0 || i == j) TR_FAIL(-1, "KernelOf %s: Edge %s must join two distinct members", hn, t.name);
+        if (th_tab(m, t.iota, t.a.ms, t.b.ms, iot)) TR_FAIL(-1, "KernelOf %s: Edge %s pushforward is not total", hn, t.name);
+        const ThMem *A = &th_m[i], *B = &th_m[j];
+        for (int a = 0; a < A->ns; a++) for (int b = 0; b < B->ns; b++) {
+            rc = kd(m, &t.a, a, &t.b, b, iot, &v);
+            if (rc == -2) TR_FAIL(-2, "KernelOf %s: correspondences need rational responses", hn);
+            if (rc == -3) TR_FAIL(-2, "KernelOf %s: graded correspondence on Edge %s (crisp 0/1 degrees only)", hn, t.name);
+            cc[a][b] = (unsigned char)v;
+        }
+        for (int a = 0; a < A->ns; a++) for (int b = 0; b < B->ns; b++) {
+            int val = cc[a][b];
+            if (sat) { val = 0; for (int u = 0; u < A->ns; u++) for (int w = 0; w < B->ns; w++) if (al[i][a][u] && cc[u][w] && al[j][w][b]) val = 1; }
+            int P = base[i] + a, Q = base[j] + b;
+            if (H[P][Q] >= 0 && H[P][Q] != val) TR_FAIL(-2, "KernelOf %s: conflicting edges between %s and %s", hn, A->sys.name, B->sys.name);
+            H[P][Q] = H[Q][P] = (signed char)val;
+        }
+    }
+    *nmo = nm;
+    return 0;
+}
 Sx *dc_req_transfers(DcRun *r, const Sx *q, const char *h) {
     if (!strcmp(h, "CheckTransferHive")) return tr_hive(r, q);
     if (!strcmp(h, "CheckTransfer")) return tr_check(r, q);
