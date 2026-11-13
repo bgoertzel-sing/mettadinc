@@ -74,7 +74,7 @@
     }
   },
   "notes": {
-    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable). (Associator Hive Mi Mj Mk) -> HiveAssociator (request and result shape ours; definition spec l.2827). Top-level arrow_kinds section (ours): Table 4 kinds with grade and composition law and the request that composes them."
+    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable). (Associator Hive Mi Mj Mk) -> HiveAssociator (request and result shape ours; definition spec l.2827). Top-level arrow_kinds section (ours, documentation only: no code reads it): Table 4 kinds with grade and composition law and the request that composes them, if any. Completed hive: (Derive C (CompleteHive H)) used as (Output C Hive) (ours, review 1 F1); NoPath entries stay Unmeasured. Translation actions (MergeLeft m y) and (MergeRight m y): the one-argument contexts x -> m(x,y) and x -> m(y,x) of a Merge port (ours; built in M2, ops_refine.c, listed here per hive answer 1 item 3; nothing new built in M6-rest)."
   },
   "requests": {
     "Associator": {
@@ -178,6 +178,6 @@
       "then": "ThenContracts (ops_contracts.c)",
       "spec": "spec Prop 9.1"
     },
-    "_doc": "Ours (M6-rest): one registry of arrow kinds, grades and composition laws. Mixing kinds in one composition is refused, never silently coerced."
+    "_doc": "Ours (M6-rest): one registry of arrow kinds, grades and composition laws. Documentation only: no code reads this section. Mixing kinds in one Then is refused (InvalidInput) by the pre-existing binding type check, never silently coerced."
   }
 }
