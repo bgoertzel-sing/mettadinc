@@ -240,7 +240,8 @@ def thive(M, name):
         need(T['an'] in S and T['bn'] in S, 'edge joins a non-member')
         if tcheck(M, T, 'RewardLawTV')[1] != 0: return False, {}
         GA, GB = G[T['an']], G[T['bn']]
-        inter = lambda ga, gb: all(T['phi'][gb[0][b]] == ga[0][T['phi'][b]] for b in S[T['bn']]['X']) and all(T['iota'][ga[1][a]] == gb[1][T['iota'][a]] for a in S[T['an']]['A'])
+        inter = lambda ga, gb: all(  # Def 10.2: method parts only
+            T['iota'][ga[1][a]] == gb[1][T['iota'][a]] for a in S[T['an']]['A'])
         if not all(any(inter(ga, gb) for gb in GB) for ga in GA) or not all(any(inter(ga, gb) for ga in GA) for gb in GB): return False, {}
     hol = {}
     for x in th[2:]:
@@ -376,6 +377,15 @@ def main(fx, out):
         if ' => ' not in line: continue
         res = read_all(line.split(' => ', 1)[1])[0]; st = field(res, 'Status')[1]
         asr = field(res, 'Assurance'); rep = field(asr, 'Replayed') if asr else None
+        _c = field(res, 'Claim') if isinstance(res, list) else None
+        req0 = _c[1] if isinstance(_c, list) and len(_c) > 1 else None
+        if req0 is None and st in ('Checked', 'Refuted'):   # review-2 F5: a verdict with an empty Claim is malformed; identify the request from the line
+            try: _lq = read_all(line.split(' => ', 1)[0].split(' ', 1)[1])[0]
+            except Exception: _lq = None
+            if head(_lq) in ('KernelOf', 'CheckImplementation', 'ThenContracts') + HIVE_OPS + TRANSFER_OPS:
+                rows += 1; bad += 1; print('REJECT    %s: %s verdict with an empty Claim' % (line.split(' => ')[0][:80], st)); continue
+        if st in ('Checked', 'Refuted') and head(req0) == 'KernelOf' and (not rep or rep[1] != 'True'):   # review-2 F5: a KernelOf verdict must carry a replayable construction
+            rows += 1; bad += 1; print('REJECT    %s: KernelOf %s without Replayed True' % (line.split(' => ')[0][:80], st)); continue
         if st not in ('Checked', 'Refuted') or not rep or rep[1] != 'True': continue
         mod = line.split(' ', 1)[0]; req = field(res, 'Claim')[1]
         if head(req) not in ('CheckImplementation', 'ThenContracts') + HIVE_OPS + TRANSFER_OPS: continue   # other milestones have their own replayers

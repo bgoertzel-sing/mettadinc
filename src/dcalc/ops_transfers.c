@@ -248,7 +248,7 @@ static Sx *th_ent(const DcModule *m, int c, const int *f) {
     return e;
 }
 static int th_inter(const ThEdge *E, const ThMem *A, const ThMem *B, const Perm *ga, const Perm *gb) {
-    for (int b = 0; b < B->ns; b++) if (E->phi[gb->s[b]] != ga->s[E->phi[b]]) return 0;
+    (void)B; /* Def 10.2: intertwining is on method parts only (iota^-1 G^M_j iota = G^M_i); state parts need not commute with phi */
     for (int a = 0; a < A->na; a++) if (E->iota[ga->a[a]] != gb->a[E->iota[a]]) return 0;
     return 1;
 }
@@ -448,6 +448,21 @@ int dc_kernel_of(const DcModule *m, const Sx *req, const char **names, int *cars
         if ((i = th_mi(nm, t.a.name)) < 0 || (j = th_mi(nm, t.b.name)) < 0 || i == j) TR_FAIL(-1, "KernelOf %s: Edge %s must join two distinct members", hn, t.name);
         if (th_tab(m, t.iota, t.a.ms, t.b.ms, iot)) TR_FAIL(-1, "KernelOf %s: Edge %s pushforward is not total", hn, t.name);
         const ThMem *A = &th_m[i], *B = &th_m[j];
+        /* review-2 F5: Proposition 10.4 hypotheses.  The pushforward must be a bijection of methods (it is a Map
+         * M_A -> M_B, so state-independent by construction) and the edge must be exact (zero defect everywhere). */
+        {
+            int seen[TH_MAXV], phi[TH_MAXV], ovf = 0;
+            if (A->na != B->na) TR_FAIL(-2, "KernelOf %s: Edge %s pushforward is not bijective (%d methods to %d); Proposition 10.4 hypotheses only", hn, t.name, A->na, B->na);
+            memset(seen, 0, sizeof seen); for (int a = 0; a < A->na; a++) seen[iot[a]]++;
+            for (int a = 0; a < B->na; a++) if (seen[a] != 1) TR_FAIL(-2, "KernelOf %s: Edge %s pushforward is not bijective; Proposition 10.4 hypotheses only", hn, t.name);
+            if (th_tab(m, t.phi, t.b.xs, t.a.xs, phi)) TR_FAIL(-1, "KernelOf %s: Edge %s pullback is not total", hn, t.name);
+            const DcCarrier *XA = &m->car[t.a.xs], *XB = &m->car[t.b.xs], *MA = &m->car[t.a.ms], *MB = &m->car[t.b.ms];
+            for (int b = 0; b < B->ns; b++) for (int a = 0; a < A->na; a++) {
+                DcRat dd; tr_dist(0, tr_resp(m, &t.a, XA->elems[phi[b]], MA->elems[a]), tr_resp(m, &t.b, XB->elems[b], MB->elems[iot[a]]), &dd, &ovf);
+                if (ovf) TR_FAIL(-2, "KernelOf %s: Edge %s defect overflows", hn, t.name);
+                if (dd.n) TR_FAIL(-2, "KernelOf %s: Edge %s is not exact (nonzero defect); Proposition 10.4 hypotheses only", hn, t.name);
+            }
+        }
         for (int a = 0; a < A->ns; a++) for (int b = 0; b < B->ns; b++) {
             rc = kd(m, &t.a, a, &t.b, b, iot, &v);
             if (rc == -2) TR_FAIL(-2, "KernelOf %s: correspondences need rational responses", hn);

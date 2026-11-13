@@ -18,7 +18,9 @@ CASES = (('affine_contracts.metta', 'AffineContracts', ['Checked', 'Checked', 'R
          ('receipt_packets.metta', 'PacketMerges', ['Checked', 'Refuted']),
          ('parity_triangle.metta', 'ParityTriangle', ['Refuted', 'Checked', 'Checked', 'Checked']),
          ('skill_hive.metta', 'SkillHive|SkillHiveOriented|TickLibrary', ['Refuted', 'Checked', 'Checked', 'Checked', 'Checked', 'Refuted', 'Refuted', 'Checked', 'Checked', 'Refuted', 'Checked', 'Checked', 'Refuted', 'Refuted']),
-         (os.path.join(HERE, 'fixtures', 'holo3.metta'), 'Holo3', ['Checked', 'Checked']))   # review-1 F3: (phi, iota^-1) in G
+         (os.path.join(HERE, 'fixtures', 'holo3.metta'), 'Holo3', ['Checked', 'Checked']),   # review-1 F3: (phi, iota^-1) in G
+         (os.path.join(HERE, 'fixtures', 'iw2.metta'), 'Iw2', ['Checked', 'Checked']),   # review-2 F4: Def 10.2 intertwining on method parts only
+         (os.path.join(HERE, 'fixtures', 'kof_hyp.metta'), 'KofHyp', ['Unsupported', 'Unsupported', 'Unsupported', 'Checked']))   # review-2 F5: Prop 10.4 hypotheses
 ismod = lambda l, mod: l.split(' ', 1)[0] in mod.split('|')   # mod may name several modules: 'A|B'
 mine = lambda ls, mod: [l for l in ls if ismod(l, mod)]
 for fx, mod, want in CASES:
@@ -38,6 +40,7 @@ for fx, mod, want in CASES:
     for i in idx:
         l = full[i]
         if st(l) == 'Checked': edits.append(('Checked->Refuted', i, l.replace('(Status Checked)', '(Status Refuted)', 1)))
+        if st(l) == 'Unsupported': edits.append(('Unsupported->Checked', i, l.replace('(Status Unsupported)', '(Status Checked)', 1)))   # review-2 F5: a refused KernelOf must not replay as Checked
         if st(l) == 'Refuted':
             edits.append(('Refuted->Checked', i, l.replace('(Status Refuted)', '(Status Checked)', 1)))
             edits.append(('OutputGap changed', i, re.sub(r'\(OutputGap \(Rat (-?\d+) (\d+)\)\)', lambda m: '(OutputGap (Rat %d %s))' % (int(m.group(1)) + 1, m.group(2)), l, 1)))
