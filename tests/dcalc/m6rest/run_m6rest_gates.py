@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M6-rest gates (beyond release only).  Each check prints PASS/FAIL; exit 1 on any FAIL."""
+"""M6-rest gates (beyond release, plus release mode over every m6rest fixture).  Each check prints PASS/FAIL; exit 1 on any FAIL."""
 import os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '../../..'))
 DCALC = os.path.join(ROOT, 'build/dcalc/dcalc'); OUT = os.environ.get('DCALC_OUT', os.path.join(ROOT, 'build/dcalc/out-m6rest')); os.makedirs(OUT, exist_ok=True)
@@ -73,4 +73,24 @@ mt = n5.replace(' (Over Copies))', ')').replace('(Derive Composite (ThenContract
      '(Derive Composite (ThenContracts (Output FirstChecked Value) (Output SecondChecked Value)))\n  (Derive Mixed (Then (Output FirstChecked Value) (Output SecondChecked Value))))') + '!(dc.run Neg5Receipts Mixed)\n'
 open(mx, 'w').write(mt); mo = run(mx)
 report('arrow kinds neg: Then over two affine contracts (AffineContract kind) -> InvalidInput naming the type mismatch, never coerced', 'Derive Mixed' in mt and statuses(mo)[-1:] == ['InvalidInput'] and 'CheckedImplementationContract, expected Arrow' in mo, statuses(mo))
+# review 2 F1: the spec's own merge fixture (receipt_packets.metta: MergeMemory declared in HyperseedMemory, P12/P13 in
+# PacketMerges) carries a Fork.  The Fork's (Of MergeMemory) resolves through (Import HyperseedMemory (Only ... MergeMemory)).
+SPEC_PK = os.path.join(ROOT, 'docs/e0/docs/01_language_specification/validation_package/fixtures/receipt_packets.metta')
+def pm(o): return [l for l in o.splitlines() if l.startswith('PacketMerges ')]
+def hm(o): return [l for l in o.splitlines() if l.startswith('HyperseedMemory ')]
+pk_spec, pk_meas, pk_unm = run(SPEC_PK), run(os.path.join(HERE, 'fixtures', 'packets_fork_measured.metta')), run(os.path.join(HERE, 'fixtures', 'packets_fork_unmeasured.metta'))
+report('spec P12/P13 with a Measured fork (merge machine imported): byte for byte the spec answers up to the PacketMerges Digest', pk_meas and nodigest(pk_meas) == nodigest(pk_spec) and statuses('\n'.join(pm(pk_meas))) == ['Checked', 'Refuted'], statuses('\n'.join(pm(pk_meas))))
+report('spec P1-P11 (HyperseedMemory) unchanged byte for byte including its Digest when PacketMerges carries a Measured or Unmeasured fork', len(hm(pk_spec)) == 11 and hm(pk_meas) == hm(pk_spec) == hm(pk_unm))
+report('spec P12/P13 with an Unmeasured fork -> Unknown x2', statuses('\n'.join(pm(pk_unm))) == ['Unknown', 'Unknown'], statuses('\n'.join(pm(pk_unm))))
+pk_bad = os.path.join(OUT, 'packets_fork_not_imported.metta')
+open(pk_bad, 'w').write(open(os.path.join(HERE, 'fixtures', 'packets_fork_measured.metta')).read().replace(' PosteriorDistance MergeMemory))', ' PosteriorDistance))'))
+ob = run(pk_bad); report('spec P12/P13 neg: Fork naming a machine not in the Import Only list -> InvalidInput', statuses('\n'.join(pm(ob)))[:1] == ['InvalidInput'], statuses('\n'.join(pm(ob))))
+# review 2 F2: release mode.  Every m6rest fixture answers only Unsupported/InvalidInput there (Fork, CompleteHive,
+# LCR LP, Associator are beyond release); the packets fork fixtures keep the spec's release answers outside PacketMerges.
+for fx in sorted(os.listdir(os.path.join(HERE, 'fixtures'))):
+    rel = run(os.path.join(HERE, 'fixtures', fx), beyond=False)
+    st = statuses('\n'.join(pm(rel))) if fx.startswith('packets_fork') else statuses(rel)
+    report('release mode: %s answers only Unsupported/InvalidInput' % fx, len(st) > 0 and set(st) <= {'Unsupported', 'InvalidInput'}, st)
+rs, rm = run(SPEC_PK, beyond=False), run(os.path.join(HERE, 'fixtures', 'packets_fork_measured.metta'), beyond=False)
+report('release mode: packets fork fixture leaves HyperseedMemory answers identical to the spec fixture', len(hm(rs)) == 11 and hm(rm) == hm(rs))
 print('m6rest_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)
