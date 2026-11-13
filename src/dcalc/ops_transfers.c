@@ -221,7 +221,140 @@ static Sx *tr_compose(DcRun *r, const Sx *q) {
     for (int s = 0; s < k; s++) sx_push(subj->items[1], dc_sym(t[s].name));
     return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), subj, val, dc_form("Evidence", dc_form("Composition", dc_form("Rule", dc_sym("PolyComposition"), NULL), path, NULL), NULL), NULL);
 }
+/* ---- CheckTransferHive (spec 10.4): (TransferHive H (Member S)... (Edge T)... (Cycle S1 ... Sk)... (Gauge S Symmetry)...).
+ * Checked iff every edge transfer is exact (RewardLawTV defect 0), every declared Symmetry is a bijective symmetry of
+ * its member's response, the gauge groups (closure of the declared symmetries) are intertwined by every edge, and the
+ * holonomy around every declared cycle (composite pullback and pushforward at the first member) lies in that
+ * member's gauge group.  Without a declared gauge the group is trivial, so a non-identity holonomy is a witness. */
+#define TH_MAXM 8
+#define TH_MAXE 16
+#define TH_MAXG 32
+#define TH_MAXV 64
+typedef struct { int s[TH_MAXV], a[TH_MAXV]; } Perm;
+typedef struct { TrSys sys; int ns, na, ng; Perm g[TH_MAXG]; } ThMem;
+typedef struct { TrT t; int src, tgt, phi[TH_MAXV], iota[TH_MAXV]; } ThEdge;
+static ThMem th_m[TH_MAXM]; static ThEdge th_e[TH_MAXE]; static Perm th_gen[TH_MAXM][TH_MAXG];
+static int th_idx(const DcModule *m, int c, const Sx *v) { for (size_t i = 0; v && i < m->car[c].n; i++) if (sx_equal(m->car[c].elems[i], v)) return (int)i; return -1; }
+static int th_tab(const DcModule *m, const char *map, int c1, int c2, int *out) {
+    for (size_t i = 0; i < m->car[c1].n; i++) if ((out[i] = th_idx(m, c2, tr_apply(m, map, m->car[c1].elems[i]))) < 0) return -1;
+    return 0;
+}
+static int th_eq(const Perm *p, const Perm *q, int ns, int na) { return !memcmp(p->s, q->s, (size_t)ns * sizeof(int)) && !memcmp(p->a, q->a, (size_t)na * sizeof(int)); }
+static int th_find(const ThMem *M, const Perm *p) { for (int i = 0; i < M->ng; i++) if (th_eq(&M->g[i], p, M->ns, M->na)) return i; return -1; }
+static int th_mi(int nm, const char *n) { for (int i = 0; n && i < nm; i++) if (!strcmp(th_m[i].sys.name, n)) return i; return -1; }
+static Sx *th_ent(const DcModule *m, int c, const int *f) {
+    Sx *e = dc_form("Entries", NULL);
+    for (size_t i = 0; i < m->car[c].n; i++) sx_push(e, dc_form("Map", sx_copy(m->car[c].elems[i]), sx_copy(m->car[c].elems[f[i]]), NULL));
+    return e;
+}
+static int th_inter(const ThEdge *E, const ThMem *A, const ThMem *B, const Perm *ga, const Perm *gb) {
+    for (int b = 0; b < B->ns; b++) if (E->phi[gb->s[b]] != ga->s[E->phi[b]]) return 0;
+    for (int a = 0; a < A->na; a++) if (E->iota[ga->a[a]] != gb->a[E->iota[a]]) return 0;
+    return 1;
+}
+static Sx *th_subj(const char *hn) { return dc_form("Subject", dc_form("TransferHive", dc_sym(hn), NULL), NULL); }
+static Sx *th_fail(DcModule *m, const Sx *q, const char *hn, Sx *wit) {
+    return dc_envelope(m, VERDICT_FAILS, 1, dc_claim_of(q, "Literal"), th_subj(hn), NULL, dc_form("Evidence", wit, NULL), NULL);
+}
+static Sx *tr_hive(DcRun *r, const Sx *q) {
+    DcModule *m = r->m; char why[300]; int nm = 0, ne = 0, ovf = 0, ngen[TH_MAXM] = {0};
+    if (q->n != 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "CheckTransferHive: expected (CheckTransferHive Name)");
+    const Sx *d = decl(m, "TransferHive", q->items[1]->text);
+    if (!d) return dc_invalid(m, "CheckTransferHive: %s names no declared TransferHive", q->items[1]->text);
+    const char *hn = d->items[1]->text;
+    for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], "Member")) {
+        const Sx *x = d->items[i];
+        if (x->n != 2 || x->items[1]->kind != SX_SYM) return dc_invalid(m, "CheckTransferHive %s: expected (Member MethodSystem)", hn);
+        if (nm >= TH_MAXM) return dc_unsupported(m, "CheckTransferHive %s: more than %d members", hn, TH_MAXM);
+        ThMem *M = &th_m[nm];
+        if (tr_sys(m, x->items[1]->text, &M->sys, why, sizeof why)) return dc_invalid(m, "CheckTransferHive %s: %s", hn, why);
+        if (th_mi(nm, M->sys.name) >= 0) return dc_invalid(m, "CheckTransferHive %s: Member %s declared twice", hn, M->sys.name);
+        M->ns = (int)m->car[M->sys.xs].n; M->na = (int)m->car[M->sys.ms].n;
+        if (M->ns > TH_MAXV || M->na > TH_MAXV) return dc_unsupported(m, "CheckTransferHive %s: carriers above %d values", hn, TH_MAXV);
+        M->ng = 1; for (int s = 0; s < M->ns; s++) M->g[0].s[s] = s; for (int a = 0; a < M->na; a++) M->g[0].a[a] = a;
+        nm++;
+    }
+    if (nm < 2) return dc_invalid(m, "CheckTransferHive %s: needs at least two Members", hn);
+    for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], "Gauge")) {
+        const Sx *x = d->items[i]; int mi;
+        if (x->n != 3 || x->items[1]->kind != SX_SYM || x->items[2]->kind != SX_SYM || (mi = th_mi(nm, x->items[1]->text)) < 0)
+            return dc_invalid(m, "CheckTransferHive %s: expected (Gauge Member Symmetry) on a declared member", hn);
+        ThMem *M = &th_m[mi]; const Sx *sy = decl(m, "Symmetry", x->items[2]->text);
+        if (!sy || !arg1(sy, "Of") || strcmp(arg1(sy, "Of"), M->sys.name)) return dc_invalid(m, "CheckTransferHive %s: Symmetry %s is not declared Of %s", hn, x->items[2]->text, M->sys.name);
+        if (ngen[mi] >= TH_MAXG) return dc_unsupported(m, "CheckTransferHive %s: too many gauge generators", hn);
+        Perm *p = &th_gen[mi][ngen[mi]]; int seen[TH_MAXV];
+        if (th_tab(m, arg1(sy, "States"), M->sys.xs, M->sys.xs, p->s) || th_tab(m, arg1(sy, "Methods"), M->sys.ms, M->sys.ms, p->a))
+            return dc_invalid(m, "CheckTransferHive %s: Symmetry %s: (States map) and (Methods map) must be total on the carriers of %s", hn, x->items[2]->text, M->sys.name);
+        memset(seen, 0, sizeof seen); for (int s = 0; s < M->ns; s++) seen[p->s[s]]++;
+        for (int s = 0; s < M->ns; s++) if (seen[s] != 1) return dc_invalid(m, "CheckTransferHive %s: Symmetry %s: States map is not a bijection", hn, x->items[2]->text);
+        memset(seen, 0, sizeof seen); for (int a = 0; a < M->na; a++) seen[p->a[a]]++;
+        for (int a = 0; a < M->na; a++) if (seen[a] != 1) return dc_invalid(m, "CheckTransferHive %s: Symmetry %s: Methods map is not a bijection", hn, x->items[2]->text);
+        const DcCarrier *X = &m->car[M->sys.xs], *A = &m->car[M->sys.ms];
+        for (int s = 0; s < M->ns; s++) for (int a = 0; a < M->na; a++)
+            if (!sx_equal(tr_resp(m, &M->sys, X->elems[p->s[s]], A->elems[p->a[a]]), tr_resp(m, &M->sys, X->elems[s], A->elems[a])))
+                return th_fail(m, q, hn, dc_form("Witness", dc_form("NotASymmetry", dc_sym(x->items[2]->text), NULL), dc_form("State", sx_copy(X->elems[s]), NULL), dc_form("Method", sx_copy(A->elems[a]), NULL), NULL));
+        ngen[mi]++;
+    }
+    for (int i = 0; i < nm; i++) {   /* gauge group = closure of the generators */
+        ThMem *M = &th_m[i];
+        for (int g = 0; g < M->ng; g++) for (int j = 0; j < ngen[i]; j++) {
+            Perm p; const Perm *G = &th_gen[i][j];
+            for (int s = 0; s < M->ns; s++) p.s[s] = G->s[M->g[g].s[s]];
+            for (int a = 0; a < M->na; a++) p.a[a] = G->a[M->g[g].a[a]];
+            if (th_find(M, &p) < 0) { if (M->ng >= TH_MAXG) return dc_unsupported(m, "CheckTransferHive %s: gauge group of %s above %d elements", hn, M->sys.name, TH_MAXG); M->g[M->ng++] = p; }
+        }
+    }
+    for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], "Edge")) {
+        const Sx *x = d->items[i];
+        if (x->n != 2) return dc_invalid(m, "CheckTransferHive %s: expected (Edge Transfer)", hn);
+        if (ne >= TH_MAXE) return dc_unsupported(m, "CheckTransferHive %s: more than %d edges", hn, TH_MAXE);
+        ThEdge *E = &th_e[ne];
+        if (tr_load(m, x->items[1], &E->t, why, sizeof why)) return dc_invalid(m, "CheckTransferHive %s: %s", hn, why);
+        if ((E->src = th_mi(nm, E->t.a.name)) < 0 || (E->tgt = th_mi(nm, E->t.b.name)) < 0) return dc_invalid(m, "CheckTransferHive %s: Edge %s joins a non-member", hn, E->t.name);
+        if (th_tab(m, E->t.phi, E->t.b.xs, E->t.a.xs, E->phi) || th_tab(m, E->t.iota, E->t.a.ms, E->t.b.ms, E->iota)) return dc_invalid(m, "CheckTransferHive %s: Edge %s maps are not total", hn, E->t.name);
+        const DcCarrier *XB = &m->car[E->t.b.xs], *MA = &m->car[E->t.a.ms];
+        for (size_t b = 0; b < XB->n; b++) for (size_t a = 0; a < MA->n; a++) {
+            DcRat dd; tr_dist(0, tr_resp(m, &E->t.a, m->car[E->t.a.xs].elems[E->phi[b]], MA->elems[a]), tr_resp(m, &E->t.b, XB->elems[b], m->car[E->t.b.ms].elems[E->iota[a]]), &dd, &ovf);
+            if (dd.n) return th_fail(m, q, hn, dc_form("Witness", dc_form("InexactEdge", dc_sym(E->t.name), NULL), dc_form("State", sx_copy(XB->elems[b]), NULL), dc_form("Method", sx_copy(MA->elems[a]), NULL), NULL));
+        }
+        ne++;
+    }
+    for (int e = 0; e < ne; e++) {   /* intertwining: every gauge element on either end has a partner on the other */
+        const ThEdge *E = &th_e[e]; const ThMem *A = &th_m[E->src], *B = &th_m[E->tgt];
+        for (int side = 0; side < 2; side++) {
+            const ThMem *P = side ? A : B, *O = side ? B : A;
+            for (int i = 0; i < P->ng; i++) {
+                int ok = 0;
+                for (int j = 0; j < O->ng && !ok; j++) ok = side ? th_inter(E, A, B, &P->g[i], &O->g[j]) : th_inter(E, A, B, &O->g[j], &P->g[i]);
+                if (!ok) return th_fail(m, q, hn, dc_form("Witness", dc_form("NotIntertwined", dc_sym(E->t.name), NULL), dc_form("Member", dc_sym(P->sys.name), NULL),
+                                                       dc_form("States", th_ent(m, P->sys.xs, P->g[i].s), NULL), dc_form("Methods", th_ent(m, P->sys.ms, P->g[i].a), NULL), NULL));
+            }
+        }
+    }
+    Sx *hols = dc_form("Value", NULL); int ncyc = 0;
+    for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], "Cycle")) {
+        const Sx *x = d->items[i]; int k = (int)x->n - 1, cyc[TH_MAXM * 4], eix[TH_MAXM * 4];
+        if (k < 2 || k > TH_MAXM * 4) { sx_free(hols); return dc_invalid(m, "CheckTransferHive %s: a Cycle needs 2 or more members", hn); }
+        for (int j = 0; j < k; j++) if (x->items[j + 1]->kind != SX_SYM || (cyc[j] = th_mi(nm, x->items[j + 1]->text)) < 0) { sx_free(hols); return dc_invalid(m, "CheckTransferHive %s: Cycle entry %d is not a member", hn, j + 1); }
+        for (int j = 0; j < k; j++) {
+            eix[j] = -1;
+            for (int e = 0; e < ne && eix[j] < 0; e++) if (th_e[e].src == cyc[j] && th_e[e].tgt == cyc[(j + 1) % k]) eix[j] = e;
+            if (eix[j] < 0) { sx_free(hols); return dc_invalid(m, "CheckTransferHive %s: no Edge from %s to %s on the Cycle", hn, th_m[cyc[j]].sys.name, th_m[cyc[(j + 1) % k]].sys.name); }
+        }
+        const ThMem *U = &th_m[cyc[0]]; Perm h;
+        for (int s = 0; s < U->ns; s++) { int y = s; for (int j = k - 1; j >= 0; j--) y = th_e[eix[j]].phi[y]; h.s[s] = y; }
+        for (int a = 0; a < U->na; a++) { int y = a; for (int j = 0; j < k; j++) y = th_e[eix[j]].iota[y]; h.a[a] = y; }
+        Sx *ho = dc_form("Holonomy", sx_copy(x), dc_form("States", th_ent(m, U->sys.xs, h.s), NULL), dc_form("Methods", th_ent(m, U->sys.ms, h.a), NULL), NULL);
+        if (th_find(U, &h) < 0) { sx_free(hols); return th_fail(m, q, hn, dc_form("Witness", ho, dc_form("OutsideGauge", dc_sym(U->sys.name), dc_form("Order", dc_int(U->ng), NULL), NULL), NULL)); }
+        sx_push(hols, ho); ncyc++;
+    }
+    Sx *ord = dc_form("GaugeOrders", NULL);
+    for (int i = 0; i < nm; i++) sx_push(ord, dc_form(th_m[i].sys.name, dc_int(th_m[i].ng), NULL));
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), th_subj(hn), hols,
+                       dc_form("Evidence", dc_form("ExactEdges", dc_int(ne), NULL), dc_form("Intertwined", dc_sym("True"), NULL), dc_form("Cycles", dc_int(ncyc), NULL), ord, NULL), NULL);
+}
 Sx *dc_req_transfers(DcRun *r, const Sx *q, const char *h) {
+    if (!strcmp(h, "CheckTransferHive")) return tr_hive(r, q);
     if (!strcmp(h, "CheckTransfer")) return tr_check(r, q);
     if (!strcmp(h, "CheckValuePullback")) return tr_vpb(r, q);
     if (!strcmp(h, "LibraryGap")) return tr_gap(r, q);
