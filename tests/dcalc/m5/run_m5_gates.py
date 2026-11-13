@@ -74,5 +74,17 @@ l = mut('hypotheses.metta', 'neg4_uncovered', 'SimulationScope', '(CheckSafety A
 report('neg 4: simulation missing an initial state is never Checked (H14)', st(l) not in ('Checked', 'Refuted') and has(l, r'UncoveredInit c0'), st(l))
 l = mut('access_protocol.metta', 'neg5_wrong_target', 'AccessProtocol', '(CheckSafety Protocol (Never (EnterFrom Admin (Not Auth))) (Via StageSim) (Init S0))')
 report('neg 5: safety along a simulation whose target is not the request target -> InvalidInput', st(l) == 'InvalidInput', st(l))
+# negative gate 6: the rhocalc script's depth is a cost budget, never a MeTTaDinC horizon.
+# dcalc side: no Simulation request takes a horizon or depth argument, so admission refuses one.
+for tag, req in (('neg6_horizon_sim', '(CheckSimulation StageSim (Horizon 2))'),
+                 ('neg6_depth_sim', '(CheckSimulation StageSim (Depth 2))'),
+                 ('neg6_horizon_safety', '(CheckSafety Abstract (Never (EnterFrom Admin (Not Auth))) (Via StageSim) (Init S0) (Horizon 2))')):
+    l = mut('access_protocol.metta', tag, 'AccessProtocol', req)
+    report('neg 6: script depth passed as a horizon (%s) -> InvalidInput' % tag, st(l) == 'InvalidInput' and has(l, r'unknown argument'), st(l))
+# script side (recorded by weakbarbed_record.py when the CeTTa scratch exists): depth is ScriptCostBudget, never an oracle
+WB = os.path.join(ROOT, 'build/m5_weakbarbed.tsv')
+if os.path.exists(WB):
+    rows = [l.rstrip('\n').split('\t') for l in open(WB) if l.strip() and not l.startswith('#')]
+    report('neg 6: recorded script verdicts carry Horizon None, Oracle False', bool(rows) and all(r[4:6] == ['None', 'False'] for r in rows), '%d rows' % len(rows))
 print('m5_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
