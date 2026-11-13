@@ -40,6 +40,7 @@ step m3_incremental;    $R m3_incremental "cd src/dcalc && make -s CC='$CC' test
 step m3_gates;         $R m3_gates "python3 tests/dcalc/mutations/run_m3_gates.py > build/m3_gates.out; r=\$?; tail -1 build/m3_gates.out; exit \$r" || rc=1
 step m3_tv;            $R m3_tv "sh tests/dcalc/tv/run_tv.sh" || rc=1
 step m4_gates;         $R m4_gates "python3 tests/dcalc/m4/run_m4_gates.py > build/m4_gates.out; r=\$?; tail -1 build/m4_gates.out; exit \$r" || rc=1
+step m5_gates;         $R m5_gates "python3 tests/dcalc/m5/run_m5_gates.py > build/m5_gates.out; r=\$?; tail -1 build/m5_gates.out; exit \$r" || rc=1   # M5 (t-2026-11-12-mettadinc-m5)
 step m4_estimates;     $R m4_estimates "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/m4/test_estimates.c build/dcalc/libdcalc.a -lm -o build/dcalc/test_estimates && build/dcalc/test_estimates docs/e0/docs/06_wmtm_worked_example/validation_bundle > build/m4_estimates.out; r=\$?; tail -1 build/m4_estimates.out; exit \$r" || rc=1
 step m4_coverage;      $R m4_coverage "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/m4/sim_coverage.c build/dcalc/libdcalc.a -lm -o build/dcalc/sim_coverage && build/dcalc/sim_coverage 20261112 2000 > build/m4_coverage.out; r=\$?; tail -1 build/m4_coverage.out; exit \$r" || rc=1
 step m4_coverage_01;   $R m4_coverage_01 "build/dcalc/sim_coverage 20261112 2000 0.01 > build/m4_coverage_01.out; r=\$?; tail -1 build/m4_coverage_01.out; exit \$r" || rc=1

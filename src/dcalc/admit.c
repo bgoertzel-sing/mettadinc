@@ -300,6 +300,12 @@ static int kind_ok(const char *kinds, const char *dk, const char *ft) {
 
 static int cmp_str(const void *x, const void *y) { return strcmp(*(char *const *)x, *(char *const *)y); }
 static void check_expr(Ctx *c, const Sx *x);
+int dc_eval_beyond_release(void);   /* api.h */
+static int is_live_head(const char *h) {   /* M5: liveness / existential heads, never a registered safety form */
+    static const char *const L[] = { "Eventually", "Always", "Exists", "Reach", "Until", "Possibly", 0 };
+    for (int i = 0; L[i]; i++) if (!strcmp(h, L[i])) return 1;
+    return 0;
+}
 
 /* check_ref */
 static void check_ref(Ctx *c, const Sx *val, const char *kinds) {
@@ -400,6 +406,11 @@ static void check_value(Ctx *c, const Sx *val, const char *typ, const char *what
             cerr(c, val, "%s: %s is not a declared element", what, shw(val, b, sizeof b));
     } else if (!strcmp(typ, "name")) {
         if (val->kind == SX_LIST) cerr(c, val, "%s: expected a name, found %s", what, shw(val, b, sizeof b));
+    } else if (!strcmp(typ, "property") && dc_eval_beyond_release() && val->kind == SX_LIST && val->n && val->items[0]->kind == SX_SYM
+               && is_live_head(val->items[0]->text)) {
+        /* M5 negative gate 2 (beyond release only): a liveness or existential form inside a safety
+         * property is admitted so the request answers Unsupported, not InvalidInput; its body is checked */
+        for (size_t i = 1; i < val->n; i++) check_expr(c, val->items[i]);
     } else if (!strcmp(typ, "expr") || !strcmp(typ, "predicate") || !strcmp(typ, "names") || !strcmp(typ, "request") || !strcmp(typ, "property")) {
         check_expr(c, val);
     } else cerr(c, val, "%s: unknown registry type %s", what, typ);
@@ -1036,10 +1047,11 @@ void dc_admission_free(DcAdmission *a) {
 /* M4 opt-in: Dynamics Stochastic and the stochastic libraries are admitted
  * beyond the first release; every other first-release gap still answers. */
 /* M4-estimates: Estimates (EstimateRate, CompareRates) joins the opt-in set. */
-static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", NULL };
+/* M5: Dynamics Nondeterministic and the Simulation library join the opt-in set. */
+static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", "Simulation", NULL };
 static int m4_allowed(const char *key, const char *val) {
     if (!val) return 0;
-    if (!strcmp(key, "dynamics")) return !strcmp(val, "Stochastic");
+    if (!strcmp(key, "dynamics")) return !strcmp(val, "Stochastic") || !strcmp(val, "Nondeterministic");   /* M5 */
     if (!strcmp(key, "libraries")) { for (int i = 0; M4_LIBS[i]; i++) if (!strcmp(val, M4_LIBS[i])) return 1; }
     return 0;
 }
