@@ -229,6 +229,54 @@ def check_concrete(M, req, w):
         need(st[-1] in down([p[1]]) and len(st) - 1 <= int(p[2]), 'path does not reach the pulled-back set within %s steps' % p[2])
     else: fail('property %s has no concrete replay rule' % head(p))
 
+
+# ---- m5-rest: bisimulation rows (BehavioralTolerance / CheckBehavioral on Profile Nondeterministic) ----
+def coarsest_bisim(M, m):
+    """Independent naive refinement: start from observer image sets, split by action block-sets."""
+    S = M.states(m); ob = M.mach[m]['obs']; ac = M.mach[m]['act']
+    key = {x: tuple(tuple(sorted(M.map[ob[o]].get(x, set()))) for o in sorted(ob)) for x in S}
+    while True:
+        ids = {k: i for i, k in enumerate(sorted(set(key.values()), key=repr))}; blk = {x: ids[key[x]] for x in S}
+        nk = {x: (blk[x],) + tuple(tuple(sorted({blk[y] for y in M.map[ac[a]].get(x, set())})) for a in sorted(ac)) for x in S}
+        if len(set(nk.values())) == len(set(key.values())): return blk
+        key = nk
+
+def check_partition(M, m, part, exact):
+    S = M.states(m); seen = [x for b in part[1:] for x in b[1:]]
+    need(sorted(seen) == sorted(S) and len(seen) == len(set(seen)), 'Partition does not cover the states of %s exactly once' % m)
+    blk = {x: i for i, b in enumerate(part[1:]) for x in b[1:]}; ob = M.mach[m]['obs']; ac = M.mach[m]['act']
+    for x in S:
+        for y in S:
+            if blk[x] != blk[y]: continue
+            for o in ob: need(M.map[ob[o]].get(x, set()) == M.map[ob[o]].get(y, set()), 'block {%s,%s} differs on observer %s' % (x, y, o))
+            for a in ac: need({blk[z] for z in M.map[ac[a]].get(x, set())} == {blk[z] for z in M.map[ac[a]].get(y, set())}, 'block {%s,%s} is not stable under %s' % (x, y, a))
+    if exact:
+        ref = coarsest_bisim(M, m)
+        for x in S:
+            for y in S: need((blk[x] == blk[y]) == (ref[x] == ref[y]), 'Partition is not the coarsest bisimulation (%s,%s)' % (x, y))
+    return blk
+
+def check_modal(M, req, w):
+    m, enc = M.rep[req[1]]; pr = field(w, 'Pair'); x, z = pr[1], pr[2]; S = M.states(m)
+    need(M.map[enc].get(x) == M.map[enc].get(z), 'Pair %s %s does not share a code' % (x, z))
+    fg = field(w, 'Formula'); nodes = {str(n[1]): n[2] for n in fields(fg, 'Node')}; memo = {}
+    def sat(k, lim):
+        k = str(k)
+        if k in memo: return memo[k]
+        need(k in nodes and lim > 0, 'Formula node %s missing or cyclic' % k); b = nodes[k]; h = head(b)
+        for c in (b[1:] if h in ('And', 'Not') else b[2:] if h == 'Diamond' else []): need(int(str(c)) < int(k), 'Formula node %s refers forward to %s' % (k, c))
+        if h == 'Indicator': r = {y for y in S if b[2] in M.map[M.mach[m]['obs'][b[1]]].get(y, set())}
+        elif h == 'Not': r = set(S) - sat(b[1], lim - 1)
+        elif h == 'And':
+            r = set(S)
+            for c in b[1:]: r &= sat(c, lim - 1)
+        elif h == 'Diamond': t = sat(b[2], lim - 1); r = {y for y in S if M.img(m, b[1], y) & t}
+        else: raise AssertionError('unknown formula node %s' % h)
+        memo[k] = r; return r
+    root = sat(field(fg, 'Root')[1], 10 ** 6)
+    need((x in root) == (field(w, 'Left')[1] == 'True') and (z in root) == (field(w, 'Right')[1] == 'True'), 'Formula does not evaluate to Left/Right at %s, %s' % (x, z))
+    need((x in root) != (z in root), 'Formula does not distinguish %s and %s' % (x, z))
+
 def replay_line(M, req, res):
     st = field(res, 'Status')[1]; ev = field(res, 'Evidence') or ['Evidence']; h = head(req)
     did = []
@@ -247,6 +295,17 @@ def replay_line(M, req, res):
         elif k == 'SafetyTransfer' and h == 'CheckSafety': did.append('SafetyTransfer: ' + check_safety(M, req, c))
     if h == 'OutcomeProbability' and st == 'Checked': check_probability(M, req, res); did.append('Probability')
     if h == 'Outcomes' and st == 'Checked': check_outcomes(M, req, res); did.append('Outcomes')
+    for w in find_all(ev, 'ModalTestWitness'):
+        need(h == 'CheckBehavioral', 'ModalTestWitness outside CheckBehavioral'); check_modal(M, req, w); did.append('ModalTestWitness')
+    if h == 'BehavioralTolerance' and st == 'Checked':
+        bs = field(field(res, 'Value'), 'Bisimulation'); check_partition(M, req[1], field(bs, 'Partition'), True)
+        need(int(str(field(bs, 'Classes')[1])) == len(field(bs, 'Partition')) - 1, 'Classes count wrong'); did.append('Bisimulation')
+    if h == 'CheckBehavioral' and st == 'Checked':
+        c = [c for c in fields(ev, 'Certificate') if field(c, 'Kind')[1] == 'Bisimulation'][0]; m, enc = M.rep[req[1]]
+        blk = check_partition(M, m, field(c, 'Partition'), False)
+        for x in M.states(m):
+            for y in M.states(m): need(M.map[enc].get(x) != M.map[enc].get(y) or blk[x] == blk[y], 'same-code pair %s %s split by the certificate' % (x, y))
+        did.append('BisimulationCertificate')
     return st, did
 
 def main(argv):

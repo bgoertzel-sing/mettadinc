@@ -594,6 +594,128 @@ static Sx *nd_induce(DcModule *m, const NdMod *s, const Sx *q) {
                     dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ExactQuotient"), NULL), dc_form("Encode", dc_sym(E->name), NULL), NULL), NULL), NULL);
 }
 
+/* ---- m5-rest: strong bisimulation on a nondeterministic machine (spec 1377-1379, 2550-2553).
+ * Partition refinement from the observer partition (level 0: equal observer image sets; level l:
+ * equal level l-1 block sets under every action). A pair first split at level l is told apart by
+ * a Hennessy-Milner formula graph with shared subformulas (ModalTestWitness, spec 5058):
+ * (Indicator o v) holds at x iff v is in o's image of x; (Not k); (And k..), empty = true;
+ * (Diamond a k) holds at x iff some a-successor of x satisfies k. Node names are beyond registry. ---- */
+#define ND_MAXF (3 * ND_MAXC * ND_MAXC)
+typedef struct { const NdMod *s; const NdMach *M; int n, L; int blk[ND_MAXC + 1][ND_MAXC]; int memo[ND_MAXC][ND_MAXC];
+                 Sx *body[ND_MAXF]; NdSet sat[ND_MAXF]; int nn, bad; } NdBis;
+static NdSet nd_blkset(const int *blk, NdSet X, int n) { NdSet r = 0; for (int y = 0; y < n; y++) if ((X >> y) & 1) r |= (NdSet)1 << blk[y]; return r; }
+static void nd_bis_refine(NdBis *B) {
+    const NdMod *s = B->s; const NdMach *M = B->M; int n = B->n;
+    for (int x = 0; x < n; x++) { B->blk[0][x] = x;
+        for (int y = 0; y < x; y++) { int same = 1;
+            for (int j = 0; j < M->nobs; j++) if (s->map[M->obs[j].map].img[x] != s->map[M->obs[j].map].img[y]) same = 0;
+            if (same) { B->blk[0][x] = B->blk[0][y]; break; } } }
+    for (int l = 1; l <= n; l++) {
+        for (int x = 0; x < n; x++) { B->blk[l][x] = x;
+            for (int y = 0; y < x; y++) { if (B->blk[l - 1][x] != B->blk[l - 1][y]) continue; int same = 1;
+                for (int a = 0; a < M->nact && same; a++) { const NdMap *A = &s->map[M->act[a].map];
+                    if (nd_blkset(B->blk[l - 1], A->img[x], n) != nd_blkset(B->blk[l - 1], A->img[y], n)) same = 0; }
+                if (same) { B->blk[l][x] = B->blk[l][y]; break; } } }
+        if (!memcmp(B->blk[l], B->blk[l - 1], sizeof B->blk[l])) { B->L = l - 1; return; }
+    }
+    B->L = n;
+}
+static int nd_fnode(NdBis *B, Sx *body, NdSet sat) {
+    if (B->nn >= ND_MAXF) { B->bad = 1; sx_free(body); return 0; }
+    B->body[B->nn] = body; B->sat[B->nn] = sat; return B->nn++;
+}
+static int nd_dist(NdBis *B, int x, int y, int depth) {
+    if (B->memo[x][y] >= 0) return B->memo[x][y];
+    if (depth > 2 * ND_MAXC + 4 || B->bad) { B->bad = 1; return 0; }
+    const NdMod *s = B->s; const NdMach *M = B->M; int n = B->n, l = 0, k = -1;
+    NdSet all = n >= 64 ? ~(NdSet)0 : (((NdSet)1 << n) - 1);
+    while (l <= B->L && B->blk[l][x] == B->blk[l][y]) l++;
+    if (l > B->L) { B->bad = 1; return 0; }   /* bisimilar: no formula exists */
+    if (l == 0) {
+        for (int j = 0; j < M->nobs && k < 0; j++) { const NdMap *O = &s->map[M->obs[j].map]; NdSet d = O->img[x] & ~O->img[y];
+            if (!d) continue;
+            int v = __builtin_ctzll(d); NdSet st = 0;
+            for (int z = 0; z < n; z++) if ((O->img[z] >> v) & 1) st |= (NdSet)1 << z;
+            k = nd_fnode(B, dc_form("Indicator", dc_sym(M->obs[j].name), dc_sym(s->car[O->to].el[v]), NULL), st); }
+    } else {
+        for (int a = 0; a < M->nact && k < 0; a++) { const NdMap *A = &s->map[M->act[a].map];
+            for (int x2 = 0; x2 < n && k < 0; x2++) { if (!((A->img[x] >> x2) & 1)) continue; int ok = 1;
+                for (int y2 = 0; y2 < n; y2++) if (((A->img[y] >> y2) & 1) && B->blk[l - 1][y2] == B->blk[l - 1][x2]) ok = 0;
+                if (!ok) continue;
+                Sx *conj = dc_form("And", NULL); NdSet cs = all;
+                for (int y2 = 0; y2 < n; y2++) if ((A->img[y] >> y2) & 1) { int c = nd_dist(B, x2, y2, depth + 1); sx_push(conj, dc_int(c)); cs &= B->sat[c]; }
+                int c = nd_fnode(B, conj, cs); NdSet ds = 0;
+                for (int z = 0; z < n; z++) if (A->img[z] & B->sat[c]) ds |= (NdSet)1 << z;
+                k = nd_fnode(B, dc_form("Diamond", dc_sym(M->act[a].name), dc_int(c), NULL), ds); } }
+    }
+    if (k < 0) { int c = nd_dist(B, y, x, depth + 1); k = nd_fnode(B, dc_form("Not", dc_int(c), NULL), all & ~B->sat[c]); }
+    return B->memo[x][y] = k;
+}
+static Sx *nd_part(const NdBis *B, const NdCar *C, int *nb) {
+    Sx *part = dc_form("Partition", NULL); *nb = 0;
+    for (int b = 0; b < B->n; b++) { if (B->blk[B->L][b] != b) continue; Sx *bl = dc_form("Block", NULL);
+        for (int x = 0; x < B->n; x++) if (B->blk[B->L][x] == b) sx_push(bl, dc_sym(C->el[x]));
+        sx_push(part, bl); (*nb)++; }
+    return part;
+}
+static const char *nd_bis_setup(NdBis *B, const NdMod *s, int mi) {
+    static char why[200]; const NdMach *M = &s->mach[mi];
+    memset(B, 0, sizeof *B); memset(B->memo, -1, sizeof B->memo);
+    B->s = s; B->M = M; B->n = s->car[M->states].n;
+    for (int a = 0; a < M->nact; a++) { const NdMap *A = &s->map[M->act[a].map];
+        if (A->from != M->states || A->to != M->states) { snprintf(why, sizeof why, "Action map %s is not States -> States", A->name); return why; } }
+    for (int j = 0; j < M->nobs; j++) if (s->map[M->obs[j].map].from != M->states) { snprintf(why, sizeof why, "observer map %s is not on States", s->map[M->obs[j].map].name); return why; }
+    nd_bis_refine(B); return NULL;
+}
+/* (BehavioralTolerance M) -> the coarsest bisimulation; (CheckBehavioral R [(Discount 1)]
+ * [(Horizon AllFiniteWords)] [(Within 0)]) on a Representation R: Holds iff every same-code pair is
+ * bisimilar, else a ModalTestWitness for the first such pair. Other options: Unsupported. */
+static Sx *nd_bisim(DcModule *m, const NdMod *s, const Sx *q, int chk) {
+    const char *hd = q->items[0]->text, *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL, *e;
+    static NdBis B; int nb = 0;
+    if (!chk) {
+        int mi = nd_mach(s, a1);
+        if (mi < 0) return dc_invalid(m, "%s: names no declared Machine (%s)", hd, a1 ? a1 : "?");
+        if (q->n > 2) return dc_unsupported(m, "%s: options are not implemented for Profile Nondeterministic", hd);
+        if ((e = nd_bis_setup(&B, s, mi))) return dc_invalid(m, "%s %s: %s", hd, a1, e);
+        Sx *part = nd_part(&B, &s->car[s->mach[mi].states], &nb);
+        return nd_env(m, VERDICT_HOLDS, q, a1, dc_form("Value", dc_form("Bisimulation", part, dc_form("Classes", dc_int(nb), NULL), NULL), NULL),
+                      dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("PartitionRefinement"), NULL), dc_form("Rounds", dc_int(B.L), NULL), NULL), NULL), NULL);
+    }
+    for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->n ? nm_of(o->items[0]) : NULL; DcRat g;
+        if (oh && !strcmp(oh, "Horizon") && o->n == 2 && nm_of(o->items[1]) && !strcmp(o->items[1]->text, "AllFiniteWords")) continue;
+        if (oh && (!strcmp(oh, "Discount") || !strcmp(oh, "Within")) && o->n == 2 && !dc_sx_rat(o->items[1], &g)) {
+            if (g.n == (strcmp(oh, "Discount") ? 0 : g.d)) continue;
+            return dc_unsupported(m, "%s: (%s ..) other than the crisp default is not implemented for Profile Nondeterministic", hd, oh); }
+        return dc_unsupported(m, "%s: option %s is not implemented for Profile Nondeterministic", hd, oh ? oh : "?");
+    }
+    const Sx *d = NULL;
+    for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
+        if (sx_head_is(x, "Representation") && x->n >= 2 && nm_of(x->items[1]) && !strcmp(x->items[1]->text, a1)) d = x; }
+    if (!d) return dc_invalid(m, "%s: names no declared Representation (%s)", hd, a1 ? a1 : "?");
+    int mi = nd_mach(s, fld1(d, "Of")), ei = nd_map(s, fld1(d, "Encode"));
+    if (mi < 0 || ei < 0) return dc_invalid(m, "%s %s: (Of M) or (Encode e) names nothing declared", hd, a1);
+    const NdMach *M = &s->mach[mi]; const NdMap *E = &s->map[ei]; const NdCar *C = &s->car[M->states];
+    if (E->from != M->states || E->choice) return dc_invalid(m, "%s %s: Encode %s is not a function on the states of %s", hd, a1, E->name, M->name);
+    if ((e = nd_bis_setup(&B, s, mi))) return dc_invalid(m, "%s %s: %s", hd, a1, e);
+    for (int x = 0; x < C->n; x++) for (int z = x + 1; z < C->n; z++) {
+        if (E->img[x] != E->img[z] || B.blk[B.L][x] == B.blk[B.L][z]) continue;
+        int root = nd_dist(&B, x, z, 0);
+        if (B.bad || !((B.sat[root] >> x) & 1) || ((B.sat[root] >> z) & 1)) {   /* self-check: refuse, never emit a wrong witness */
+            for (int k = 0; k < B.nn; k++) sx_free(B.body[k]);
+            return dc_unsupported(m, "%s %s: distinguishing formula construction failed its self-check", hd, a1); }
+        Sx *fg = dc_form("Formula", dc_form("Root", dc_int(root), NULL), NULL);
+        for (int k = 0; k < B.nn; k++) sx_push(fg, dc_form("Node", dc_int(k), B.body[k], NULL));
+        char w[240]; snprintf(w, sizeof w, "%s and %s share a code but are not bisimilar", C->el[x], C->el[z]);
+        Sx *wit = dc_form("Witness", dc_form("ModalTestWitness", dc_form("Pair", dc_sym(C->el[x]), dc_sym(C->el[z]), NULL), fg,
+                                               dc_form("Left", dc_sym("True"), NULL), dc_form("Right", dc_sym("False"), NULL), NULL), NULL);
+        return nd_env_k(m, VERDICT_FAILS, q, "Representation", a1, NULL, dc_form("Evidence", wit, NULL), w);
+    }
+    Sx *part = nd_part(&B, C, &nb);
+    return nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, dc_form("Value", dc_sym("True"), NULL),
+                    dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("Bisimulation"), NULL), dc_form("Encode", dc_sym(E->name), NULL), part, NULL), NULL), NULL);
+}
+
 Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     DcModule *m = r->m; static NdMod S; char err[256]; (void)slot;
     if (nd_read(m->source, &S, err, sizeof err)) return dc_invalid(m, "nondeterministic module: %s", err);
@@ -602,5 +724,7 @@ Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     if (!strcmp(head, "CheckSimulation")) return nd_checksim(m, &S, q);
     if (!strcmp(head, "CheckSafety")) return nd_safety(m, &S, q);
     if (!strcmp(head, "InduceExact")) return nd_induce(m, &S, q);
+    if (!strcmp(head, "BehavioralTolerance")) return nd_bisim(m, &S, q, 0);
+    if (!strcmp(head, "CheckBehavioral")) return nd_bisim(m, &S, q, 1);
     return dc_unsupported(m, "request %s: not yet implemented for Profile Nondeterministic (M5 in progress)", head);
 }
