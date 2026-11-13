@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M6 gates (t-2026-11-13-mettadinc-m6): Contracts opt-in, both modes, independent replay, tamper canaries."""
+"""M6 gates (t-2026-11-13-mettadinc-m6): Contracts/Hives/Transfers opt-in, both modes, independent replay, tamper canaries."""
 import os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 DCALC = os.path.join(ROOT, 'build/dcalc/dcalc'); OUT = os.environ.get('DCALC_OUT', os.path.join(ROOT, 'build/dcalc/out-m6')); os.makedirs(OUT, exist_ok=True)
@@ -16,21 +16,23 @@ def replay(fx, out):
 # modules belong to earlier milestones and must answer the same status in both modes
 CASES = (('affine_contracts.metta', 'AffineContracts', ['Checked', 'Checked', 'Refuted']),
          ('receipt_packets.metta', 'PacketMerges', ['Checked', 'Refuted']),
-         ('parity_triangle.metta', 'ParityTriangle', ['Refuted', 'Checked', 'Checked', 'Checked']))
-mine = lambda ls, mod: [l for l in ls if l.startswith(mod + ' ')]
+         ('parity_triangle.metta', 'ParityTriangle', ['Refuted', 'Checked', 'Checked', 'Checked']),
+         ('skill_hive.metta', 'SkillHive|SkillHiveOriented|TickLibrary', ['Refuted', 'Checked', 'Checked', 'Checked', 'Checked', 'Refuted', 'Refuted', 'Checked', 'Checked', 'Refuted', 'Checked', 'Checked', 'Refuted', 'Refuted']))
+ismod = lambda l, mod: l.split(' ', 1)[0] in mod.split('|')   # mod may name several modules: 'A|B'
+mine = lambda ls, mod: [l for l in ls if ismod(l, mod)]
 for fx, mod, want in CASES:
     f = os.path.join(FX, fx); base = fx[:-6]
     r = subprocess.run([DCALC, f], capture_output=True, text=True, timeout=120); rel = rows(r.stdout); got = [st(l) for l in mine(rel, mod)]
     report('%s release mode: every answer Unsupported' % base, got == ['Unsupported'] * len(want), str(got))
     r = subprocess.run([DCALC, '--beyond-release', f], capture_output=True, text=True, timeout=120)
     o = os.path.join(OUT, base + '.out'); open(o, 'w').write(r.stdout); allr = rows(r.stdout); ls = mine(allr, mod); got = [st(l) for l in ls]
-    oth = lambda X: [(l.split(' => ')[0], st(l)) for l in X if not l.startswith(mod + ' ')]
+    oth = lambda X: [(l.split(' => ')[0], st(l)) for l in X if not ismod(l, mod)]
     report('%s other-module rows: same statuses in both modes' % base, oth(rel) == oth(allr), '%d rows' % len(oth(allr)))
     report('%s beyond-release statuses' % base, got == want, str(got))
     report('%s every Checked/Refuted row says Replayed True' % base, all('(Replayed True)' in l for l in ls if st(l) in ('Checked', 'Refuted')))
     rc, last = replay(f, o); report('%s independent replay' % base, rc == 0 and last.endswith('PASS'), last[:70])
     # canaries: each single edit must be rejected by the replayer
-    full = r.stdout.splitlines(); idx = [i for i, l in enumerate(full) if ' => ' in l and l.startswith(mod + ' ')]
+    full = r.stdout.splitlines(); idx = [i for i, l in enumerate(full) if ' => ' in l and ismod(l, mod)]
     edits = []
     for i in idx:
         l = full[i]
@@ -42,6 +44,8 @@ for fx, mod, want in CASES:
             edits.append(('witness pair swapped to a meeting pair', i, re.sub(r'\(Reference \((Rat -?\d+ \d+|Tuple [^()]*)\)\)', lambda m: '(Reference (Rat 1 1))' if m.group(1).startswith('Rat') else '(Reference (Tuple Empty Empty))', l, 1)))
         g = re.search(r'\(Value \(Grade \(Rat (-?\d+) (\d+)\) \(Rat (-?\d+) (\d+)\)\)\)', l)
         v = re.search(r'\(Value \(Rat (-?\d+) (\d+)\)\)', l)
+        dd = re.search(r'\(Defect \(Rat (-?\d+) (\d+)\)\)', l)
+        if dd: edits.append(('Defect changed', i, l.replace(dd.group(0), '(Defect (Rat %d %s))' % (int(dd.group(1)) + 1, dd.group(2)), 1)))
         if v: edits.append(('scalar Value changed', i, l.replace(v.group(0), '(Value (Rat %d %s))' % (int(v.group(1)) + 1, v.group(2)), 1)))
         if g: edits.append(('Grade eta changed', i, l.replace(g.group(0), '(Value (Grade (Rat %s %s) (Rat %d %s)))' % (g.group(1), g.group(2), int(g.group(3)) + 1, g.group(4)), 1)))
     for k, (nm, i, nl) in enumerate(edits):
