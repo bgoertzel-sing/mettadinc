@@ -483,5 +483,20 @@ r3 = G.get(('RegimeRepair', '(InduceExact Coarse)')); r4 = G.get(('RegimeRepair'
 report('neg 4: no induced bound without current adequacy (R03 Refuted, R04 = 1/2 not 1)',
        st(r3) == 'Refuted' and has(r3, r'\(Kind ObservationWitness\)') and not has(r3, r'\(Exact True\)')
        and has(r4, r'\(Optimum \(Rat 1 2\)\)') and not has(r4, r'\(Optimum 1\)'), '%s / %s' % (st(r3), st(r4)))
+# gaps task (review 3 gap 3): registry/SOURCES.md lists the beyond-release registry's local patch as a separate
+# local input (consumer side: read the section, recompute the sha256 of each listed file and of the beyond registry)
+import hashlib
+def _sha(path): return hashlib.sha256(open(path, 'rb').read()).hexdigest()
+SM = open(os.path.join(ROOT, 'registry/SOURCES.md'), encoding='utf-8').read()
+HD = '## Local inputs (beyond release only)'
+pre, sec = (SM.split(HD, 1) + [''])[:2] if HD in SM else (SM, '')
+rows = re.findall(r'^\| (\w+) local patch \(beyond release only\) \| (\S+) \| `([0-9a-f]{64})` \|$', sec, re.M)
+ok3 = bool(rows) and all(os.path.exists(os.path.join(ROOT, f)) and _sha(os.path.join(ROOT, f)) == h for _, f, h in rows)
+ok3 = ok3 and any(f == 'registry/patches/m4est_registry_patch.json' for _, f, _h in rows)
+ok3 = ok3 and 'm4est_registry_patch.json' not in pre      # not listed among the release registry's inputs
+bd = re.search(r'\*\*Beyond-release registry digest: `([0-9a-f]{64})`\*\*', sec)
+bfile = os.path.join(ROOT, 'registry/beyond/mettadinc_registry_beyond.json')
+ok3 = ok3 and bool(bd) and bd.group(1) == _sha(bfile) == open(os.path.join(ROOT, 'registry/beyond/DIGEST')).read().split()[0]
+report('gap 3: SOURCES.md lists the m4est patch as a separate local input (sha256 + beyond digest match)', ok3, '%d row(s)' % len(rows))
 print('m4_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
