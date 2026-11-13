@@ -21,6 +21,31 @@ static const Sx *kid(const Sx *x, const char *h) {
 }
 static const char *ct_sym(const Sx *d, const char *h) { const Sx *k = kid(d, h); return k && k->n == 2 && k->items[1]->kind == SX_SYM ? k->items[1]->text : NULL; }
 typedef struct { const char *name; int ideal, actual, audit, tin, tout; } CtImpl;
+/* M6: distance between two carrier values under a tolerance: Trivial 0, Discrete 0/1 by structure,
+ * OneMinusAbsoluteDifference |p - q| on rational values. Returns nonzero if not evaluable. */
+static int ct_tol_ok(DcTolKind k) { return k == DC_TOL_TRIVIAL || k == DC_TOL_DISCRETE || k == DC_TOL_ONE_MINUS_ABS; }
+static int ct_dist(const DcModule *m, int tol, const Sx *x, const Sx *y, DcRat *d, int *ovf) {
+    DcRat a, b; d->n = 0; d->d = 1;
+    if (!x || !y) return 1;
+    switch (m->tol[tol].kind) {
+    case DC_TOL_TRIVIAL: return 0;
+    case DC_TOL_DISCRETE: if (!sx_equal(x, y)) d->n = 1; return 0;
+    case DC_TOL_ONE_MINUS_ABS: if (dc_sx_rat(x, &a) || dc_sx_rat(y, &b)) return 1; *d = dc_rat_abs(dc_rat_sub(a, b, ovf)); return 0;
+    default: return 1;
+    }
+}
+static const Sx *ct_el(const DcModule *m, int car, int i) { return i < 0 || (size_t)i >= m->car[car].n ? NULL : m->car[car].elems[i]; }
+static const Sx *ct_img(const DcModule *m, int map, int i) { const DcMap *f = &m->map[map]; return ct_el(m, f->to, f->table[i]); }
+static Sx *ct_show(const Sx *x) { DcRat q; return dc_sx_rat(x, &q) ? sx_copy(x) : rsx(q); }
+/* M6: an Ideal/Actual map may come from a carrier other than Audit if both carriers list the same
+ * elements in the same order (e.g. an inline (Product P P) source and a declared Carrier PP (Product P P)),
+ * so table indices coincide. */
+static int ct_same_car(const DcModule *m, int a, int b) {
+    if (a == b) return 1;
+    if (a < 0 || b < 0 || m->car[a].n != m->car[b].n) return 0;
+    for (size_t i = 0; i < m->car[a].n; i++) if (!sx_equal(m->car[a].elems[i], m->car[b].elems[i])) return 0;
+    return 1;
+}
 static int ct_load(const DcModule *m, const char *name, CtImpl *c, char *why, size_t wn) {
     const Sx *d = NULL;
     for (size_t i = 2; m->source && i < m->source->n; i++)
@@ -32,8 +57,8 @@ static int ct_load(const DcModule *m, const char *name, CtImpl *c, char *why, si
     if (c->ideal < 0 || c->actual < 0) { snprintf(why, wn, "Implementation %s: Ideal/Actual names no declared Map", name); return -1; }
     if (c->audit < 0) { snprintf(why, wn, "Implementation %s: Audit names no declared Carrier", name); return -1; }
     if (c->tin < 0 || c->tout < 0) { snprintf(why, wn, "Implementation %s: a distance names no declared Tolerance", name); return -1; }
-    if (m->tol[c->tin].kind != DC_TOL_ONE_MINUS_ABS || m->tol[c->tout].kind != DC_TOL_ONE_MINUS_ABS) { snprintf(why, wn, "Implementation %s: only OneMinusAbsoluteDifference distances are evaluated", name); return -2; }
-    if (m->map[c->ideal].from != c->audit || m->map[c->actual].from != c->audit) { snprintf(why, wn, "Implementation %s: Ideal and Actual must map from the Audit carrier", name); return -1; }
+    if (!ct_tol_ok(m->tol[c->tin].kind) || !ct_tol_ok(m->tol[c->tout].kind)) { snprintf(why, wn, "Implementation %s: only OneMinusAbsoluteDifference, Discrete and Trivial distances are evaluated", name); return -2; }
+    if (!ct_same_car(m, m->map[c->ideal].from, c->audit) || !ct_same_car(m, m->map[c->actual].from, c->audit)) { snprintf(why, wn, "Implementation %s: Ideal and Actual must map from the Audit carrier", name); return -1; }
     return 0;
 }
 static int ct_val(const DcModule *m, int car, int i, DcRat *v) { return i < 0 || (size_t)i >= m->car[car].n || dc_sx_rat(m->car[car].elems[i], v); }
@@ -51,12 +76,13 @@ static Sx *ct_check(DcRun *r, const Sx *q) {
     size_t n = m->car[c.audit].n;
     Sx *subj = dc_form("Subject", dc_form("Implementation", dc_sym(c.name), NULL), NULL);
     for (size_t i = 0; i < n; i++) for (size_t j = 0; j < n; j++) {
-        DcRat a, b, u, v;
-        if (ct_val(m, c.audit, (int)i, &a) || ct_val(m, c.audit, (int)j, &b) || ct_out(m, c.actual, (int)i, &u) || ct_out(m, c.ideal, (int)j, &v)) { sx_free(subj); return dc_unsupported(m, "CheckImplementation %s: an audited value is not rational", c.name); }
-        DcRat din = dc_rat_abs(dc_rat_sub(a, b, &ovf)), dout = dc_rat_abs(dc_rat_sub(u, v, &ovf)), bound = dc_rat_add(dc_rat_mul(L, din, &ovf), eta, &ovf);
+        DcRat din, dout;
+        const Sx *xa = ct_el(m, c.audit, (int)i), *xb = ct_el(m, c.audit, (int)j);
+        if (ct_dist(m, c.tin, xa, xb, &din, &ovf) || ct_dist(m, c.tout, ct_img(m, c.actual, (int)i), ct_img(m, c.ideal, (int)j), &dout, &ovf)) { sx_free(subj); return dc_unsupported(m, "CheckImplementation %s: a value has no distance under the declared tolerance", c.name); }
+        DcRat bound = dc_rat_add(dc_rat_mul(L, din, &ovf), eta, &ovf);
         if (ovf) { sx_free(subj); return dc_unsupported(m, "CheckImplementation %s: rational overflow", c.name); }
         if (dc_rat_cmp(dout, bound) > 0) {
-            Sx *w = dc_form("Witness", dc_form("Pair", dc_form("Audited", rsx(a), NULL), dc_form("Reference", rsx(b), NULL), NULL),
+            Sx *w = dc_form("Witness", dc_form("Pair", dc_form("Audited", ct_show(xa), NULL), dc_form("Reference", ct_show(xb), NULL), NULL),
                             dc_form("OutputGap", rsx(dout), NULL), dc_form("Bound", rsx(bound), NULL), NULL);
             return dc_envelope(m, VERDICT_FAILS, 1, dc_claim_of(q, "Literal"), subj, NULL, dc_form("Evidence", w, NULL), "an audited pair violates the affine bound");
         }
