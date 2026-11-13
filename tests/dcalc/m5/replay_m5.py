@@ -117,6 +117,7 @@ def check_simulation(M, cert, init):
 def check_safety(M, req, cert):
     init = [s for s in field(req, 'Init')[1:]]
     need(field(cert, 'Via')[1] == field(req, 'Via')[1], 'Via differs from the request')
+    need(field(field(cert, 'Certificate'), 'Relation')[1] == field(req, 'Via')[1], 'certificate Relation is not the Via simulation')   # review 2 F7
     pairs, src, tgt = check_simulation(M, field(cert, 'Certificate'), init)
     need(req[1] == tgt, 'CheckSafety subject is not the simulation target')
     reach = {y for (x, y) in pairs if x in init}; todo = list(reach)
@@ -139,6 +140,18 @@ def check_safety(M, req, cert):
             for a in M.mach[tgt]['act']:
                 if p[1] in M.img(tgt, a, y): need(not sat(y), 'reachable %s -%s-> %s violates EnterFrom' % (y, a, p[1]))
         return 'Never EnterFrom replayed'
+    if head(p) == 'ReachWithin':   # never reach state p[1] within p[2] steps of a related initial state
+        k = int(p[2]); need(k >= 0, 'ReachWithin bound is not a natural number')
+        dep = {y: 0 for (x, y) in pairs if x in init}; fr = list(dep)
+        while fr:
+            nx = []
+            for y in fr:
+                for a in M.mach[tgt]['act']:
+                    for y2 in M.img(tgt, a, y):
+                        if y2 not in dep: dep[y2] = dep[y] + 1; nx.append(y2)
+            fr = nx
+        need(not (p[1] in dep and dep[p[1]] <= k), 'target state %s is reached in %s steps, within %d' % (p[1], dep.get(p[1]), k))
+        return 'Never ReachWithin replayed'
     fail('property %s has no replay rule; it must not claim Replayed True (listed open)' % head(p))
 
 def check_unmatched(M, sname, w):
@@ -181,15 +194,56 @@ def check_outcomes(M, req, res):
     o = field(req, 'Observe')[1]
     need({M.obs(m, o, x) for x in cur} == set(field(field(res, 'Value'), 'OutcomeSet')[1:]), 'OutcomeSet differs')
 
+def check_obsmismatch(M, sname, w):
+    # (ObserverMismatch (Pair x y) (Observer o)): x, y related and o does not show one equal value on both
+    src, tgt, _ = M.sim[sname]
+    x, y = field(w, 'Pair')[1:3]; o = field(w, 'Observer')[1]
+    need((x, y) in M.rel(sname), 'witness pair is not related')
+    need(o in M.mach[src]['obs'] and o in M.mach[tgt]['obs'], 'witness observer is not shared by source and target')
+    vx, vy = M.obs(src, o, x), M.obs(tgt, o, y)
+    need(vx is None or vy is None or vx != vy, 'observer %s agrees on (%s,%s)' % (o, x, y))
+
+def check_concrete(M, req, w):
+    # (ConcreteCounterexample (Path s0 (Step a s1) ..)): a run of the Via source from Init that
+    # violates the property pulled back along the relation (target sets X become the source
+    # states all of whose related target states lie in X)
+    sname = field(req, 'Via')[1]; src, tgt, _ = M.sim[sname]; R = M.rel(sname)
+    need(req[1] == tgt, 'CheckSafety subject is not the simulation target')
+    init = set(field(req, 'Init')[1:]); path = field(w, 'Path')
+    st = [path[1]] + [s[2] for s in path[2:]]; ac = [None] + [s[1] for s in path[2:]]
+    need(all(head(s) == 'Step' and len(s) == 3 for s in path[2:]), 'path steps are not (Step a s)')
+    need(st[0] in init, 'path does not start in Init')
+    for i in range(1, len(st)):
+        need(ac[i] in M.mach[src]['act'] and st[i] in M.img(src, ac[i], st[i - 1]), 'path step %s -%s-> %s is not a source move' % (st[i - 1], ac[i], st[i]))
+    def down(T):
+        T = set(T); xs = {x for (x, y) in R}
+        return {x for x in xs if {y for (x1, y) in R if x1 == x} <= T}
+    p = field(req, 'Never')[1]
+    if head(p) == 'Shows':
+        need(M.obs(src, p[1], st[-1]) == p[2], 'last state does not show %s %s' % (p[1], p[2]))
+    elif head(p) == 'EnterFrom':
+        X = down([p[1]]); Y = down(p[2][1:]) if head(p[2]) == 'Not' else None
+        need(Y is not None and len(st) >= 2, 'EnterFrom form not replayable')
+        need(st[-1] in X and st[-2] not in X and st[-2] not in Y, 'last step does not enter the pulled-back set from outside')
+    elif head(p) == 'ReachWithin':
+        need(st[-1] in down([p[1]]) and len(st) - 1 <= int(p[2]), 'path does not reach the pulled-back set within %s steps' % p[2])
+    else: fail('property %s has no concrete replay rule' % head(p))
+
 def replay_line(M, req, res):
     st = field(res, 'Status')[1]; ev = field(res, 'Evidence') or ['Evidence']; h = head(req)
     did = []
     for w in find_all(ev, 'UnmatchedMove'):
         check_unmatched(M, req[1] if h == 'CheckSimulation' else field(req, 'Via')[1], w); did.append('UnmatchedMove')
+    for w in find_all(ev, 'ObserverMismatch'):
+        check_obsmismatch(M, req[1] if h == 'CheckSimulation' else field(req, 'Via')[1], w); did.append('ObserverMismatch')
+    for w in find_all(ev, 'ConcreteCounterexample'):
+        need(h == 'CheckSafety', 'ConcreteCounterexample outside CheckSafety'); check_concrete(M, req, w); did.append('ConcreteCounterexample')
     for w in find_all(ev, 'ExactnessFailure'): check_exactness(M, req[1], w); did.append('ExactnessFailure')
     for c in [c for c in fields(ev, 'Certificate')]:
         k = field(c, 'Kind')[1]
-        if k == 'Simulation' and h == 'CheckSimulation': check_simulation(M, c, None); did.append('Simulation')
+        if k == 'Simulation' and h == 'CheckSimulation':
+            need(field(c, 'Relation')[1] == req[1], 'certificate Relation %s is not the requested simulation %s' % (field(c, 'Relation')[1], req[1]))   # review 2 F7
+            check_simulation(M, c, None); did.append('Simulation')
         elif k == 'SafetyTransfer' and h == 'CheckSafety': did.append('SafetyTransfer: ' + check_safety(M, req, c))
     if h == 'OutcomeProbability' and st == 'Checked': check_probability(M, req, res); did.append('Probability')
     if h == 'Outcomes' and st == 'Checked': check_outcomes(M, req, res); did.append('Outcomes')

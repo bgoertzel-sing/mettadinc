@@ -11,6 +11,22 @@
 #include <string.h>
 #include <stdint.h>
 
+/* review 2 F7: Unsupported/InvalidInput answers from this file carry the M5 fragment and
+ * replay policy, not the M0 defaults of dc_envelope with no scope.  Function-like macros are
+ * not re-expanded inside their own body, so the inner calls reach the ops_core functions. */
+static void nd_resym(Sx *in, const char *name, const char *val) {
+    Sx *f = in ? (Sx *)sx_find(in, name, 1) : NULL;
+    if (f && f->n == 2) { sx_free(f->items[1]); f->items[1] = dc_sym(val); }
+}
+static Sx *nd_rescope(Sx *r) {
+    if (!r) return r;
+    nd_resym((Sx *)sx_find(r, "Scope", 1), "Fragment", "M5-Nondeterministic");
+    nd_resym((Sx *)sx_find(r, "Assurance", 1), "Policy", "M5-NondeterministicReplay");
+    return r;
+}
+#define dc_invalid(...) nd_rescope(dc_invalid(__VA_ARGS__))
+#define dc_unsupported(...) nd_rescope(dc_unsupported(__VA_ARGS__))
+
 #define ND_MAXC 64
 #define ND_MAXN 32
 typedef uint64_t NdSet;
@@ -19,7 +35,7 @@ typedef struct { char name[DC_MAX_NAME]; int from, to, choice; NdSet img[ND_MAXC
 typedef struct { char name[DC_MAX_NAME]; int map; } NdNamed;
 typedef struct { char name[DC_MAX_NAME]; int states; NdNamed obs[8]; int nobs; NdNamed act[8]; int nact; int bag_multiset, has_bag; } NdMach;
 typedef struct { char name[DC_MAX_NAME]; char rule[DC_MAX_NAME]; } NdSched;
-typedef struct { char name[DC_MAX_NAME]; int src, tgt, map; int pairs; NdSet rel[ND_MAXC]; } NdSim;   /* rel[x]: related abstract states */
+typedef struct { char name[DC_MAX_NAME]; int src, tgt, map; int pairs; NdSet rel[ND_MAXC]; char unsup[200]; } NdSim;   /* unsup: declared semantics the check does not implement (review 2 F2) */   /* rel[x]: related abstract states */
 typedef struct {
     NdCar car[ND_MAXN]; int ncar; NdMap map[ND_MAXN]; int nmap; NdMach mach[ND_MAXN]; int nmach;
     NdSched sch[8]; int nsch; NdSim sim[ND_MAXN]; int nsim;
@@ -126,6 +142,11 @@ static int nd_read(const Sx *src, NdMod *s, char *err, size_t es) {
         } else if (!strcmp(h, "Simulation")) {
             if (s->nsim >= ND_MAXN || !dn) return nd_err(err, es, "Simulation: malformed%s%s", NULL, NULL);
             NdSim *S = &s->sim[s->nsim]; memset(S, 0, sizeof *S); snprintf(S->name, sizeof S->name, "%s", dn);
+            {   /* review 2 F2: only lockstep matching is checked; Stutter and Order are declared by the beyond registry but not implemented */
+                const Sx *mf = fld(d, "Matching"); const char *mt = fld1(d, "Matching");
+                if (mf && (!mt || strcmp(mt, "Lockstep"))) snprintf(S->unsup, sizeof S->unsup, "(Matching %s) is declared but only Lockstep matching is checked", mt ? mt : "?");
+                else if (fld(d, "Order")) snprintf(S->unsup, sizeof S->unsup, "an Order is declared but the simulation check does not read it");
+            }
             S->src = nd_mach(s, fld1(d, "Source")); S->tgt = nd_mach(s, fld1(d, "Target"));
             if (S->src < 0 || S->tgt < 0) return nd_err(err, es, "Simulation %s: Source/Target names no declared Machine%s", dn, NULL);
             const char *rn = fld1(d, "Relation"); S->map = -1; S->pairs = -1;
@@ -347,6 +368,7 @@ static Sx *nd_checksim_core(DcModule *m, const NdMod *s, const Sx *q) {
     const char *sn = q->n >= 2 ? nm_of(q->items[1]) : NULL; int si = nd_sim(s, sn); char err[256];
     if (si < 0) return dc_invalid(m, "CheckSimulation: names no declared Simulation (%s)", sn ? sn : "?");
     const NdSim *S = &s->sim[si]; NdMiss ms; memset(&ms, 0, sizeof ms);
+    if (S->unsup[0]) return dc_unsupported(m, "CheckSimulation %s: %s", S->name, S->unsup);
     const Sx *bu = ropt(q, "Budget");
     if (bu) {   /* the budget bounds the related pairs examined */
         const char *bunit; long b = nd_budget(bu, &bunit); int np = 0;
@@ -426,6 +448,7 @@ static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
     const Sx *vi = ropt(q, "Via"); int si = vi ? nd_sim(s, nm_of(vi->items[1])) : -1;
     if (si < 0) return dc_invalid(m, "CheckSafety: (Via S) names no declared Simulation");
     const NdSim *S = &s->sim[si]; const NdMach *A = &s->mach[S->src], *B = &s->mach[S->tgt];
+    if (S->unsup[0]) return dc_unsupported(m, "CheckSafety via %s: %s", S->name, S->unsup);
     if (S->tgt != ti) return dc_invalid(m, "CheckSafety: Simulation %s targets %s, not the request's target %s", S->name, B->name, tn);
     const NdCar *CA = &s->car[A->states], *CB = &s->car[B->states];
     const Sx *e = nv->items[1]; NdProp P; memset(&P, 0, sizeof P);

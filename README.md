@@ -7,8 +7,9 @@ This repository is where MeTTaDinC is to be built on Cetta, following Ben Goertz
 milestones M0–M7 of the Cetta work plan. It holds the M0 core: the `dcalc` checker in `src/dcalc/` (C, built and
 tested by `tools/dcalc-run-all.sh`) with its independent replay checker and suites in `tests/dcalc/`; M1–M4 are built
 on it (M3's symbolic carriers need the pinned proof backend, see [docs/PROOF-BACKEND.md](docs/PROOF-BACKEND.md); M4's stochastic
-fragment answers only with `dcalc --beyond-release`, release 1 still answers Unsupported, gates in `tests/dcalc/m4/`); M5–M7 are not
-implemented yet. Cetta is the git submodule
+fragment answers only with `dcalc --beyond-release`, release 1 still answers Unsupported, gates in `tests/dcalc/m4/`); M5's nondeterministic
+fragment (simulation, safety transfer, outcome sets and probabilities) also answers only with `dcalc --beyond-release`,
+gates and an independent replayer in `tests/dcalc/m5/`; M6–M7 are not implemented yet. Cetta is the git submodule
 `cetta/`, pinned to the plan's commit and unmodified (see "M0 prerequisites" below); fetch it with
 `git submodule update --init`.
 

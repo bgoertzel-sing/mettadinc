@@ -86,6 +86,28 @@ WB = os.path.join(ROOT, 'build/m5_weakbarbed.tsv')
 if os.path.exists(WB):
     rows = [l.rstrip('\n').split('\t') for l in open(WB) if l.strip() and not l.startswith('#')]
     report('neg 6: recorded script verdicts carry Horizon None, Oracle False', bool(rows) and all(r[4:6] == ['None', 'False'] for r in rows), '%d rows' % len(rows))
+# review 2 F2: only lockstep matching is checked; a declared Stutter matching or Order answers Unsupported
+SIMD = '(Simulation StageSim (Source Protocol) (Target Abstract) (Relation stage-of))'
+l = mut('access_protocol.metta', 'r2f2_stutter_sim', 'AccessProtocol', '(CheckSimulation StageSim)', (SIMD, SIMD[:-1] + ' (Matching Stutter))'))
+report('review 2 F2: (Matching Stutter) CheckSimulation -> Unsupported', st(l) == 'Unsupported' and has(l, r'only Lockstep'), st(l))
+l = mut('access_protocol.metta', 'r2f2_stutter_safety', 'AccessProtocol', '(CheckSafety Abstract (Never (Shows stage Admin)) (Via StageSim) (Init S0))', (SIMD, SIMD[:-1] + ' (Matching Stutter))'))
+report('review 2 F2: (Matching Stutter) CheckSafety -> Unsupported', st(l) == 'Unsupported' and has(l, r'only Lockstep'), st(l))
+l = mut('access_protocol.metta', 'r2f2_order', 'AccessProtocol', '(CheckSimulation StageSim)', (SIMD, SIMD[:-1] + ' (Order Start))'))
+report('review 2 F2: declared Order -> Unsupported', st(l) == 'Unsupported' and has(l, r'Order is declared'), st(l))
+l = mut('access_protocol.metta', 'r2f2_lockstep', 'AccessProtocol', '(CheckSimulation StageSim)', (SIMD, SIMD[:-1] + ' (Matching Lockstep))'))
+report('review 2 F2: explicit (Matching Lockstep) -> Checked as before', st(l) == 'Checked' and has(l, r'\(Kind Simulation\)'), st(l))
+# review 2 F1: rows that reach the three evidence paths review 2 found unreplayed
+# (ObserverMismatch, ConcreteCounterexample, ReachWithin SafetyTransfer).  Their .out files
+# are picked up by the independent replay below, so a Replayed True claim there is re-checked.
+l = mut('access_protocol.metta', 'r2f1_obsmismatch', 'AccessProtocol', '(CheckSimulation StageSim)',
+        ('(Cases (Start Start) (Locked Locked) (Auth Auth) (Admin Admin)))', '(Cases (Start Locked) (Locked Locked) (Auth Auth) (Admin Admin)))'))
+report('review 2 F1: observer disagreement -> Refuted with ObserverMismatch', st(l) == 'Refuted' and has(l, r'\(ObserverMismatch \(Pair '), st(l))
+l = mut('access_protocol.metta', 'r2f1_reachwithin_checked', 'AccessProtocol', '(CheckSafety Abstract (Never (ReachWithin Admin 1)) (Via StageSim) (Init S0))')
+report('review 2 F1: ReachWithin Admin 1 (Admin is 2 steps away) -> Checked SafetyTransfer', st(l) == 'Checked' and has(l, r'\(Kind SafetyTransfer\)'), st(l))
+l = mut('access_protocol.metta', 'r2f1_concrete_reach', 'AccessProtocol', '(CheckSafety Abstract (Never (ReachWithin Auth 1)) (Via StageSim) (Init S0))')
+report('review 2 F1: ReachWithin Auth 1 -> Refuted with a ConcreteCounterexample', st(l) == 'Refuted' and has(l, r'ConcreteCounterexample'), st(l))
+l = mut('access_protocol.metta', 'r2f1_concrete_shows', 'AccessProtocol', '(CheckSafety Abstract (Never (Shows stage Admin)) (Via StageSim) (Init S0))')
+report('review 2 F1: Shows stage Admin -> Refuted with a ConcreteCounterexample', st(l) == 'Refuted' and has(l, r'ConcreteCounterexample'), st(l))
 # review 1 F1: Replayed True is not trusted from dcalc's own output.  Every M5 row that
 # claims it is re-checked by tests/dcalc/m5/replay_m5.py (own reader, Fractions, no dcalc code).
 REPLAY = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'replay_m5.py')
@@ -107,6 +129,21 @@ for name, a, b in TAMPER:
     open(tp + '.metta', 'w').write(open(os.path.join(OUT, 'access_protocol_beyond.metta'), encoding='utf-8').read())
     t = subprocess.run([sys.executable, REPLAY, tp + '.metta', tp + '.out'], capture_output=True, text=True, timeout=60)
     report('F1 canary: %s is rejected' % name, t.returncode == 1 and 'REJECT' in t.stdout, (t.stdout.strip().splitlines() or [''])[-1][:60])
+    os.remove(tp + '.out'); os.remove(tp + '.metta')
+# review 2 F1 canaries: one tamper per newly replayed evidence kind (edit the .out or the request)
+TAMPER2 = (('ObserverMismatch on an unrelated pair', 'r2f1_obsmismatch', 'out', '(ObserverMismatch (Pair S0 Start)', '(ObserverMismatch (Pair S0 Auth)'),
+           ('ConcreteCounterexample path that misses the property', 'r2f1_concrete_reach', 'out', '(Path S0 (Step ok Auth))', '(Path S0 (Step fail S1))'),
+           ('ReachWithin bound that the target does reach', 'r2f1_reachwithin_checked', 'out', '(ReachWithin Admin 1)', '(ReachWithin Admin 2)'))
+for name, base, which, a, b in TAMPER2:
+    bp = os.path.join(OUT, base)
+    if not os.path.exists(bp + '.out'): report('review 2 F1 canary: %s is rejected' % name, False, 'no %s.out' % base); continue
+    txt = {k: open(bp + '.' + k, encoding='utf-8').read() for k in ('out', 'metta')}
+    if a not in txt[which]: report('review 2 F1 canary: %s is rejected' % name, False, 'pattern absent'); continue
+    txt[which] = txt[which].replace(a, b, 1)
+    tp = os.path.join(OUT, 'tamper2_%s' % base)
+    for k in ('out', 'metta'): open(tp + '.' + k, 'w').write(txt[k])
+    t = subprocess.run([sys.executable, REPLAY, tp + '.metta', tp + '.out'], capture_output=True, text=True, timeout=60)
+    report('review 2 F1 canary: %s is rejected' % name, t.returncode == 1 and 'REJECT' in t.stdout, (t.stdout.strip().splitlines() or [''])[-1][:60])
     os.remove(tp + '.out'); os.remove(tp + '.metta')
 print('m5_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
