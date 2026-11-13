@@ -86,5 +86,27 @@ WB = os.path.join(ROOT, 'build/m5_weakbarbed.tsv')
 if os.path.exists(WB):
     rows = [l.rstrip('\n').split('\t') for l in open(WB) if l.strip() and not l.startswith('#')]
     report('neg 6: recorded script verdicts carry Horizon None, Oracle False', bool(rows) and all(r[4:6] == ['None', 'False'] for r in rows), '%d rows' % len(rows))
+# review 1 F1: Replayed True is not trusted from dcalc's own output.  Every M5 row that
+# claims it is re-checked by tests/dcalc/m5/replay_m5.py (own reader, Fractions, no dcalc code).
+REPLAY = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'replay_m5.py')
+outs = sorted(f[:-4] for f in os.listdir(OUT) if f.endswith('.out') and os.path.exists(os.path.join(OUT, f[:-4] + '.metta')))
+args = [x for b in outs for x in (os.path.join(OUT, b + '.metta'), os.path.join(OUT, b + '.out'))]
+r = subprocess.run([sys.executable, REPLAY] + args, capture_output=True, text=True, timeout=300)
+open(os.path.join(OUT, 'replay_m5.log'), 'w').write(r.stdout + r.stderr)
+last = (r.stdout.strip().splitlines() or ['no output'])[-1]
+report('F1: independent replay of every Replayed True row (replay_m5.py)', r.returncode == 0 and last.endswith('PASS'), last)
+# canary: tampered certificates must be rejected (one per evidence kind)
+src_out = open(os.path.join(OUT, 'access_protocol_beyond.out'), encoding='utf-8').read()
+TAMPER = (('wrong matching move', '(Step Auth) (To Auth)', '(Step Auth) (To Start)'),
+          ('dropped Reachable state', '(Reachable Start Locked Auth Admin)', '(Reachable Start Locked Auth)'),
+          ('wrong exactness codes', '(Codes Start) (Codes Locked)', '(Codes Start) (Codes Start)'))
+for name, a, b in TAMPER:
+    if a not in src_out: report('F1 canary: %s is rejected' % name, False, 'pattern absent'); continue
+    tp = os.path.join(OUT, 'tamper_%s' % name.replace(' ', '_'))
+    open(tp + '.out', 'w').write(src_out.replace(a, b, 1))
+    open(tp + '.metta', 'w').write(open(os.path.join(OUT, 'access_protocol_beyond.metta'), encoding='utf-8').read())
+    t = subprocess.run([sys.executable, REPLAY, tp + '.metta', tp + '.out'], capture_output=True, text=True, timeout=60)
+    report('F1 canary: %s is rejected' % name, t.returncode == 1 and 'REJECT' in t.stdout, (t.stdout.strip().splitlines() or [''])[-1][:60])
+    os.remove(tp + '.out'); os.remove(tp + '.metta')
 print('m5_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)

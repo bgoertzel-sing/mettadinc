@@ -288,16 +288,71 @@ static Sx *nd_pairs(const NdMod *s, const NdSim *S) {
     for (int x = 0; x < CA->n; x++) for (int y = 0; y < CB->n; y++) if ((S->rel[x] >> y) & 1) sx_push(l, dc_form(CA->el[x], dc_sym(CB->el[y]), NULL));
     return l;
 }
+/* review 1 F1: the Simulation certificate (Table 1 row) carries, besides the pairs, one
+ * matching move per related pair, action and source successor, so a replayer needs only
+ * one membership check per move.  Call only after nd_simcheck returned 0. */
+static Sx *nd_matches(const NdMod *s, const NdSim *S) {
+    const NdMach *A = &s->mach[S->src], *B = &s->mach[S->tgt];
+    const NdCar *CA = &s->car[A->states], *CB = &s->car[B->states];
+    Sx *l = dc_form("Matches", NULL);
+    for (int x = 0; x < CA->n; x++) for (int y = 0; y < CB->n; y++) {
+        if (!((S->rel[x] >> y) & 1)) continue;
+        for (int i = 0; i < A->nact; i++) {
+            int bm = nd_named(B->act, B->nact, A->act[i].name); if (bm < 0) continue;   /* nd_named yields the map index */
+            NdSet sx = s->map[A->act[i].map].img[x], sy = s->map[bm].img[y];
+            for (int x2 = 0; x2 < CA->n; x2++) if ((sx >> x2) & 1)
+                for (int y2 = 0; y2 < CB->n; y2++) if (((sy >> y2) & 1) && ((S->rel[x2] >> y2) & 1)) {
+                    sx_push(l, dc_form("Match", dc_form("Pair", dc_sym(CA->el[x]), dc_sym(CB->el[y]), NULL), dc_form("Action", dc_sym(A->act[i].name), NULL),
+                                       dc_form("Step", dc_sym(CA->el[x2]), NULL), dc_form("To", dc_sym(CB->el[y2]), NULL), NULL));
+                    break;
+                }
+        }
+    }
+    return l;
+}
+static Sx *nd_simcert(const NdMod *s, const NdSim *S, NdSet init) {
+    const NdCar *CA = &s->car[s->mach[S->src].states], *CB = &s->car[s->mach[S->tgt].states];
+    Sx *c = dc_form("Certificate", dc_form("Kind", dc_sym("Simulation"), NULL), dc_form("Relation", dc_sym(S->name), NULL),
+                    dc_form("Source", dc_sym(s->mach[S->src].name), NULL), dc_form("Target", dc_sym(s->mach[S->tgt].name), NULL), nd_pairs(s, S), nd_matches(s, S), NULL);
+    if (!init) init = CA->n >= 64 ? ~(NdSet)0 : (((NdSet)1 << CA->n) - 1);   /* InitialStates AllDeclared */
+    Sx *cov = dc_form("Coverage", NULL);   /* one related target per initial source state */
+    for (int x = 0; x < CA->n; x++) if ((init >> x) & 1) {
+        int y = -1; for (int k = 0; k < CB->n && y < 0; k++) if ((S->rel[x] >> k) & 1) y = k;
+        if (y >= 0) sx_push(cov, dc_form("Covers", dc_sym(CA->el[x]), dc_sym(CB->el[y]), NULL));
+    }
+    sx_push(c, cov);
+    return c;
+}
+/* review 1 F2: a budget is a work limit in a registered unit, never a horizon.
+ * (Budget (PairExpansions k)) and the generic (Budget (Unit k)) count related pairs
+ * examined; a bare k is read as PairExpansions.  Returns k >= 0; -1: not a budget
+ * (e.g. (Steps k), a horizon form); -2: a registered unit this check does not count. */
+static long nd_budget(const Sx *bu, const char **unit) {
+    const Sx *v = bu->items[1]; const char *t = NULL; *unit = "PairExpansions";
+    if (v->kind == SX_SYM) t = v->text;
+    else if (v->kind == SX_LIST && v->n == 2 && v->items[0]->kind == SX_SYM && v->items[1]->kind == SX_SYM) {
+        const char *u = v->items[0]->text; t = v->items[1]->text; *unit = u;
+        if (strcmp(u, "PairExpansions") && strcmp(u, "Unit")) {
+            static const char *reg[] = { "Probes", "Proposals", "Seconds", "Unrollings" };
+            for (int i = 0; i < 4; i++) if (!strcmp(u, reg[i])) return -2;
+            return -1;
+        }
+    }
+    if (!t) return -1;
+    char *e; long k = strtol(t, &e, 10);
+    return (e == t || *e || k < 0) ? -1 : k;
+}
 /* H13, Y02: (CheckSimulation S [(Budget n)]) */
-static Sx *nd_checksim(DcModule *m, const NdMod *s, const Sx *q) {
+static Sx *nd_checksim_core(DcModule *m, const NdMod *s, const Sx *q) {
     const char *sn = q->n >= 2 ? nm_of(q->items[1]) : NULL; int si = nd_sim(s, sn); char err[256];
     if (si < 0) return dc_invalid(m, "CheckSimulation: names no declared Simulation (%s)", sn ? sn : "?");
     const NdSim *S = &s->sim[si]; NdMiss ms; memset(&ms, 0, sizeof ms);
     const Sx *bu = ropt(q, "Budget");
     if (bu) {   /* the budget bounds the related pairs examined */
-        long b = bu->items[1]->kind == SX_SYM ? strtol(bu->items[1]->text, NULL, 10) : -1; int np = 0;
+        const char *bunit; long b = nd_budget(bu, &bunit); int np = 0;
         for (int x = 0; x < ND_MAXC; x++) np += popc(S->rel[x]);
-        if (b < 0) return dc_invalid(m, "CheckSimulation: (Budget n) needs a natural number");
+        if (b == -2) return dc_unsupported(m, "CheckSimulation: budget unit %s is not counted by the simulation check (it counts PairExpansions)", bunit);
+        if (b < 0) return dc_invalid(m, "CheckSimulation: (Budget %s k) needs a registered work unit (PairExpansions or Unit) and a natural k; a budget is never a horizon", bunit);
         if (np > b) {   /* budget exhausted: Unknown (no replayable evidence), never Checked */
             char w[160]; snprintf(w, sizeof w, "budget %ld is below the %d related pairs to examine", b, np);
             g_nd_rep = 0;
@@ -309,7 +364,7 @@ static Sx *nd_checksim(DcModule *m, const NdMod *s, const Sx *q) {
     if (rc < 0) return dc_invalid(m, "CheckSimulation %s: %s", S->name, err);
     if (rc) return nd_env_k(m, VERDICT_FAILS, q, "Simulation", S->name, NULL, dc_form("Evidence", nd_misswit(s, S, &ms), NULL), ms.why);
     return nd_env_k(m, VERDICT_HOLDS, q, "Simulation", S->name, dc_form("Value", dc_sym("True"), NULL),
-                    dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("Simulation"), NULL), nd_pairs(s, S), NULL), NULL), NULL);
+                    dc_form("Evidence", nd_simcert(s, S, 0), NULL), NULL);
 }
 /* ---- safety transfer along a simulation (H14, Y03, Y04): the three registered forms
  * (Shows o v), (EnterFrom X (Not Y)), (ReachWithin X k), each under Never. ---- */
@@ -352,7 +407,14 @@ static NdSet nd_down(const NdSim *S, int nsrc, NdSet X) {   /* concrete states e
     NdSet r = 0; for (int x = 0; x < nsrc; x++) if (S->rel[x] && !(S->rel[x] & ~X)) r |= (NdSet)1 << x; return r;
 }
 static int nd_one(const NdCar *C, const Sx *x, NdSet *out) { int e = nd_el(C, nm_of(x)); if (e < 0) return -1; *out = (NdSet)1 << e; return 0; }
-static Sx *nd_safety(DcModule *m, const NdMod *s, const Sx *q) {
+static void nd_bind(Sx *res, const NdMod *s, const NdSim *S, const Sx *init);
+static Sx *nd_checksim(DcModule *m, const NdMod *s, const Sx *q) {
+    Sx *r = nd_checksim_core(m, s, q);
+    int si = nd_sim(s, q->n >= 2 ? nm_of(q->items[1]) : NULL);
+    if (si >= 0 && r && sx_find(r, "Binding", 1)) nd_bind(r, s, &s->sim[si], NULL);
+    return r;
+}
+static Sx *nd_safety_core(DcModule *m, const NdMod *s, const Sx *q) {
     const char *tn = q->n >= 2 ? nm_of(q->items[1]) : NULL; int ti = nd_mach(s, tn); char err[256];
     const Sx *nv = ropt(q, "Never");
     if (!nv) {
@@ -391,6 +453,19 @@ static Sx *nd_safety(DcModule *m, const NdMod *s, const Sx *q) {
     const Sx *in = ropt(q, "Init"); NdSet I = 0;
     for (size_t k = 1; in && k < in->n; k++) { int x = nd_el(CA, nm_of(in->items[k])); if (x < 0) return dc_invalid(m, "CheckSafety: Init %s is not a state of %s", nm_of(in->items[k]) ? nm_of(in->items[k]) : "?", A->name); I |= (NdSet)1 << x; }
     if (!I) return dc_invalid(m, "CheckSafety: (Init s ..) names no state");
+    const Sx *bu = ropt(q, "Budget");
+    if (bu) {   /* review 1 F2: honour the budget; it bounds the related pairs examined, never a horizon */
+        const char *bunit; long b = nd_budget(bu, &bunit); int np = 0;
+        for (int x = 0; x < ND_MAXC; x++) np += popc(S->rel[x]);
+        if (b == -2) return dc_unsupported(m, "CheckSafety: budget unit %s is not counted by the simulation check (it counts PairExpansions)", bunit);
+        if (b < 0) return dc_invalid(m, "CheckSafety: (Budget %s k) needs a registered work unit (PairExpansions or Unit) and a natural k; a budget is never a horizon", bunit);
+        if (np > b) {   /* budget exhausted: Unknown, never Checked */
+            char w[160]; snprintf(w, sizeof w, "budget %ld is below the %d related pairs to examine", b, np);
+            g_nd_rep = 0;
+            Sx *r = nd_env(m, VERDICT_HOLDS, q, tn, NULL, dc_form("Evidence", dc_form("Budget", dc_int(b), dc_int(np), NULL), NULL), w);
+            g_nd_rep = 1; return r;
+        }
+    }
     NdMiss ms; memset(&ms, 0, sizeof ms);
     int rc = nd_simcheck(s, S, S->rel, &ms, err, sizeof err);
     if (rc < 0) return dc_invalid(m, "CheckSafety via %s: %s", S->name, err);
@@ -408,7 +483,7 @@ static Sx *nd_safety(DcModule *m, const NdMod *s, const Sx *q) {
         for (int y = 0; y < CB->n; y++) if (dep[y] >= 0) sx_push(re, dc_sym(CB->el[y]));
         return nd_env(m, VERDICT_HOLDS, q, tn, dc_form("Value", dc_sym("True"), NULL),
                       dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SafetyTransfer"), NULL), dc_form("Via", dc_sym(S->name), NULL),
-                                                  dc_form("InitCovered", dc_sym("True"), NULL), re, NULL), NULL), NULL);
+                                                  dc_form("InitCovered", dc_sym("True"), NULL), re, nd_simcert(s, S, I), NULL), NULL), NULL);
     }
     int ys[ND_MAXC + 1], as[ND_MAXC + 1], L = nd_trace(par, pact, bad, ba, bn, ys, as);
     Sx *acx = dc_form("AbstractCounterexample", nd_pathsx(s, B, ys, as, L), NULL);
@@ -449,6 +524,23 @@ static Sx *nd_safety(DcModule *m, const NdMod *s, const Sx *q) {
 /* Y01: (InduceExact R) on (Representation R (Of M) (Encode e)): the quotient by e is exact when
  * states with one code have successor sets with one code set, for every action of M.  Otherwise
  * Refuted with the witness (x x' action code(x a) code(x' a)). */
+/* review 1 F4: bind Source/Target to the simulation's machines and record the
+ * requested initial states in the Scope instead of AllDeclared. */
+static void nd_bind(Sx *res, const NdMod *s, const NdSim *S, const Sx *init) {
+    if (!res || !S) return;
+    dc_result_bind_models(res, s->mach[S->src].name, s->mach[S->tgt].name);
+    if (!init) return;
+    Sx *sc = (Sx *)sx_find(res, "Scope", 1), *is = sc ? (Sx *)sx_find(sc, "InitialStates", 1) : NULL;
+    if (!is || is->n != 2 || init->n < 2) return;
+    sx_free(is->items[1]); is->items[1] = sx_sym(init->items[1]->kind == SX_SYM ? init->items[1]->text : "?");
+    for (size_t k = 2; k < init->n; k++) sx_push(is, sx_sym(init->items[k]->kind == SX_SYM ? init->items[k]->text : "?"));
+}
+static Sx *nd_safety(DcModule *m, const NdMod *s, const Sx *q) {
+    Sx *r = nd_safety_core(m, s, q);
+    const Sx *vi = ropt(q, "Via"); int si = vi ? nd_sim(s, nm_of(vi->items[1])) : -1;
+    if (si >= 0 && r && sx_find(r, "Binding", 1)) nd_bind(r, s, &s->sim[si], ropt(q, "Init"));
+    return r;
+}
 static Sx *nd_induce(DcModule *m, const NdMod *s, const Sx *q) {
     const char *rn = q->n >= 2 ? nm_of(q->items[1]) : NULL; const Sx *d = NULL;
     for (size_t i = 2; rn && m->source && i < m->source->n; i++) {
