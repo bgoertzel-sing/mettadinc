@@ -1,0 +1,3 @@
+stats {'triples': 40, 'composed': 40, 'agree': 40, 'disagree': 0, 'premise_not_checked': 0, 'tamper_caught': 40}
+probe_arrows: PASS
+rc=0
