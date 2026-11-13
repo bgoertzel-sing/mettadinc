@@ -53,7 +53,7 @@ static int m1_admission(const Sx *all, const char *mn, const Sx *req, char *why,
 static Sx *m6_inline_imports(const Sx *all, const Sx *raw) {
     int uses = 0, any = 0;
     for (size_t i = 2; i < raw->n; i++) if (sx_head_is(raw->items[i], "Use"))
-        for (size_t k = 1; k < raw->items[i]->n; k++) if (sx_is_sym(raw->items[i]->items[k], "Contracts")) uses = 1;
+        for (size_t k = 1; k < raw->items[i]->n; k++) if (sx_is_sym(raw->items[i]->items[k], "Contracts") || sx_is_sym(raw->items[i]->items[k], "Transfers")) uses = 1;   /* M6: Contracts, Transfers */
     if (!uses) return NULL;
     Sx *out = sx_list();
     for (size_t i = 0; i < raw->n; i++) {

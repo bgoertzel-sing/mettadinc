@@ -630,6 +630,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
     char *canon = sx_print(form); dc_sha256_hex(canon, strlen(canon), m->digest); free(canon);
     m->contracts = uses_lib(m, "Contracts") && dc_eval_beyond_release();   /* M6 opt-in */
     m->hives = uses_lib(m, "Hives") && dc_eval_beyond_release();   /* M6 opt-in */
+    m->transfers = uses_lib(m, "Transfers") && dc_eval_beyond_release();   /* M6 opt-in */
     for (size_t i = 2; i < form->n; i++) {
         const Sx *d = form->items[i]; int rc = 0;
         if (d->kind != SX_LIST || d->n == 0 || d->items[0]->kind != SX_SYM)

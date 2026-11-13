@@ -43,6 +43,7 @@ static Sx *hv_node(const DcModule *m, const Hive *h, int a) { const HvMem *M = &
 #define HV_FAIL(rc, ...) do { snprintf(why, wn, __VA_ARGS__); return rc; } while (0)
 static int hv_load(const DcModule *m, const Sx *hn, Hive *h, char *why, size_t wn) {
     memset(h, 0, sizeof *h); int ovf = 0;
+    if (hn && sx_head_is(hn, "Output")) HV_FAIL(-2, "derived hives ((Output Derive Hive), KernelOf) are not evaluated yet");
     if (!hn || hn->kind != SX_SYM) HV_FAIL(-1, "expected a KernelHive name");
     const Sx *d = hv_decl(m, "KernelHive", hn->text);
     if (!d) HV_FAIL(-1, "%s names no declared KernelHive", hn->text);
