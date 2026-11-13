@@ -74,7 +74,7 @@
     }
   },
   "notes": {
-    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable). (Associator Hive Mi Mj Mk) -> HiveAssociator (request and result shape ours; definition spec l.2827)."
+    "m6rest-shapes": "Shapes invented by M6-rest (beyond release only): (Fork F (Of Machine) (Merge label) (Shared Measured|Unmeasured)); Implementation (Over F); Unknown evidence (Open (Fork F (Of M) (Merge l) (Shared Unmeasured))); LeastCoherentRefinement certificate (Method LinearProgram) (EdgeMass v) and Chord dual rows. CompleteHive certificate (Method PathComposition) (Optimality Checked) (UnmeasuredEntries n) (Filled (Fill a b (Path ..))..) (NoPaths (NoPath Mi Mj)..); Value = alignment cost (sum w_a w_b over filled ordered pairs). Semantics: hive decision 2, our reading of spec l.2896-2906 (ref [2] Prop 9.3 unavailable). (Associator Hive Mi Mj Mk) -> HiveAssociator (request and result shape ours; definition spec l.2827). Top-level arrow_kinds section (ours): Table 4 kinds with grade and composition law and the request that composes them."
   },
   "requests": {
     "Associator": {
@@ -127,5 +127,57 @@
       },
       "doc": "ours (M6-rest): crisp associator entries over V_i x V_k; Zero True iff the direct correspondence equals the composite through j"
     }
+  },
+  "arrow_kinds": {
+    "Quotient": {
+      "result": "CheckedAbstractionMap (Kind Quotient)",
+      "grade": "none (0)",
+      "compose": "function composition; Quotient after Quotient is Quotient; composite classified by its own image",
+      "then": "Then (ops_abs.c)",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Homomorphism": {
+      "result": "CheckedAbstractionMap (Kind Homomorphism)",
+      "grade": "none (0)",
+      "compose": "function composition; grade 0",
+      "then": "Then (ops_abs.c)",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Graded": {
+      "result": "CheckedGradedArrow",
+      "grade": "defect d >= 0",
+      "compose": "defects add: d(g.f) <= d(f) + d(g)",
+      "then": "not composed by Then in this release (Unsupported)",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Simulation": {
+      "result": "CheckedSimulation",
+      "grade": "directed grade",
+      "compose": "directed grades add",
+      "then": "not composed by Then in this release (Unsupported)",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Linear": {
+      "result": "CheckedLinearArrow",
+      "grade": "(lambda, rho)",
+      "compose": "(lL lK, rL lK + lL rK)",
+      "then": "Then (stoch.c L03)",
+      "spec": "spec Table 4, l.893-912"
+    },
+    "Transfer": {
+      "result": "CheckedTransfer",
+      "grade": "defect",
+      "compose": "composition in Poly; defects add",
+      "then": "ComposeTransfers (ops_transfers.c)",
+      "spec": "spec Table 4, l.893-912; Sec. 10.2"
+    },
+    "AffineContract": {
+      "result": "CheckedImplementation (Grade L eta)",
+      "grade": "(L, eta)",
+      "compose": "(L2 L1, L2 eta1 + eta2)",
+      "then": "ThenContracts (ops_contracts.c)",
+      "spec": "spec Prop 9.1"
+    },
+    "_doc": "Ours (M6-rest): one registry of arrow kinds, grades and composition laws. Mixing kinds in one composition is refused, never silently coerced."
   }
 }

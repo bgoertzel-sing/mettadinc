@@ -64,7 +64,8 @@ LOCAL_PATCHES = [("m4est", "registry/patches/m4est_registry_patch.json"), ("m5re
 BOUT = os.path.join(REPO, "registry", "beyond", "mettadinc_registry_beyond.json")
 BDIGEST = os.path.join(REPO, "registry", "beyond", "DIGEST")
 WHOLE = [("libraries", "libraries"), ("declarations", "declarations"), ("requests", "requests"),
-         ("result_types", "result_types"), ("witness_types", "witness_types")]
+         ("result_types", "result_types"), ("witness_types", "witness_types"),
+         ("arrow_kinds", "arrow_kinds")]   # M6-rest: arrow kinds and composition laws (beyond only, ours)
 FIELDS = [("declaration_fields", "declarations", "fields"), ("request_args", "requests", "args"),
           ("result_fields", "result_types", "fields")]
 KNOWN = ({"patch", "date", "add_primitives", "add_tolerance_bodies", "budget_units", "notes"}
