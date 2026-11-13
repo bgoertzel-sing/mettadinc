@@ -277,6 +277,66 @@ def check_modal(M, req, w):
     need((x in root) == (field(w, 'Left')[1] == 'True') and (z in root) == (field(w, 'Right')[1] == 'True'), 'Formula does not evaluate to Left/Right at %s, %s' % (x, z))
     need((x in root) != (z in root), 'Formula does not distinguish %s and %s' % (x, z))
 
+
+# ---- m5-rest: may-trace rows (CheckTrace on Profile Nondeterministic) ----
+def obs_vectors(M, m):
+    import itertools
+    ob = M.mach[m]['obs']; names = sorted(ob); vs = set()
+    for x in M.states(m):
+        for v in itertools.product(*[sorted(M.map[ob[o]].get(x, set())) for o in names]): vs.add(tuple(zip(names, v)))
+    return sorted(vs)
+
+def obs_filter(M, m, X, vec):
+    ob = M.mach[m]['obs']
+    return {x for x in X if all(v in M.map[ob[o]].get(x, set()) for o, v in vec)}
+
+def post(M, m, a, X):
+    r = set()
+    for x in X: r |= M.img(m, a, x)
+    return r
+
+def check_maytrace(M, req, w):
+    m, enc = M.rep[req[1]]; pr = field(w, 'Pair'); x, z = pr[1], pr[2]
+    need(M.map[enc].get(x) == M.map[enc].get(z), 'Pair %s %s does not share a code' % (x, z))
+    tr = field(w, 'Trace')[1:]; word = field(w, 'Word')[1:]
+    need(len(tr) % 2 == 1 and [t for t in tr[1::2]] == list(word), 'Trace does not alternate Shows/action along Word')
+    ob = M.mach[m]['obs']; X, Z = {x}, {z}
+    for i, t in enumerate(tr):
+        if i % 2:
+            need(t in M.mach[m]['act'], 'unknown action %s' % t); X, Z = post(M, m, t, X), post(M, m, t, Z); continue
+        need(head(t) == 'Shows', 'Trace entry %d is not (Shows ..)' % i)
+        vec = [(o[0], o[1]) for o in t[1:]]
+        need(sorted(o for o, _ in vec) == sorted(ob), 'Shows does not name every observer exactly once')
+        X, Z = obs_filter(M, m, X, vec), obs_filter(M, m, Z, vec)
+    need(bool(X) == (field(w, 'Left')[1] == 'True') and bool(Z) == (field(w, 'Right')[1] == 'True'), 'Trace possibility does not match Left/Right')
+    need(bool(X) != bool(Z), 'Trace does not distinguish %s and %s' % (x, z))
+
+def check_maytrace_cert(M, req, c):
+    m, enc = M.rep[req[1]]; S = M.states(m)
+    hz = field(req, 'Horizon'); h = int(str(hz[1][1])) if hz and isinstance(hz[1], list) else None
+    ch = field(c, 'Horizon')[1]
+    need((h is None and ch == 'AllFiniteWords') or (h is not None and isinstance(ch, list) and int(str(ch[1])) == h), 'certificate Horizon differs from the request')
+    P = {}
+    for e in fields(field(c, 'Pairs'), 'P'):
+        k = (frozenset(field(e, 'Left')[1:]), frozenset(field(e, 'Right')[1:])); P[k] = min(P.get(k, 10 ** 9), int(str(e[1])))
+    def has(X, Z, d):
+        for k in ((frozenset(X), frozenset(Z)), (frozenset(Z), frozenset(X))):
+            if k in P and (h is None or P[k] <= d): return True
+        return False
+    for i, x in enumerate(S):
+        for zz in S[i + 1:]:
+            if M.map[enc].get(x) == M.map[enc].get(zz): need(has({x}, {zz}, 0), 'same-code pair %s %s missing from certificate' % (x, zz))
+    V = obs_vectors(M, m)
+    for (X, Z), d in P.items():
+        for vec in V:
+            X1, Z1 = obs_filter(M, m, X, vec), obs_filter(M, m, Z, vec)
+            if not X1 and not Z1: continue
+            need(X1 and Z1, 'certificate pair %s/%s splits on observation %s' % (sorted(X), sorted(Z), vec))
+            if h is not None and d >= h: continue
+            for a in M.mach[m]['act']:
+                X2, Z2 = post(M, m, a, X1), post(M, m, a, Z1)
+                if X2 or Z2: need(has(X2, Z2, d + 1), 'certificate not closed: %s/%s missing' % (sorted(X2), sorted(Z2)))
+
 def replay_line(M, req, res):
     st = field(res, 'Status')[1]; ev = field(res, 'Evidence') or ['Evidence']; h = head(req)
     did = []
@@ -306,6 +366,11 @@ def replay_line(M, req, res):
         for x in M.states(m):
             for y in M.states(m): need(M.map[enc].get(x) != M.map[enc].get(y) or blk[x] == blk[y], 'same-code pair %s %s split by the certificate' % (x, y))
         did.append('BisimulationCertificate')
+    for w in find_all(ev, 'MayTraceWitness'):
+        need(h == 'CheckTrace', 'MayTraceWitness outside CheckTrace'); check_maytrace(M, req, w); did.append('MayTraceWitness')
+    if h == 'CheckTrace' and st == 'Checked':
+        c = [c for c in fields(ev, 'Certificate') if field(c, 'Kind')[1] == 'MayTraceSubsetPairs'][0]
+        check_maytrace_cert(M, req, c); did.append('MayTraceSubsetPairs')
     return st, did
 
 def main(argv):

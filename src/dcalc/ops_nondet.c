@@ -716,6 +716,124 @@ static Sx *nd_bisim(DcModule *m, const NdMod *s, const Sx *q, int chk) {
                     dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("Bisimulation"), NULL), dc_form("Encode", dc_sym(E->name), NULL), part, NULL), NULL), NULL);
 }
 
+/* ---- m5-rest: may-trace equivalence on a Representation (spec 1068-1073: for nondeterministic
+ * machines only the crisp claim is defined, equal sets of possible observation traces under every
+ * word; 2554-2556: PSPACE-complete, reported under a budget). Subset-pair exploration: a pair
+ * (X, Z) holds the states each side may occupy before the next observation; observation vector y
+ * filters both, action a takes post-images. A pair where exactly one filtered side is empty yields a
+ * may-trace word (MayTraceWitness, name beyond registry). Exhausted budget or pair table: Unknown. ---- */
+#define ND_MAXY 256
+#define ND_TCAP 4096
+typedef struct { NdSet x, z; int par, y, a, d; } NdTP;
+static NdTP g_tp[ND_TCAP];
+static int nd_obsvecs(const NdMod *s, const NdMach *M, int n, int vec[ND_MAXY][8], NdSet *mask) {
+    int ny = 0;
+    for (int x = 0; x < n; x++) {
+        int cnt[8], el[8][64], idx[8] = {0}, empty = 0;
+        for (int j = 0; j < M->nobs; j++) { NdSet I = s->map[M->obs[j].map].img[x]; cnt[j] = 0;
+            for (int b = 0; b < 64; b++) if ((I >> b) & 1) el[j][cnt[j]++] = b;
+            if (!cnt[j]) empty = 1; }
+        if (empty) continue;
+        for (;;) {
+            int v[8] = {0}, y;
+            for (int j = 0; j < M->nobs; j++) v[j] = el[j][idx[j]];
+            for (y = 0; y < ny; y++) if (!memcmp(vec[y], v, sizeof(int) * (size_t)M->nobs)) break;
+            if (y == ny) { if (ny >= ND_MAXY) return -1; memcpy(vec[ny], v, sizeof v); mask[ny++] = 0; }
+            mask[y] |= (NdSet)1 << x;
+            int j = 0;
+            while (j < M->nobs && ++idx[j] == cnt[j]) idx[j++] = 0;
+            if (j == M->nobs) break;
+        }
+    }
+    return ny;
+}
+static int nd_tp_put(int *ht, int *np, NdSet X, NdSet Z, int par, int y, int a, int d) {
+    uint64_t h = (X * 0x9E3779B97F4A7C15ULL) ^ ((Z + 0x632BE59BD9B4E019ULL) * 0xC2B2AE3D27D4EB4FULL);
+    for (unsigned k = (unsigned)(h >> 50);; k = (k + 1) & 16383u) {
+        if (ht[k] < 0) { if (*np >= ND_TCAP) return -1; NdTP t = { X, Z, par, y, a, d }; g_tp[*np] = t; ht[k] = (*np)++; return 1; }
+        if (g_tp[ht[k]].x == X && g_tp[ht[k]].z == Z) return 0;
+    }
+}
+static Sx *nd_shows(const NdMod *s, const NdMach *M, const int *v) {
+    Sx *r = dc_form("Shows", NULL);
+    for (int j = 0; j < M->nobs; j++) sx_push(r, dc_form(M->obs[j].name, dc_sym(s->car[s->map[M->obs[j].map].to].el[v[j]]), NULL));
+    return r;
+}
+static Sx *nd_states(const char *h, const NdCar *C, NdSet X) {
+    Sx *r = dc_form(h, NULL);
+    for (int x = 0; x < C->n; x++) if ((X >> x) & 1) sx_push(r, dc_sym(C->el[x]));
+    return r;
+}
+static Sx *nd_maytrace(DcModule *m, const NdMod *s, const Sx *q) {
+    const char *hd = q->items[0]->text, *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL;
+    if (!strcmp(hd, "MeasureTrace")) return dc_unsupported(m, "MeasureTrace: for nondeterministic machines only the crisp claim (CheckTrace, may-trace equivalence) is defined (spec 1072-1073)");
+    long long budget = -1; int hor = -1;
+    for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->n ? nm_of(o->items[0]) : NULL;
+        const Sx *v = oh && o->n == 2 ? o->items[1] : NULL; DcRat g;
+        if (v && !strcmp(oh, "Horizon") && nm_of(v) && !strcmp(v->text, "AllFiniteWords")) continue;
+        if (v && !strcmp(oh, "Horizon") && sx_head_is(v, "Steps") && v->n == 2 && !dc_sx_rat(v->items[1], &g) && g.d == 1 && g.n >= 0 && g.n <= 64) { hor = (int)g.n; continue; }
+        if (v && !strcmp(oh, "Policies") && nm_of(v) && !strcmp(v->text, "Words")) continue;
+        if (v && !strcmp(oh, "Within") && !dc_sx_rat(v, &g) && g.n == 0) continue;
+        if (v && !strcmp(oh, "Budget") && sx_head_is(v, "PairExpansions") && v->n == 2 && !dc_sx_rat(v->items[1], &g) && g.d == 1 && g.n >= 0) { budget = g.n; continue; }
+        return dc_unsupported(m, "%s: option %s is not implemented for Profile Nondeterministic (crisp may-trace only)", hd, oh ? oh : "?");
+    }
+    const Sx *d = NULL;
+    for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
+        if (sx_head_is(x, "Representation") && x->n >= 2 && nm_of(x->items[1]) && !strcmp(x->items[1]->text, a1)) d = x; }
+    if (!d) return dc_invalid(m, "%s: names no declared Representation (%s)", hd, a1 ? a1 : "?");
+    int mi = nd_mach(s, fld1(d, "Of")), ei = nd_map(s, fld1(d, "Encode"));
+    if (mi < 0 || ei < 0) return dc_invalid(m, "%s %s: (Of M) or (Encode e) names nothing declared", hd, a1);
+    const NdMach *M = &s->mach[mi]; const NdMap *E = &s->map[ei]; const NdCar *C = &s->car[M->states];
+    if (E->from != M->states || E->choice) return dc_invalid(m, "%s %s: Encode %s is not a function on the states of %s", hd, a1, E->name, M->name);
+    for (int a = 0; a < M->nact; a++) { const NdMap *A = &s->map[M->act[a].map];
+        if (A->from != M->states || A->to != M->states) return dc_invalid(m, "%s %s: Action map %s is not States -> States", hd, a1, A->name); }
+    if (M->nobs > 8) return dc_unsupported(m, "%s %s: more than 8 observers", hd, a1);
+    static int vec[ND_MAXY][8], ht[16384]; NdSet mk[ND_MAXY];
+    int n = C->n, ny = nd_obsvecs(s, M, n, vec, mk), np = 0, hit = -1, hy = -1, over = 0; long long exp = 0;
+    if (ny < 0) return dc_unsupported(m, "%s %s: more than %d distinct observation vectors", hd, a1, ND_MAXY);
+    for (int k = 0; k < 16384; k++) ht[k] = -1;
+    for (int x = 0; x < n && !over; x++) for (int z = x + 1; z < n && !over; z++)
+        if (E->img[x] == E->img[z] && nd_tp_put(ht, &np, (NdSet)1 << x, (NdSet)1 << z, -1, -1, -1, 0) < 0) over = 2;
+    for (int i = 0; i < np && hit < 0 && !over; i++) {
+        if (budget >= 0 && exp >= budget) { over = 1; break; }
+        exp++;
+        for (int y = 0; y < ny && hit < 0 && !over; y++) {
+            NdSet X = g_tp[i].x & mk[y], Z = g_tp[i].z & mk[y];
+            if (!X && !Z) continue;
+            if (!X || !Z) { hit = i; hy = y; break; }
+            if (hor >= 0 && g_tp[i].d >= hor) continue;
+            for (int a = 0; a < M->nact && !over; a++) { const NdMap *A = &s->map[M->act[a].map];
+                NdSet X2 = nd_post(A, X), Z2 = nd_post(A, Z);
+                if ((X2 || Z2) && nd_tp_put(ht, &np, X2, Z2, i, y, a, g_tp[i].d + 1) < 0) over = 2; }
+        }
+    }
+    if (hit >= 0) {
+        int chain[ND_TCAP], nc = 0;
+        for (int c = hit; c >= 0; c = g_tp[c].par) chain[nc++] = c;
+        const NdTP *s0 = &g_tp[chain[nc - 1]]; int x = __builtin_ctzll(s0->x), z = __builtin_ctzll(s0->z);
+        Sx *word = dc_form("Word", NULL), *tr = dc_form("Trace", NULL);
+        for (int k = nc - 2; k >= 0; k--) { const NdTP *t = &g_tp[chain[k]];
+            sx_push(tr, nd_shows(s, M, vec[t->y])); sx_push(tr, dc_sym(M->act[t->a].name)); sx_push(word, dc_sym(M->act[t->a].name)); }
+        sx_push(tr, nd_shows(s, M, vec[hy]));
+        int lx = (g_tp[hit].x & mk[hy]) != 0;
+        char w[240]; snprintf(w, sizeof w, "%s and %s share a code but only %s can show this observation trace", C->el[x], C->el[z], lx ? C->el[x] : C->el[z]);
+        Sx *wit = dc_form("Witness", dc_form("MayTraceWitness", dc_form("Pair", dc_sym(C->el[x]), dc_sym(C->el[z]), NULL), word, tr,
+                                             dc_form("Left", dc_sym(lx ? "True" : "False"), NULL), dc_form("Right", dc_sym(lx ? "False" : "True"), NULL), NULL), NULL);
+        return nd_env_k(m, VERDICT_FAILS, q, "Representation", a1, NULL, dc_form("Evidence", wit, NULL), w);
+    }
+    if (over) {
+        char w[240]; snprintf(w, sizeof w, over == 1 ? "may-trace exploration stopped at the budget of %lld pair expansions with no difference found" : "may-trace exploration stopped at this implementation's limit of %lld pairs with no difference found",
+                              over == 1 ? budget : (long long)ND_TCAP);
+        g_nd_rep = 0;
+        Sx *r = nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, NULL, dc_form("Evidence", dc_form("Explored", dc_form("PairExpansions", dc_int(exp), NULL), dc_form("Pairs", dc_int(np), NULL), NULL), NULL), w);
+        g_nd_rep = 1; return r;
+    }
+    Sx *ps = dc_form("Pairs", NULL);
+    for (int i = 0; i < np; i++) sx_push(ps, dc_form("P", dc_int(g_tp[i].d), nd_states("Left", C, g_tp[i].x), nd_states("Right", C, g_tp[i].z), NULL));
+    return nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, dc_form("Value", dc_sym("True"), NULL),
+                    dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("MayTraceSubsetPairs"), NULL), dc_form("Horizon", hor >= 0 ? dc_form("Steps", dc_int(hor), NULL) : dc_sym("AllFiniteWords"), NULL), ps, NULL), NULL), NULL);
+}
+
 Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     DcModule *m = r->m; static NdMod S; char err[256]; (void)slot;
     if (nd_read(m->source, &S, err, sizeof err)) return dc_invalid(m, "nondeterministic module: %s", err);
@@ -726,5 +844,6 @@ Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     if (!strcmp(head, "InduceExact")) return nd_induce(m, &S, q);
     if (!strcmp(head, "BehavioralTolerance")) return nd_bisim(m, &S, q, 0);
     if (!strcmp(head, "CheckBehavioral")) return nd_bisim(m, &S, q, 1);
+    if (!strcmp(head, "CheckTrace") || !strcmp(head, "MeasureTrace")) return nd_maytrace(m, &S, q);
     return dc_unsupported(m, "request %s: not yet implemented for Profile Nondeterministic (M5 in progress)", head);
 }
