@@ -145,6 +145,22 @@ int main(int argc, char **argv) {
     CHECK(!memcmp(a, b, sizeof a), "seeded sample replays byte for byte from (seed, population size)");
     CHECK(memcmp(a, c, sizeof a) != 0, "a different seed draws a different sample");
 
+    /* m5-rest (estimates gaps leftover): a Stream with no Policy -> InvalidInput in both modes;
+     * the answer never carries the literal (Policy "undeclared") nor an Estimate record. */
+    static const char *MOD_NOPOL =
+        "(DC.Module EstN (Profile Stochastic) (Use Estimates)\n"
+        "  (Stream Replies (Source \"streams/replies.json\") (Digest \"" DIG "\")\n"
+        "    (Population \"replies\") (Selection \"all replies\")))\n";
+    for (int bm = 1; bm >= 0; bm--) {
+        dc_eval_set_beyond_release(bm);
+        char *o = dc_eval_text(MOD_NOPOL, B, "EstN", REQ);
+        char m[160]; snprintf(m, sizeof m, "%s: Stream with no Policy -> not Estimated, no (Policy \"undeclared\"), no Estimate record",
+                              bm ? "beyond-release" : "release mode");
+        CHECK(o && !has(o, "(Status Estimated)") && !has(o, "undeclared") && !has(o, "(Estimate "), m);
+        if (bm) CHECK(has(o, "(Status InvalidInput)"), "beyond-release: Stream with no Policy -> InvalidInput");
+        free(o);
+    }
+
     surface_gates(B);
     Sx *fr[] = { rel, r, bad, bad0 };
     for (size_t k = 0; k < 4; k++) if (fr[k]) sx_free(fr[k]);
