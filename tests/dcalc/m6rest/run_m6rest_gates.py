@@ -62,4 +62,10 @@ at = os.path.join(OUT, 'associator_tampered.out'); open(at, 'w').write(al[0].rep
 atr = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m6rest.py'), af, at], capture_output=True, text=True)
 report('Associator neg: flipped Zero flag is rejected by the replayer', atr.returncode != 0 and 'REJECT' in atr.stdout, atr.stdout.strip().splitlines()[:1])
 report('Associator neg: unmeasured entry points to CompleteHive (no zero fill)', len(al) > 2 and 'complete it first with (CompleteHive Partial)' in al[2])
+# arrow kinds: mixing kinds in one composition is refused (registry arrow_kinds, ours; spec Table 4 l.893-912)
+mx = os.path.join(OUT, 'then_mixed.metta')
+mt = n5.replace(' (Over Copies))', ')').replace('(Derive Composite (ThenContracts (Output FirstChecked Value) (Output SecondChecked Value))))',
+     '(Derive Composite (ThenContracts (Output FirstChecked Value) (Output SecondChecked Value)))\n  (Derive Mixed (Then (Output FirstChecked Value) (Output SecondChecked Value))))') + '!(dc.run Neg5Receipts Mixed)\n'
+open(mx, 'w').write(mt); mo = run(mx)
+report('arrow kinds neg: Then over two affine contracts (AffineContract kind) -> InvalidInput naming the type mismatch, never coerced', 'Derive Mixed' in mt and statuses(mo)[-1:] == ['InvalidInput'] and 'CheckedImplementationContract, expected Arrow' in mo, statuses(mo))
 print('m6rest_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)
