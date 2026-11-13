@@ -147,14 +147,14 @@
       "result": "CheckedGradedArrow",
       "grade": "defect d >= 0",
       "compose": "defects add: d(g.f) <= d(f) + d(g)",
-      "then": "not composed by Then in this release (Unsupported)",
+      "then": "not composed in this release: Then over two graded arrows answers InvalidInput (\"Derive TightMachine produced no arrow\"); the law is documentation only",
       "spec": "spec Table 4, l.893-912"
     },
     "Simulation": {
       "result": "CheckedSimulation",
       "grade": "directed grade",
       "compose": "directed grades add",
-      "then": "not composed by Then in this release (Unsupported)",
+      "then": "not composed in this release: Then over two simulations answers Unsupported (request not implemented for Profile Nondeterministic); the law is documentation only",
       "spec": "spec Table 4, l.893-912"
     },
     "Linear": {

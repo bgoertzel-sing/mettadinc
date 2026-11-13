@@ -1220,6 +1220,6 @@ static Sx *nd_req_core(DcModule *m, const NdMod *s0, const Sx *q, const char *he
     if (!strcmp(head, "MeasureBehavioral")) return nd_haus(m, &S, q);
     if (!strcmp(head, "Refine")) return nd_refine(m, &S, q);
     if (!strcmp(head, "CheckTrace") || !strcmp(head, "MeasureTrace")) return nd_maytrace(m, &S, q);
-    return dc_unsupported(m, "request %s: not yet implemented for Profile Nondeterministic (M5 in progress)", head);
+    return dc_unsupported(m, "request %s: not implemented for Profile Nondeterministic in this release (it composes no Nondeterministic arrows, e.g. Then on two CheckedSimulation results)", head);
 }
 #undef S

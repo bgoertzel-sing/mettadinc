@@ -5435,7 +5435,7 @@
   {
    "name": "m6rest",
    "file": "registry/patches/m6rest_registry_patch.json",
-   "sha256": "c2f32d720ae6045de4a81edd6f1d21830a0e77e14826acab1c12e82f6f08b0d1",
+   "sha256": "d1f3de9d0896d02a0fa5c17c9b274e7106f08adb5afc8f58eb9d93e4143b2699",
    "patch": "m6rest: local registry patch for t-2026-11-13-mettadinc-m6-rest (beyond-release only; every shape here is ours, not in the specification)",
    "date": "2026-11-13"
   }
@@ -5466,14 +5466,14 @@
    "result": "CheckedGradedArrow",
    "grade": "defect d >= 0",
    "compose": "defects add: d(g.f) <= d(f) + d(g)",
-   "then": "not composed by Then in this release (Unsupported)",
+   "then": "not composed in this release: Then over two graded arrows answers InvalidInput (\"Derive TightMachine produced no arrow\"); the law is documentation only",
    "spec": "spec Table 4, l.893-912"
   },
   "Simulation": {
    "result": "CheckedSimulation",
    "grade": "directed grade",
    "compose": "directed grades add",
-   "then": "not composed by Then in this release (Unsupported)",
+   "then": "not composed in this release: Then over two simulations answers Unsupported (request not implemented for Profile Nondeterministic); the law is documentation only",
    "spec": "spec Table 4, l.893-912"
   },
   "Linear": {

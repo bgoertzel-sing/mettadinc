@@ -67,7 +67,7 @@ at = os.path.join(OUT, 'associator_tampered.out'); open(at, 'w').write(al[0].rep
 atr = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m6rest.py'), af, at], capture_output=True, text=True)
 report('Associator neg: flipped Zero flag is rejected by the replayer', atr.returncode != 0 and 'REJECT' in atr.stdout, atr.stdout.strip().splitlines()[:1])
 report('Associator neg: unmeasured entry points to CompleteHive (no zero fill)', len(al) > 2 and 'complete it first with (CompleteHive Partial)' in al[2])
-# arrow kinds: mixing kinds in one composition is refused (registry arrow_kinds, ours; spec Table 4 l.893-912)
+# arrow kinds: the arrow_kinds registry section is documentation only (no code reads it). This gate checks the pre-existing binding type check: mixing kinds in one Then is refused (InvalidInput).
 mx = os.path.join(OUT, 'then_mixed.metta')
 mt = n5.replace(' (Over Copies))', ')').replace('(Derive Composite (ThenContracts (Output FirstChecked Value) (Output SecondChecked Value))))',
      '(Derive Composite (ThenContracts (Output FirstChecked Value) (Output SecondChecked Value)))\n  (Derive Mixed (Then (Output FirstChecked Value) (Output SecondChecked Value))))') + '!(dc.run Neg5Receipts Mixed)\n'
