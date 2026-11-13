@@ -86,6 +86,7 @@ typedef struct {
     int unsupported_decls;   /* declarations outside the M0 fragment */
     int symbolic;            /* M3: (Carriers Symbolic); requests go to ops_sym.c, nothing tabulated */
     int stochastic;          /* M4 (opt-in only): Dynamics Stochastic; requests go to stoch.c, nothing tabulated */
+    int hives;               /* M6 (opt-in only): (Use Hives) in beyond-release; KernelHive/CrossKernel read by ops_hives.c from m->source */
     int contracts;           /* M6 (opt-in only): (Use Contracts) in beyond-release; Implementation decls read by ops_contracts.c from m->source */
     int nondet;              /* M5 (opt-in only): Dynamics Nondeterministic; requests go to ops_nondet.c, nothing tabulated */
     char basedir[512];       /* M4-estimates: directory Stream sources resolve against (set by dc_eval_request) */
