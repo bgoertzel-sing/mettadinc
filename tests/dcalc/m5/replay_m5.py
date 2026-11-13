@@ -256,27 +256,93 @@ def check_partition(M, m, part, exact):
             for y in S: need((blk[x] == blk[y]) == (ref[x] == ref[y]), 'Partition is not the coarsest bisimulation (%s,%s)' % (x, y))
     return blk
 
-def check_modal(M, req, w):
-    m, enc = M.rep[req[1]]; pr = field(w, 'Pair'); x, z = pr[1], pr[2]; S = M.states(m)
-    need(M.map[enc].get(x) == M.map[enc].get(z), 'Pair %s %s does not share a code' % (x, z))
-    fg = field(w, 'Formula'); nodes = {str(n[1]): n[2] for n in fields(fg, 'Node')}; memo = {}
-    def sat(k, lim):
+def rat(t):
+    from fractions import Fraction
+    if isinstance(t, list) and head(t) == 'Rat': return Fraction(int(str(t[1])), int(str(t[2])))
+    if t == 'True': return Fraction(1)
+    if t == 'False': return Fraction(0)
+    return Fraction(str(t))
+
+def req_disc(req):
+    from fractions import Fraction
+    d = field(req, 'Discount'); return rat(d[1]) if d else Fraction(1)
+
+def eval_formula(M, m, fg, g):
+    """Exact evaluation of a test graph: Indicator 0/1, Not 1-v, And/Min (empty = 1), Sub max(0, v-r),
+    Diamond a k [g'] = g' * max over a-successors (0 if none); g' must equal the request discount."""
+    from fractions import Fraction
+    import sys; sys.setrecursionlimit(100000)
+    S = M.states(m); nodes = {str(n[1]): n[2] for n in fields(fg, 'Node')}; memo = {}
+    def val(k):
         k = str(k)
         if k in memo: return memo[k]
-        need(k in nodes and lim > 0, 'Formula node %s missing or cyclic' % k); b = nodes[k]; h = head(b)
-        for c in (b[1:] if h in ('And', 'Not') else b[2:] if h == 'Diamond' else []): need(int(str(c)) < int(k), 'Formula node %s refers forward to %s' % (k, c))
-        if h == 'Indicator': r = {y for y in S if b[2] in M.map[M.mach[m]['obs'][b[1]]].get(y, set())}
-        elif h == 'Not': r = set(S) - sat(b[1], lim - 1)
-        elif h == 'And':
-            r = set(S)
-            for c in b[1:]: r &= sat(c, lim - 1)
-        elif h == 'Diamond': t = sat(b[2], lim - 1); r = {y for y in S if M.img(m, b[1], y) & t}
+        need(k in nodes, 'Formula node %s missing' % k); b = nodes[k]; h = head(b)
+        kids = b[1:] if h in ('And', 'Min', 'Not') else [b[1]] if h == 'Sub' else [b[2]] if h == 'Diamond' else []
+        for c in kids: need(int(str(c)) < int(k), 'Formula node %s refers forward to %s' % (k, c))
+        if h == 'Indicator': r = {y: Fraction(int(b[2] in M.map[M.mach[m]['obs'][b[1]]].get(y, set()))) for y in S}
+        elif h == 'Not': c = val(b[1]); r = {y: 1 - c[y] for y in S}
+        elif h in ('And', 'Min'):
+            cs = [val(c) for c in b[1:]]; r = {y: min([c[y] for c in cs], default=Fraction(1)) for y in S}
+        elif h == 'Sub': c = val(b[1]); t = rat(b[2]); r = {y: max(Fraction(0), c[y] - t) for y in S}
+        elif h == 'Diamond':
+            gg = rat(b[3]) if len(b) > 3 else Fraction(1)
+            need(gg == g, 'Diamond discount %s differs from the request discount %s' % (gg, g))
+            c = val(b[2]); r = {y: gg * max([c[z] for z in M.img(m, b[1], y)], default=Fraction(0)) for y in S}
         else: raise AssertionError('unknown formula node %s' % h)
         memo[k] = r; return r
-    root = sat(field(fg, 'Root')[1], 10 ** 6)
-    need((x in root) == (field(w, 'Left')[1] == 'True') and (z in root) == (field(w, 'Right')[1] == 'True'), 'Formula does not evaluate to Left/Right at %s, %s' % (x, z))
-    need((x in root) != (z in root), 'Formula does not distinguish %s and %s' % (x, z))
+    return val(field(fg, 'Root')[1])
 
+def check_modal(M, req, w, g=None):
+    from fractions import Fraction
+    g = Fraction(1) if g is None else g
+    m, enc = M.rep[req[1]]; pr = field(w, 'Pair'); x, z = pr[1], pr[2]
+    need(M.map[enc].get(x) == M.map[enc].get(z), 'Pair %s %s does not share a code' % (x, z))
+    v = eval_formula(M, m, field(w, 'Formula'), g)
+    need(v[x] == rat(field(w, 'Left')[1]) and v[z] == rat(field(w, 'Right')[1]), 'Formula does not evaluate to Left/Right at %s, %s' % (x, z))
+    need(v[x] != v[z], 'Formula does not distinguish %s and %s' % (x, z))
+    return abs(v[x] - v[z])
+
+def check_haus(M, req, ev):
+    """Upper certificate (Prop 4.10(3)): kernel layers, observer rule, one-side-empty rule (K >= g),
+    forward/backward matchings per pair and action. Returns (lower from tests, upper or None)."""
+    from fractions import Fraction
+    m, enc = M.rep[req[1]]; S = M.states(m); ob = M.mach[m]['obs']; ac = M.mach[m]['act']; g = req_disc(req)
+    hz = field(req, 'Horizon'); h = int(str(hz[1][1])) if hz and isinstance(hz[1], list) else None
+    same = [(x, z) for i, x in enumerate(S) for z in S[i + 1:] if M.map[enc].get(x) == M.map[enc].get(z)]
+    lo = max([check_modal(M, req, w, g) for w in find_all(ev, 'ModalTestWitness')], default=Fraction(0)); up = None
+    def kern(layer):
+        K = {}
+        for p in fields(field(layer, 'Kernel'), 'P'): v = rat(p[3]); K[(p[1], p[2])] = v; K[(p[2], p[1])] = v
+        return lambda x, y: Fraction(0) if x == y else K.get((x, y), Fraction(0))
+    for c in [c for c in fields(ev, 'Certificate') if field(c, 'Kind')[1] in ('HausdorffPrefixpoint', 'HausdorffLayers')]:
+        need(rat(field(c, 'Discount')[1]) == g, 'certificate Discount differs from the request')
+        ch = field(c, 'Horizon')[1]; kd = field(c, 'Kind')[1]
+        need((h is None and ch == 'AllFiniteWords' and kd == 'HausdorffPrefixpoint') or (h is not None and isinstance(ch, list) and int(str(ch[1])) == h and kd == 'HausdorffLayers'), 'certificate Horizon/Kind differs from the request')
+        layers = fields(c, 'Layer'); need(len(layers) == (1 if h is None else h + 1), 'wrong number of kernel layers')
+        prev = None
+        for li, L in enumerate(layers):
+            need(int(str(L[1])) == li, 'layer index %s out of order' % L[1])
+            K = kern(L); Kp = K if h is None else prev
+            mt = {(e[1], e[2], e[3]): e for e in fields(field(L, 'Matchings'), 'Match')}
+            for x in S:
+                for y in S:
+                    if x == y: continue
+                    k = K(x, y)
+                    if any(M.map[ob[o]].get(x) != M.map[ob[o]].get(y) for o in ob): need(k >= 1, 'K(%s,%s) < 1 but observers differ' % (x, y)); continue
+                    if Kp is None or k >= 1: continue
+                    for a in ac:
+                        X2, Y2 = M.img(m, a, x), M.img(m, a, y)
+                        if not X2 and not Y2: continue
+                        if not X2 or not Y2: need(k >= g, 'one side of (%s,%s) has no %s-successor but K < g' % (x, y, a)); continue
+                        e = mt.get((x, y, a)) or mt.get((y, x, a)); need(e is not None, 'no matching for (%s,%s,%s)' % (x, y, a))
+                        f = {r[0]: r[1] for r in field(e, 'Fwd')[1:]}; bw = {r[0]: r[1] for r in field(e, 'Bwd')[1:]}
+                        if e[1] != x: f, bw = bw, f
+                        need(set(f) == X2 and all(f[u] in Y2 for u in f), 'Fwd matching of (%s,%s,%s) is not a map succ->succ' % (x, y, a))
+                        need(set(bw) == Y2 and all(bw[v] in X2 for v in bw), 'Bwd matching of (%s,%s,%s) is not a map succ->succ' % (x, y, a))
+                        need(k >= g * max([Kp(u, f[u]) for u in f] + [Kp(bw[v], v) for v in bw]), 'kernel is not a prefixpoint at (%s,%s,%s)' % (x, y, a))
+            prev = K
+        up = max([prev(x, z) for x, z in same], default=Fraction(0))
+    return lo, up
 
 # ---- m5-rest: may-trace rows (CheckTrace on Profile Nondeterministic) ----
 def obs_vectors(M, m):
@@ -356,11 +422,20 @@ def replay_line(M, req, res):
     if h == 'OutcomeProbability' and st == 'Checked': check_probability(M, req, res); did.append('Probability')
     if h == 'Outcomes' and st == 'Checked': check_outcomes(M, req, res); did.append('Outcomes')
     for w in find_all(ev, 'ModalTestWitness'):
-        need(h == 'CheckBehavioral', 'ModalTestWitness outside CheckBehavioral'); check_modal(M, req, w); did.append('ModalTestWitness')
+        need(h in ('CheckBehavioral', 'MeasureBehavioral'), 'ModalTestWitness outside CheckBehavioral/MeasureBehavioral'); check_modal(M, req, w, req_disc(req)); did.append('ModalTestWitness')
+    bd = field(field(res, 'Value') or ['Value'], 'BehavioralDefect')
+    if h in ('CheckBehavioral', 'MeasureBehavioral') and bd and st in ('Checked', 'Refuted'):
+        lo, up = check_haus(M, req, ev); dv = rat(bd[1])
+        need(lo == dv, 'lower test gives %s, claimed BehavioralDefect %s' % (lo, dv))
+        b = rat(field(req, 'Within')[1]) if field(req, 'Within') else 0
+        if st == 'Checked': need(up is not None and up == dv, 'upper certificate gives %s, claimed %s' % (up, dv)); need(h == 'MeasureBehavioral' or dv <= b, 'Checked but defect exceeds Within')
+        else: need(h == 'CheckBehavioral' and lo > b, 'Refuted but the lower test does not exceed Within')
+        if h == 'CheckBehavioral': need((field(field(res, 'Value'), 'WithinBound')[1] == 'True') == (st == 'Checked'), 'WithinBound disagrees with status')
+        did.append('Hausdorff')
     if h == 'BehavioralTolerance' and st == 'Checked':
         bs = field(field(res, 'Value'), 'Bisimulation'); check_partition(M, req[1], field(bs, 'Partition'), True)
         need(int(str(field(bs, 'Classes')[1])) == len(field(bs, 'Partition')) - 1, 'Classes count wrong'); did.append('Bisimulation')
-    if h == 'CheckBehavioral' and st == 'Checked':
+    if h == 'CheckBehavioral' and st == 'Checked' and not bd:
         c = [c for c in fields(ev, 'Certificate') if field(c, 'Kind')[1] == 'Bisimulation'][0]; m, enc = M.rep[req[1]]
         blk = check_partition(M, m, field(c, 'Partition'), False)
         for x in M.states(m):

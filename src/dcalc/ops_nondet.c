@@ -670,6 +670,7 @@ static const char *nd_bis_setup(NdBis *B, const NdMod *s, int mi) {
 /* (BehavioralTolerance M) -> the coarsest bisimulation; (CheckBehavioral R [(Discount 1)]
  * [(Horizon AllFiniteWords)] [(Within 0)]) on a Representation R: Holds iff every same-code pair is
  * bisimilar, else a ModalTestWitness for the first such pair. Other options: Unsupported. */
+static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q);
 static Sx *nd_bisim(DcModule *m, const NdMod *s, const Sx *q, int chk) {
     const char *hd = q->items[0]->text, *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL, *e;
     static NdBis B; int nb = 0;
@@ -686,8 +687,8 @@ static Sx *nd_bisim(DcModule *m, const NdMod *s, const Sx *q, int chk) {
         if (oh && !strcmp(oh, "Horizon") && o->n == 2 && nm_of(o->items[1]) && !strcmp(o->items[1]->text, "AllFiniteWords")) continue;
         if (oh && (!strcmp(oh, "Discount") || !strcmp(oh, "Within")) && o->n == 2 && !dc_sx_rat(o->items[1], &g)) {
             if (g.n == (strcmp(oh, "Discount") ? 0 : g.d)) continue;
-            return dc_unsupported(m, "%s: (%s ..) other than the crisp default is not implemented for Profile Nondeterministic", hd, oh); }
-        return dc_unsupported(m, "%s: option %s is not implemented for Profile Nondeterministic", hd, oh ? oh : "?");
+            return nd_haus(m, s, q); }
+        return nd_haus(m, s, q);
     }
     const Sx *d = NULL;
     for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
@@ -834,6 +835,181 @@ static Sx *nd_maytrace(DcModule *m, const NdMod *s, const Sx *q) {
                     dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("MayTraceSubsetPairs"), NULL), dc_form("Horizon", hor >= 0 ? dc_form("Steps", dc_int(hor), NULL) : dc_sym("AllFiniteWords"), NULL), ps, NULL), NULL), NULL);
 }
 
+/* ---- m5-rest: discounted behavioral distance on a nondeterministic machine (spec 951 Hausdorff
+ * lifting, Def 4.1, Def 4.9 tests with the gamma-max modality, Prop 4.10(1)(3)). With functional
+ * observers d^g(x,y) = g^s, s the first refinement round that splits x and y (0 when never split);
+ * through (Horizon (Steps h)) only rounds s <= h count. Lower certificate: a test phi with
+ * phi(x) - phi(y) = g^s; nodes Indicator, Not, Min (empty = 1), Sub (max(0, phi - r)), Diamond a k g
+ * (g times the max over a-successors, 0 when none). Upper certificate: kernel layers with, per pair and
+ * action, a forward and a backward matching (Prop 4.10(3)); one side without successors needs K >= g.
+ * Node and Kind names are beyond registry. (Budget (Unrollings k)) below the stabilizing round: Unknown. ---- */
+typedef struct { NdBis *B; DcRat g, gp[ND_MAXC + 3], zero, one; int memo[ND_MAXC][ND_MAXC]; DcRat *V; int nn, bad, ovf; Sx *body[ND_MAXF]; } NdQt;
+#define QV(T, k, z) ((T)->V[(size_t)(k) * ND_MAXC + (size_t)(z)])
+static int nd_split(const NdBis *B, int x, int y) { int l = 0; while (l <= B->L && B->blk[l][x] == B->blk[l][y]) l++; return l; }
+static DcRat nd_dval(const NdQt *T, int x, int y, int h) {   /* h < 0: the fixed point */
+    int sl = nd_split(T->B, x, y);
+    return (sl > T->B->L || (h >= 0 && sl > h)) ? T->zero : T->gp[sl];
+}
+static int nd_qnode(NdQt *T, Sx *body) {
+    if (T->nn >= ND_MAXF) { T->bad = 1; sx_free(body); return -1; }
+    T->body[T->nn] = body; return T->nn++;
+}
+static int nd_qt(NdQt *T, int x, int y, int depth) {
+    NdBis *B = T->B; const NdMod *s = B->s; const NdMach *M = B->M; int n = B->n, k = -1;
+    if (T->memo[x][y] >= 0) return T->memo[x][y];
+    if (T->bad || depth > 2 * ND_MAXC + 4) { T->bad = 1; return -1; }
+    int sl = nd_split(B, x, y);
+    if (sl > B->L) { T->bad = 1; return -1; }
+    if (sl == 0) {
+        for (int j = 0; j < M->nobs && k < 0; j++) { const NdMap *O = &s->map[M->obs[j].map]; NdSet d = O->img[x] & ~O->img[y];
+            if (!d) continue;
+            int v = __builtin_ctzll(d);
+            if ((k = nd_qnode(T, dc_form("Indicator", dc_sym(M->obs[j].name), dc_sym(s->car[O->to].el[v]), NULL))) < 0) return -1;
+            for (int z = 0; z < n; z++) QV(T, k, z) = ((O->img[z] >> v) & 1) ? T->one : T->zero;
+        }
+    } else {
+        for (int a = 0; a < M->nact && k < 0; a++) { const NdMap *A = &s->map[M->act[a].map];
+            for (int x2 = 0; x2 < n && k < 0; x2++) {
+                if (!((A->img[x] >> x2) & 1)) continue;
+                int ok = 1;
+                for (int y2 = 0; y2 < n; y2++) if (((A->img[y] >> y2) & 1) && B->blk[sl - 1][y2] == B->blk[sl - 1][x2]) ok = 0;
+                if (!ok) continue;
+                int ch[ND_MAXC], nc = 0;
+                for (int y2 = 0; y2 < n; y2++) if ((A->img[y] >> y2) & 1) { if ((ch[nc++] = nd_qt(T, x2, y2, depth + 1)) < 0) return -1; }
+                Sx *mn = dc_form("Min", NULL);
+                for (int i = 0; i < nc; i++) sx_push(mn, dc_int(ch[i]));
+                int c = nd_qnode(T, mn);
+                if (c < 0) return -1;
+                for (int z = 0; z < n; z++) { DcRat v = T->one; for (int i = 0; i < nc; i++) v = dc_rat_min(v, QV(T, ch[i], z)); QV(T, c, z) = v; }
+                if ((k = nd_qnode(T, dc_form("Diamond", dc_sym(M->act[a].name), dc_int(c), rsx(T->g), NULL))) < 0) return -1;
+                for (int z = 0; z < n; z++) { DcRat v = T->zero;
+                    for (int z2 = 0; z2 < n; z2++) if ((A->img[z] >> z2) & 1) v = dc_rat_max(v, QV(T, c, z2));
+                    QV(T, k, z) = dc_rat_mul(T->g, v, &T->ovf); }
+            }
+        }
+    }
+    if (k < 0) {   /* the difference is on y's side: Sub(Not psi_{y,x}, 1 - g^s) */
+        int c = nd_qt(T, y, x, depth + 1);
+        if (c < 0) return -1;
+        int nt = nd_qnode(T, dc_form("Not", dc_int(c), NULL));
+        if (nt < 0) return -1;
+        for (int z = 0; z < n; z++) QV(T, nt, z) = dc_rat_sub(T->one, QV(T, c, z), &T->ovf);
+        DcRat r = dc_rat_sub(T->one, T->gp[sl], &T->ovf);
+        if ((k = nd_qnode(T, dc_form("Sub", dc_int(nt), rsx(r), NULL))) < 0) return -1;
+        for (int z = 0; z < n; z++) { DcRat v = dc_rat_sub(QV(T, nt, z), r, &T->ovf); QV(T, k, z) = dc_rat_cmp(v, T->zero) > 0 ? v : T->zero; }
+    }
+    return T->memo[x][y] = k;
+}
+static Sx *nd_layer(NdQt *T, int l, int h) {   /* kernel at horizon l (h < 0: fixed point), matchings into layer l-1 (or itself) */
+    NdBis *B = T->B; const NdMod *s = B->s; const NdMach *M = B->M; const NdCar *C = &s->car[M->states]; int n = B->n;
+    int hl = h < 0 ? -1 : l, hp = h < 0 ? -1 : l - 1;
+    Sx *K = dc_form("Kernel", NULL), *Mt = dc_form("Matchings", NULL);
+    for (int x = 0; x < n; x++) for (int y = x + 1; y < n; y++) {
+        DcRat v = nd_dval(T, x, y, hl);
+        if (!dc_rat_is_zero(v)) sx_push(K, dc_form("P", dc_sym(C->el[x]), dc_sym(C->el[y]), rsx(v), NULL));
+        if ((h >= 0 && l == 0) || dc_rat_cmp(v, T->one) >= 0) continue;
+        for (int a = 0; a < M->nact; a++) { const NdMap *A = &s->map[M->act[a].map];
+            if (!A->img[x] || !A->img[y]) continue;
+            Sx *f = dc_form("Fwd", NULL), *b = dc_form("Bwd", NULL);
+            for (int x2 = 0; x2 < n; x2++) if ((A->img[x] >> x2) & 1) { int by = -1;
+                for (int y2 = 0; y2 < n; y2++) if (((A->img[y] >> y2) & 1) && (by < 0 || dc_rat_cmp(nd_dval(T, x2, y2, hp), nd_dval(T, x2, by, hp)) < 0)) by = y2;
+                sx_push(f, dc_form(C->el[x2], dc_sym(C->el[by]), NULL)); }
+            for (int y2 = 0; y2 < n; y2++) if ((A->img[y] >> y2) & 1) { int bx = -1;
+                for (int x2 = 0; x2 < n; x2++) if (((A->img[x] >> x2) & 1) && (bx < 0 || dc_rat_cmp(nd_dval(T, x2, y2, hp), nd_dval(T, bx, y2, hp)) < 0)) bx = x2;
+                sx_push(b, dc_form(C->el[y2], dc_sym(C->el[bx]), NULL)); }
+            sx_push(Mt, dc_form("Match", dc_sym(C->el[x]), dc_sym(C->el[y]), dc_sym(M->act[a].name), f, b, NULL));
+        }
+    }
+    return dc_form("Layer", dc_int(l), K, Mt, NULL);
+}
+static Sx *nd_haus(DcModule *m, const NdMod *s, const Sx *q) {
+    const char *hd = q->items[0]->text, *a1 = q->n >= 2 ? nm_of(q->items[1]) : NULL, *e;
+    int chk = !strcmp(hd, "CheckBehavioral"), hor = -1, ovf = 0; long long bud = -1;
+    DcRat g = dc_rat(1, 1, &ovf), b = dc_rat(0, 1, &ovf);
+    for (size_t i = 2; i < q->n; i++) { const Sx *o = q->items[i]; const char *oh = o->n ? nm_of(o->items[0]) : NULL;
+        const Sx *v = oh && o->n == 2 ? o->items[1] : NULL; DcRat t;
+        if (v && !strcmp(oh, "Discount")) {
+            if (dc_sx_rat(v, &g) || g.n < 0 || g.n > g.d) return dc_invalid(m, "%s: expected (Discount g) with 0 <= g <= 1", hd);
+            continue; }
+        if (v && !strcmp(oh, "Horizon") && nm_of(v) && !strcmp(v->text, "AllFiniteWords")) continue;
+        if (v && !strcmp(oh, "Horizon")) {
+            if (!sx_head_is(v, "Steps") || v->n != 2 || dc_sx_rat(v->items[1], &t) || t.d != 1 || t.n < 0 || t.n > 64)
+                return dc_invalid(m, "%s: expected (Horizon (Steps h)) with 0 <= h <= 64", hd);
+            hor = (int)t.n; continue; }
+        if (v && !strcmp(oh, "Within") && chk) {
+            if (dc_sx_rat(v, &b) || b.n < 0) return dc_invalid(m, "%s: expected (Within b) with b >= 0", hd);
+            continue; }
+        if (v && !strcmp(oh, "Precision") && !chk) {
+            if (dc_sx_rat(v, &t) || t.n < 0) return dc_invalid(m, "%s: expected (Precision r) with r >= 0", hd);
+            continue; }
+        if (v && !strcmp(oh, "Budget") && sx_head_is(v, "Unrollings") && v->n == 2 && !dc_sx_rat(v->items[1], &t) && t.d == 1 && t.n >= 0) { bud = t.n; continue; }
+        return dc_unsupported(m, "%s: option %s is not implemented for Profile Nondeterministic", hd, oh ? oh : "?");
+    }
+    const Sx *d = NULL;
+    for (size_t i = 2; a1 && m->source && i < m->source->n; i++) { const Sx *x = m->source->items[i];
+        if (sx_head_is(x, "Representation") && x->n >= 2 && nm_of(x->items[1]) && !strcmp(x->items[1]->text, a1)) d = x; }
+    if (!d) return dc_invalid(m, "%s: names no declared Representation (%s)", hd, a1 ? a1 : "?");
+    int mi = nd_mach(s, fld1(d, "Of")), ei = nd_map(s, fld1(d, "Encode"));
+    if (mi < 0 || ei < 0) return dc_invalid(m, "%s %s: (Of M) or (Encode e) names nothing declared", hd, a1);
+    const NdMach *M = &s->mach[mi]; const NdMap *E = &s->map[ei]; const NdCar *C = &s->car[M->states];
+    if (E->from != M->states || E->choice) return dc_invalid(m, "%s %s: Encode %s is not a function on the states of %s", hd, a1, E->name, M->name);
+    for (int j = 0; j < M->nobs; j++) if (s->map[M->obs[j].map].choice)
+        return dc_unsupported(m, "%s %s: observer %s is set-valued (Choice); the quantitative distance needs functional observers", hd, a1, M->obs[j].name);
+    static NdBis B; static NdQt T;
+    if ((e = nd_bis_setup(&B, s, mi))) return dc_invalid(m, "%s %s: %s", hd, a1, e);
+    memset(&T, 0, sizeof T); memset(T.memo, -1, sizeof T.memo);
+    static DcRat *Vbuf; if (!Vbuf) Vbuf = malloc(sizeof(DcRat) * (size_t)ND_MAXF * ND_MAXC);
+    if (!Vbuf) return dc_unsupported(m, "%s: out of memory", hd);
+    T.V = Vbuf; T.B = &B; T.g = g; T.zero = dc_rat(0, 1, &ovf); T.one = dc_rat(1, 1, &ovf); T.gp[0] = T.one;
+    for (int k = 1; k <= B.L + 2 && k < ND_MAXC + 3; k++) T.gp[k] = dc_rat_mul(T.gp[k - 1], g, &T.ovf);
+    if (ovf || T.ovf) return dc_unsupported(m, "%s %s: rational overflow (64-bit limit) in the powers of the discount", hd, a1);
+    int n = C->n, known = bud < 0 || bud >= B.L || (hor >= 0 && hor <= bud);
+    int eh = known ? hor : (hor >= 0 && hor < bud ? hor : (int)bud);   /* rounds whose splits are counted */
+    DcRat lo = T.zero; int wx = -1, wy = -1, open = 0;
+    for (int x = 0; x < n; x++) for (int y = x + 1; y < n; y++) {
+        if (E->img[x] != E->img[y]) continue;
+        DcRat v = nd_dval(&T, x, y, eh);
+        if (dc_rat_cmp(v, lo) > 0) { lo = v; wx = x; wy = y; }
+        if (!known && nd_split(&B, x, y) > bud) open = 1;
+    }
+    Sx *wit = NULL;
+    if (wx >= 0) {
+        int root = nd_qt(&T, wx, wy, 0);
+        if (root < 0 || T.bad || T.ovf || dc_rat_cmp(dc_rat_sub(QV(&T, root, wx), QV(&T, root, wy), &T.ovf), lo) || T.ovf) {
+            for (int k = 0; k < T.nn; k++) sx_free(T.body[k]);
+            return dc_unsupported(m, "%s %s: the lower-certificate test failed its self-check", hd, a1); }
+        Sx *fg = dc_form("Formula", dc_form("Root", dc_int(root), NULL), NULL);
+        for (int k = 0; k < T.nn; k++) sx_push(fg, dc_form("Node", dc_int(k), T.body[k], NULL));
+        wit = dc_form("ModalTestWitness", dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[wy]), NULL), fg,
+                      dc_form("Left", rsx(QV(&T, root, wx)), NULL), dc_form("Right", rsx(QV(&T, root, wy)), NULL), NULL);
+    }
+    Sx *hz = hor >= 0 ? dc_form("Steps", dc_int(hor), NULL) : dc_sym("AllFiniteWords");
+    if (!known) {
+        DcRat up = open ? dc_rat_max(lo, T.gp[bud + 1]) : lo;
+        if (chk && dc_rat_cmp(lo, b) > 0) {
+            Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym("False"), NULL), dc_form("BehavioralInterval", dc_form("Lower", rsx(lo), NULL), dc_form("Upper", rsx(up), NULL), NULL), NULL);
+            sx_free(hz);
+            return nd_env_k(m, VERDICT_FAILS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Witness", wit, NULL), NULL), "the lower-certificate test already exceeds the Within bound");
+        }
+        if (wit) sx_free(wit);
+        char w[200]; snprintf(w, sizeof w, "refinement stopped at the budget of %lld unrollings before it stabilized", bud);
+        Sx *val = dc_form("Value", dc_form("BehavioralInterval", dc_form("Lower", rsx(lo), NULL), dc_form("Upper", rsx(up), NULL), NULL), dc_form("Discount", rsx(g), NULL), dc_form("Horizon", hz, NULL), NULL);
+        g_nd_rep = 0;
+        Sx *r = nd_env_k(m, VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", dc_form("Explored", dc_form("Unrollings", dc_int((int)bud), NULL), NULL), NULL), w);
+        g_nd_rep = 1; return r;
+    }
+    Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym(hor < 0 ? "HausdorffPrefixpoint" : "HausdorffLayers"), NULL), dc_form("Discount", rsx(g), NULL), dc_form("Horizon", hz, NULL), NULL);
+    if (hor < 0) sx_push(cert, nd_layer(&T, 0, -1));
+    else for (int l = 0; l <= hor; l++) sx_push(cert, nd_layer(&T, l, hor));
+    int holds = !chk || dc_rat_cmp(lo, b) <= 0;
+    Sx *val = dc_form("Value", dc_form("BehavioralDefect", rsx(lo), NULL), dc_form("Discount", rsx(g), NULL), NULL);
+    if (chk) sx_push(val, dc_form("WithinBound", dc_sym(holds ? "True" : "False"), NULL));
+    Sx *ev = dc_form("Evidence", NULL);
+    if (chk && !holds) { sx_free(cert); sx_push(ev, dc_form("Witness", wit, NULL)); }
+    else { sx_push(ev, cert); if (wit) sx_push(ev, dc_form("Test", wit, NULL)); }
+    return nd_env_k(m, holds ? VERDICT_HOLDS : VERDICT_FAILS, q, "Representation", a1, val, ev, NULL);
+}
+
 Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     DcModule *m = r->m; static NdMod S; char err[256]; (void)slot;
     if (nd_read(m->source, &S, err, sizeof err)) return dc_invalid(m, "nondeterministic module: %s", err);
@@ -844,6 +1020,7 @@ Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     if (!strcmp(head, "InduceExact")) return nd_induce(m, &S, q);
     if (!strcmp(head, "BehavioralTolerance")) return nd_bisim(m, &S, q, 0);
     if (!strcmp(head, "CheckBehavioral")) return nd_bisim(m, &S, q, 1);
+    if (!strcmp(head, "MeasureBehavioral")) return nd_haus(m, &S, q);
     if (!strcmp(head, "CheckTrace") || !strcmp(head, "MeasureTrace")) return nd_maytrace(m, &S, q);
     return dc_unsupported(m, "request %s: not yet implemented for Profile Nondeterministic (M5 in progress)", head);
 }
