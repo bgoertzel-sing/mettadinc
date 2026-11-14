@@ -4,6 +4,7 @@ M7-Neural rows N03 (CompareDistinctions pair counts) and N04 (AuditIntervention 
 M7-Discovery rows X01-X04 (exact F7 matrix ranks, first separator, Hom-dimensions).
 Recomputes, from the fixture declarations only, every pair of states with equal Encode code that differ on some
 declared observation; the Value must list exactly those pairs (sorted) and every Witness Merge must re-check."""
+import hashlib
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'm6'))
 from replay_m6 import read_all, field, head, need
@@ -359,6 +360,8 @@ def main(fx, out):
         try:
             asr = field(res, 'Assurance'); rp = field(asr, 'Replayed') if asr else None
             need(rp and rp[1] == 'True', 'verdict without Replayed True')
+            bd = field(res, 'Binding'); dg = field(bd, 'Digest') if bd else None   # review-1 F3: gate 3 in replay itself
+            need(dg is not None and hashlib.sha256(show(mod).encode()).hexdigest() in show(dg), 'stale certificate: Binding Digest is not the sha256 of this module')
             print('ACCEPT    %s' % fn())
         except (AssertionError, ValueError, KeyError, IndexError, TypeError, ZeroDivisionError) as e:
             bad += 1; print('REJECT    %s: %s' % (line.split(' => ')[0][:80], e))
