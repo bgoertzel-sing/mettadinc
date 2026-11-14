@@ -1,7 +1,7 @@
 #!/bin/sh
 # M7 (t-2026-11-14-mettadinc-m7): independent replay of every M7 manifest fixture under --beyond-release.
 # Each fixture's dcalc output is re-checked by a Python replayer that does not use the C code.
-# forty_bits (F07 ClockRates) is replayed by its own gate, not here.
+# forty_bits (F07 ClockRates) is replayed by replay_m7_f07.py (k=4..12 brute force, 40-bit closed form, Binding Digest).
 set -u
 V=docs/e0/docs/01_language_specification/validation_package/fixtures
 D=build/dcalc/dcalc
@@ -18,5 +18,6 @@ run tests/dcalc/m7/replay_m7.py neural_audit
 run tests/dcalc/m7/replay_m7.py arithmetic_probes
 run tests/dcalc/m7/replay_m7.py patterns
 run tests/dcalc/m7/replay_m7_snapshot.py snapshot_receipts
+run tests/dcalc/m7/replay_m7_f07.py forty_bits   # review-1 F5: F07 ClockRates, k-bit brute force + 40-bit closed form + digest
 echo "m7_replay: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc
