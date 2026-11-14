@@ -21,8 +21,7 @@ prints `s VERIFIED UNSAT` turns 4 symbolic claims into Checked. With the pins se
 
 **Still open:** the four outside integrations stay Unsupported, because their dependencies do not exist yet[^blocked]. Three
 F07 sub-features are not done (ClockRates beyond Uniform/Mean, and ConeOfInfluence, whose reason text is stale). There is one
-approved deviation, an in-tree ROBDD instead of CUDD[^dec]. The `cetta/` submodule worktree is out of step with its pin (the
-suite is unaffected). Ranked next steps (§5): fix D1, close D2, share one admission loader, then randomised differential tests
+approved deviation, an in-tree ROBDD instead of CUDD[^dec], and 21+ shapes that are "ours" rather than the spec's (§4.2.1). Ranked next steps (§5): fix D1, close D2, share one admission loader, then randomised differential tests
 for M4/M6, whose coverage is fixture-sized and is the largest remaining risk.
 
 No PDF was produced: there is no md2pdf, pandoc or Python `markdown` module on this host[^pdf].
@@ -58,7 +57,7 @@ Failures: none. `cetta_smoke` clones the pinned CeTTa submodule (4c285a97), appl
 and runs 4 MeTTa smoke files (graded, held, smoke, surface); all 4 pass. I confirmed that `build/cetta-dcalc` HEAD~13 is
 4c285a97[^pin]. The slow steps are cetta_smoke (a full CeTTa build), m6graded_gates and m3_tv.
 
-Sanity gate (docs/EXPERIMENT_SANITY_GATE.md): before trusting my own checkers I ran canaries through them. `canary_eight.py`
+Sanity gate (the hive agents' rule EXPERIMENT_SANITY_GATE.md: canary first; it is not a file in this repo): before trusting my own checkers I ran canaries through them. `canary_eight.py`
 gives check_eight.py 3 tampered envelopes, and it refuses all 3. `canary_lrat4.py` gives lrat.py 4 known-answer cases plus
 4 mutation kinds x 8 proofs, refused 8/8 each, with 0 disagreements against cake_lpr. The canary needed 4 versions; the
 checker never changed, only mutations that were not real negatives were replaced (see §3.3)[^findings].
@@ -101,9 +100,25 @@ evidence can't be produced, the answer is Unknown or Unsupported, never a guess.
 | M6 | Composition kernel, hives, merges, graded kernels, contracts | `parity_triangle.metta` `(Holonomy Triangle (Cycle M1 M2 M3))`: the swap, so `CheckKernelCoherence` is Refuted (T01/T02) |
 | M7 | Hyperseed, observer discovery, integration | `neural_audit.metta` `(CheckNow SymbolicNew)`: Refuted with witness ((0 0),(0 1)): first-bit readout cannot answer XOR (N02) |
 
-Release 1 (no flag) supports M0-M3: the MILESTONES plan marks 9 + 36 + 6 claims Supported in R1. M4-M7 claims are answered
+Release 1 (no flag) supports M0-M3: the MILESTONES plan (`docs/e0/MILESTONES.md` l.100-110) counts 45 claims Supported in R1 (M0 9, M1 0, M2 30 first-listed
+(six of its 36 are already counted at M0), M3 6) and 78 Unsupported (M4 28, M5 10, M6 23, M7 17), 123 in total. M4-M7 claims are answered
 only under `--beyond-release`; without the flag they are `Unsupported` (verified: `certificate_limits.metta` gives 8/8
 Unsupported in R1; `reads.metta` gives "Profile Dynamics Nondeterministic is outside the first release")[^findings].
+
+### 2.2 Each milestone: purpose, how it works, status[^src]
+
+Claim counts are from `docs/e0/MILESTONES.md` l.100-110. The status lines are my reading of the suite (§1), my checks (§3) and `docs/M7-BLOCKED.md`.
+
+| M | Purpose | How it works (main files) | Claims (R1) | Status |
+|---|---|---|---|---|
+| M0 | Strict certificate boundaries | `admit.c` and `model.c` admit modules: totality, duplicates and carriers, refused rather than repaired. `ops_req.c` handles MeasureNow and CheckUpdates, `ops_induce.c` InduceExact (quotient plus arrow), `ops_abs.c` CheckAbstractionMap and Then. `records.c` binds each answer to the module digest | 9 (Supported) | Done. 9/9 in the suite; I checked 10 values and 4 negatives |
+| M1 | One registry drives syntax, admission and envelopes | `registry.c` with the generated `registry_gen.c` (and `registry_beyond_gen.c` for M4-M7 shapes), `sexp.c` parser, `ops_dispatch.c` dispatcher with memoised Derive, `ops_core.c` envelope and the single assurance policy | 0 (its evidence is the 78 Unsupported answers) | Done. Registry, package and admission-mutation gates pass; 2 of my negatives |
+| M2 | Graded deterministic core on tables | `graded.c` and `ops_graded.c` (Defects, Measure*), `ops_kernels.c` (Lukasiewicz PathClosure), `ops_refine.c` (coarsest stable refinement), `ops_approx.c` (InduceApprox), `ops_weakest.c` (WeakestWithin) | 30 (Supported) | Done. m2_claims, gates and differential pass; 7 values and 5 negatives |
+| M3 | Symbolic 40-bit carriers without enumeration | `bdd.c` is the in-tree ROBDD (deviation from CUDD). `ops_sym.c` emits CNF, runs CaDiCaL for LRAT and replays it with cake_lpr; only a replayed proof gives Checked | 6 (Supported) | Done. 14 values and 26/26 LRAT replays of mine; **D2** (unpinned checker) |
+| M4 | Stochastic dynamics, linear realizations, estimates | `stoch.c` (kernels, Kantorovich distances, trace classes), `estimates.c` and `ops_est.c` (frozen, digest-pinned Stream), `lp_exact.c` (exact rational LP) | 28 (Unsupported in R1) | Built behind `--beyond-release`; gates pass; 16 values and 3 negatives. Coverage is fixture-sized |
+| M5 | Nondeterminism and simulation | `ops_nondet.c`: outcome sets, fair schedulers, CheckSimulation and transfer of Safe along a simulation | 10 (Unsupported in R1) | Built behind the flag; 8 values and 2 negatives |
+| M6 | Composition kernel, hives, contracts, transfers | `ops_hives.c` (kernel hives, holonomy, CompleteHive, LeastCoherentRefinement through `lp_exact.c`), `ops_contracts.c` (affine contracts), `ops_transfers.c`, graded hives in `ops_kernels.c` | 23 (Unsupported in R1) | Built behind the flag; 9 values and 3 negatives. Most "ours" shapes are here (§4.2.1) |
+| M7 | Hyperseed availability, observer discovery, integration | `ops_m7.c` (CheckNow, Bias and availability maps), `ops_m7_arith.c` (F7 4x4 arithmetic probes), `ops_m7_snapshot.c` (keyed snapshots, Z01) | 17 (Unsupported in R1) | Partial, behind the flag. 9 values and 3 negatives. **D1**. ClockRates covers only Uniform/Mean; ConeOfInfluence answers Unsupported; 4 integrations are blocked (§4.3) |
 
 ## 3. Independent checks
 
@@ -197,7 +212,35 @@ Conditional instead of Checked whenever no pin is set.
   this for overlapping cases with equal outputs; dcalc is stricter, which is safe.
 - **Clock-rate screen (OQ 2)**: internal, uncertified tooling that is never Checked, as decided[^dec].
 - **Access-policy mutation gate (M3 gate 5)**: moved to the milestone that admits Families, as decided[^dec].
-- **M4-M7 sit behind `--beyond-release`**. Release 1 is M0-M3 (51 claims); M4-M7 claims are 0 of them Supported in R1 by plan.
+- **M4-M7 sit behind `--beyond-release`**. Release 1 is M0-M3: 45 claims Supported; the 78 M4-M7 claims are Unsupported in R1 by plan (MILESTONES.md l.100-110).
+
+#### 4.2.1 "Ours" shapes: invented by this implementation, not in the spec[^ours]
+
+All of these are beyond-release only (release 1 never emits them). Each registry patch marks them "ours" or "invented by
+this implementation". The m4est and m5rest patches mark none.
+
+| Patch | "Ours" shape | What it is |
+|---|---|---|
+| m6 | `(Construction (Kind KernelOf) ..)` | evidence for building a kernel hive (Nodes, Entries, Related, Unmeasured 0) |
+| m6 | `(Composition (Rule PolyComposition\|AffineComposition) path)` | evidence for composed contract grades |
+| m6 | `(OptimalValues .. (Note NotATransferCertificate))`, `(Closure (Classes n))`, `(WorstState ..)`, `(AuditedPairs ..)`, `(Transitive (Triples n))`, `(GaugeOrders ..)` | evidence forms for transfer, closure and holonomy checks |
+| m6 | `(Certificate (PrimalValue v) (DualValue v) (Kept ..) (Dual ..))` | LeastCoherentRefinement LP certificate |
+| m6 | witness heads `NotIntertwined`, `OutsideGauge`, `InexactEdge`, `NotASymmetry`, `Triple`/`Degrees` | Refuted witnesses (Crisp profile) |
+| m6 | `(ReceiptIdentities Measured\|Unmeasured)` | Unmeasured gives Unknown; replaced in M6-rest by `Over` (now InvalidInput) |
+| m6rest | `(Fork F (Of M) (Merge l) (Shared ..))`, `Implementation (Over F)` | merge-dependence model; Unmeasured sharing gives Unknown `(Open (Fork ..))` |
+| m6rest | LeastCoherentRefinement `(Method LinearProgram) (EdgeMass v)` and `Chord` dual rows | dual rows x_ab + x_bc - x_ac <= 1 |
+| m6rest | CompleteHive `(Method PathComposition)`, `(Fill a b (Path ..))`, `(NoPath Mi Mj)` | path fills; NoPath entries stay Unmeasured, never 0 (hive decision 2, "our reading" of spec l.2896-2906) |
+| m6rest | `(Associator Hive Mi Mj Mk)` -> `HiveAssociator` | request and result shape ours (definition: spec Def 10.1 l.2827) |
+| m6rest | top-level `arrow_kinds` table | documentation only; no code reads it |
+| m6rest | `(Derive C (CompleteHive H))` as `(Output C Hive)`; `(MergeLeft m y)`/`(MergeRight m y)` | completed hive as input; Merge-port contexts (built in M2, `ops_refine.c`) |
+| m6graded | `ComposedArrow (Source A) (Target C) (Kind Simulation) (Grade 0)` + `(Composition (Rule RelationalComposition) ..)` | Then over two Checked simulations (release: Unsupported) |
+| m6graded | graded `CrossKernel` degrees in [0,1]; `(Witness (Triple a b c) (Degrees ..))`; `(Raise .. (Path ..))`; `(Method LukasiewiczPathClosure)` fills; `(Open (Triple a b c))` | Lukasiewicz-graded hives: coherence, consensus cost, completion |
+| m7 | `MergedPairs` with `(Merge (Pair a b) (Code c) (Observe ..))` | CheckNow availability value and witness |
+| m7 | `(SymbolicCheck (Holds ForAllContent))` | snapshot receipt value (content never read) |
+| m7 | `(Evidence (PairCounts ..))`, `(Certificate (Kind SymbolicSnapshot) ..)`, `(Kind HomDimensionMismatch)`, `(Kind ExactFlipCount) ..`, `(Rule RefinedQuotient)` | neural-audit, snapshot, Discovery, ClockRates and InduceExact evidence |
+
+Risk: a downstream consumer that follows only the spec cannot parse these, so they need to be either upstreamed into the spec or
+versioned as a dcalc extension before anyone outside relies on beyond-release output.
 
 ### 4.3 Blocked (outside components that do not exist yet)[^blocked]
 
@@ -217,9 +260,10 @@ reason text still says "symbolic engine not built yet (M3 in progress)", which i
 2. D2 (unpinned checker identity).
 3. D1-type gaps: admission checks are duplicated per profile loader (model.c, ops_nondet.c, stoch.c, ops_m7.c), so one
    loader can miss a rule. D1 is an example.
-4. **Stale `cetta/` worktree**: the superproject pins 4c285a97 but 12da03b is checked out (`git status` shows ` M cetta`).
-   The suite is unaffected because `cetta_smoke` clones the pin into `build/cetta-dcalc` (HEAD~13 = 4c285a97, plus 13
-   patches)[^pin], but `tools/cetta-baseline.sh` would build the wrong commit. Fix: `git submodule update`.
+4. **Local submodule drift (operational, not a repository defect)**: the repository's gitlink is 4c285a97, and a fresh
+   `git submodule update --init` gives that commit; README names the pin. But a long-lived shared checkout can drift: the one
+   I reviewed in had 12da03b checked out (` M cetta`). `cetta_smoke` is immune (it clones the pin into `build/cetta-dcalc`,
+   HEAD~13 = 4c285a97 plus 13 patches)[^pin], while `tools/cetta-baseline.sh` builds whatever `cetta/` holds.
 5. Cost: `cetta_smoke` takes 635 s of the 864 s suite, which makes the full gate slow to iterate on.
 
 ## 5. Next steps, ranked
@@ -232,7 +276,8 @@ reason text still says "symbolic engine not built yet (M3 in progress)", which i
    model.c, ops_nondet.c, stoch.c and ops_m7.c, so a D1-type gap can't recur per profile.
 4. **Randomised differential testing for M4/M6** against an independent oracle (small random kernels, exact rationals),
    starting with Kantorovich distances, trace classes, linear dimension (incl. S07 positive), graded composition.
-5. **Run `git submodule update`** so `cetta/` matches its 4c285a97 pin, and note the pin in README.
+5. **Guard `tools/cetta-baseline.sh` against submodule drift**: have it compare `git -C cetta rev-parse HEAD` with
+   `git ls-tree HEAD cetta` and refuse on mismatch (README already names the 4c285a97 pin).
 6. **Refresh the stale ConeOfInfluence reason text** (`ops_sym.c` l.1402) and decide whether ClockRates beyond
    Uniform/Mean is in scope for a later milestone.
 7. **Speed up the gate**: cache the patched CeTTa build in `cetta_smoke` (635 s of 864 s) keyed on pin + patch hashes.
@@ -247,4 +292,5 @@ reason text still says "symbolic engine not built yet (M3 in progress)", which i
 [^pin]: `git ls-tree HEAD cetta` -> 4c285a97; `git -C build/cetta-dcalc rev-parse HEAD~13` -> 4c285a97, `rev-list --count HEAD~13..HEAD` = 13; `tools/dcalc-cetta-smoke.sh` l.2-6.
 [^findings]: `mdc-review/FINDINGS.md` (timestamped running notes for every check, mutant and finding in this review).
 [^src]: `src/dcalc/` (sexp.c, registry*.c, admit.c, model.c, obligations.c, ops_*.c, rat.c, bdd.c, lp_exact.c, records.c); `README.md`; `docs/e0/MILESTONES.md` (M0 l.161, M6 l.716, M7 l.805).
+[^ours]: `registry/patches/m6_registry_patch.json` (notes m6-evidence-shapes, m6-witness-shapes, m6-receipt-identities), `m6rest_registry_patch.json` (patch, notes/m6rest-shapes, witness_types Chord/Fill/NoPath, requests/Associator, result_types/HiveAssociator), `m6graded_registry_patch.json` (notes m6graded-shapes, m6graded-then-shapes, arrow_kinds/Simulation/then, witness_types Open/Raise), `m7_registry_patch.json` (notes/m7-shapes, result_types MergedPairs/SymbolicCheck); extracted with a JSON walk for "ours|invented": 21 strings (`mdc-review/ours_items.txt`).
 [^counts]: `docs/review/counts.txt` and `mycheck/counts_*.log` (17:04 rerun: per-checker exit 0, 0 mismatches). The 82 checked values = check_eight 9 (status, the 3 defects, the 24-entry kernel as one value, 2 witness replays, 4 request verdicts; it prints these lines rather than OK lines, so counts.txt shows ok=0, and it ends `FAILS 0`) + check_m012 10 + check_m2 7 + check_m3 14 + check_m4 16 + check_m5 8 + check_m6 9 + check_m7 9. The 30 own inputs = the 31 files in `docs/review/inputs/` minus `m4_us_base.metta`, which is a base fixture, not a mutant.
