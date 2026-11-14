@@ -1,5 +1,5 @@
 {
- "registry": "MeTTaDinC request and declaration registry, with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted, and the local patches m4est, m5rest, m6, m6rest, m6graded (beyond release only)",
+ "registry": "MeTTaDinC request and declaration registry, with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted, and the local patches m4est, m5rest, m6, m6rest, m6graded, m7 (beyond release only)",
  "date": "2026-11-05",
  "statuses": {
   "Checked": "The claim is established within its scope by an exact method that the core runs on the frozen model, or by a certificate that the core's replay checker validates.",
@@ -2227,6 +2227,18 @@
     "Negative": "count"
    },
    "doc": "ours (M6-rest): crisp associator entries over V_i x V_k; Zero True iff the direct correspondence equals the composite through j"
+  },
+  "MergedPairs": {
+   "fields": {
+    "Pair": "(Pair a b).. -- sorted pairs of states with the same Code but some differing observation"
+   },
+   "doc": "ours (M7): CheckNow availability value; the witness form repeats MergedPairs with (Merge (Pair a b) (Code c) (Observe obs va vb)) entries"
+  },
+  "SymbolicCheck": {
+   "fields": {
+    "Holds": "ForAllContent"
+   },
+   "doc": "ours (M7): snapshot receipt value (SymbolicCheck (Holds ForAllContent)); snapshot content is never read"
   }
  },
  "requests": {
@@ -5465,6 +5477,13 @@
    "sha256": "f887c37d40a60b874c48d8c5f6efef6d1c2ef0d7e3f63c1cebdcd877dfd97f61",
    "patch": "m6graded: local registry patch for t-2026-11-13-mettadinc-m6-graded (beyond-release only; every shape here is ours, not in the specification)",
    "date": "2026-11-13"
+  },
+  {
+   "name": "m7",
+   "file": "registry/patches/m7_registry_patch.json",
+   "sha256": "a0159c51a544601c0d75e27b4f7a17fa7c223ea9c8c291bb32bd668fc5d51468",
+   "patch": "m7: local registry patch for t-2026-11-14-mettadinc-m7 (beyond-release only; every shape here is ours, not in the specification)",
+   "date": "2026-11-14"
   }
  ],
  "budget_units": [
@@ -5610,6 +5629,10 @@
   "m6graded-shapes": {
    "text": "Shapes invented by m6-graded (beyond release only). Graded kernel hives: CrossKernel entries may be rationals in [0, 1] (spec Def 10.1 l.2821); a degree outside [0, 1] is InvalidInput. CheckKernelCoherence Refuted evidence (Witness (Triple a b c) (Degrees c_ab c_bc c_ac)) with Lukasiewicz transitivity c_ac >= c_ab (x) c_bc; Holonomy Value is a Kernel with (Rat) entries (max-(x) composition); ConsensusCost evidence (Closure (Classes n) (Raised (Raise ..)..)); LeastCoherentRefinement uses the same LP certificate with Edge rows x_ab <= c_ab (dual value sum c_ab y_ab) and EdgeMass = sum w_a w_b c_ab; CompleteHive certificate (Method LukasiewiczPathClosure) with (Fill a b (Degree F) (Path ..)) rows, Unsupported when a measured entry is below its closure; HiveAssociator Entries carry (Rat) direct / composite / difference values. Crisp hives keep their M6 / M6-rest shapes byte for byte.",
    "patch": "m6graded"
+  },
+  "m7-shapes": {
+   "text": "Evidence and certificate shapes emitted beyond release by M7, invented by this implementation (not in the specification): (Evidence (PairCounts (Pairs n) (OldDiffer k) (NewDiffer k) (Created k) (Erased k))) for neural-audit DistinctionComparison; (Certificate (Kind SymbolicSnapshot) (CodeIsObservation obs code).. (IdentityAction act state)..) for snapshot receipts; (Certificate (Kind HomDimensionMismatch)) inside EquivalenceDecision for Discovery arithmetic probes; (Certificate (Kind ExactFlipCount) (Hypotheses (Law ProductBernoulliFullSupport) (Library Coordinates))) for ClockRates; (Certificate (Kind rule) (Rule RefinedQuotient) partition) for InduceExact / hyperseed methods ExactAbstraction.",
+   "patch": "m7"
   }
  }
 }
