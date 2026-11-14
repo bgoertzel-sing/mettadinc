@@ -1192,6 +1192,50 @@ static Sx *nd_refine(DcModule *m, const NdMod *s, const Sx *q) {
 }
 
 static Sx *nd_req_core(DcModule *m, const NdMod *s, const Sx *q, const char *head);
+/* m6-graded step 2: (Then (Output D1 Value) (Output D2 Value)) on two Checked simulations.  Spec Table 4 (l.893-909):
+ * Simulation arrows are relations and compose relationally; Def 3.7 (l.805-811).  The registry entry for Then asks
+ * target(first) = source(second), else InvalidInput.  Each premise must be a Derive of CheckSimulation; a premise that
+ * is not Checked is a missing hypothesis -> Unsupported (Unknown propagates as Unknown).  The composite relation
+ * R(x) = U_{y in R1(x)} R2(y) is re-checked with the same simulation checker, so the certificate is a fresh one. */
+static int nd_then_slot(DcRun *r, const NdMod *s, const Sx *x, int *si, char *why, size_t wn) {
+    if (!sx_head_is(x, "Output") || x->n != 3 || x->items[1]->kind != SX_SYM || !sx_is_sym(x->items[2], "Value")) { snprintf(why, wn, "expected (Output Derive Value)"); return -1; }
+    int d = dc_find_derive(r->m, x->items[1]->text);
+    if (d < 0) { snprintf(why, wn, "names no declared Derive (%s)", x->items[1]->text); return -1; }
+    const Sx *rq = r->m->der[d].request;
+    if (!sx_head_is(rq, "CheckSimulation") || rq->n < 2 || (*si = nd_sim(s, nm_of(rq->items[1]))) < 0) {
+        snprintf(why, wn, "Derive %s is not a CheckSimulation; in a Nondeterministic module Then composes Simulation arrows only (spec Table 4), arrows of different kinds are never coerced", x->items[1]->text); return -1; }
+    const Sx *res = dc_run_derive(r, d);
+    if (!res) { snprintf(why, wn, "Derive %s: cyclic reference", x->items[1]->text); return -1; }
+    DcStatus st = dc_result_status(res);
+    if (st == DC_UNKNOWN) { snprintf(why, wn, "premise Derive %s is Unknown", x->items[1]->text); return -4; }
+    if (st != DC_CHECKED) { snprintf(why, wn, "premise Derive %s is %s, not Checked: the hypothesis that %s is a simulation is missing, so there is no arrow to compose", x->items[1]->text, dc_status_name(st), s->sim[*si].name); return -2; }
+    return d;
+}
+static Sx *nd_then(DcRun *r, const NdMod *s, const Sx *q) {
+    DcModule *m = r->m; char why[300], err[256]; int d[2], si[2] = { -1, -1 };
+    if (q->n != 3) return dc_invalid(m, "Then: expected two arrows");
+    for (int k = 0; k < 2; k++) {
+        d[k] = nd_then_slot(r, s, q->items[k + 1], &si[k], why, sizeof why);
+        if (d[k] == -1) return dc_invalid(m, "Then: %s", why);
+        if (d[k] == -2) return dc_unsupported(m, "Then: %s", why);
+        if (d[k] == -4) { g_nd_rep = 0; Sx *u = nd_env_k(m, VERDICT_HOLDS, q, "Simulation", "Then", NULL, dc_form("Evidence", NULL), "a premise is Unknown, so the composite is Unknown"); g_nd_rep = 1; return u; }
+    }
+    const NdSim *A = &s->sim[si[0]], *B = &s->sim[si[1]];
+    if (A->tgt != B->src) return dc_invalid(m, "Then: the target of %s (%s) is not the source of %s (%s)", A->name, s->mach[A->tgt].name, B->name, s->mach[B->src].name);
+    static NdSim C; NdMiss ms; memset(&C, 0, sizeof C); memset(&ms, 0, sizeof ms);
+    snprintf(C.name, sizeof C.name, "%.28s_then_%.28s", A->name, B->name); C.src = A->src; C.tgt = B->tgt; C.map = -1; C.pairs = -1;
+    const NdCar *CA = &s->car[s->mach[A->src].states], *CM = &s->car[s->mach[A->tgt].states];
+    for (int x = 0; x < CA->n; x++) for (int y = 0; y < CM->n; y++) if ((A->rel[x] >> y) & 1) C.rel[x] |= B->rel[y];
+    int rc = nd_simcheck(s, &C, C.rel, &ms, err, sizeof err);
+    if (rc < 0) return dc_invalid(m, "Then: composite %s: %s", C.name, err);
+    if (rc) return dc_unsupported(m, "Then: the relational composite %s does not re-check as a simulation (%s); not reported as Checked", C.name, ms.why);
+    Sx *val = dc_form("Value", dc_form("ComposedArrow", dc_form("Source", dc_sym(s->mach[C.src].name), NULL), dc_form("Target", dc_sym(s->mach[C.tgt].name), NULL),
+                      dc_form("Kind", dc_sym("Simulation"), NULL), dc_form("Grade", dc_int(0), NULL), NULL), NULL);
+    Sx *ev = dc_form("Evidence", dc_form("Composition", dc_form("Rule", dc_sym("RelationalComposition"), NULL),
+                     dc_form("First", dc_sym(m->der[d[0]].name), dc_sym(A->name), NULL), dc_form("Second", dc_sym(m->der[d[1]].name), dc_sym(B->name), NULL), NULL),
+                     nd_simcert(s, &C, 0), NULL);
+    return nd_env_k(m, VERDICT_HOLDS, q, "Simulation", C.name, val, ev, NULL);
+}
 /* m5-rest: declared read annotations (Read action Shared|Fresh) are part of the interface identity
  * (guide 262, 305); every nondeterministic result of a module that declares any echoes them in its
  * Evidence as (ReadAnnotations (Read machine action mode)..). Not in Assumptions: an assumption would
@@ -1200,7 +1244,7 @@ Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot) {
     DcModule *m = r->m; static NdMod S; char err[256];
     if (nd_read(m->source, &S, err, sizeof err)) return dc_invalid(m, "nondeterministic module: %s", err);
     g_nd_slot = slot;
-    Sx *res = nd_req_core(m, &S, q, head), *ra = NULL;
+    Sx *res = !strcmp(head, "Then") ? nd_then(r, &S, q) : nd_req_core(m, &S, q, head), *ra = NULL;   /* m6-graded step 2 */
     for (int i = 0; i < S.nmach; i++) for (int a = 0; a < S.mach[i].nact; a++) if (S.mach[i].read[a]) {
         if (!ra) ra = dc_form("ReadAnnotations", NULL);
         sx_push(ra, dc_form("Read", dc_sym(S.mach[i].name), dc_sym(S.mach[i].act[a].name), dc_sym(S.mach[i].read[a] == 1 ? "Shared" : "Fresh"), NULL)); }

@@ -48,6 +48,9 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot);
 Sx *dc_req_nondet(DcRun *r, const Sx *q, const char *head, int slot);   /* M5 opt-in: ops_nondet.c */
 Sx *dc_req_contracts(DcRun *r, const Sx *q, const char *h);   /* M6 opt-in: ops_contracts.c */
 Sx *dc_req_hives(DcRun *r, const Sx *q, const char *h);   /* M6 opt-in: ops_hives.c */
+Sx *dc_req_m7_snapshot(DcRun *r, const Sx *q, const char *h);   /* M7 Z01 opt-in: ops_m7_snapshot.c */
+Sx *dc_req_m7(DcRun *r, const Sx *q, const char *h);   /* M7 opt-in: ops_m7.c (NULL = not an M7 request) */
+Sx *dc_req_m7_arith(DcRun *r, const Sx *q, const char *h);   /* M7 Discovery opt-in: ops_m7_arith.c (NULL = not handled) */
 Sx *dc_req_transfers(DcRun *r, const Sx *q, const char *h);   /* M6 opt-in: ops_transfers.c */
 int dc_kernel_of(const DcModule *m, const Sx *req, const char **names, int *cars, int *nvs, int *nm, signed char H[64][64], char *why, size_t wn);   /* M6: derived kernel hive */
 /* M4-estimates (ops_est.c): EstimateRate over a frozen Stream; Estimated, never Checked. */

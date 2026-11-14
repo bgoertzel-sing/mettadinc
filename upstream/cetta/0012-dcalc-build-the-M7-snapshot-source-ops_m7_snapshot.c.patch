@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: dcalc <dcalc@local>
+Date: Sat, 14 Nov 2026 04:02:00 +0000
+Subject: [PATCH] dcalc: build the M7 snapshot source ops_m7_snapshot.c
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+--- a/Makefile
++++ b/Makefile
+@@ -789,7 +789,7 @@ SRC += src/library_dag.c
+ # MeTTaDinC M0 core (native module "dcalc").  DCALC_DIR is the mettadinc
+ # src/dcalc directory; the default assumes CeTTa is the mettadinc submodule.
+ DCALC_DIR ?= ../src/dcalc
+-DCALC_CORE_SRC = rat.c lp_exact.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry_beyond_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c bdd.c ops_sym.c stoch.c estimates.c ops_est.c ops_nondet.c ops_contracts.c ops_hives.c ops_transfers.c ops_m7.c
++DCALC_CORE_SRC = rat.c lp_exact.c graded.c ops_graded.c ops_refine.c ops_weakest.c ops_approx.c ops_kernels.c sexp.c sha256.c registry_gen.c registry_beyond_gen.c registry.c admit.c binding.c api.c model.c ops_core.c obligations.c ops_req.c ops_induce.c ops_abs.c ops_dispatch.c records.c bdd.c ops_sym.c stoch.c estimates.c ops_est.c ops_nondet.c ops_contracts.c ops_hives.c ops_transfers.c ops_m7.c ops_m7_snapshot.c
+ SRC += src/library_dcalc.c $(addprefix $(DCALC_DIR)/,$(DCALC_CORE_SRC))
+ CPPFLAGS_DCALC = -I$(DCALC_DIR)
+ SRC += src/u64_index.c
+-- 
+2.34.1
+

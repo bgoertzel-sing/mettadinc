@@ -1,0 +1,11 @@
+PASS Staged horizon 0 mine defect 0 kernel [(0, 3), (1, 3), (2, 3)]; theirs [(0, 3), (1, 3), (2, 3)]
+PASS Staged horizon 1 mine defect 0 kernel [(0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]; theirs [(0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+PASS Staged horizon 2 mine defect 1 kernel [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]; theirs -
+PASS H08 Staged InduceExact my update witnesses [(0, 1)]
+PASS H09 DescentConverse behavioral (obs constant) 
+PASS H10 DescentConverse updates mine [(0, 1)]
+PASS C01 Blurred now (trivial tolerance) 
+PASS C02 Blurred updates (trivial tolerance) 
+PASS C03 literal congruence refuted mine [(0, 1)]
+PASS H12 homomorphism, not surjective 
+FAILS 0

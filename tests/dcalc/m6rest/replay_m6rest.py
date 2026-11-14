@@ -43,6 +43,7 @@ R.replay_hive = replay_hive
 # ---- CompleteHive (M6-rest; hive decision 2, our reading of spec l.2896-2906) ----
 def hive_partial(M, name):
     """Like replay_m6.hive but unmeasured / undeclared correspondences are left out of H (not zero-filled)."""
+    if isinstance(name, list): return hive_output(M, name)   # M7: (Output D Hive), possibly nested
     d = M.raw[('KernelHive', name)]; mem = [x for x in d[2:] if head(x) == 'Member']; names = [x[1] for x in mem]
     W = field(d, 'Weights'); w = {e[0]: R.val(e[1]) for e in W[1:]} if W else {n: Q(1, len(mem)) for n in names}
     need(set(w) == set(names) and sum(w.values()) == 1, 'member weights')
@@ -60,6 +61,48 @@ def hive_partial(M, name):
             for e in field(M.raw[('CrossKernel', x[3])], 'Entries')[1:]:
                 a, b, v = R.val(e[0]), R.val(e[1]), R.val(e[2]); H[((x[1], a), (x[2], b))] = H[((x[2], b), (x[1], a))] = v
     return names, car, nodes, wt, H
+
+# ---- (Output D Hive) after CompleteHive (M7 order; m6-graded review F4).  Own recomputation, not the C code:
+# completion = (max, Lukasiewicz) path closure F of the measured entries (crisp: reachability over measured 1s).
+# A measured entry below F has no completion.  Unmeasured entries of a member pair joined by some positive path
+# get F (crisp: 1 if joined, else 0); every entry of a NoPath member pair stays unmeasured (never zero-filled).
+def _lk(a, b): return max(Q(0), a + b - 1)
+def complete_h(names, car, nodes, wt, H):
+    F = {(a, b): H.get((a, b), Q(0)) for a in nodes for b in nodes}
+    for k in nodes:
+        for a in nodes:
+            fak = F[(a, k)]
+            if fak == 0: continue
+            for b in nodes:
+                v = _lk(fak, F[(k, b)])
+                if v > F[(a, b)]: F[(a, b)] = v
+    need(all(H[k] >= F[k] for k in H), 'a measured entry is below its path closure: no completion (should be Unsupported)')
+    H2 = dict(H)
+    for I in names:
+        for J in names:
+            if not any(F[((I, x), (J, y))] > 0 for x in car[I] for y in car[J]): continue   # NoPath pair
+            for x in car[I]:
+                for y in car[J]:
+                    if ((I, x), (J, y)) not in H2: H2[((I, x), (J, y))] = F[((I, x), (J, y))]
+    return names, car, nodes, wt, H2
+_depth = [0]
+def hive_output(M, name):
+    need(isinstance(name, list) and len(name) == 3 and name[0] == 'Output' and name[2] == 'Hive', 'expected (Output D Hive)')
+    d = getattr(M, 'derive', {}).get(name[1]); need(isinstance(d, list) and len(d) > 0, '%s names no declared Derive' % name[1])
+    if d[0] == 'KernelOf': return R.kernel_of(M, d)
+    need(d[0] == 'CompleteHive' and len(d) == 2, 'Derive %s is not a KernelOf or CompleteHive' % name[1])
+    need(_depth[0] < 4, 'CompleteHive: completions nested more than 4 deep')
+    _depth[0] += 1
+    try: names, car, nodes, wt, H = hive_partial(M, d[1])
+    finally: _depth[0] -= 1
+    return complete_h(names, car, nodes, wt, H)
+_hive0 = R.hive
+def hive_any(M, name):
+    if isinstance(name, list) and len(name) == 3 and name[0] == 'Output':
+        d = getattr(M, 'derive', {}).get(name[1])
+        if isinstance(d, list) and d and d[0] == 'CompleteHive': return hive_output(M, name)
+    return _hive0(M, name)
+R.hive = hive_any
 def replay_complete(M, req, res, st):
     need(st == 'Checked', 'CompleteHive replays Checked rows only')
     names, car, nodes, wt, H = hive_partial(M, req[1])

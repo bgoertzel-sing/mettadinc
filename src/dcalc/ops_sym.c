@@ -1288,6 +1288,97 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
     return res;
 }
 
+/* M7 opt-in (Use Discovery, F07): (ClockRates M (Under mu) (Library Coordinates) (Kind Mean)).  Exact mean clock
+ * rate r_i = mu{x : class(x) != class(x xor e_i)} per coordinate under a declared Uniform law, classes = the coarsest
+ * stable refinement (as MinimizeForQueries).  The hypotheses (product law with full support, coordinate library)
+ * are checked from the declarations and recorded in the certificate; other laws, libraries or kinds are Unsupported. */
+static int sym_uniform_measure(const Sx *src, const char *mu) {
+    for (size_t i = 2; src && i < src->n; i++) { const Sx *d = src->items[i];
+        if (sx_head_is(d, "Measure") && d->n >= 3 && sx_is_sym(d->items[1], mu))
+            for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Uniform") && d->items[k]->n == 1) return 1; }
+    return 0;
+}
+/* M7 gate 6: a (Masses ...) measure on a (BitVector k) carrier that lists fewer than 2^k points has no full support. */
+static int sym_masses_partial(const Sx *src, const char *mu) {
+    const Sx *ms = NULL, *on = NULL;
+    static int depth = 0;   /* review-1 F4b: (Product m1 .. mk) has full support iff every factor has */
+    for (size_t i = 2; src && i < src->n && depth < 8; i++) { const Sx *d = src->items[i];
+        if (!sx_head_is(d, "Measure") || d->n < 3 || !sx_is_sym(d->items[1], mu)) continue;
+        for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Product")) {
+            const Sx *pd = d->items[k]; int bad = 0; depth++;
+            for (size_t j = 1; j < pd->n && !bad; j++) if (pd->items[j]->kind == SX_SYM) bad = sym_masses_partial(src, pd->items[j]->text);
+            depth--; if (bad) return 1;
+        }
+    }
+    for (size_t i = 2; src && i < src->n; i++) { const Sx *d = src->items[i];
+        if (sx_head_is(d, "Measure") && d->n >= 3 && sx_is_sym(d->items[1], mu))
+            for (size_t k = 2; k < d->n; k++) {
+                if (sx_head_is(d->items[k], "Masses")) ms = d->items[k];
+                if (sx_head_is(d->items[k], "On") && d->items[k]->n == 2) on = d->items[k];
+            }
+    }
+    if (!ms || !on || on->items[1]->kind != SX_SYM) return 0;
+    for (size_t j = 1; j < ms->n; j++) { const Sx *e = ms->items[j], *q = e && e->kind == SX_LIST && e->n == 2 ? e->items[1] : NULL;   /* review-1 F4: a listed point with mass 0 is no full support */
+        if (q && sx_head_is(q, "Rat") && q->n == 3 && q->items[1]->kind == SX_SYM && !strcmp(q->items[1]->text, "0")) return 1; }
+    for (size_t i = 2; i < src->n; i++) { const Sx *d = src->items[i];
+        if (!sx_head_is(d, "Carrier") || d->n < 3 || !sx_is_sym(d->items[1], on->items[1]->text)) continue;
+        for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Enum") && ms->n < d->items[k]->n) return 1;   /* review-1 F4b */
+        for (size_t k = 2; k < d->n; k++) { const Sx *of = d->items[k];
+            if (!sx_head_is(of, "Of") || of->n != 2 || !sx_head_is(of->items[1], "BitVector") || of->items[1]->n != 2
+                || of->items[1]->items[1]->kind != SX_SYM) continue;
+            long bits = 0; const char *t = of->items[1]->items[1]->text;
+            for (; *t >= '0' && *t <= '9'; t++) bits = bits * 10 + (*t - '0');
+            if (*t || bits <= 0) return 0;
+            if (bits >= 62) return 1;
+            return (long)(ms->n - 1) < (1L << bits);
+        }
+    }
+    return 0;
+}
+static Sx *sym_req_clock_rates(DcRun *r, const SymMod *S, const Sx *q) {
+    DcModule *m = r->m; const char *h = "ClockRates", *mn; char err[256];
+    DcScope sc = { "M7-ClockRates", -1, "", NULL };
+    if (sname(q, 1, &mn)) return dc_invalid(m, "%s: field machine missing or not a name", h);
+    const Sx *un = sx_find(q, "Under", 2), *lib = sx_find(q, "Library", 2), *kd = sx_find(q, "Kind", 2);
+    if (!un || un->n != 2 || un->items[1]->kind != SX_SYM) return dc_invalid(m, "%s: (Under Measure) is required", h);
+    if (sym_masses_partial(m->source, un->items[1]->text))   /* M7 gate 6: refused as stated, not Unsupported */
+        return dc_invalid(m, "%s: measure %s lacks full support on its carrier; clock-rate exactness needs a full-support product law", h, un->items[1]->text);
+    if (!sym_uniform_measure(m->source, un->items[1]->text)) return dc_unsupported(m, "%s: only a declared (Uniform) measure is in the M7 fragment (product law with full support)", h);
+    if (!lib || lib->n != 2 || !sx_is_sym(lib->items[1], "Coordinates")) return dc_unsupported(m, "%s: only (Library Coordinates) is in the M7 fragment", h);
+    if (kd && (kd->n != 2 || !sx_is_sym(kd->items[1], "Mean"))) return dc_unsupported(m, "%s: only (Kind Mean) is in the M7 fragment", h);
+    int mi = sfind_mach(S, mn);
+    if (mi < 0) return dc_invalid(m, "%s: %s names no machine", h, mn);
+    const SMach *M = &S->mach[mi];
+    if (S->car[M->states].reach) return dc_unsupported(m, "%s: a machine on a reach carrier is outside M7 clock rates", h);
+    int W = S->car[M->states].width;
+    if (W < 1 || W > 52) return dc_unsupported(m, "%s: word width %d outside 1..52 (exact counting)", h, W);
+    SymEnv E; if (senv_init(&E, W)) return dc_unsupported(m, "%s: out of memory", h);
+    DcBddMgr *bm = E.bm; SymVal av[8], ob[8];
+    static STest T[SYM_MAXT]; DcBdd cl[SYM_MAXCL]; int nt = 0, ncl = 1; cl[0] = 1;
+    if (mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
+    int rc = sym_refine(bm, S, M, av, ob, E.xv, T, &nt, cl, &ncl, err, sizeof err);
+    if (rc == -2) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
+    if (rc || dc_bdd_failed(bm)) { dc_bdd_free(bm); return dc_unsupported(m, "%s: more than %d classes, %d tests or BDD limit", h, SYM_MAXCL, SYM_MAXT); }
+    Sx *rates = dc_form("Rates", NULL), *exact = dc_form("CoordinateSet", NULL);
+    DcBdd sub[SYM_MAXW];
+    for (int i = 0; i < W; i++) {
+        for (int j = 0; j < W; j++) sub[j] = j == i ? dc_bdd_not(bm, E.xv[j]) : E.xv[j];
+        double cnt = 0;
+        for (int k = 0; k < ncl; k++) cnt += dc_bdd_satcount(bm, dc_bdd_and(bm, cl[k], dc_bdd_not(bm, dc_bdd_compose(bm, cl[k], sub))));
+        unsigned long long n = (unsigned long long)cnt; int e = W;
+        while (n && !(n & 1) && e > 0) { n >>= 1; e--; }
+        if (!n) e = 0;
+        char ns[32], ds[32]; snprintf(ns, sizeof ns, "%llu", n); snprintf(ds, sizeof ds, "%llu", 1ULL << e);
+        sx_push(rates, dc_form("Rate", dc_form("Coordinate", dc_int(i), NULL), dc_form("Rat", dc_sym(ns), dc_sym(ds), NULL), NULL));
+        if (n) sx_push(exact, dc_int(i));
+    }
+    int bad = dc_bdd_failed(bm); dc_bdd_free(bm);
+    if (bad) { sx_free(rates); sx_free(exact); return dc_unsupported(m, "%s: BDD limit while counting flips", h); }
+    Sx *val = dc_form("Value", dc_form("ClockRateTable", rates, dc_form("Exact", exact, NULL), dc_form("Classes", dc_int(ncl), NULL), NULL), NULL);
+    Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("ExactFlipCount"), NULL),
+        dc_form("Hypotheses", dc_form("Law", dc_sym("ProductBernoulliFullSupport"), NULL), dc_form("Library", dc_sym("Coordinates"), NULL), NULL), NULL), NULL);
+    return dc_envelope_scoped(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), dc_form("Subject", dc_form("Machine", dc_sym(mn), NULL), NULL), val, ev, NULL, &sc);
+}
 static Sx *sym_policy(Sx *res) {
     Sx *au = res ? sx_find(res, "Assurance", 1) : NULL, *p = au ? sx_find(au, "Policy", 1) : NULL;
     if (p && p->n == 2) { sx_free(p->items[1]); p->items[1] = dc_sym("M3-SymbolicReplay"); }
@@ -1305,6 +1396,7 @@ Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     sym_res_words = -1; sym_res_nodes = 0; sym_res_xcheck = 0;
     if (sym_read(r->m->source, &S, err, sizeof err)) return dc_invalid(r->m, "symbolic module: %s", err);
     if (!strcmp(head, "CheckBlockPartition")) return sym_policy(sym_req_partition(r->m, &S, q));
+    if (!strcmp(head, "ClockRates") && r->m->discovery) return sym_req_clock_rates(r, &S, q);   /* M7 opt-in (F07) */
     if (!strcmp(head, "MinimizeForQueries")) return sym_policy(sym_req_minimize(r, &S, q, slot));
     if (!strcmp(head, "CheckNow") || !strcmp(head, "CheckBehavioral") || !strcmp(head, "MeasureBehavioral")) return sym_policy(sym_req_repr(r, &S, q, head));
     return dc_unsupported(r->m, "request %s: symbolic engine not built yet (M3 in progress; module read: %d carriers, %d maps, %d machines)", head, S.ncar, S.nmap, S.nmach);
