@@ -19,5 +19,10 @@ run tests/dcalc/m7/replay_m7.py arithmetic_probes
 run tests/dcalc/m7/replay_m7.py patterns
 run tests/dcalc/m7/replay_m7_snapshot.py snapshot_receipts
 run tests/dcalc/m7/replay_m7_f07.py forty_bits   # review-1 F5: F07 ClockRates, k-bit brute force + 40-bit closed form + digest
+# review-1 F5: M01 cross-file positive replay (hyperseed_methods imports HyperseedMemory from receipt_packets)
+"$D" --beyond-release "$V/hyperseed_methods.metta" "$V/receipt_packets.metta" > build/m7_replay/hyperseed_methods.out 2>&1
+line=$(python3 tests/dcalc/m7/replay_m7_m01.py "$V/hyperseed_methods.metta" build/m7_replay/hyperseed_methods.out "$V/receipt_packets.metta" | tail -1)
+echo "hyperseed_methods (M01, cross-file): $line"
+case "$line" in *"-> PASS") ;; *) rc=1 ;; esac
 echo "m7_replay: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc
