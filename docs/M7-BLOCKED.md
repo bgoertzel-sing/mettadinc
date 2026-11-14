@@ -13,6 +13,16 @@ or Refuted answer.
 | omegaPLN evidence adapter | 14.3 (l.3973-3997) | the adapter target (unpinned) | No adapter. Results keep their own envelope (Status, Scope, Assurance). Estimated-to-exact wPLN channel test for gate 7 = can't test yet. |
 | Hyperseed proof-plan registry | 14.5 (l.4009-4013) | the registry (unpinned) | Results are not exported as warrants. Envelopes already carry status, claim kind, scope and dependencies, which is what the registry would consume. |
 
+## Not done (built in part, honest Unsupported for the rest; review 2, finding 4)
+These are not blocked on an outside component; they are simply not implemented in M7. Each
+answers **Unsupported** (never a false Checked):
+
+| Item | What M7 does | Not done | Where |
+|---|---|---|---|
+| ClockRates measure (F07) | Exact mean clock rates under a declared `(Uniform)` law | A law declared as `(Product ...)` with full support, or a full-support non-uniform `(Masses ...)` law, answers Unsupported. A law without full support (e.g. 7 of 8 points, or a zero-mass factor) is InvalidInput. | src/dcalc/ops_sym.c l.1345-1346 |
+| ClockRates kind (F07) | `(Kind Mean)` | Any other kind (e.g. `SupNorm`) answers Unsupported. | src/dcalc/ops_sym.c l.1348 |
+| ConeOfInfluence (third request of the F07 fixture) | none | Answers Unsupported. Its reason text still says "symbolic engine not built yet (M3 in progress)"; the symbolic cone engine is not part of M7. | src/dcalc/ops_sym.c l.1402 |
+
 ## Resolved (review 1, finding 6)
 The plan says blocked items should answer **Unsupported**. Under `--beyond-release`, a
 TransitionKernel that imports from MeTTaProN now answers Unsupported. The check runs in
