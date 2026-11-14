@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """M7 negative gates 1-7 (t-2026-11-14-mettadinc-m7; MILESTONES.md M7 'Negative tests').  Gate 6 (clock-rate
-exactness) uses fixtures gate6a-d.  Each gate must be refused AS STATED
+exactness) uses fixtures gate6a-f.  Each gate must be refused AS STATED
 (Refuted / InvalidInput / replay REJECT), never merely passed off as Unsupported.  Runs dcalc --beyond-release."""
 import hashlib, os, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
@@ -59,7 +59,8 @@ for f, word, what in (('gate6a_library.metta', 'expected one of Coordinates', 'L
                       ('gate6b_dirac.metta', 'lacks full support', 'measure without full support (Dirac)'),
                       ('gate6c_nomeasure.metta', 'undeclared name Missing', 'undeclared measure'),
                       ('gate6d_product_nofull.metta', 'lacks full support', 'admissible Product law with a zero-mass factor (refused by ClockRates, not admission)'),
-                      ('gate6e_zero_masses.metta', 'lacks full support', 'Masses listing every point but four with mass 0 (review-1 F4 probe)')):
+                      ('gate6e_zero_masses.metta', 'lacks full support', 'Masses listing every point but four with mass 0 (review-1 F4 probe)'),
+                      ('gate6f_product_partial.metta', 'lacks full support', 'admissible Product law whose Bit factor omits a point (Enum coverage)')):
     ok, d = refused(os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'fixtures', f), 'G', word); report('gate 6: ClockRates with %s refused' % what, ok, d)
 # canary (sanity gate): the unmutated fixtures are decided, not refused, through the same path
 ar = rows(run(os.path.join(FX, 'arithmetic_probes.metta'))); sep = [v for k, v in ar.items() if k.endswith('Separation')]
