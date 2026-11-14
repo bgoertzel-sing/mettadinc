@@ -113,7 +113,7 @@ static const Sx *m7_named(const Sx *raw, const char *head, const char *name) {
 static Sx *m7_expand(const Sx *all, const Sx *raw) {
     int uses = 0, any = 0;
     for (size_t i = 2; i < raw->n; i++) if (sx_head_is(raw->items[i], "Use"))
-        for (size_t k = 1; k < raw->items[i]->n; k++) if (sx_is_sym(raw->items[i]->items[k], "Hyperseed")) uses = 1;
+        for (size_t k = 1; k < raw->items[i]->n; k++) if (sx_is_sym(raw->items[i]->items[k], "Hyperseed") || sx_is_sym(raw->items[i]->items[k], "Discovery")) uses = 1;   /* M7: Hyperseed, Discovery (F07 screens import FortyBits) */
     if (!uses) return NULL;
     Sx *out = sx_list();
     for (size_t i = 0; i < raw->n; i++) {
