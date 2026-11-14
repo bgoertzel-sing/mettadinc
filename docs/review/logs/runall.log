@@ -1,0 +1,402 @@
+== build
+ops_graded.c: In function 'dc_req_graded':
+ops_graded.c:250:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  250 |     DcScope sc = {"M2-GradedDeterministic", o.horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", o.gtxt);
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_graded.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_graded.c: In function 'dc_req_induce_graded':
+ops_graded.c:292:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  292 |     DcScope sc = {"M2-GradedDeterministic", -1, ""};
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_graded.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_graded.c: In function 'dc_req_beh_tol':
+ops_graded.c:383:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  383 |     DcScope sc = {"M2-GradedDeterministic", horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt); sc.policy = NULL;
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_graded.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_refine.c: In function 'dc_req_refine':
+ops_refine.c:253:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  253 |     DcScope sc = {"M2-GradedDeterministic", -1, ""};
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_refine.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_refine.c: In function 'dc_req_minimize':
+ops_refine.c:303:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  303 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; sc.policy = NULL;
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_refine.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_refine.c: In function 'dc_req_same_partition':
+ops_refine.c:360:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  360 |     DcScope sc = {"M2-GradedDeterministic", -1, ""};
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_refine.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_weakest.c: In function 'dc_req_weakest':
+ops_weakest.c:82:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+   82 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt);
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_weakest.c:7:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_approx.c: In function 'dc_req_induce_approx':
+ops_approx.c:123:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  123 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt);
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_approx.c:9:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_kernels.c: In function 'dc_req_kernels':
+ops_kernels.c:190:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  190 |     DcScope sc = {"M2-GradedDeterministic", -1, ""};
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_kernels.c:7:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+resource build: exit 0, wall 12.0 s, user 9.1 s, sys 0.9 s, max RSS 112808 KiB
+== test_boundaries
+boundaries: 76/76 passed
+resource test_boundaries: exit 0, wall 0.2 s, user 0.1 s, sys 0.0 s, max RSS 32496 KiB
+== check_claims
+extra H06 Staged (CheckBehavioral Merge01 (Horizon (Steps 1))) Checked (matches manifest)
+extra H07 Staged (CheckBehavioral Merge01 (Horizon (Steps 2))) Refuted (matches manifest)
+AC5: 21 fixtures, 125 requests, 0 crashes, statuses {"Checked": 29, "Refuted": 16, "Unsupported": 80}
+check_claims: PASS
+resource check_claims: exit 0, wall 1.9 s, user 0.7 s, sys 0.5 s, max RSS 54524 KiB
+== negative_suite
+ 1 PASS Keyed index with a statistic of the wrong machine              1 requests {"InvalidInput": 1}
+ 2 PASS CheckSafety via a simulation of another machine                1 requests {"InvalidInput": 1}
+ 3 PASS receipt stream that does not match its declared digest         1 requests {"InvalidInput": 1}
+ 4 PASS access policy approver rule reads the auditor session          3 requests {"Unsupported": 3}
+ 5 PASS anti-nag passes CheckNow but fails interpretation              2 requests {"Unsupported": 2}
+ 6 PASS E2 does not transport to a policy withholding first proposals  33 requests {"Unsupported": 33}
+ 7 PASS Consumer accepting only some Conditional backends              3 requests {"Unsupported": 3}
+ 8 PASS literal congruence under an indiscrete code tolerance          3 requests {"Checked": 2, "Refuted": 1}
+ 9 PASS adaptive probe certificate limits                              4 requests {"Unsupported": 4}
+10 PASS unattained supremum                                            4 requests {"Unsupported": 4}
+negative suite: PASS (10/10)
+resource negative_suite: exit 0, wall 3.4 s, user 1.2 s, sys 0.1 s, max RSS 11204 KiB
+== refuted_abs
+PASS dcalc: Refuted with replayed CommutationWitness
+PASS replay.py accepts the real witness
+PASS replay.py rejects forged witness 1
+PASS replay.py rejects forged witness 2
+refuted_abs: PASS
+resource refuted_abs: exit 0, wall 0.1 s, user 0.1 s, sys 0.0 s, max RSS 16568 KiB
+== envelope
+PASS real (CheckNow Full (Within 0)) replays
+PASS real (CheckNow Kept (Within 0)) replays
+envelope: 3740 forgeries checked (3416 combinations, 72 transplants), PASS
+resource envelope: exit 0, wall 0.4 s, user 0.3 s, sys 0.0 s, max RSS 14784 KiB
+== limits
+PASS bounds (rc=0, 8 rows)
+PASS composite (rc=0, 4 rows)
+PASS exactly_full (rc=0, 2 rows)
+PASS interfaces (rc=0, 6 rows)
+PASS overflow_add (rc=0, 1 rows)
+PASS overflow_literal (rc=0, 1 rows)
+PASS overflow_mul (rc=0, 1 rows)
+PASS too_many (rc=0, 1 rows)
+PASS zero_reprs (rc=0, 1 rows)
+limits: PASS
+resource limits: exit 0, wall 0.3 s, user 0.0 s, sys 0.0 s, max RSS 14324 KiB
+== limits_sanitized
+ops_graded.c: In function 'dc_req_graded':
+ops_graded.c:250:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  250 |     DcScope sc = {"M2-GradedDeterministic", o.horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", o.gtxt);
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_graded.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_graded.c: In function 'dc_req_induce_graded':
+ops_graded.c:292:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  292 |     DcScope sc = {"M2-GradedDeterministic", -1, ""};
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_graded.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_graded.c: In function 'dc_req_beh_tol':
+ops_graded.c:383:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  383 |     DcScope sc = {"M2-GradedDeterministic", horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt); sc.policy = NULL;
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_graded.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_graded.c: In function 'dc_req_graded':
+ops_graded.c:250:104: warning: '%s' directive output may be truncated writing up to 47 bytes into a region of size 32 [-Wformat-truncation=]
+  250 |     DcScope sc = {"M2-GradedDeterministic", o.horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", o.gtxt);
+      |                                                                                                        ^~   ~~~~~~
+ops_graded.c:250:61: note: 'snprintf' output between 1 and 48 bytes into a destination of size 32
+  250 |     DcScope sc = {"M2-GradedDeterministic", o.horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", o.gtxt);
+      |                                                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ops_graded.c:250:104: warning: '%s' directive output may be truncated writing up to 47 bytes into a region of size 32 [-Wformat-truncation=]
+  250 |     DcScope sc = {"M2-GradedDeterministic", o.horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", o.gtxt);
+      |                                                                                                        ^~   ~~~~~~
+ops_graded.c:250:61: note: 'snprintf' output between 1 and 48 bytes into a destination of size 32
+  250 |     DcScope sc = {"M2-GradedDeterministic", o.horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", o.gtxt);
+      |                                                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ops_graded.c: In function 'dc_req_beh_tol':
+ops_graded.c:383:102: warning: '%s' directive output may be truncated writing up to 47 bytes into a region of size 32 [-Wformat-truncation=]
+  383 |     DcScope sc = {"M2-GradedDeterministic", horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt); sc.policy = NULL;
+      |                                                                                                      ^~   ~~~~
+ops_graded.c:383:59: note: 'snprintf' output between 1 and 48 bytes into a destination of size 32
+  383 |     DcScope sc = {"M2-GradedDeterministic", horizon, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt); sc.policy = NULL;
+      |                                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ops_refine.c: In function 'dc_req_refine':
+ops_refine.c:253:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  253 |     DcScope sc = {"M2-GradedDeterministic", -1, ""};
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_refine.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_refine.c: In function 'dc_req_minimize':
+ops_refine.c:303:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  303 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; sc.policy = NULL;
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_refine.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_refine.c: In function 'dc_req_same_partition':
+ops_refine.c:360:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  360 |     DcScope sc = {"M2-GradedDeterministic", -1, ""};
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_refine.c:5:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_weakest.c: In function 'dc_req_weakest':
+ops_weakest.c:82:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+   82 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt);
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_weakest.c:7:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_weakest.c:82:97: warning: '%s' directive output may be truncated writing up to 47 bytes into a region of size 32 [-Wformat-truncation=]
+   82 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt);
+      |                                                                                                 ^~   ~~~~
+ops_weakest.c:82:54: note: 'snprintf' output between 1 and 48 bytes into a destination of size 32
+   82 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt);
+      |                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ops_approx.c: In function 'dc_req_induce_approx':
+ops_approx.c:123:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  123 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt);
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_approx.c:9:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+ops_approx.c:123:97: warning: '%s' directive output may be truncated writing up to 47 bytes into a region of size 32 [-Wformat-truncation=]
+  123 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt);
+      |                                                                                                 ^~   ~~~~
+ops_approx.c:123:54: note: 'snprintf' output between 1 and 48 bytes into a destination of size 32
+  123 |     DcScope sc = {"M2-GradedDeterministic", -1, ""}; snprintf(sc.discount, sizeof sc.discount, "%s", gtxt);
+      |                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ops_kernels.c: In function 'dc_req_kernels':
+ops_kernels.c:190:5: warning: missing initializer for field 'policy' of 'DcScope' [-Wmissing-field-initializers]
+  190 |     DcScope sc = {"M2-GradedDeterministic", -1, ""};
+      |     ^~~~~~~
+In file included from graded.h:9,
+                 from ops_kernels.c:7:
+ops_internal.h:39:84: note: 'policy' declared here
+   39 | typedef struct { const char *fragment; int horizon; char discount[32]; const char *policy; } DcScope;  /* policy NULL: PolicyClass None */
+      |                                                                                    ^~~~~~
+PASS bounds (rc=0, 8 rows)
+PASS composite (rc=0, 4 rows)
+PASS exactly_full (rc=0, 2 rows)
+PASS interfaces (rc=0, 6 rows)
+PASS overflow_add (rc=0, 1 rows)
+PASS overflow_literal (rc=0, 1 rows)
+PASS overflow_mul (rc=0, 1 rows)
+PASS too_many (rc=0, 1 rows)
+PASS zero_reprs (rc=0, 1 rows)
+limits: PASS
+resource limits_sanitized: exit 0, wall 26.8 s, user 20.5 s, sys 2.1 s, max RSS 235852 KiB
+== mutation
+mutation: 58 mutants, 48 killed (83%), 0 broke replay or crashed
+resource mutation: exit 0, wall 3.5 s, user 2.1 s, sys 0.6 s, max RSS 17156 KiB
+== held
+PASS SideEffect InvalidInput (unknown head println!)
+PASS HostEquation InvalidInput (unknown head evil)
+PASS ForgedDecl InvalidInput (unknown declaration head Result)
+PASS Clean InvalidInput (unregistered request Result)
+PASS Clean InvalidInput (which is not a derivation)
+PASS Clean Checked
+held: PASS
+resource held: exit 0, wall 0.1 s, user 0.0 s, sys 0.0 s, max RSS 9320 KiB
+== registry_gen
+gen_registry: up to date
+resource registry_gen: exit 0, wall 0.1 s, user 0.0 s, sys 0.0 s, max RSS 14520 KiB
+== package
+admission: 32 modules {'Unsupported': 22, 'Admitted': 10}
+serialization: 21 files, two runs, 0 differ
+claims: 123, (release1, dcalc status) counts [(('Supported', 'Checked'), 29), (('Supported', 'Refuted'), 16), (('Unsupported', 'Unsupported'), 78)], 0 without a run line
+package: PASS
+resource package: exit 0, wall 1.1 s, user 0.5 s, sys 0.4 s, max RSS 57744 KiB
+== admission_mutations
+mutations: 19 rows, PASS
+resource admission_mutations: exit 0, wall 1.4 s, user 0.9 s, sys 0.2 s, max RSS 13396 KiB
+== m2_claims
+check_claims_m2: 36/36 rows pass; PASS
+resource m2_claims: exit 0, wall 0.3 s, user 0.2 s, sys 0.1 s, max RSS 16988 KiB
+== m2_gates
+run_m2_gates: PASS (0 failing)
+resource m2_gates: exit 0, wall 1.3 s, user 0.8 s, sys 0.3 s, max RSS 16800 KiB
+== m2_differential
+differential_m2: seed 20261110, 5000 random machines with 2..7 states and 1..3 actions; 5000 compared, 0 outside the 64-bit range (both engines report it); reference vs pair-graph: 0 disagreements; crisp refine vs zero set: 128 compared, 0 disagreements; clock-rate screen (update defect <= 2 max sup rate): 5000 checked, 0 violations
+resource m2_differential: exit 0, wall 0.2 s, user 0.1 s, sys 0.0 s, max RSS 29972 KiB
+== m2_screen
+behavioral classes: 8
+PASS zero machine has the 8 behavioral classes (x0, x1, tail==0)
+PASS exact rate of x0 and x1 is 1
+PASS exact rate of every tail bit is 2/2^k
+small sample (40, seed 20261110): kept 2; hits 40 40 0 0 0 0 0 0 0 0 0 0
+PASS small sample proposes the candidate encoding (x0, x1)
+PASS candidate (x0, x1) is refuted with behavioral defect 1
+PASS same seed gives the same screen
+large sample (200000): kept 12
+PASS large sample keeps every coordinate
+PASS candidate of all coordinates has behavioral defect 0
+PASS estimates within 5 sigma of exact rates
+PASS out-of-range flip is invalid input
+PASS zero samples is invalid input
+screen_m2: PASS
+resource m2_screen: exit 0, wall 0.2 s, user 0.1 s, sys 0.0 s, max RSS 31504 KiB
+== m2_claimless
+claimless: 22/22 PASS
+resource m2_claimless: exit 0, wall 0.3 s, user 0.0 s, sys 0.0 s, max RSS 9116 KiB
+== m3_incremental
+In file included from ../../tests/dcalc/tv_m3.c:9:
+./ops_sym.c: In function 'sym_reach.constprop':
+./ops_sym.c:397:45: warning: '*nd_7 + _25.w' may be used uninitialized [-Wmaybe-uninitialized]
+  397 |         while (ht[slot] >= 0 && nd[ht[slot]].w != (word)) slot = (slot + 1) & (hc - 1); } while (0)
+      |                                 ~~~~~~~~~~~~^~
+./ops_sym.c:398:16: note: in expansion of macro 'RFIND'
+  398 |     size_t sl; RFIND(start, sl); nd[0] = (RNode){ start, -1, -1 }; ht[sl] = 0; int n = 1;
+      |                ^~~~~
+m3_incremental: PASS
+resource m3_incremental: exit 0, wall 3.7 s, user 3.3 s, sys 0.2 s, max RSS 73144 KiB
+== m3_gates
+run_m3_gates: PASS
+resource m3_gates: exit 0, wall 1.4 s, user 0.8 s, sys 0.4 s, max RSS 57792 KiB
+== m3_tv
+tv_check: PASS (73 CNFs: 14 SAT, 59 UNSAT; every sub-kind has both, the minimize fixed point is UNSAT)
+tv_mut: PASS
+src_mutants: PASS
+resource m3_tv: exit 0, wall 66.6 s, user 15.6 s, sys 1.7 s, max RSS 59964 KiB
+== m4_gates
+m4_gates: PASS
+resource m4_gates: exit 0, wall 0.5 s, user 0.2 s, sys 0.1 s, max RSS 18076 KiB
+== m4_estimates
+estimates: 55/55 passed
+resource m4_estimates: exit 0, wall 0.2 s, user 0.1 s, sys 0.1 s, max RSS 35192 KiB
+== m4_coverage
+coverage: 16/16 passed
+resource m4_coverage: exit 0, wall 3.3 s, user 3.2 s, sys 0.0 s, max RSS 30296 KiB
+== m4_coverage_01
+coverage: 16/16 passed
+resource m4_coverage_01: exit 0, wall 3.1 s, user 3.1 s, sys 0.0 s, max RSS 8568 KiB
+== cetta_smoke
+PASS tests/dcalc/cetta/graded.metta
+PASS tests/dcalc/cetta/held.metta
+PASS tests/dcalc/cetta/smoke.metta
+PASS tests/dcalc/cetta/surface.metta
+resource cetta_smoke: exit 0, wall 635.0 s, user 440.5 s, sys 35.8 s, max RSS 440204 KiB
+== m5_weakbarbed
+weakbarbed_record: 15 rows recorded (0 errors); depth recorded as ScriptCostBudget, never a horizon
+resource m5_weakbarbed: exit 0, wall 2.6 s, user 0.9 s, sys 0.3 s, max RSS 11684 KiB
+== m5_gates
+m5_gates: PASS
+resource m5_gates: exit 0, wall 5.8 s, user 3.5 s, sys 1.2 s, max RSS 43256 KiB
+== m6_gates
+m6_gates: PASS
+resource m6_gates: exit 0, wall 2.4 s, user 1.6 s, sys 0.4 s, max RSS 12264 KiB
+== m6rest_gates
+m6rest_gates: PASS
+resource m6rest_gates: exit 0, wall 0.3 s, user 0.1 s, sys 0.1 s, max RSS 10280 KiB
+== m6graded_gates
+m6graded_gates: PASS
+resource m6graded_gates: exit 0, wall 82.3 s, user 60.3 s, sys 0.5 s, max RSS 60596 KiB
+== m7_gates
+run_m7_gates: PASS
+resource m7_gates: exit 0, wall 0.6 s, user 0.2 s, sys 0.2 s, max RSS 57804 KiB
+== m7_replay
+m7_replay: PASS
+resource m7_replay: exit 0, wall 0.9 s, user 0.4 s, sys 0.2 s, max RSS 56136 KiB
+== resources
+step	exit	wall_s	user_s	sys_s	max_rss_kib
+build	0	12.0	9.1	0.9	112808
+test_boundaries	0	0.2	0.1	0.0	32496
+check_claims	0	1.9	0.7	0.5	54524
+negative_suite	0	3.4	1.2	0.1	11204
+refuted_abs	0	0.1	0.1	0.0	16568
+envelope	0	0.4	0.3	0.0	14784
+limits	0	0.3	0.0	0.0	14324
+limits_sanitized	0	26.8	20.5	2.1	235852
+mutation	0	3.5	2.1	0.6	17156
+held	0	0.1	0.0	0.0	9320
+registry_gen	0	0.1	0.0	0.0	14520
+package	0	1.1	0.5	0.4	57744
+admission_mutations	0	1.4	0.9	0.2	13396
+m2_claims	0	0.3	0.2	0.1	16988
+m2_gates	0	1.3	0.8	0.3	16800
+m2_differential	0	0.2	0.1	0.0	29972
+m2_screen	0	0.2	0.1	0.0	31504
+m2_claimless	0	0.3	0.0	0.0	9116
+m3_incremental	0	3.7	3.3	0.2	73144
+m3_gates	0	1.4	0.8	0.4	57792
+m3_tv	0	66.6	15.6	1.7	59964
+m4_gates	0	0.5	0.2	0.1	18076
+m4_estimates	0	0.2	0.1	0.1	35192
+m4_coverage	0	3.3	3.2	0.0	30296
+m4_coverage_01	0	3.1	3.1	0.0	8568
+cetta_smoke	0	635.0	440.5	35.8	440204
+m5_weakbarbed	0	2.6	0.9	0.3	11684
+m5_gates	0	5.8	3.5	1.2	43256
+m6_gates	0	2.4	1.6	0.4	12264
+m6rest_gates	0	0.3	0.1	0.1	10280
+m6graded_gates	0	82.3	60.3	0.5	60596
+m7_gates	0	0.6	0.2	0.2	57804
+m7_replay	0	0.9	0.4	0.2	56136
+dcalc-run-all: PASS
+RUNALL_EXIT=0

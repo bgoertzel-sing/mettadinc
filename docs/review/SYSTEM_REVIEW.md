@@ -5,13 +5,16 @@ Branch: `hive/t-2026-11-14-mettadinc-system-review`. Date: 2026-11-14.
 
 ## Summary
 
+*Technical terms (LRAT, RUP, ROBDD, CNF, cake_lpr, prefixpoint, Kantorovich, and the seven answer statuses including
+Conditional) are defined in "Terms used in this review", just after this summary.*
+
 The task was an independent review of MeTTaDinC (`dcalc`) after milestones M0-M7. It covers how the system works, whether
 its claims hold up when I check them with my own code, where it departs from the plan, what is blocked, and what to do next.
 
 **What I found:** the whole suite (`tools/dcalc-run-all.sh`) passes on the recorded base: 33 of 33 steps exit 0, in 14 min 24 s[^runall].
 I wrote my own checkers in Python, with no repo code and without the repo's replayers. They recompute **at least 2 claims for
 every milestone**: 82 checked values across M0-M7, plus 26 of 26 LRAT proofs replayed by my own RUP checker. Every value agrees
-with both dcalc and the MILESTONES oracle. I also built **30 inputs of my own** (mutants and variants), giving at least 1
+with both dcalc and the MILESTONES oracle. I also built **29 inputs of my own** (mutants and variants), giving at least 1
 negative gate per milestone. In all but one case dcalc refuses the input or flips its verdict the way my own computation predicts.
 
 **Two findings need a decision.** **D1 (defect, M7, beyond-release only):** a `Cases` map with two rows for the same input is
@@ -26,9 +29,30 @@ for M4/M6, whose coverage is fixture-sized and is the largest remaining risk.
 
 No PDF was produced: there is no md2pdf, pandoc or Python `markdown` module on this host[^pdf].
 
+## Terms used in this review
+
+- **Checked**: dcalc proved the answer and the certificate was replayed. **Refuted**: proved false, with a witness.
+  **Conditional**: the answer holds only under a stated assumption, e.g. a trusted proof backend whose replay could not be
+  confirmed (`ops_core.c:9` lists all seven statuses). **Estimated**: a statistical answer from sampled data, with a
+  confidence level. **Unknown**: undecided within the budget. **Unsupported**: outside the enabled release or milestone.
+  **InvalidInput**: the module or request is malformed and is refused, not repaired.
+- **CNF**: a Boolean formula written as an AND of clauses (ORs of literals); the form SAT solvers read.
+- **ROBDD**: reduced ordered binary decision diagram, a compact canonical form for Boolean functions. M3 uses one to
+  handle 40-bit state spaces without listing 2^40 states. The spec named the CUDD library; dcalc has its own (§4.2).
+- **LRAT**: a proof format for "this CNF is unsatisfiable". Each derived clause names the earlier clauses (hints) that
+  justify it, so a small checker can verify it quickly.
+- **RUP**: reverse unit propagation, the check applied to each LRAT step: assume the new clause is false and propagate
+  the hinted clauses until a contradiction appears.
+- **CaDiCaL / cake_lpr**: CaDiCaL is the SAT solver that writes the LRAT proof. cake_lpr is a formally verified (CakeML)
+  checker that replays it. Both are pinned by version and, optionally, by sha256 (see D2).
+- **Prefixpoint**: a set or valuation that one step of the dynamics cannot leave (F(X) is contained in X). It is a
+  certificate that an invariant holds forever.
+- **Kantorovich distance**: the cheapest cost of moving one probability distribution onto another (earth mover's
+  distance). M4 uses it to say how far apart two stochastic states behave.
+
 ## 1. Building and running the suite
 
-Command (backend exports from `mdc-review/backend.exports.saved`, which pins cake_lpr and the CeTTa toolchain):
+Command (backend exports from `mdc-review/backend.exports.saved`, copied to `docs/review/logs/backend.exports.saved`, which pins cake_lpr and the CeTTa toolchain):
 
 ```
 . /hive/protomega/work/mdc-review/backend.exports.saved
@@ -79,7 +103,7 @@ this encoding answer the query now?", "does it stay correct after every update?"
 3. **Generate obligations** (`obligations.c`) and **solve** them with the per-feature operators (`ops_*.c`): partition
    refinement, exact rational fixpoints (`rat.c`), the ROBDD plus CNF/LRAT path for symbolic carriers (`bdd.c`), exact
    LP (`lp_exact.c`), and so on.
-4. **Emit an envelope** (`records.c`): `Status` (Checked / Refuted / Unknown / Unsupported / InvalidInput), the `Claim`,
+4. **Emit an envelope** (`records.c`): `Status` (Checked / Refuted / Conditional / Estimated / Unknown / Unsupported / InvalidInput; see Terms), the `Claim`,
    a `Binding` to the module digest, a `Value`, `Evidence` (a witness or a certificate), `Assumptions`, and `Assurance`
    (the policy, and whether the evidence was replayed).
 
@@ -122,7 +146,7 @@ Claim counts are from `docs/e0/MILESTONES.md` l.100-110. The status lines are my
 
 ## 3. Independent checks
 
-All my checkers are in `docs/review/checks/` (copied from `mdc-review/mycheck/`). They are plain Python with exact
+All my checkers are in `docs/review/checks/` (copied from my working directory `mdc-review/mycheck/`). They are plain Python with exact
 `fractions`; they import no repo code and do not call the repo's replayers (`replay.py`, `verify_mettadinc.py`). Each one
 recomputes the answer from the fixture semantics and compares it with dcalc's envelope or with the MILESTONES oracle.
 Fresh rerun at 17:04: all 8 checkers exit 0 with 0 mismatches[^counts].
@@ -167,13 +191,14 @@ with `--beyond-release` for M4-M7. "Expected" is what my own computation, or the
 | M4 | m4_mass_not_one | row masses 1/2 + 1/3 | InvalidInput "row mass is not exactly 1" (not renormalised) | yes |
 | M4 | m4_negative_mass | masses 3/2 and -1/2 (sum 1) | InvalidInput "bad Mass (nonnegative rational)" | yes |
 | M4 | mut_m4_leak14 | leak 1/4 instead of 1/2 | 37/64; Refuted at depth 17; 1/5 discounted, as my closed forms predict | yes |
-| M5 | m5_missing_move | abstract loses Start->Locked | CheckSimulation Refuted (UnmatchedMove S2/Start, fail); Safe Unknown, nothing transferred | yes |
+| M5 | mut_m5_missmove | abstract loses Start->Locked | CheckSimulation Refuted (UnmatchedMove S2/Start, fail); Safe Unknown, nothing transferred | yes |
 | M5 | mut_m5_wrongtarget | Safe aimed at Protocol | InvalidInput "targets Abstract, not Protocol" | yes |
-| M6 | m6_triangle_unmeasured | one correspondence Unmeasured | Coherence Unknown (no zero-fill); Holonomy etc. Unsupported | yes |
+| M6 | mut_m6_unmeasured | one correspondence Unmeasured | Coherence Unknown (no zero-fill); Holonomy etc. Unsupported | yes |
 | M6 | m6_triangle_coherent | M3->M1 set to Equal | holonomy = identity; Coherence Checked, cost 0 | yes |
 | M6 | m6_affine_tight | Direct grade (6, 49/100) | Refuted at input 0, gap 1/2 (the bound is tight) | yes |
 | M7 | m7_unbound_op | readout calls unbound `xorq` | InvalidInput "unknown head xorq" at 11:71 | yes |
 | M7 | mut_avail_injective | bias map made injective | Bias Checked, DefaultZero stays Refuted | yes |
+| M7 | mut_m7_partial | `bias` Cases map missing `Both` | Unsupported "Encode map has no case for some state" (expected InvalidInput) | **partly: §4.2.2** |
 | M7 | **mut_m7_caseoverlap_ne/_eq** | Cases with two rows for `Absent` | **accepted; the first row wins** (Refuted instead of InvalidInput) | **no: defect D1** |
 
 ### 3.3 How my own checkers were sanity-gated
@@ -192,7 +217,7 @@ drop_used_cnf_clause are each refused 8/8, with 0 disagreements. Only the mutati
 `Cases` row matching the element and never looks for a second one; `m7_codomain_bad()` (l.59-64) only checks the codomain.
 So a Map with `(Absent 0) (Absent 5)` is accepted and source order decides the value. This breaks spec §5.4 as the other
 loaders enforce it: `model.c:323-330` ("overlapping cases are rejected even when they agree"), `ops_nondet.c:75` and
-`stoch.c:76/89` all reject duplicates. Repro: `docs/review/inputs/mut_m7_caseoverlap_ne.metta` and `_eq.metta` give
+`stoch.c:76/91` all reject duplicates. Repro: `docs/review/inputs/mut_m7_caseoverlap_ne.metta` and `_eq.metta` give
 Refuted where InvalidInput is expected. It is unreachable in release 1 (the profile answers Unsupported). Fix: reject
 duplicate case keys in M7 map admission, or reuse the model.c loader, and add both mutants under `tests/dcalc/mutations/m7/`.
 
@@ -212,15 +237,33 @@ Conditional instead of Checked whenever no pin is set.
   this for overlapping cases with equal outputs; dcalc is stricter, which is safe.
 - **Clock-rate screen (OQ 2)**: internal, uncertified tooling that is never Checked, as decided[^dec].
 - **Access-policy mutation gate (M3 gate 5)**: moved to the milestone that admits Families, as decided[^dec].
+- **M4 estimates registry patch (reversible deviation from README "Ben's decisions" #1)**: approved by andy on 2026-11-12
+  (Work msg 486). `registry/patches/m4est_registry_patch.json` adds the estimator choice, seeded sampling and policy reuse
+  to EstimateRate and CompareRates, the requests EstimateDupRate and RatesSeparated, the result RateSeparation and the Stream
+  field SelectionDependsOnPolicy. It is beyond-release only, leaves release 1 and docs/e0 unchanged, and reverts byte for
+  byte[^dec]. These names are not the spec's (§4.2.1).
+- **M5/M6 open spec questions**: decided by andy on 2026-11-13 (Work msg 550) and not sent to Ben. EnterFrom and ReachWithin
+  take abstract state names, not observation values. Request shapes invented where the spec gives none stay, each marked
+  "ours"[^dec].
+- **M6-graded, induced-machine sources**: decided by andy on 2026-11-14. InduceApprox does not accept an induced machine as its
+  source, and Then over Graded arrows keeps answering InvalidInput with the stated reason, listed as deferred[^dec].
 - **M4-M7 sit behind `--beyond-release`**. Release 1 is M0-M3: 45 claims Supported; the 78 M4-M7 claims are Unsupported in R1 by plan (MILESTONES.md l.100-110).
 
 #### 4.2.1 "Ours" shapes: invented by this implementation, not in the spec[^ours]
 
-All of these are beyond-release only (release 1 never emits them). Each registry patch marks them "ours" or "invented by
-this implementation". The m4est and m5rest patches mark none.
+All of these are beyond-release only (release 1 never emits them). The m6, m6rest, m6graded and m7 patches mark them "ours" or
+"invented by this implementation". The m4est and m5rest patches do not use those words, but they also add names the
+specification does not register: m4est calls itself a deviation (§4.2), and m5rest's header says it adds "names the
+specification does not register". Their rows come first in the table.
 
 | Patch | "Ours" shape | What it is |
 |---|---|---|
+| m4est | EstimateRate/CompareRates args `Estimator` (ConfidenceSequence\|Hoeffding\|ExactBinomial), `Sample`, `Seed`, `ReuseUnder`; requests `EstimateDupRate`, `RatesSeparated`; result `RateSeparation (Separated) (FirstUpper) (SecondLower)`; Stream field `SelectionDependsOnPolicy` | the estimate request surface (an approved deviation, §4.2) |
+| m5rest | Machine field `(Read action Shared\|Fresh)`; Evidence `(ReadAnnotations (Read ..) ..)` | whether repeated reads of a nondeterministic choice agree |
+| m5rest | witness `MayTraceWitness` (Pair, Word, Trace, Left, Right) | Refuted witness for may-trace inclusion |
+| m5rest | formula nodes `Indicator`, `Not`, `And`, `Min`, `Sub`, `Diamond` | ModalTestWitness formulas, Profile Nondeterministic |
+| m5rest | certificate kinds `PartitionRefinement`, `Bisimulation`, `MayTraceSubsetPairs` | beyond the registered Test/Prefixpoint/LayeredPrefixpoint |
+| m5rest | `(BehavioralInterval (Lower r) (Upper r))`, `(PartialRefinement (Stage k) ..)`, `(Explored (PairExpansions k)\|(Unrollings k))` | Value and Evidence of an Unknown answer whose budget ran out |
 | m6 | `(Construction (Kind KernelOf) ..)` | evidence for building a kernel hive (Nodes, Entries, Related, Unmeasured 0) |
 | m6 | `(Composition (Rule PolyComposition\|AffineComposition) path)` | evidence for composed contract grades |
 | m6 | `(OptimalValues .. (Note NotATransferCertificate))`, `(Closure (Classes n))`, `(WorstState ..)`, `(AuditedPairs ..)`, `(Transitive (Triples n))`, `(GaugeOrders ..)` | evidence forms for transfer, closure and holonomy checks |
@@ -241,6 +284,14 @@ this implementation". The m4est and m5rest patches mark none.
 
 Risk: a downstream consumer that follows only the spec cannot parse these, so they need to be either upstreamed into the spec or
 versioned as a dcalc extension before anyone outside relies on beyond-release output.
+
+#### 4.2.2 Small inconsistency (found by review 2)
+
+In M7 under `--beyond-release`, a Cases map that lacks a row for some state (`docs/review/inputs/mut_m7_partial.metta`:
+the `bias` map drops `Both`; reproduced 18:23 UTC: one request Refuted, one **Unsupported**) answers **Unsupported** ("Encode map has no
+case for some state"). By the release-path rule (`model.c` totality) this should be **InvalidInput**: a partial map is a
+malformed input, not a missing feature. It is related to D1, since both concern Cases admission in `ops_m7.c`, and the same
+fix (validate Cases totality and disjointness at admission, as `model.c:323-330` does) would close both.
 
 ### 4.3 Blocked (outside components that do not exist yet)[^blocked]
 
@@ -285,12 +336,12 @@ reason text still says "symbolic engine not built yet (M3 in progress)", which i
 
 ## Sources
 
-[^runall]: `mdc-review/runall.log` (resources table l.366-401, `RUNALL_EXIT=0` l.402); command in §1.
+[^runall]: `docs/review/logs/runall.log` (resources table l.366-401, `RUNALL_EXIT=0` l.402); command in §1.
 [^blocked]: `docs/M7-BLOCKED.md` (blocked integrations, "Not done" table, resolved review-1 finding 6).
 [^dec]: `DECISIONS.md` in the task attachments (`.runtime/hive/attachments/t-2026-11-14-mettadinc-system-review/`): OQ 2, OQ 3/12, OQ 6, M3 ROBDD decision, M3 review-3 gate-5 note.
-[^pdf]: `command -v md2pdf pandoc` and a filesystem search found neither; `python3 -c "import markdown, weasyprint"` fails (`mdc-review/pdf_find.txt`).
+[^pdf]: `command -v md2pdf pandoc` and a filesystem search found neither; `python3 -c "import markdown, weasyprint"` fails (`docs/review/logs/pdf_find.txt`).
 [^pin]: `git ls-tree HEAD cetta` -> 4c285a97; `git -C build/cetta-dcalc rev-parse HEAD~13` -> 4c285a97, `rev-list --count HEAD~13..HEAD` = 13; `tools/dcalc-cetta-smoke.sh` l.2-6.
-[^findings]: `mdc-review/FINDINGS.md` (timestamped running notes for every check, mutant and finding in this review).
+[^findings]: `docs/review/FINDINGS.md` (timestamped running notes for every check, mutant and finding in this review).
 [^src]: `src/dcalc/` (sexp.c, registry*.c, admit.c, model.c, obligations.c, ops_*.c, rat.c, bdd.c, lp_exact.c, records.c); `README.md`; `docs/e0/MILESTONES.md` (M0 l.161, M6 l.716, M7 l.805).
-[^ours]: `registry/patches/m6_registry_patch.json` (notes m6-evidence-shapes, m6-witness-shapes, m6-receipt-identities), `m6rest_registry_patch.json` (patch, notes/m6rest-shapes, witness_types Chord/Fill/NoPath, requests/Associator, result_types/HiveAssociator), `m6graded_registry_patch.json` (notes m6graded-shapes, m6graded-then-shapes, arrow_kinds/Simulation/then, witness_types Open/Raise), `m7_registry_patch.json` (notes/m7-shapes, result_types MergedPairs/SymbolicCheck); extracted with a JSON walk for "ours|invented": 21 strings (`mdc-review/ours_items.txt`).
-[^counts]: `docs/review/counts.txt` and `mycheck/counts_*.log` (17:04 rerun: per-checker exit 0, 0 mismatches). The 82 checked values = check_eight 9 (status, the 3 defects, the 24-entry kernel as one value, 2 witness replays, 4 request verdicts; it prints these lines rather than OK lines, so counts.txt shows ok=0, and it ends `FAILS 0`) + check_m012 10 + check_m2 7 + check_m3 14 + check_m4 16 + check_m5 8 + check_m6 9 + check_m7 9. The 30 own inputs = the 31 files in `docs/review/inputs/` minus `m4_us_base.metta`, which is a base fixture, not a mutant.
+[^ours]: `registry/patches/m4est_registry_patch.json` (patch header, request_args, requests, result_types, declaration_fields/Stream), `m5rest_registry_patch.json` (patch header, declaration_fields/Machine/Read, witness_types/MayTraceWitness, notes m5rest-formula-nodes, m5rest-certificate-kinds, m5rest-result-forms), `m6_registry_patch.json` (notes m6-evidence-shapes, m6-witness-shapes, m6-receipt-identities), `m6rest_registry_patch.json` (patch, notes/m6rest-shapes, witness_types Chord/Fill/NoPath, requests/Associator, result_types/HiveAssociator), `m6graded_registry_patch.json` (notes m6graded-shapes, m6graded-then-shapes, arrow_kinds/Simulation/then, witness_types Open/Raise), `m7_registry_patch.json` (notes/m7-shapes, result_types MergedPairs/SymbolicCheck); extracted with a JSON walk for "ours|invented": 21 strings (`docs/review/logs/ours_items.txt`).
+[^counts]: `docs/review/counts.txt` and `docs/review/logs/counts_*.log` (17:04 rerun: per-checker exit 0, 0 mismatches). The 82 checked values = check_eight 9 (status, the 3 defects, the 24-entry kernel as one value, 2 witness replays, 4 request verdicts; it prints these lines rather than OK lines, so counts.txt shows ok=0, and it ends `FAILS 0`) + check_m012 10 + check_m2 7 + check_m3 14 + check_m4 16 + check_m5 8 + check_m6 9 + check_m7 9. The 29 own inputs = the 30 files in `docs/review/inputs/` minus `m4_us_base.metta`, which is a base fixture, not a mutant. (Review 2 found two byte-identical pairs: `m5_missing_move` = `mut_m5_missmove` and `m6_triangle_unmeasured` = `mut_m6_unmeasured`; the duplicates were deleted and their rows merged. `mut_m7_partial.metta` was added in review 2 to reproduce §4.2.2.)

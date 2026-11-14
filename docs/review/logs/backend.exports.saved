@@ -1,0 +1,4 @@
+export DCALC_CADICAL=/hive/protomega/work/mdc-review/backend/cadical-rel-3.0.1/build/cadical
+export DCALC_CAKE_LPR=/hive/protomega/work/mdc-review/backend/cake_lpr-033aad53d1733bd4b8ca41cf6f1b5fb5d84f8de2/cake_lpr
+export DCALC_CADICAL_SHA256=8a90227a4b4958de77c02665ddd1aa7b046819956909d3928f6eb6bcb23c45da
+export DCALC_CAKE_LPR_SHA256=4ab44fed530726c153529747119e5ebc3bc9d0cca668a18d82dd3d8f14405287
