@@ -74,10 +74,11 @@ res = read_all(line.split('=>', 1)[1])[0]
 need(field(res, 'Status') == ['Status', 'Checked'], 'not Checked: ' + show(field(res, 'Status')))
 v = field(field(res, 'Value'), 'ExactAbstraction')
 need(v is not None and show(field(v, 'Defect')) == '(Defect (Interval 0 0))', 'not an exact abstraction with defect 0')
-need(show(field(v, 'States')) == '(States %d)' % len(states), 'state count')
 part = field(field(field(res, 'Evidence'), 'Certificate'), 'Partition')
 got = sorted(sorted(b[1:]) for b in part[1:]) if part else None
 need(got == want, 'partition %s != recomputed %s' % (got, want))
+# review-2 F1: States is the number of blocks of the recomputed partition (ops_induce.c), not the concrete state count
+need(show(field(v, 'States')) == '(States %d)' % len(want), 'state count %s != %d recomputed blocks' % (show(field(v, 'States')), len(want)))
 dg = field(field(res, 'Binding'), 'Digest')
 need(dg is not None and dg[1].strip('"') == dg_want, 'stale certificate: Binding Digest %s != %s' % (dg and dg[1], dg_want))
 print('ACCEPT M01 HyperseedMethods Repaired: %d blocks %s, digest ok' % (len(want), want))

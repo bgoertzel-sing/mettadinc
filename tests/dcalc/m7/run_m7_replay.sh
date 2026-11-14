@@ -24,6 +24,12 @@ run tests/dcalc/m7/replay_m7_f07.py forty_bits   # review-1 F5: F07 ClockRates, 
 line=$(python3 tests/dcalc/m7/replay_m7_m01.py "$V/hyperseed_methods.metta" build/m7_replay/hyperseed_methods.out "$V/receipt_packets.metta" | tail -1)
 echo "hyperseed_methods (M01, cross-file): $line"
 case "$line" in *"-> PASS") ;; *) rc=1 ;; esac
+# review-2 F1: non-singleton repair (Both posterior 3/4 -> blocks {Empty} {UOnly VOnly Both}, States 2)
+"$D" --beyond-release "$V/hyperseed_methods.metta" tests/dcalc/m7/fixtures/receipt_packets_nonsingleton.metta > build/m7_replay/hyperseed_nonsingleton.out 2>&1
+line=$(python3 tests/dcalc/m7/replay_m7_m01.py "$V/hyperseed_methods.metta" build/m7_replay/hyperseed_nonsingleton.out tests/dcalc/m7/fixtures/receipt_packets_nonsingleton.metta | tail -1)
+echo "hyperseed_nonsingleton (M01, 2-block repair): $line"
+grep -q "(States 2)" build/m7_replay/hyperseed_nonsingleton.out || { echo "hyperseed_nonsingleton: expected (States 2)"; rc=1; }
+case "$line" in *"-> PASS") ;; *) rc=1 ;; esac
 # review-1 F7d: nested (CompleteHive (Output D Hive)) fixtures, replayed by the M6-rest replayer (Output after CompleteHive)
 for f in complete_hive_nested nested_complete; do
   "$D" --beyond-release "tests/dcalc/m7/fixtures/$f.metta" > "build/m7_replay/$f.out" 2>&1
