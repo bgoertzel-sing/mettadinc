@@ -218,6 +218,7 @@ Sx *dc_req_refine(DcRun *run, const Sx *q, int slot) {
         }
         return dc_invalid(m, "Refine: field %zu is not (Preserve Encoding), (Until Stable) or (Under Law)", i - 1);
     }
+    if (pres && !until && m->neural) until = 1;   /* M7 opt-in: spec 12.x neural audit writes (Refine R (Preserve Encoding)); Until Stable is implied */
     if (!pres || !until) return dc_invalid(m, "Refine: (Preserve Encoding) and (Until Stable) are required");
     const DcRepr *R = &m->rep[ri];
     if (law >= 0 && m->meas[law].on != m->mach[R->machine].states) return dc_invalid(m, "Refine: law %s is not on the state carrier", m->meas[law].name);

@@ -1049,7 +1049,7 @@ void dc_admission_free(DcAdmission *a) {
 /* M4-estimates: Estimates (EstimateRate, CompareRates) joins the opt-in set. */
 /* M5: Dynamics Nondeterministic and the Simulation library join the opt-in set. */
 /* M6: Contracts joins the opt-in set. */
-static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", "Simulation", "Contracts", "Hives", "Transfers", NULL };   /* M6: Hives + Transfers opt-in */
+static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", "Simulation", "Contracts", "Hives", "Transfers", "Hyperseed", "Neural", "Discovery", "BitVectors", "FiniteSets", NULL };   /* M7: Hyperseed/Neural/Discovery/BitVectors/FiniteSets opt-in */   /* M6: Hives + Transfers opt-in */
 static int m4_allowed(const char *key, const char *val) {
     if (!val) return 0;
     if (!strcmp(key, "dynamics")) return !strcmp(val, "Stochastic") || !strcmp(val, "Nondeterministic");   /* M5 */

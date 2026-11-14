@@ -45,6 +45,7 @@ static int parse_int(const Sx *x, long *out) {
     *out = v; return 1;
 }
 static int allow_rat;   /* M2: set by admit_map only for a Graded map into a value carrier */
+static int allow_xor;   /* M7: set by admit_map only on a (Use Neural) module in beyond-release: (Xor a b) on bits */
 static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
     if (b->kind == SX_SYM && b->text[0] == '$') {
         for (int i = 0; i < e->n; i++) if (!strcmp(e->var[i], b->text)) return sx_copy(e->val[i]);
@@ -65,6 +66,12 @@ static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
         }
         snprintf(buf, sizeof buf, "%ld", r);
         sx_free(x); sx_free(y); return sx_sym(buf);
+    }
+    if (allow_xor && sx_head_is(b, "Xor") && b->n == 3) {   /* M7 opt-in: bitwise xor of two 0/1 literals */
+        Sx *x = eval_body(b->items[1], e, ok), *y = eval_body(b->items[2], e, ok); long a = -1, c = -1;
+        int pa = *ok == 1 ? parse_int(x, &a) : 0, pc = *ok == 1 ? parse_int(y, &c) : 0; sx_free(x); sx_free(y);
+        if (*ok != 1 || pa != 1 || pc != 1 || (a != 0 && a != 1) || (c != 0 && c != 1)) { if (*ok == 1) *ok = 0; return sx_sym("?"); }
+        return sx_sym(a != c ? "1" : "0");
     }
     if (allow_rat && sx_head_is(b, "Rat") && b->n == 3) return sx_copy(b);
     if (b->n && b->items[0]->kind == SX_SYM && strcmp(b->items[0]->text, "Tuple")) { if (*ok == 1) *ok = 2; return sx_sym("?"); }
@@ -308,7 +315,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 const Sx *row = body->items[j]; Env e = {0}; int ok = 1;
                 if (row->kind != SX_LIST || row->n != 2) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu is not a pair", nm, j - 1); }
                 if (!match(row->items[0], F->elems[i], &e)) continue;
-                allow_rat = T->value; Sx *v = eval_body(row->items[1], &e, &ok); allow_rat = 0;
+                allow_rat = T->value; allow_xor = m->neural; Sx *v = eval_body(row->items[1], &e, &ok); allow_rat = 0; allow_xor = 0;
                 if (ok == 2) { sx_free(v); free(mp->table); return fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1); }
                 if (ok == 3) { sx_free(v); free(mp->table); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, j - 1); }
                 int b = ok ? (T->value ? dc_value_add(T, v) : dc_carrier_index(T, v)) : -1; sx_free(v);
@@ -631,6 +638,11 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
     m->contracts = uses_lib(m, "Contracts") && dc_eval_beyond_release();   /* M6 opt-in */
     m->hives = uses_lib(m, "Hives") && dc_eval_beyond_release();   /* M6 opt-in */
     m->transfers = uses_lib(m, "Transfers") && dc_eval_beyond_release();   /* M6 opt-in */
+    m->hyperseed = uses_lib(m, "Hyperseed") && dc_eval_beyond_release();   /* M7 opt-in */
+    m->neural = uses_lib(m, "Neural") && dc_eval_beyond_release();   /* M7 opt-in */
+    m->discovery = uses_lib(m, "Discovery") && dc_eval_beyond_release();   /* M7 opt-in */
+    m->bitvectors = uses_lib(m, "BitVectors") && dc_eval_beyond_release();   /* M7 opt-in */
+    m->finitesets = uses_lib(m, "FiniteSets") && dc_eval_beyond_release();   /* M7 opt-in */
     for (size_t i = 2; i < form->n; i++) {
         const Sx *d = form->items[i]; int rc = 0;
         if (d->kind != SX_LIST || d->n == 0 || d->items[0]->kind != SX_SYM)

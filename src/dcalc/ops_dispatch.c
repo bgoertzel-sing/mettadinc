@@ -32,6 +32,7 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
     const char *h = q->items[0]->text;
     if ((!strcmp(h, "EstimateRate") || !strcmp(h, "CompareRates") || !strcmp(h, "EstimateDupRate")) && !m->profile_unsupported[0]) return dc_req_estimates(r, q, h);   /* M4-estimates opt-in */
     if (!strcmp(h, "RatesSeparated") && !m->profile_unsupported[0]) return dc_req_separated(r, q);   /* review 1 F3 */
+    if ((m->hyperseed || m->neural) && !m->profile_unsupported[0]) { Sx *x7 = dc_req_m7(r, q, h); if (x7) return x7; }   /* M7 opt-in */
     if (m->stochastic && !m->profile_unsupported[0]) return dc_req_stoch(r, q, h, slot);   /* M4 opt-in */
     if (m->contracts && !m->profile_unsupported[0] && (!strcmp(h, "CheckImplementation") || !strcmp(h, "ThenContracts"))) return dc_req_contracts(r, q, h);   /* M6 opt-in */
     if (m->hives && !m->profile_unsupported[0] && (!strcmp(h, "CheckKernelCoherence") || !strcmp(h, "Holonomy") || !strcmp(h, "ConsensusCost") || !strcmp(h, "LeastCoherentRefinement") || !strcmp(h, "CompleteHive") || !strcmp(h, "Associator"))) return dc_req_hives(r, q, h);   /* M6 opt-in */

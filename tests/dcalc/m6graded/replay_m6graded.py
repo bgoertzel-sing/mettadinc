@@ -131,7 +131,8 @@ def replay_graded(M, req, res, st, names, car, nodes, wt, H):
 _prev = R.replay_hive
 def replay_hive_g(M, req, res, st):
     nm = req[1] if len(req) > 1 else None
-    if isinstance(nm, str) and ('KernelHive', nm) in M.raw:
+    dv = getattr(M, 'derive', {}).get(nm[1]) if isinstance(nm, list) and len(nm) == 3 and nm[0] == 'Output' and nm[2] == 'Hive' else None
+    if (isinstance(nm, str) and ('KernelHive', nm) in M.raw) or (isinstance(dv, list) and dv and dv[0] == 'CompleteHive'):   # M7: completed Output hives
         names, car, nodes, wt, H = RR.hive_partial(M, nm)
         if graded(H): return replay_graded(M, req, res, st, names, car, nodes, wt, H)
     return _prev(M, req, res, st)
