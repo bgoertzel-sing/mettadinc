@@ -38,6 +38,22 @@ bs = statuses(run(bf)); report('graded neg: a degree 5/4 outside [0, 1] -> Inval
 for n, seed in [(24, 1), (40, 2026)]:
     pr = subprocess.run([sys.executable, os.path.join(HERE, 'probe_graded.py'), str(n), str(seed)], capture_output=True, text=True, timeout=900)
     report('graded random probe N=%d seed %d (replay + brute force + sympy LP + tamper)' % (n, seed), pr.returncode == 0, pr.stdout.strip().splitlines()[-2:-1])
+# step 2: Then on two Checked simulations (spec Table 4 l.893-909: relational composition; Def 3.7 l.805-811)
+RT = os.path.join(HERE, 'replay_then.py')
+def replay_t(*a): return subprocess.run([sys.executable, RT] + list(a), capture_output=True, text=True)
+sf = os.path.join(HERE, 'fixtures', 'then_sim.metta'); so = os.path.join(OUT, 'then_sim.out'); stt = run(sf); open(so, 'w').write(stt); sl = lines(stt)
+report('Then simulation statuses: S1, S2, S12 (Derive) and inline Then Checked', statuses(stt) == ['Checked'] * 4, statuses(stt))
+report('Then simulation hand-checked composite: A -> C, Kind Simulation, Pairs (X0 Z0) (X1 Z0)', len(sl) > 2 and '(Source A) (Target C) (Kind Simulation)' in sl[2] and '(Pairs (X0 Z0) (X1 Z0))' in sl[2])
+nf = os.path.join(HERE, 'fixtures', 'then_sim_neg.metta'); no = os.path.join(OUT, 'then_sim_neg.out'); nt = run(nf); open(no, 'w').write(nt); nl = lines(nt)
+report('Then simulation neg statuses: H3 Refuted; Refuted premise Unsupported; C != A InvalidInput; Unknown premise Unknown; B != A InvalidInput',
+       statuses(nt) == ['Refuted', 'Unsupported', 'InvalidInput', 'Unknown', 'InvalidInput'], statuses(nt))
+report('Then simulation neg: Refuted premise names the missing hypothesis (never composed)', len(nl) > 1 and 'hypothesis that H3 is a simulation is missing' in nl[1])
+rt = replay_t(sf, so, nf, no); report('Then simulation replays (R1;R2 recomposed, certificate rechecked by replay_m5.check_simulation)', rt.returncode == 0, rt.stdout.strip().splitlines()[-1:])
+for nm, a, b in [('composite Pairs', '(Pairs (X0 Z0) (X1 Z0))', '(Pairs (X0 Z0))'), ('ComposedArrow Target', '(Target C) (Kind Simulation)', '(Target B) (Kind Simulation)'),
+                 ('composition Rule', '(Rule RelationalComposition)', '(Rule FunctionComposition)'), ('Second premise', '(Second S2 H2)', '(Second S1 H1)'),
+                 ('a Match step', '(Step X1) (To Z0)', '(Step X0) (To Z0)')]:
+    tp = os.path.join(OUT, 'then_tamper.out'); ln = sl[2] if len(sl) > 2 else ''; t2 = ln.replace(a, b, 1); open(tp, 'w').write(t2 + '\n'); rr = replay_t(sf, tp)
+    report('Then simulation tamper: %s is rejected by the replayer' % nm, t2 != ln and rr.returncode != 0 and 'REJECT' in rr.stdout, rr.stdout.strip().splitlines()[:1])
 # release mode: graded kernel hives are beyond release
 for fx in sorted(os.listdir(os.path.join(HERE, 'fixtures'))):
     st = statuses(run(os.path.join(HERE, 'fixtures', fx), beyond=False))
