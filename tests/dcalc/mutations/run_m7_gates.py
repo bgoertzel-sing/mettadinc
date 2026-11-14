@@ -105,9 +105,12 @@ def ustat_ok(text):
     return us > 0 and not errs, us, errs
 est = os.path.join(ROOT, 'tests', 'dcalc', 'm4', 'fixtures', 'est_review1.metta'); et = run(est); open(os.path.join(OUT, 'est_review1.out'), 'w').write(et)
 ok, us, errs = ustat_ok(et); report('gate 7: %d U-statistic rows stay Estimated with floor(n/2) pairs and Hoeffding(floor(n/2)) width' % us, ok, str(errs)[:200])
-tam = re.sub(r'\(IndependentPairs (\d+)\)', lambda m_: '(IndependentPairs %d)' % (2 * int(m_.group(1))), et, count=1)
-ok, _, errs = ustat_ok(tam); report('gate 7: tampered copy (pairs counted as n independent) is refused', not ok, 'tamper accepted')
-ls_ = et.splitlines(); iu = next(i for i, l in enumerate(ls_) if 'UStatistic' in l and '(Status Estimated)' in l)
-ls_[iu] = ls_[iu].replace('(Status Estimated)', '(Status Checked)', 1); tam2 = '\n'.join(ls_) + '\n'
-ok, _, errs = ustat_ok(tam2); report('gate 7: tampered copy (U-statistic Estimated relabelled as exact Checked) is refused', not ok, 'tamper accepted')
+# review-1 F7c: tamper EVERY U-statistic row one at a time (not only the first) and report how many are refused
+ls_ = et.splitlines(); uix = [i for i, l in enumerate(ls_) if 'UStatistic' in l and '(Status Estimated)' in l]
+def one(i, f):
+    c = list(ls_); c[i] = f(c[i]); return '\n'.join(c) + '\n'
+t1 = sum(not ustat_ok(one(i, lambda l: re.sub(r'\(IndependentPairs (\d+)\)', lambda m_: '(IndependentPairs %d)' % (2 * int(m_.group(1))), l, count=1)))[0] for i in uix)
+report('gate 7: tampered copies (pairs counted as n independent): %d of %d rows refused' % (t1, len(uix)), len(uix) > 0 and t1 == len(uix), 'some tamper accepted')
+t2 = sum(not ustat_ok(one(i, lambda l: l.replace('(Status Estimated)', '(Status Checked)', 1)))[0] for i in uix)
+report('gate 7: tampered copies (Estimated relabelled as exact Checked): %d of %d rows refused' % (t2, len(uix)), len(uix) > 0 and t2 == len(uix), 'some tamper accepted')
 print('run_m7_gates: %s' % ('PASS' if not bad else 'FAIL (%d)' % bad)); sys.exit(1 if bad else 0)
