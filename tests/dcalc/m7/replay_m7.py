@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """M7 replayer (independent of the C code): availability rows W01-W02 (CheckNow on a (Use Hyperseed) module) and
-M7-Neural rows N03 (CompareDistinctions pair counts) and N04 (AuditIntervention accuracies).
+M7-Neural rows N03 (CompareDistinctions pair counts) and N04 (AuditIntervention accuracies), and
+M7-Discovery rows X01-X04 (exact F7 matrix ranks, first separator, Hom-dimensions).
 Recomputes, from the fixture declarations only, every pair of states with equal Encode code that differ on some
 declared observation; the Value must list exactly those pairs (sorted) and every Witness Merge must re-check."""
 import os, sys
@@ -256,6 +257,90 @@ def p_row(mod, req, res):
         need(int(field(ce, 'Cost')[1]) == c and int(field(ce, 'BaselineCost')[1]) == base and int(field(ce, 'Gain')[1]) == base - c, '%s certificate costs differ' % where)
     return 'CheckPatternWitness %s: cost %d < baseline %d' % (req[1], c, base)
 
+# ---- M7-Discovery rows X01-X04 (arithmetic_probes): exact F7 4x4 arithmetic recomputed from the declarations only ----
+def x_inv7(a): return pow(a % 7, 5, 7)
+def x_rank7(M):
+    M = [[x % 7 for x in r] for r in M]; rk = 0; cols = len(M[0]) if M else 0
+    for c in range(cols):
+        p = next((i for i in range(rk, len(M)) if M[i][c]), None)
+        if p is None: continue
+        M[rk], M[p] = M[p], M[rk]; iv = x_inv7(M[rk][c]); M[rk] = [(x * iv) % 7 for x in M[rk]]
+        for i in range(len(M)):
+            if i != rk and M[i][c]: f = M[i][c]; M[i] = [(x - f * y) % 7 for x, y in zip(M[i], M[rk])]
+        rk += 1
+    return rk
+def x_mul(A, B): return [[sum(A[i][k] * B[k][j] for k in range(4)) % 7 for j in range(4)] for i in range(4)]
+def x_lit(m): need(head(m) == 'Matrix4' and len(m) == 5, 'not a Matrix4 literal'); return [[int(x) % 7 for x in r] for r in m[1:]]
+def x_mat(b, env):
+    if b == 'I4': return [[int(i == j) for j in range(4)] for i in range(4)]
+    h = head(b)
+    if h == 'Get': return x_lit(field(env[b[1]], b[2])[1])
+    if h == 'Sub': A, B = x_mat(b[1], env), x_mat(b[2], env); return [[(A[i][j] - B[i][j]) % 7 for j in range(4)] for i in range(4)]
+    if h == 'Scale': c = int(env.get(b[1], b[1])); A = x_mat(b[2], env); return [[(c * x) % 7 for x in r] for r in A]
+    if h == 'Square': A = x_mat(b[1], env); return x_mul(A, A)
+    raise ValueError('matrix term %s' % show(b))
+def x_val(b, env):
+    h = head(b)
+    if h == 'Rank': return str(x_rank7(x_mat(b[1], env)))
+    if h == 'PowerRanks':
+        A = x_mat(b[1], env); P_ = A; out = ['Tuple']
+        for _ in range(int(b[2])): out.append(str(x_rank7(P_))); P_ = x_mul(P_, A)
+        return out
+    if h == 'Tuple': return ['Tuple'] + [x_val(x, env) for x in b[1:]]
+    raise ValueError('value term %s' % show(b))
+def x_const(mod, nm): d = decl(mod, 'Const', nm); need(d is not None, 'no Const %s' % nm); return d[3]
+def x_apply(mod, mp, cand): bd = field(mp, 'Body'); return show(x_val(bd[2], {bd[1][0]: x_const(mod, cand)}))
+def x_states(mod, mach): return field(decl(mod, 'Carrier', field(mach, 'States')[1]), 'Enum')[1:]
+def x_obs(mod, mach, s): return [x_apply(mod, decl(mod, 'Map', o[2]), s) for o in mach[2:] if head(o) == 'Observe']
+def x_hom(A, B):
+    rows = []
+    for Af, Bf in zip(A, B):
+        for i in range(4):
+            for j in range(4):
+                r = [0] * 16
+                for k in range(4): r[i * 4 + k] += Af[k][j]; r[k * 4 + j] -= Bf[i][k]
+                rows.append(r)
+    return 16 - x_rank7(rows)
+def x_row(mod, req, res):
+    st = field(res, 'Status')[1]; h = head(req)
+    if h == 'MinimizeForQueries':
+        mach = decl(mod, 'Machine', req[1]); X = x_states(mod, mach); O = {s: x_obs(mod, mach, s) for s in X}; want, used = [], set()
+        for s in X:
+            if s in used: continue
+            b = [t for t in X if t not in used and O[t] == O[s]]; used.update(b); want.append(b)
+        part = field(field(field(res, 'Value'), 'Refinement'), 'Partition'); got = [list(b[1:]) for b in part[1:]]
+        need(got == want and st == 'Checked', 'partition %s != recomputed %s' % (got, want))
+        return 'MinimizeForQueries %s: blocks %s' % (req[1], want)
+    if h == 'CheckNow':
+        rep = decl(mod, 'Representation', req[1]); mach = decl(mod, 'Machine', field(rep, 'Of')[1]); enc = decl(mod, 'Map', field(rep, 'Encode')[1])
+        X = x_states(mod, mach); C = {s: x_apply(mod, enc, s) for s in X}; O = {s: x_obs(mod, mach, s) for s in X}
+        want = [[a, b] for i, a in enumerate(X) for b in X[i + 1:] if C[a] == C[b] and O[a] != O[b]]
+        w = field(res, 'Evidence'); w = field(w, 'Witnesses') if w else None; got = [list(p[1:]) for p in (w[1:] if w else [])]
+        need(got == want and st == ('Refuted' if want else 'Checked'), 'witnesses %s / %s != recomputed %s' % (got, st, want))
+        return 'CheckNow %s: %s, merged pairs %s' % (req[1], st, want)
+    if h == 'SeekSeparator':
+        pr = field(req, 'Pair'); gen = field(decl(mod, 'ObserverFamily', field(req, 'Family')[1]), 'Generate')
+        fo, lam = gen[1], gen[2][1]; need(head(fo) == 'For' and fo[2] == ['Elements', 'F7'] and head(lam) == 'Lambda', 'family not a generated F7 Lambda')
+        bu = field(req, 'Budget'); budget = int(bu[1][1]) if bu and head(bu[1]) == 'Probes' else 7
+        want, found = [], None
+        for b in range(min(7, budget)):
+            va, vb = [show(x_val(lam[2], {lam[1][0][0]: x_const(mod, c), fo[1]: str(b)})) for c in pr[1:3]]
+            want.append((str(b), va, vb))
+            if va != vb: found = b; break
+        need(found is not None, 'no separator within budget')
+        sr = field(field(res, 'Value'), 'SeparatorResult'); tab = field(sr, 'Evaluations')[1]
+        got = [(r[1][1], show(r[2][1]), show(r[3][1])) for r in tab[1:]]; inst = field(sr, 'Observer')[1]
+        need(got == want and inst[2][1] == str(found) and st == 'Checked', 'separator %s / %s != recomputed b=%d %s' % (show(inst), got, found, want))
+        return 'SeekSeparator: first separator b=%d (%s vs %s)' % (found, want[-1][1], want[-1][2])
+    if h == 'DecideEquivalence':
+        pr = field(req, 'Pair'); flds = [f[0] for f in decl(mod, 'Record', 'MarkedPair')[2:]]
+        A, B = [[x_lit(field(x_const(mod, c), f)[1]) for f in flds] for c in pr[1:3]]
+        want = {'EndA': x_hom(A, A), 'HomAB': x_hom(A, B), 'EndB': x_hom(B, B)}
+        tab = field(field(field(res, 'Value'), 'EquivalenceDecision'), 'HomDimensions')[1]; got = {r[1]: int(r[2]) for r in tab[1:]}
+        need(got == want and len(set(want.values())) > 1 and st == 'Refuted', 'hom dims %s != recomputed %s' % (got, want))
+        return 'DecideEquivalence: Refuted, hom dims %s' % want
+    raise ValueError('unknown M7-Discovery request %s' % h)
+
 def main(fx, out):
     forms = read_all(open(fx, encoding='utf-8').read()); fm = {f[1]: f for f in forms if head(f) == 'DC.Module'}
     bad = rows = 0
@@ -267,6 +352,7 @@ def main(fx, out):
         req = field(res, 'Claim')[1]
         if fr and fr[1] == 'M7-Availability': fn = lambda: replay_avail(mod, req, res)
         elif fr and fr[1] == 'M7-Patterns': fn = lambda: p_row(mod, req, res)
+        elif fr and fr[1] == 'M7-Discovery': fn = lambda: x_row(mod, req, res)
         elif uses(mod, 'Neural') and head(req) in NEURAL: fn = lambda: NEURAL[head(req)](Mod(mod), req, res)
         else: continue
         rows += 1
