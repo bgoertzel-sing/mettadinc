@@ -54,8 +54,21 @@ for nm, a, b in [('composite Pairs', '(Pairs (X0 Z0) (X1 Z0))', '(Pairs (X0 Z0))
                  ('a Match step', '(Step X1) (To Z0)', '(Step X0) (To Z0)')]:
     tp = os.path.join(OUT, 'then_tamper.out'); ln = sl[2] if len(sl) > 2 else ''; t2 = ln.replace(a, b, 1); open(tp, 'w').write(t2 + '\n'); rr = replay_t(sf, tp)
     report('Then simulation tamper: %s is rejected by the replayer' % nm, t2 != ln and rr.returncode != 0 and 'REJECT' in rr.stdout, rr.stdout.strip().splitlines()[:1])
+# step 2b: Then on graded arrows (spec Table 4 l.893-909, defects add l.802).  InduceApprox is the only graded-arrow
+# producer; its source is always an admitted machine and its target an induced one, so no chain target(first) =
+# source(second) exists: Then answers InvalidInput with that reason (registry: mismatch -> InvalidInput), never Checked.
+gf = os.path.join(HERE, 'fixtures', 'then_graded.metta'); gt = run(gf); open(os.path.join(OUT, 'then_graded.out'), 'w').write(gt); gl = lines(gt)
+report('Then graded statuses: TightMachine, LooseMachine Checked; Then over them InvalidInput (no chain), never Checked',
+       statuses(gt) == ['Checked', 'Checked', 'InvalidInput', 'InvalidInput'], statuses(gt))
+report('Then graded neg: reason names the unreachable chain (target induced machine vs admitted source) and spec l.802',
+       len(gl) > 3 and all('no graded chain exists to compose' in l and 'spec l.802' in l for l in gl[2:4]))
 # release mode: graded kernel hives are beyond release
 for fx in sorted(os.listdir(os.path.join(HERE, 'fixtures'))):
+    if fx == 'then_graded.metta':   # InduceApprox is a release feature; the release Then answer must be the pre-m6-graded one
+        ro = run(os.path.join(HERE, 'fixtures', fx), beyond=False); rl = lines(ro)
+        report('release mode: then_graded.metta unchanged (InduceApprox Checked, Then InvalidInput "produced no arrow", no m6-graded reason)',
+               statuses(ro) == ['Checked', 'Checked', 'InvalidInput', 'InvalidInput'] and len(rl) > 3 and all('produced no arrow' in l and 'graded chain' not in l for l in rl[2:4]), statuses(ro))
+        continue
     st = statuses(run(os.path.join(HERE, 'fixtures', fx), beyond=False))
     report('release mode: %s answers only Unsupported/InvalidInput' % fx, len(st) > 0 and set(st) <= {'Unsupported', 'InvalidInput'}, st)
 print('m6graded_gates: %s' % ('PASS' if not fails else 'FAIL (%d)' % fails)); sys.exit(1 if fails else 0)
