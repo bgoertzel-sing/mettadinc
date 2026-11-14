@@ -147,14 +147,14 @@
       "result": "CheckedGradedArrow",
       "grade": "defect d >= 0",
       "compose": "defects add: d(g.f) <= d(f) + d(g)",
-      "then": "not composed in this release: Then over two graded arrows answers InvalidInput (\"Derive TightMachine produced no arrow\"); the law is documentation only",
+      "then": "not composed: graded arrows compose only when target(first) = source(second) (defects add, spec l.802), and InduceApprox does not take an induced machine (Output D Machine) as its source, so no graded chain exists. Release answers InvalidInput (\"Derive TightMachine produced no arrow\"); beyond release answers InvalidInput with a reason naming the induced target. The law is documentation only",
       "spec": "spec Table 4, l.893-912"
     },
     "Simulation": {
       "result": "CheckedSimulation",
       "grade": "directed grade",
       "compose": "directed grades add",
-      "then": "not composed in this release: Then over two simulations answers Unsupported (request not implemented for Profile Nondeterministic); the law is documentation only",
+      "then": "release: Then over two simulations answers Unsupported. Beyond release (ours, m6-graded): Then over two Checked simulations composes the relations (H2 after H1) and answers (ComposedArrow (Source A) (Target C) (Kind Simulation) (Grade 0)) with evidence (Composition (Rule RelationalComposition) (First S1 H1) (Second S2 H2)) plus the replayed simulation certificate of the composite relation; Grade 0 because both premises are exact simulations (Tolerance Exact) and directed grades add (0 + 0); a premise that is not Checked answers Unsupported, endpoints that do not meet answer InvalidInput",
       "spec": "spec Table 4, l.893-912"
     },
     "Linear": {

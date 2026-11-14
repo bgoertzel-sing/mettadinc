@@ -68,8 +68,13 @@ out = os.path.join(od, 'probe_graded.out')
 with open(out, 'w') as f: subprocess.run([os.path.join(ROOT, 'build/dcalc/dcalc'), '--beyond-release', fx], stdout=f, stderr=subprocess.STDOUT, timeout=600)
 rp = subprocess.run([sys.executable, os.path.join(HERE, 'replay_m6graded.py'), fx, out], capture_output=True, text=True)
 print(rp.stdout.strip().splitlines()[-1])
-from sympy import Rational, Symbol
-from sympy.solvers.simplex import lpmax
+try:
+    from sympy import Rational, Symbol
+    from sympy.solvers.simplex import lpmax
+    HAVE_SYMPY = True
+except ImportError:
+    HAVE_SYMPY = False
+    print('SKIP  sympy LP cross-check of LeastCoherentRefinement: sympy not installed (pip install sympy); LCR rows still checked by the replayer LP certificate')
 def S(q): return Rational(q.numerator, q.denominator)
 st = {'rows': 0, 'agree': 0, 'disagree': 0, 'unsupported_ok': 0, 'refuted': 0, 'checked': 0, 'complete_checked': 0, 'graded_checked': 0}; tam = []
 for line in open(out).read().splitlines():
@@ -87,6 +92,8 @@ for line in open(out).read().splitlines():
     elif op == 'CompleteHive':
         if any(H[kk] < F[kk] for kk in H): ok = s == 'Unsupported'; st['unsupported_ok'] += ok
         else: ok = s == 'Checked' and R.rat(R.field(res, 'Value')[1]) == sum(wt[a] * wt[b] * F[(a, b)] for a in nodes for b in nodes if (a, b) not in H)
+    elif op == 'LeastCoherentRefinement' and not HAVE_SYMPY:
+        ok = s == 'Checked'; st['lp_skipped'] = st.get('lp_skipped', 0) + 1
     elif op == 'LeastCoherentRefinement':
         X = {}; obj = 0; T = Q(0); cons = []
         for i2, a in enumerate(nodes):

@@ -230,12 +230,12 @@ Diffs:
 These are not inputs of `registry/mettadinc_registry.json` or `registry/DIGEST`. They are local patches, not part of the frozen `docs/e0/` bundles. They are applied
 after the bundle patches above, only to the beyond-release registry `registry/beyond/mettadinc_registry_beyond.json` (digest in `registry/beyond/DIGEST`), which dcalc selects only under `--beyond-release`.
 
-**Beyond-release registry digest: `53d387f318b12aef8ef71a9f97cb97b59ed6e48ba42a48c6075503f71b7720f2`**
+**Beyond-release registry digest: `ee31325eb4d33fa5ee9512790ee134830fda12ef67c45a3c4369e9e0b00ed37f`**
 
 | Local input | File | sha256 |
 |---|---|---|
 | m4est local patch (beyond release only) | registry/patches/m4est_registry_patch.json | `87000ddd263f9911fd6872e11cff609dcee766ce206c7229d5d7d591f5ab6b39` |
 | m5rest local patch (beyond release only) | registry/patches/m5rest_registry_patch.json | `98045e52735fff63a9f72cafb3cd5e0f5ffba2b82249ed0444d380ab473989c9` |
 | m6 local patch (beyond release only) | registry/patches/m6_registry_patch.json | `b14cb8cb35474060ab648253f699bdd6d46f9c5b9990f040d7752d0552008bc9` |
-| m6rest local patch (beyond release only) | registry/patches/m6rest_registry_patch.json | `bb041a0e443443f11501b6b34632780ad7d856a59b03fd01ef09aa1ffb38aadf` |
-| m6graded local patch (beyond release only) | registry/patches/m6graded_registry_patch.json | `9e9721d028f2d869e5a7361b6c0b4159e97b34bb927858937b35335b5ddde2e4` |
+| m6rest local patch (beyond release only) | registry/patches/m6rest_registry_patch.json | `2c03b735522fc9a77076f673e670d2c44572498cfa57b776878e98caa112e20b` |
+| m6graded local patch (beyond release only) | registry/patches/m6graded_registry_patch.json | `f887c37d40a60b874c48d8c5f6efef6d1c2ef0d7e3f63c1cebdcd877dfd97f61` |
