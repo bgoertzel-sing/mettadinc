@@ -1,0 +1,20 @@
+{
+ "note": "M7 (t-2026-11-14-mettadinc-m7), claim Z01: integration pins kept OUTSIDE the frozen docs/e0 package (review 1, finding 1). The e0 DEPENDENCIES.json stays byte for byte as delivered.",
+ "integration_dependencies_pinned": {
+  "note": "M7 (t-2026-11-14-mettadinc-m7), claim Z01: snapshot carrier.  The CeTTa pin above (12da03b4) leaves MORK on main and PathMap on master; the CeTTa build used since M0 (4c285a97, README lines 384-385) pins the commits below, which this entry adopts.",
+  "MORK": {
+   "repository": "https://github.com/trueagi-io/MORK",
+   "commit": "ed57c6716d8c510296fb5fbb8be6fbfe2df241d7",
+   "interface_version": "CeTTa 4c285a97 MORK bridge: lib/mork.metta (pattern query over a space), used as (Query s pattern (Key $v))",
+   "compatibility_test": "tests/dcalc/m7/fixtures/snapshot_receipts (Z01): digest checked before any materialization; CheckNow on the Key projection is content-independent",
+   "recorded": "2026-11-14"
+  },
+  "PathMap": {
+   "repository": "https://github.com/Adam-Vandervorst/PathMap",
+   "commit": "ef0259152867ece8e85888acc49c238f264a0330",
+   "interface_version": "trie backend of the MORK commit above; not called directly by dcalc",
+   "compatibility_test": "covered by the MORK entry (bridge build of CeTTa 4c285a97)",
+   "recorded": "2026-11-14"
+  }
+ }
+}
