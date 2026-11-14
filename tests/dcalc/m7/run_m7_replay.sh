@@ -24,5 +24,12 @@ run tests/dcalc/m7/replay_m7_f07.py forty_bits   # review-1 F5: F07 ClockRates, 
 line=$(python3 tests/dcalc/m7/replay_m7_m01.py "$V/hyperseed_methods.metta" build/m7_replay/hyperseed_methods.out "$V/receipt_packets.metta" | tail -1)
 echo "hyperseed_methods (M01, cross-file): $line"
 case "$line" in *"-> PASS") ;; *) rc=1 ;; esac
+# review-1 F7d: nested (CompleteHive (Output D Hive)) fixtures, replayed by the M6-rest replayer (Output after CompleteHive)
+for f in complete_hive_nested nested_complete; do
+  "$D" --beyond-release "tests/dcalc/m7/fixtures/$f.metta" > "build/m7_replay/$f.out" 2>&1
+  line=$(python3 tests/dcalc/m6rest/replay_m6rest.py "tests/dcalc/m7/fixtures/$f.metta" "build/m7_replay/$f.out" | tail -1)
+  echo "$f (nested Output hive): $line"
+  case "$line" in *"-> PASS") ;; *) rc=1 ;; esac
+done
 echo "m7_replay: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc
