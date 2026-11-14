@@ -59,6 +59,7 @@ step m6rest_gates;     $R m6rest_gates "python3 tests/dcalc/m6rest/run_m6rest_ga
 step m6graded_gates;   $R m6graded_gates "python3 tests/dcalc/m6graded/run_m6graded_gates.py > build/m6graded_gates.out; r=\$?; tail -1 build/m6graded_gates.out; exit \$r" || rc=1   # m6-graded (t-2026-11-13-mettadinc-m6-graded)
 step m7_gates;         $R m7_gates "python3 tests/dcalc/mutations/run_m7_gates.py > build/m7_gates.out; r=\$?; tail -1 build/m7_gates.out; exit \$r" || rc=1   # M7 negative gates (t-2026-11-14-mettadinc-m7)
 step m7_replay;        $R m7_replay "sh tests/dcalc/m7/run_m7_replay.sh > build/m7_replay.out; r=\$?; tail -1 build/m7_replay.out; exit \$r" || rc=1   # M7 independent replay of W/N/Q/X/Z fixtures
+step review_fixes;     $R review_fixes "python3 tests/dcalc/review_fixes/run_review_fixes.py > build/review_fixes.out; r=\$?; tail -1 build/review_fixes.out; exit \$r" || rc=1   # D1, partial Cases, D2 fail-closed, Cone reason (t-2026-11-14-mettadinc-review-fixes)
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc
