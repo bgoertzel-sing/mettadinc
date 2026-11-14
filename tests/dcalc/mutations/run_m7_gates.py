@@ -30,6 +30,9 @@ av = os.path.join(FX, 'availability.metta'); at = run(av); open(os.path.join(OUT
 for req in ('(CheckNow DefaultZero)', '(CheckNow Bias)'):
     v = [x for k, x in r.items() if k.endswith(req)]
     report('gate 1: %s Refuted with merged pair (Absent Neither)' % req, len(v) == 1 and v[0][0] == 'Refuted' and '(Pair Absent Neither)' in R.show(R.find(v[0][2], 'Value')), str(v[:1])[:200])
+# review-2 F3: gate 1 fixture (commit 1582513): a Missing/Absent report read as a P-bit value is refused InvalidInput
+ok, det = refused(os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'fixtures', 'gate1_missing_as_pbit.metta'), '(CheckNow DefaultZero)', 'an unavailable report is never read as another value')
+report('gate 1: gate1_missing_as_pbit refused InvalidInput (Absent is not a value of the To type)', ok, det)
 # gate 2: a self-authored Checked claim is refused at admission (no bypass of checking)
 ok, d = refused('gate2_self_authored.metta', 'Availability', 'unknown declaration head Claim'); report('gate 2: self-authored (Claim .. (Status Checked)) refused', ok, d)
 # gate 3: a certificate reused after its context changed: the stale output's Binding Digest no longer matches the module
@@ -44,9 +47,6 @@ report('gate 3: the changed module re-binds to its own digest', bool(fd) and all
 rp = subprocess.run([sys.executable, os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'replay_m7.py'), g3, os.path.join(OUT, 'availability.out')], capture_output=True, text=True, timeout=120)   # review-1 F3
 rj = [l for l in rp.stdout.splitlines() if l.startswith('REJECT') and 'stale certificate' in l]
 report('gate 3: replay itself REJECTs every stale row (Binding Digest check in replay_m7.py)', rp.returncode != 0 and len(rj) == len(stale) > 0, rp.stdout[-300:])
-rp = subprocess.run([sys.executable, os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'replay_m7.py'), g3, os.path.join(OUT, 'availability.out')], capture_output=True, text=True, timeout=120)   # review-1 F3
-rj = [l for l in rp.stdout.splitlines() if l.startswith('REJECT') and 'stale certificate' in l]
-report('gate 3: replay_m7 itself rejects every stale row (digest), not only this script', rp.returncode != 0 and len(rj) == len(stale) and len(rj) > 0, rp.stdout[-300:])
 # gate 4: observer on an unbound global operator / free global symbol
 ok, d = refused('gate4_unbound_operator.metta', 'Separation', 'unknown head Frobenius'); report('gate 4: undeclared operator Frobenius refused', ok, d)
 ok, d = refused('gate4b_free_symbol.metta', 'Separation', 'undeclared name G'); report('gate 4: free global symbol G refused', ok, d)
