@@ -43,6 +43,9 @@ fresh = rows(run(g3)); fd = [R.show(R.find(R.find(v[2], 'Binding'), 'Digest')) f
 report('gate 3: the changed module re-binds to its own digest', bool(fd) and all(dg in x for x in fd), str(fd)[:200])
 rp = subprocess.run([sys.executable, os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'replay_m7.py'), g3, os.path.join(OUT, 'availability.out')], capture_output=True, text=True, timeout=120)   # review-1 F3
 rj = [l for l in rp.stdout.splitlines() if l.startswith('REJECT') and 'stale certificate' in l]
+report('gate 3: replay itself REJECTs every stale row (Binding Digest check in replay_m7.py)', rp.returncode != 0 and len(rj) == len(stale) > 0, rp.stdout[-300:])
+rp = subprocess.run([sys.executable, os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'replay_m7.py'), g3, os.path.join(OUT, 'availability.out')], capture_output=True, text=True, timeout=120)   # review-1 F3
+rj = [l for l in rp.stdout.splitlines() if l.startswith('REJECT') and 'stale certificate' in l]
 report('gate 3: replay_m7 itself rejects every stale row (digest), not only this script', rp.returncode != 0 and len(rj) == len(stale) and len(rj) > 0, rp.stdout[-300:])
 # gate 4: observer on an unbound global operator / free global symbol
 ok, d = refused('gate4_unbound_operator.metta', 'Separation', 'unknown head Frobenius'); report('gate 4: undeclared operator Frobenius refused', ok, d)
@@ -55,7 +58,8 @@ ok, d = refused('gate5c_wrong_derivation.metta', 'Separation', 'has no field Der
 for f, word, what in (('gate6a_library.metta', 'expected one of Coordinates', 'Library other than Coordinates'),
                       ('gate6b_dirac.metta', 'lacks full support', 'measure without full support (Dirac)'),
                       ('gate6c_nomeasure.metta', 'undeclared name Missing', 'undeclared measure'),
-                      ('gate6d_product_nofull.metta', 'unknown head Bernoulli', 'product of non-full-support factors')):
+                      ('gate6d_product_nofull.metta', 'lacks full support', 'admissible Product law with a zero-mass factor (refused by ClockRates, not admission)'),
+                      ('gate6e_zero_masses.metta', 'lacks full support', 'Masses listing every point but four with mass 0 (review-1 F4 probe)')):
     ok, d = refused(os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'fixtures', f), 'G', word); report('gate 6: ClockRates with %s refused' % what, ok, d)
 # canary (sanity gate): the unmutated fixtures are decided, not refused, through the same path
 ar = rows(run(os.path.join(FX, 'arithmetic_probes.metta'))); sep = [v for k, v in ar.items() if k.endswith('Separation')]

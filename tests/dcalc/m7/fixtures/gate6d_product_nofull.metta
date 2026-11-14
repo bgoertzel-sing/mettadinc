@@ -47,7 +47,9 @@
 (DC.Module Gate6
   (Profile (Dynamics Deterministic) (Values Crisp) (Carriers Symbolic))
   (Use BitVectors Discovery)
-  (Import FortyBits (Only Word ZeroMachine ParityMachine))
-  (Measure ZeroBit (On Word) (Product (Bernoulli (Rat 0 1)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) (Bernoulli (Rat 1 2)) ))
+  (Import FortyBits (Only Bit Word ZeroMachine ParityMachine))
+  (Measure B0 (On Bit) (Masses (0 (Rat 1 1)) (1 (Rat 0 1))))
+  (Measure BH (On Bit) (Masses (0 (Rat 1 2)) (1 (Rat 1 2))))
+  (Measure ZeroBit (On Word) (Product B0 BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH BH))
   (Derive G (ClockRates ZeroMachine (Under ZeroBit) (Library Coordinates) (Kind Mean))))
 !(dc.run Gate6 G)

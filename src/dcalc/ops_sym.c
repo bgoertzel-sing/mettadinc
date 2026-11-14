@@ -1301,6 +1301,15 @@ static int sym_uniform_measure(const Sx *src, const char *mu) {
 /* M7 gate 6: a (Masses ...) measure on a (BitVector k) carrier that lists fewer than 2^k points has no full support. */
 static int sym_masses_partial(const Sx *src, const char *mu) {
     const Sx *ms = NULL, *on = NULL;
+    static int depth = 0;   /* review-1 F4b: (Product m1 .. mk) has full support iff every factor has */
+    for (size_t i = 2; src && i < src->n && depth < 8; i++) { const Sx *d = src->items[i];
+        if (!sx_head_is(d, "Measure") || d->n < 3 || !sx_is_sym(d->items[1], mu)) continue;
+        for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Product")) {
+            const Sx *pd = d->items[k]; int bad = 0; depth++;
+            for (size_t j = 1; j < pd->n && !bad; j++) if (pd->items[j]->kind == SX_SYM) bad = sym_masses_partial(src, pd->items[j]->text);
+            depth--; if (bad) return 1;
+        }
+    }
     for (size_t i = 2; src && i < src->n; i++) { const Sx *d = src->items[i];
         if (sx_head_is(d, "Measure") && d->n >= 3 && sx_is_sym(d->items[1], mu))
             for (size_t k = 2; k < d->n; k++) {
@@ -1309,8 +1318,11 @@ static int sym_masses_partial(const Sx *src, const char *mu) {
             }
     }
     if (!ms || !on || on->items[1]->kind != SX_SYM) return 0;
+    for (size_t j = 1; j < ms->n; j++) { const Sx *e = ms->items[j], *q = e && e->kind == SX_LIST && e->n == 2 ? e->items[1] : NULL;   /* review-1 F4: a listed point with mass 0 is no full support */
+        if (q && sx_head_is(q, "Rat") && q->n == 3 && q->items[1]->kind == SX_SYM && !strcmp(q->items[1]->text, "0")) return 1; }
     for (size_t i = 2; i < src->n; i++) { const Sx *d = src->items[i];
         if (!sx_head_is(d, "Carrier") || d->n < 3 || !sx_is_sym(d->items[1], on->items[1]->text)) continue;
+        for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Enum") && ms->n < d->items[k]->n) return 1;   /* review-1 F4b */
         for (size_t k = 2; k < d->n; k++) { const Sx *of = d->items[k];
             if (!sx_head_is(of, "Of") || of->n != 2 || !sx_head_is(of->items[1], "BitVector") || of->items[1]->n != 2
                 || of->items[1]->items[1]->kind != SX_SYM) continue;
