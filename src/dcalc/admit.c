@@ -913,6 +913,20 @@ static void check_module_rules(DcAdmission *a, DcAModule *m) {
                         if (has_dup(v, n)) { snprintf(s, sizeof s, "%.60s", shw(c->items[0], b, sizeof b)); diag(a, m->name, c->items[0], where, "nonlinear pattern %s", s); }
                         free(v);
                     }
+                /* review-fixes D1 (spec 5.4): a Cases map with two rows for the same pattern is refused, naming the duplicate */
+                if (sx_is_sym(x->items[0], "Cases"))
+                    for (size_t k = 2; k < x->n; k++) {
+                        const Sx *c = x->items[k];
+                        if (c->kind != SX_LIST || !c->n) continue;
+                        for (size_t j = 1; j < k; j++) {
+                            const Sx *e = x->items[j];
+                            if (e->kind == SX_LIST && e->n && sx_equal(e->items[0], c->items[0])) {
+                                snprintf(s, sizeof s, "%.60s", shw(c->items[0], b, sizeof b));
+                                diag(a, m->name, c->items[0], where, "duplicate case %s", s);
+                                break;
+                            }
+                        }
+                    }
                 if (sx_is_sym(x->items[0], "Body") && x->n > 1 && x->items[1]->kind == SX_LIST) {
                     const Sx *bl = x->items[1];
                     int dup = 0;

@@ -54,7 +54,13 @@ open(fake, 'w').write('#!/bin/sh\n# pin check (--version) goes to the real solve
 os.chmod(fake, os.stat(fake).st_mode | stat.S_IXUSR)
 # the sha pins (printed by tools/dcalc-proof-backend.sh) would refuse the fake binary before any proof;
 # clear them here so the checker path is exercised, and test the pin refusal separately below
+# review-fixes D2: unpinned now means no backend (fail closed), so pin the fake solver's own
+# sha256 here; the real checker stays pinned and must reject the foreign proof.
+import hashlib
+fake_sha = hashlib.sha256(open(fake, 'rb').read()).hexdigest()
 env3 = {k: v for k, v in os.environ.items() if k not in ('DCALC_CADICAL_SHA256', 'DCALC_CAKE_LPR_SHA256')}
+env3['DCALC_CADICAL_SHA256'] = fake_sha
+if os.environ.get('DCALC_CAKE_LPR_SHA256'): env3['DCALC_CAKE_LPR_SHA256'] = os.environ['DCALC_CAKE_LPR_SHA256']
 v3 = run(src, 'neg3-other-proof', dict(env3, DCALC_CADICAL=fake))
 ok3 = all(st(v3.get(('FortyBits', r))) != 'Checked' for r in ('(CheckNow KeepX0)', 'ZeroQuotient', 'ParityQuotient', 'OnReach'))
 report('neg 3: proof log for a different formula never Checked', ok3 and has(v3.get(('FortyBits', 'OnReach')), 'cake_lpr did not verify'))

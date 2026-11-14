@@ -12,6 +12,11 @@ set -u
 if [ -z "${DCALC_CADICAL:-}" ] || [ -z "${DCALC_CAKE_LPR:-}" ]; then
   echo "dcalc-run-all: DCALC_CADICAL and DCALC_CAKE_LPR must name the pinned proof tools (docs/PROOF-BACKEND.md)"; exit 2
 fi
+# review-fixes D2: dcalc refuses an unpinned backend (fail closed), so the sha256 pins are required too
+# (tools/dcalc-proof-backend.sh prints them).
+if [ -z "${DCALC_CADICAL_SHA256:-}" ] || [ -z "${DCALC_CAKE_LPR_SHA256:-}" ]; then
+  echo "dcalc-run-all: DCALC_CADICAL_SHA256 and DCALC_CAKE_LPR_SHA256 must pin the proof tools (docs/PROOF-BACKEND.md)"; exit 2
+fi
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT" || exit 2
 CC=${CC:-gcc}

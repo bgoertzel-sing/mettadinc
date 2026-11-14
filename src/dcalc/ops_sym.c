@@ -562,6 +562,10 @@ static int sym_backend_ok(const char *cad, const char *cake, const char *d) {
     if (file_sha(cad, sym_sol_sha) || file_sha(cake, sym_chk_sha)) {
         snprintf(sym_be_why, sizeof sym_be_why, "cannot hash the solver or checker binary"); return 0; }
     const char *ps = penv("DCALC_CADICAL_SHA256"), *pc = penv("DCALC_CAKE_LPR_SHA256");
+    /* review-fixes D2 (trust boundary, fail closed): without a sha256 pin for both the solver and
+     * the checker, any binary printing "s VERIFIED UNSAT" could make a claim Checked.  Unpinned
+     * means no proof backend, so symbolic claims stay Conditional (never Checked). */
+    if (!ps || !*ps || !pc || !*pc) { snprintf(sym_be_why, sizeof sym_be_why, "proof backend not pinned: DCALC_CADICAL_SHA256 and DCALC_CAKE_LPR_SHA256 must both be set"); return 0; }
     if (ps && strcmp(ps, sym_sol_sha)) { snprintf(sym_be_why, sizeof sym_be_why, "solver binary sha256 differs from DCALC_CADICAL_SHA256"); return 0; }
     if (pc && strcmp(pc, sym_chk_sha)) { snprintf(sym_be_why, sizeof sym_be_why, "checker binary sha256 differs from DCALC_CAKE_LPR_SHA256"); return 0; }
     sym_be_state = 1; return 1;
@@ -1399,7 +1403,7 @@ Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     if (!strcmp(head, "ClockRates") && r->m->discovery) return sym_req_clock_rates(r, &S, q);   /* M7 opt-in (F07) */
     if (!strcmp(head, "MinimizeForQueries")) return sym_policy(sym_req_minimize(r, &S, q, slot));
     if (!strcmp(head, "CheckNow") || !strcmp(head, "CheckBehavioral") || !strcmp(head, "MeasureBehavioral")) return sym_policy(sym_req_repr(r, &S, q, head));
-    return dc_unsupported(r->m, "request %s: symbolic engine not built yet (M3 in progress; module read: %d carriers, %d maps, %d machines)", head, S.ncar, S.nmap, S.nmach);
+    return dc_unsupported(r->m, "request %s: not implemented by the symbolic engine (it answers CheckBlockPartition, MinimizeForQueries, CheckNow, CheckBehavioral, MeasureBehavioral, and ClockRates under Use Discovery; see docs/M7-BLOCKED.md; module read: %d carriers, %d maps, %d machines)", head, S.ncar, S.nmap, S.nmach);
 }
 
 /* ---- transport rules (spec Table 7, remove queries or actions) ----

@@ -329,7 +329,7 @@ Sx *dc_req_m7(DcRun *r, const Sx *q, const char *h) {
     for (size_t i = 0; i < n; i++) {
         if (enm->items[i + 1]->kind != SX_SYM) return m7_unsup(m, &sc, claim, "CheckNow: M7 state carrier elements must be symbols");
         nm[i] = enm->items[i + 1]->text;
-        if (!m7_case(code, nm[i])) return m7_unsup(m, &sc, claim, "CheckNow: Encode map has no case for some state");
+        if (!m7_case(code, nm[i])) { sx_free(claim); return dc_invalid(m, "CheckNow: Encode map %s has no case for state %s (a partial Cases map is invalid input)", en->items[1]->text, nm[i]); }
     }
     /* observations: (Observe label map ...) pairs */
     const Sx *obsm[16]; const char *obsl[16]; size_t no = 0;
@@ -339,7 +339,7 @@ Sx *dc_req_m7(DcRun *r, const Sx *q, const char *h) {
         for (size_t k = 1; k + 1 < o->n; k += 2) {
             const Sx *mp = o->items[k + 1]->kind == SX_SYM ? m7_decl(m, "Map", o->items[k + 1]->text) : NULL;
             if (!mp || no >= 16) return m7_unsup(m, &sc, claim, "CheckNow: M7 observation maps must be declared Maps (<= 16)");
-            for (size_t s = 0; s < n; s++) if (!m7_case(mp, nm[s])) return m7_unsup(m, &sc, claim, "CheckNow: an observation map has no case for some state");
+            for (size_t s = 0; s < n; s++) if (!m7_case(mp, nm[s])) { sx_free(claim); return dc_invalid(m, "CheckNow: observation map %s has no case for state %s (a partial Cases map is invalid input)", o->items[k + 1]->text, nm[s]); }
             obsl[no] = o->items[k]->kind == SX_SYM ? o->items[k]->text : "?"; obsm[no++] = mp;
         }
     }
