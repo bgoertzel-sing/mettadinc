@@ -86,6 +86,7 @@ typedef struct {
     int unsupported_decls;   /* declarations outside the M0 fragment */
     int symbolic;            /* M3: (Carriers Symbolic); requests go to ops_sym.c, nothing tabulated */
     int stochastic;          /* M4 (opt-in only): Dynamics Stochastic; requests go to stoch.c, nothing tabulated */
+    int snapshot;   /* M7 Z01 opt-in: (Carriers Snapshot) in beyond-release; read by ops_m7_snapshot.c */
     int hyperseed, neural, discovery, bitvectors, finitesets;   /* M7 (opt-in only): (Use X) in beyond-release; read by ops_m7.c */
     int transfers;           /* M6 (opt-in only): (Use Transfers) in beyond-release; MethodSystem/Transfer/Symmetry/TransferHive read by ops_transfers.c from m->source */
     int hives;               /* M6 (opt-in only): (Use Hives) in beyond-release; KernelHive/CrossKernel read by ops_hives.c from m->source */

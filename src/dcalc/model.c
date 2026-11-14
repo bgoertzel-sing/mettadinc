@@ -672,6 +672,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
                 else if (!strcmp(key, "Carriers") && !strcmp(val, "Symbolic")) m->symbolic = 1;   /* M3 */
                 else if (!strcmp(key, "Dynamics") && !strcmp(val, "Stochastic") && dc_eval_beyond_release()) m->stochastic = 1;   /* M4 opt-in */
                 else if (!strcmp(key, "Dynamics") && !strcmp(val, "Nondeterministic") && dc_eval_beyond_release()) m->nondet = 1;   /* M5 opt-in */
+                else if (!strcmp(key, "Carriers") && !strcmp(val, "Snapshot") && dc_eval_beyond_release()) m->snapshot = 1;   /* M7 Z01 opt-in */
                 else if ((!strcmp(key, "Dynamics") && strcmp(val, "Deterministic")) || (!strcmp(key, "Carriers") && strcmp(val, "Enumerated")))
                     { if (!m->profile_unsupported[0]) snprintf(m->profile_unsupported, sizeof m->profile_unsupported, "Profile %s %s is outside the M0 fragment", key, val); }
                 else if (strcmp(key, "Dynamics") && strcmp(key, "Carriers"))
@@ -682,6 +683,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
         else if (m->stochastic && strcmp(h, "Derive")) continue;   /* M4: stochastic decls are read by stoch.c from m->source */
         else if (m->contracts && !strcmp(h, "Implementation")) continue;   /* M6: read by ops_contracts.c from m->source */
         else if (m->nondet && strcmp(h, "Derive")) continue;   /* M5: nondeterministic decls are read by ops_nondet.c from m->source */
+        else if (m->snapshot && strcmp(h, "Derive")) continue;   /* M7 Z01: snapshot decls are read by ops_m7_snapshot.c from m->source */
         else if (m->symbolic && strcmp(h, "Derive")) continue;   /* M3: symbolic decls are read by sym.c from m->source */
         else if (!strcmp(h, "Carrier")) rc = admit_carrier(m, d, err, es);
         else if (!strcmp(h, "Map")) rc = admit_map(m, d, err, es);

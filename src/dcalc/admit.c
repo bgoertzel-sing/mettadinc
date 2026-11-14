@@ -1053,6 +1053,7 @@ static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimat
 static int m4_allowed(const char *key, const char *val) {
     if (!val) return 0;
     if (!strcmp(key, "dynamics")) return !strcmp(val, "Stochastic") || !strcmp(val, "Nondeterministic");   /* M5 */
+    if (!strcmp(key, "carriers") && val && !strcmp(val, "Snapshot")) return 1;   /* M7 Z01 opt-in */
     if (!strcmp(key, "libraries")) { for (int i = 0; M4_LIBS[i]; i++) if (!strcmp(val, M4_LIBS[i])) return 1; }
     return 0;
 }
