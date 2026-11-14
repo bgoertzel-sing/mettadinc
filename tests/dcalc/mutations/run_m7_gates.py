@@ -69,6 +69,9 @@ report('canary: unmutated availability rows are Refuted, not InvalidInput', len(
 # review-1 F6: a TransitionKernel imported from MeTTaProN is a blocked dependency -> Unsupported (not InvalidInput)
 kr = rows(run(os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'fixtures', 'r6_mettapron_import.metta')))
 report('blocked: (TransitionKernel .. (Import MeTTaProN ..)) is Unsupported, citing M7-BLOCKED', len(kr) >= 1 and all(v[0] == 'Unsupported' and 'MeTTaProN' in v[1] for v in kr.values()), str([(v[0], v[1][:120]) for v in kr.values()]))
+# review-1 F7: (Import M (Only ..)) scope: a name of M outside the Only list (read0) is not visible to the importer
+orow = {k: v for k, v in rows(run(os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'fixtures', 'r7_only_scope.metta'))).items() if 'OnlyProbe' in k}   # the fixture also carries FortyBits' own rows
+report('import scope: a name outside (Only ..) is refused InvalidInput (undeclared name read0)', len(orow) >= 1 and all(v[0] == 'InvalidInput' and 'undeclared name read0' in v[1] for v in orow.values()), str([(v[0], v[1][:120]) for v in orow.values()]))
 # gate 7: an Estimated result is never turned into an exact channel, and an order-2 U-statistic is never treated as
 # n independent counts: Status stays Estimated, IndependentPairs = floor(n/2), and the interval is at least as wide as
 # Hoeffding with floor(n/2) pairs (with n counts it would be narrower).  A tampered copy must be refused.

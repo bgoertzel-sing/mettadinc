@@ -85,6 +85,9 @@ static Sx *m6_inline_imports(const Sx *all, const Sx *raw) {
 /* M7 opt-in (beyond release, (Use Hyperseed), M01): source-level expansion.
  * - (Import M (Only n ...)) of a module in the run universe copies M's declarations other than Profile, Use,
  *   Import and Derive at the Import (every Only name must be declared in M);
+ *   (review-1 F7) the copy is M's whole declaration set because Only names (e.g. a Machine) refer to M's other
+ *   Maps; visibility is still the Only list: m1_admission refuses an importer that names anything else
+ *   (fixture tests/dcalc/m7/fixtures/r7_only_scope.metta, run_m7_gates 'import scope' row);
  * - Schema and Method declarations are dropped; (Derive X (Method args...)) binds the Method's Parameters to the
  *   arguments and unfolds its Body: (LetResult $v E B) becomes (Derive X__v E) and B with $v := X__v, ending
  *   with (Derive X E).  Returns a new module form, or NULL when nothing is expanded. */
