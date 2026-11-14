@@ -1,3 +1,5 @@
+;; M7 review 1 finding 7 (m7_expand Only): FortyBits is imported with (Only Word ZeroMachine); the importer uses
+;; read0/swap01, which are declared in FortyBits but not listed in Only. Expected: InvalidInput "undeclared name read0".
 ;; Forty-bit symbolic fixtures, the adversarial zero-tail candidate and a
 ;; reachability scope.  Specification, Sections 5.3 and 6.2.
 ;; @excerpt forty-bits-module
