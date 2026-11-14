@@ -1298,12 +1298,39 @@ static int sym_uniform_measure(const Sx *src, const char *mu) {
             for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Uniform") && d->items[k]->n == 1) return 1; }
     return 0;
 }
+/* M7 gate 6: a (Masses ...) measure on a (BitVector k) carrier that lists fewer than 2^k points has no full support. */
+static int sym_masses_partial(const Sx *src, const char *mu) {
+    const Sx *ms = NULL, *on = NULL;
+    for (size_t i = 2; src && i < src->n; i++) { const Sx *d = src->items[i];
+        if (sx_head_is(d, "Measure") && d->n >= 3 && sx_is_sym(d->items[1], mu))
+            for (size_t k = 2; k < d->n; k++) {
+                if (sx_head_is(d->items[k], "Masses")) ms = d->items[k];
+                if (sx_head_is(d->items[k], "On") && d->items[k]->n == 2) on = d->items[k];
+            }
+    }
+    if (!ms || !on || on->items[1]->kind != SX_SYM) return 0;
+    for (size_t i = 2; i < src->n; i++) { const Sx *d = src->items[i];
+        if (!sx_head_is(d, "Carrier") || d->n < 3 || !sx_is_sym(d->items[1], on->items[1]->text)) continue;
+        for (size_t k = 2; k < d->n; k++) { const Sx *of = d->items[k];
+            if (!sx_head_is(of, "Of") || of->n != 2 || !sx_head_is(of->items[1], "BitVector") || of->items[1]->n != 2
+                || of->items[1]->items[1]->kind != SX_SYM) continue;
+            long bits = 0; const char *t = of->items[1]->items[1]->text;
+            for (; *t >= '0' && *t <= '9'; t++) bits = bits * 10 + (*t - '0');
+            if (*t || bits <= 0) return 0;
+            if (bits >= 62) return 1;
+            return (long)(ms->n - 1) < (1L << bits);
+        }
+    }
+    return 0;
+}
 static Sx *sym_req_clock_rates(DcRun *r, const SymMod *S, const Sx *q) {
     DcModule *m = r->m; const char *h = "ClockRates", *mn; char err[256];
     DcScope sc = { "M7-ClockRates", -1, "", NULL };
     if (sname(q, 1, &mn)) return dc_invalid(m, "%s: field machine missing or not a name", h);
     const Sx *un = sx_find(q, "Under", 2), *lib = sx_find(q, "Library", 2), *kd = sx_find(q, "Kind", 2);
     if (!un || un->n != 2 || un->items[1]->kind != SX_SYM) return dc_invalid(m, "%s: (Under Measure) is required", h);
+    if (sym_masses_partial(m->source, un->items[1]->text))   /* M7 gate 6: refused as stated, not Unsupported */
+        return dc_invalid(m, "%s: measure %s lacks full support on its carrier; clock-rate exactness needs a full-support product law", h, un->items[1]->text);
     if (!sym_uniform_measure(m->source, un->items[1]->text)) return dc_unsupported(m, "%s: only a declared (Uniform) measure is in the M7 fragment (product law with full support)", h);
     if (!lib || lib->n != 2 || !sx_is_sym(lib->items[1], "Coordinates")) return dc_unsupported(m, "%s: only (Library Coordinates) is in the M7 fragment", h);
     if (kd && (kd->n != 2 || !sx_is_sym(kd->items[1], "Mean"))) return dc_unsupported(m, "%s: only (Kind Mean) is in the M7 fragment", h);

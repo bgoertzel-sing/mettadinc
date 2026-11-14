@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""M7 negative gates 1-5 and 7 (t-2026-11-14-mettadinc-m7; MILESTONES.md M7 'Negative tests').  Gate 6 (clock-rate
-exactness) belongs to the ClockRates owner; gate 7 is added separately.  Each gate must be refused AS STATED
+"""M7 negative gates 1-7 (t-2026-11-14-mettadinc-m7; MILESTONES.md M7 'Negative tests').  Gate 6 (clock-rate
+exactness) uses fixtures gate6a-d.  Each gate must be refused AS STATED
 (Refuted / InvalidInput / replay REJECT), never merely passed off as Unsupported.  Runs dcalc --beyond-release."""
 import hashlib, os, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
@@ -48,6 +48,12 @@ ok, d = refused('gate4b_free_symbol.metta', 'Separation', 'undeclared name G'); 
 ok, d = refused('gate5_no_derivation.metta', 'Separation', 'missing required argument Require'); report('gate 5: SeekSeparator without Require refused', ok, d)
 ok, d = refused('gate5b_dangling_derivation.metta', 'Separation', 'not a derivation'); report('gate 5: Require of a removed Invariance Derive refused', ok, d)
 ok, d = refused('gate5c_wrong_derivation.metta', 'Separation', 'has no field Derivation'); report('gate 5: Require of a non-invariance Derive refused', ok, d)
+# gate 6: clock-rate exactness without a full-support product law over declared coordinates is refused as stated
+for f, word, what in (('gate6a_library.metta', 'expected one of Coordinates', 'Library other than Coordinates'),
+                      ('gate6b_dirac.metta', 'lacks full support', 'measure without full support (Dirac)'),
+                      ('gate6c_nomeasure.metta', 'undeclared name Missing', 'undeclared measure'),
+                      ('gate6d_product_nofull.metta', 'unknown head Bernoulli', 'product of non-full-support factors')):
+    ok, d = refused(os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'fixtures', f), 'G', word); report('gate 6: ClockRates with %s refused' % what, ok, d)
 # canary (sanity gate): the unmutated fixtures are decided, not refused, through the same path
 ar = rows(run(os.path.join(FX, 'arithmetic_probes.metta'))); sep = [v for k, v in ar.items() if k.endswith('Separation')]
 report('canary: unmutated arithmetic_probes Separation is Checked', len(sep) == 1 and sep[0][0] == 'Checked', str([(v[0], v[1][:100]) for v in sep]))
