@@ -33,6 +33,39 @@ static const Sx *m7_case(const Sx *map, const char *elem) {
     }
     return NULL;
 }
+/* M7 negative gate 1: a case value must inhabit its Map's declared (To T): PBit, Int, Bool or a declared
+ * (Type T (Sum ...)).  An unavailable report (Missing) is never read as neither (PBit 0 0) or any other value. */
+static int m7_bit(const Sx *x) { return x->kind == SX_SYM && (!strcmp(x->text, "0") || !strcmp(x->text, "1")); }
+static int m7_inhabits(const DcModule *m, const Sx *t, const Sx *v, int depth) {
+    if (!t || !v || depth > 16) return 0;
+    if (t->kind == SX_SYM) {
+        if (!strcmp(t->text, "PBit")) return sx_head_is(v, "PBit") && v->n == 3 && m7_bit(v->items[1]) && m7_bit(v->items[2]);
+        if (!strcmp(t->text, "Int")) { char *e; if (v->kind != SX_SYM) return 0; strtol(v->text, &e, 10); return e != v->text && !*e; }
+        if (!strcmp(t->text, "Bool")) return sx_is_sym(v, "True") || sx_is_sym(v, "False");
+        const Sx *td = m7_decl(m, "Type", t->text);
+        if (td && td->n == 3) return m7_inhabits(m, td->items[2], v, depth + 1);
+        const Sx *cr = m7_decl(m, "Carrier", t->text), *en = m7_field(cr, "Enum");
+        for (size_t i = 1; en && i < en->n; i++) if (sx_equal(en->items[i], v)) return 1;
+        return 0;
+    }
+    if (!sx_head_is(t, "Sum")) return 0;
+    for (size_t i = 1; i < t->n; i++) {
+        const Sx *alt = t->items[i];
+        if (alt->kind == SX_SYM) { if (sx_is_sym(v, alt->text)) return 1; continue; }
+        if (alt->n >= 1 && alt->items[0]->kind == SX_SYM && v->kind == SX_LIST && v->n == alt->n && sx_head_is(v, alt->items[0]->text)) {
+            int ok = 1; for (size_t k = 1; k < alt->n && ok; k++) ok = m7_inhabits(m, alt->items[k], v->items[k], depth + 1);
+            if (ok) return 1;
+        }
+    }
+    return 0;
+}
+/* Returns the name of the first state whose case value is outside the map's (To T), or NULL. */
+static const char *m7_codomain_bad(const DcModule *m, const Sx *map, const char *const *nm, size_t n) {
+    const Sx *to = m7_field(map, "To");
+    if (!to || to->n != 2) return n ? nm[0] : "?";
+    for (size_t s = 0; s < n; s++) if (!m7_inhabits(m, to->items[1], m7_case(map, nm[s]), 0)) return nm[s];
+    return NULL;
+}
 typedef struct { const char *a, *b; } M7Pair;
 static int m7_cmp(const void *x, const void *y) {
     const M7Pair *p = x, *q = y; int k = strcmp(p->a, q->a);
@@ -311,6 +344,14 @@ Sx *dc_req_m7(DcRun *r, const Sx *q, const char *h) {
         }
     }
     if (!no) return m7_unsup(m, &sc, claim, "CheckNow: machine declares no observation");
+    {   /* M7 negative gate 1: refuse as stated, never coerce (e.g. Missing read as PBit 0 0) */
+        const Sx *maps[17]; size_t nmp = 0; maps[nmp++] = code;
+        for (size_t k = 0; k < no; k++) maps[nmp++] = obsm[k];
+        for (size_t k = 0; k < nmp; k++) {
+            const char *bad = m7_codomain_bad(m, maps[k], nm, n);
+            if (bad) { sx_free(claim); return dc_invalid(m, "CheckNow: map %s: the case for %s is not a value of its declared To type (an unavailable report is never read as another value)", maps[k]->items[1]->kind == SX_SYM ? maps[k]->items[1]->text : "?", bad); }
+        }
+    }
     M7Pair *pr = calloc(n * n / 2 + 1, sizeof *pr); size_t np = 0;
     Sx *wit = dc_form("MergedPairs", NULL);
     for (size_t i = 0; i < n; i++) for (size_t j = i + 1; j < n; j++) {
