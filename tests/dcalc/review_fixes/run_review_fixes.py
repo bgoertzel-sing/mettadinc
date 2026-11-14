@@ -27,6 +27,15 @@ for f in ('mut_m7_caseoverlap_eq', 'mut_m7_caseoverlap_ne'):
     r = rows(os.path.join(FXD, f + '.metta'), ['--beyond-release'])
     ok = bool(r) and all(s == 'InvalidInput' and 'duplicate case Absent' in why for s, why in r.values())
     report('D1: %s -> InvalidInput "duplicate case Absent" on every request' % f, ok, r)
+# D1 via Import (review 1 F1): a duplicate-row map declared in an imported module is refused for the importer too
+for mode in (['--beyond-release'], []):
+    r = rows(os.path.join(FXD, 'mut_m7_caseoverlap_import.metta'), mode)
+    ok = bool(r) and 'Availability (CheckNow Bias)' in r and all(s == 'InvalidInput' and 'duplicate case Absent' in why for s, why in r.values())
+    report('D1 import (single file%s): importer and Lib -> InvalidInput "duplicate case Absent"' % (' ' + mode[0] if mode else ', release'), ok, r)
+r = rows(os.path.join(FXD, 'import_cross', 'lib.metta'), ['--beyond-release', os.path.join(FXD, 'import_cross', 'main.metta')])
+b = r.get('Availability (CheckNow Bias)')
+report('D1 import (cross-file main.metta lib.metta, --beyond-release): importer -> InvalidInput "(imported): duplicate case Absent"',
+       b is not None and b[0] == 'InvalidInput' and '(imported): duplicate case Absent' in b[1], r)
 # partial Cases: Encode map without Both -> InvalidInput naming map and state
 r = rows(os.path.join(FXD, 'mut_m7_partial.metta'), ['--beyond-release'])
 b = r.get('Availability (CheckNow Bias)')

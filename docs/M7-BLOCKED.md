@@ -21,7 +21,7 @@ answers **Unsupported** (never a false Checked):
 |---|---|---|---|
 | ClockRates measure (F07) | Exact mean clock rates under a declared `(Uniform)` law | A law declared as `(Product ...)` with full support, or a full-support non-uniform `(Masses ...)` law, answers Unsupported. A law without full support (e.g. 7 of 8 points, or a zero-mass factor) is InvalidInput. | src/dcalc/ops_sym.c l.1345-1346 |
 | ClockRates kind (F07) | `(Kind Mean)` | Any other kind (e.g. `SupNorm`) answers Unsupported. | src/dcalc/ops_sym.c l.1348 |
-| ConeOfInfluence (third request of the F07 fixture) | none | Answers Unsupported with the reason "not implemented by the symbolic engine" and the list of requests it does answer (reason text refreshed in review-fixes; it used to say "M3 in progress"). The symbolic cone engine is not part of M7. | src/dcalc/ops_sym.c l.1402 |
+| ConeOfInfluence (third request of the F07 fixture) | none | Answers Unsupported with the reason "not implemented by the symbolic engine" and the list of requests it does answer (reason text refreshed in review-fixes; it used to say "M3 in progress"). The symbolic cone engine is not part of M7. | src/dcalc/ops_sym.c l.1406 |
 
 ## Resolved (review 1, finding 6)
 The plan says blocked items should answer **Unsupported**. Under `--beyond-release`, a

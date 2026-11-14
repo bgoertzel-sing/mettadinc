@@ -892,14 +892,36 @@ static int element_ok(const DcAModule *m, const Sx *t0, const Sx *e) {
     }
     return 0;
 }
+/* review-fixes D1 (spec 5.4): a Cases map with two rows for the same pattern is refused, naming the duplicate.
+ * Review 1 F1: applied to every Map the module can see, its own and imported ones, so an Import cannot bypass it. */
+static void check_dup_cases(DcAdmission *a, DcAModule *m, const Sx *it, const char *where) {
+    char b[512], s[61];
+    for (size_t i = 2; i < it->n; i++) {
+        const Sx *x = it->items[i];
+        if (x->kind != SX_LIST || !x->n || !sx_is_sym(x->items[0], "Cases")) continue;
+        for (size_t k = 2; k < x->n; k++) {
+            const Sx *c = x->items[k];
+            if (c->kind != SX_LIST || !c->n) continue;
+            for (size_t j = 1; j < k; j++) {
+                const Sx *e = x->items[j];
+                if (e->kind == SX_LIST && e->n && sx_equal(e->items[0], c->items[0])) {
+                    snprintf(s, sizeof s, "%.60s", shw(c->items[0], b, sizeof b));
+                    diag(a, m->name, c->items[0], where, "duplicate case %s", s);
+                    break;
+                }
+            }
+        }
+    }
+}
 static void check_module_rules(DcAdmission *a, DcAModule *m) {
     char b[512], s[61], where[320], cyc[2048];
     DcGraph calls = {0}, deps = {0};
     for (size_t di = 0; di < m->ndecl; di++) {
         const DcADecl *d = &m->decls[di];
-        if (!d->own) continue;
         const Sx *it = d->form;
-        snprintf(where, sizeof where, "%s:%s.%s", a->fname, m->name, d->name);
+        snprintf(where, sizeof where, "%s:%s.%s%s", a->fname, m->name, d->name, d->own ? "" : " (imported)");
+        if (!strcmp(d->kind, "Map")) check_dup_cases(a, m, it, where);
+        if (!d->own) continue;
         if (!strcmp(d->kind, "Map")) {
             for (size_t i = 2; i < it->n; i++) {
                 const Sx *x = it->items[i];
@@ -912,20 +934,6 @@ static void check_module_rules(DcAdmission *a, DcAModule *m) {
                         pattern_vars(c->items[0], &v, &n, &cap);
                         if (has_dup(v, n)) { snprintf(s, sizeof s, "%.60s", shw(c->items[0], b, sizeof b)); diag(a, m->name, c->items[0], where, "nonlinear pattern %s", s); }
                         free(v);
-                    }
-                /* review-fixes D1 (spec 5.4): a Cases map with two rows for the same pattern is refused, naming the duplicate */
-                if (sx_is_sym(x->items[0], "Cases"))
-                    for (size_t k = 2; k < x->n; k++) {
-                        const Sx *c = x->items[k];
-                        if (c->kind != SX_LIST || !c->n) continue;
-                        for (size_t j = 1; j < k; j++) {
-                            const Sx *e = x->items[j];
-                            if (e->kind == SX_LIST && e->n && sx_equal(e->items[0], c->items[0])) {
-                                snprintf(s, sizeof s, "%.60s", shw(c->items[0], b, sizeof b));
-                                diag(a, m->name, c->items[0], where, "duplicate case %s", s);
-                                break;
-                            }
-                        }
                     }
                 if (sx_is_sym(x->items[0], "Body") && x->n > 1 && x->items[1]->kind == SX_LIST) {
                     const Sx *bl = x->items[1];
