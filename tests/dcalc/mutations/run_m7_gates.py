@@ -66,6 +66,9 @@ for f, word, what in (('gate6a_library.metta', 'expected one of Coordinates', 'L
 ar = rows(run(os.path.join(FX, 'arithmetic_probes.metta'))); sep = [v for k, v in ar.items() if k.endswith('Separation')]
 report('canary: unmutated arithmetic_probes Separation is Checked', len(sep) == 1 and sep[0][0] == 'Checked', str([(v[0], v[1][:100]) for v in sep]))
 report('canary: unmutated availability rows are Refuted, not InvalidInput', len(r) == 2 and all(v[0] == 'Refuted' for v in r.values()), str([v[0] for v in r.values()]))
+# review-1 F6: a TransitionKernel imported from MeTTaProN is a blocked dependency -> Unsupported (not InvalidInput)
+kr = rows(run(os.path.join(ROOT, 'tests', 'dcalc', 'm7', 'fixtures', 'r6_mettapron_import.metta')))
+report('blocked: (TransitionKernel .. (Import MeTTaProN ..)) is Unsupported, citing M7-BLOCKED', len(kr) >= 1 and all(v[0] == 'Unsupported' and 'MeTTaProN' in v[1] for v in kr.values()), str([(v[0], v[1][:120]) for v in kr.values()]))
 # gate 7: an Estimated result is never turned into an exact channel, and an order-2 U-statistic is never treated as
 # n independent counts: Status stays Estimated, IndependentPairs = floor(n/2), and the interval is at least as wide as
 # Hoeffding with floor(n/2) pairs (with n counts it would be narrower).  A tampered copy must be refused.

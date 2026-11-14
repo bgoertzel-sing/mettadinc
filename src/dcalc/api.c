@@ -167,6 +167,13 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
     }
     if (!raw) return bare("InvalidInput", mn, "dc.run: field Module names no declared module");
     if (!req) return bare("InvalidInput", mn, "dc.run: field Request missing");
+    if (g_beyond)   /* review-1 F6: a kernel imported from MeTTaProN is a blocked dependency (docs/M7-BLOCKED.md), so Unsupported */
+        for (size_t i = 2; i < raw->n; i++) { const Sx *d = raw->items[i];
+            if (!sx_head_is(d, "TransitionKernel")) continue;
+            for (size_t k = 2; k < d->n; k++)
+                if (sx_head_is(d->items[k], "Import") && d->items[k]->n >= 2 && sx_is_sym(d->items[k]->items[1], "MeTTaProN"))
+                    return bare("Unsupported", mn, "TransitionKernel (Import MeTTaProN ..): the MeTTaProN shared kernel IR is not pinned (blocked dependency, spec 14.2; docs/M7-BLOCKED.md)");
+        }
     dc_binding_set_universe(all);
     DcBad *bad = calloc(32, sizeof *bad); char why[512];
     int nbad = dc_binding_scan(raw, basedir, bad, 32);
