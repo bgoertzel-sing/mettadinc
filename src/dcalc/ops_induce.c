@@ -36,8 +36,57 @@ static void quotient_view(const DcModule *m, int ri, const char *id, DcView *v) 
     free(pre);
 }
 
+/* M7 opt-in (Use Hyperseed, M01): (InduceExact (Output D Representation)) where D is a Checked Refine.  The
+ * refined partition is re-checked here (every state in exactly one block, actions block-to-block) and the
+ * quotient is reported as an ExactAbstraction with one state per block. */
+static Sx *induce_exact_output(DcRun *r, const Sx *q) {
+    DcModule *m = r->m; const Sx *o = q->items[1];
+    if (q->n != 2 || o->n != 3 || o->items[1]->kind != SX_SYM || !sx_is_sym(o->items[2], "Representation"))
+        return dc_invalid(m, "InduceExact: expected (InduceExact (Output D Representation))");
+    int d = dc_find_derive(m, o->items[1]->text);
+    if (d < 0) return dc_invalid(m, "InduceExact: names no declared Derive (%s)", o->items[1]->text);
+    const Sx *pr = dc_run_derive(r, d);
+    if (!pr) return dc_invalid(m, "InduceExact: Derive %s: cyclic reference", o->items[1]->text);
+    DcStatus st = dc_result_status(pr);
+    if (st == DC_UNSUPPORTED) return dc_unsupported(m, "InduceExact: premise Derive %s is Unsupported", o->items[1]->text);
+    if (st != DC_CHECKED) return dc_invalid(m, "InduceExact: Output projects only from Checked results (Derive %s is %s)", o->items[1]->text, dc_status_name(st));
+    const Sx *val = sx_find(pr, "Value", 1), *rf = val && val->n == 2 ? val->items[1] : NULL;
+    const Sx *part = rf && sx_head_is(rf, "Refinement") ? sx_find(rf, "Partition", 1) : NULL;
+    const Sx *rn = rf ? sx_find(rf, "Representation", 1) : NULL;
+    if (!part || !rn || rn->n != 2) return dc_invalid(m, "InduceExact: Derive %s has no Representation output", o->items[1]->text);
+    const Sx *subj = sx_find(sx_find(pr, "Binding", 1), "Subject", 1);
+    const Sx *mrow = subj ? sx_find(subj, "Machine", 1) : NULL;
+    int mi = -1;
+    for (size_t i = 0; mrow && mrow->n == 2 && i < m->nmach; i++) if (sx_is_sym(mrow->items[1], m->mach[i].name)) mi = (int)i;
+    if (mi < 0) return dc_invalid(m, "InduceExact: Derive %s binds no admitted machine", o->items[1]->text);
+    const DcMachine *mc = &m->mach[mi]; const DcCarrier *S = &m->car[mc->states]; size_t n = S->n;
+    int *cls = malloc((n ? n : 1) * sizeof *cls); for (size_t i = 0; i < n; i++) cls[i] = -1;
+    int ok = 1; size_t nb = 0;
+    for (size_t b = 1; b < part->n && ok; b++) {
+        const Sx *B = part->items[b];
+        if (!sx_head_is(B, "Block") || B->n < 2) { ok = 0; break; }
+        for (size_t k = 1; k < B->n; k++) { int s = dc_carrier_index(S, B->items[k]); if (s < 0 || cls[s] >= 0) { ok = 0; break; } cls[s] = (int)nb; }
+        nb++;
+    }
+    for (size_t i = 0; i < n && ok; i++) if (cls[i] < 0) ok = 0;
+    if (!ok) { free(cls); return dc_invalid(m, "InduceExact: the Representation output of %s is not a partition of %s", o->items[1]->text, S->name); }
+    int cong = 1;
+    for (size_t p = 0; p < mc->nact && cong; p++) { const int *a = m->map[mc->act[p].map].table;
+        for (size_t s = 0; s < n && cong; s++) for (size_t t = 0; t < n && cong; t++)
+            if (cls[s] == cls[t] && cls[a[s]] != cls[a[t]]) cong = 0; }
+    free(cls);
+    Sx *subject = dc_form("Subject", dc_form("Representation", dc_sym(rn->items[1]->text), NULL), dc_form("Machine", dc_sym(mc->name), NULL), NULL);
+    if (!cong) return dc_invalid(m, "InduceExact: the refined partition of %s is not closed under the actions", o->items[1]->text);
+    Sx *cert = dc_form("Certificate", dc_form("Kind", dc_sym("rule"), NULL), dc_form("Rule", dc_sym("RefinedQuotient"), NULL), sx_copy(part), NULL);
+    return dc_envelope(m, VERDICT_HOLDS, 1, dc_claim_of(q, "Literal"), subject,
+        dc_form("Value", dc_form("ExactAbstraction", dc_form("Defect", dc_form("Interval", dc_int(0), dc_int(0), NULL), NULL),
+                 dc_form("Machine", dc_sym(mc->name), NULL), dc_form("States", dc_int((long)nb), NULL),
+                 dc_form("Representation", dc_sym(rn->items[1]->text), NULL), NULL), NULL),
+        dc_form("Evidence", cert, NULL), NULL);
+}
 Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int slot) {
     DcModule *m = r->m;
+    if (m->hyperseed && q->n >= 2 && sx_head_is(q->items[1], "Output")) return induce_exact_output(r, q);   /* M7 */
     if (q->n < 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "InduceExact: field Representation missing or not a name");
     const char *nm = q->items[1]->text; int ri = dc_find_repr(m, nm);
     if (ri < 0) {

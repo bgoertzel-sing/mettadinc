@@ -131,7 +131,9 @@ static void gaps_tests(const char *B) {
     /* gap 1b: a Stream with no Policy cannot transport under a literal "undeclared" */
     dc_eval_set_beyond_release(1);
     o = dc_eval_text(MOD_NOPOL, B, "EstN", RQ("(ReuseUnder \"undeclared\") (Argument \"a\")"));
-    CHECK(has(o, "(Status InvalidInput)") && !has(o, "(Estimate ") && has(o, "declares no Policy"),
+    /* m5-rest (f088085) refuses a Stream with no Policy before ReuseUnder is read (ops_est.c, spec 2510-2511,
+     * 4899-4902), so the reason is the envelope one, "declares no (Policy digest)". */
+    CHECK(has(o, "(Status InvalidInput)") && !has(o, "(Estimate ") && has(o, "declares no (Policy digest)"),
           "gap 1: Stream without Policy + ReuseUnder \"undeclared\": InvalidInput, no Estimate");
     free(o);
     o = dc_eval_text(MOD_NOPOL, B, "EstN", RQ("(ReuseUnder \"v2\") (Argument \"a\")"));

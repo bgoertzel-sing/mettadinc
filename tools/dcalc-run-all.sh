@@ -12,6 +12,11 @@ set -u
 if [ -z "${DCALC_CADICAL:-}" ] || [ -z "${DCALC_CAKE_LPR:-}" ]; then
   echo "dcalc-run-all: DCALC_CADICAL and DCALC_CAKE_LPR must name the pinned proof tools (docs/PROOF-BACKEND.md)"; exit 2
 fi
+# review-fixes D2: dcalc refuses an unpinned backend (fail closed), so the sha256 pins are required too
+# (tools/dcalc-proof-backend.sh prints them).
+if [ -z "${DCALC_CADICAL_SHA256:-}" ] || [ -z "${DCALC_CAKE_LPR_SHA256:-}" ]; then
+  echo "dcalc-run-all: DCALC_CADICAL_SHA256 and DCALC_CAKE_LPR_SHA256 must pin the proof tools (docs/PROOF-BACKEND.md)"; exit 2
+fi
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT" || exit 2
 CC=${CC:-gcc}
@@ -51,6 +56,10 @@ step m5_weakbarbed;    if [ -x build/cetta-dcalc/cetta ] && [ -f build/cetta-dca
 step m5_gates;         $R m5_gates "python3 tests/dcalc/m5/run_m5_gates.py > build/m5_gates.out; r=\$?; tail -1 build/m5_gates.out; exit \$r" || rc=1   # M5 (t-2026-11-12-mettadinc-m5)
 step m6_gates;         $R m6_gates "python3 tests/dcalc/m6/run_m6_gates.py > build/m6_gates.out; r=\$?; tail -1 build/m6_gates.out; exit \$r" || rc=1   # M6 (t-2026-11-13-mettadinc-m6, review-1 F5)
 step m6rest_gates;     $R m6rest_gates "python3 tests/dcalc/m6rest/run_m6rest_gates.py > build/m6rest_gates.out; r=\$?; tail -1 build/m6rest_gates.out; exit \$r" || rc=1   # M6-rest gates (LP LCR, merge model, CompleteHive incl. Output Hive, associators, arrow kinds; review 1 F5)
+step m6graded_gates;   $R m6graded_gates "python3 tests/dcalc/m6graded/run_m6graded_gates.py > build/m6graded_gates.out; r=\$?; tail -1 build/m6graded_gates.out; exit \$r" || rc=1   # m6-graded (t-2026-11-13-mettadinc-m6-graded)
+step m7_gates;         $R m7_gates "python3 tests/dcalc/mutations/run_m7_gates.py > build/m7_gates.out; r=\$?; tail -1 build/m7_gates.out; exit \$r" || rc=1   # M7 negative gates (t-2026-11-14-mettadinc-m7)
+step m7_replay;        $R m7_replay "sh tests/dcalc/m7/run_m7_replay.sh > build/m7_replay.out; r=\$?; tail -1 build/m7_replay.out; exit \$r" || rc=1   # M7 independent replay of W/N/Q/X/Z fixtures
+step review_fixes;     $R review_fixes "python3 tests/dcalc/review_fixes/run_review_fixes.py > build/review_fixes.out; r=\$?; tail -1 build/review_fixes.out; exit \$r" || rc=1   # D1, partial Cases, D2 fail-closed, Cone reason (t-2026-11-14-mettadinc-review-fixes)
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc

@@ -211,9 +211,42 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
     return res;
 }
 
+/* m6-graded step 2b: Then on graded arrows (spec Table 4 l.893-909: Graded arrows are functions, defects add,
+ * l.802 delta(g o h) <= delta(h) + delta(g)).  The only producer of a graded arrow is InduceApprox, whose
+ * (Output D AbstractionMap) has Source = an admitted machine and Target = the induced machine (Output D Machine).
+ * InduceApprox never accepts an induced machine as its source, so target(first) = source(second) cannot hold:
+ * the registry entry for Then answers a target/source mismatch with InvalidInput, and the reason says why the
+ * chain is unreachable.  A premise that is not Checked is a missing hypothesis -> Unsupported.  A graded arrow
+ * next to an arrow of another kind -> InvalidInput (kinds are never coerced). */
+int dc_eval_beyond_release(void);   /* api.h */
+static int then_is_graded(const DcModule *m, const Sx *x) {
+    if (!sx_head_is(x, "Output") || x->n != 3 || x->items[1]->kind != SX_SYM) return 0;
+    int d = dc_find_derive(m, x->items[1]->text);
+    return d >= 0 && sx_head_is(m->der[d].request, "InduceApprox");
+}
+static const char *then_bind(const Sx *res, const char *f) {
+    const Sx *b = sx_find(res, "Binding", 1), *s = b ? sx_find(b, f, 1) : NULL;
+    return s && s->n == 2 && s->items[1]->kind == SX_SYM ? s->items[1]->text : "?";
+}
+static Sx *then_graded(DcRun *r, const Sx *q) {
+    DcModule *m = r->m; const Sx *res[2]; const char *dn[2];
+    for (int k = 0; k < 2; k++) {
+        const Sx *x = q->items[k + 1];
+        if (!then_is_graded(m, x)) return dc_invalid(m, "Then: %s is not a graded arrow but the other premise is (InduceApprox); spec Table 4 composes arrows of one kind, kinds are never coerced", x->n >= 2 && x->items[1]->kind == SX_SYM ? x->items[1]->text : "a premise");
+        if (!sx_is_sym(x->items[2], "AbstractionMap")) return dc_invalid(m, "Then: a graded premise is (Output D AbstractionMap)");
+        dn[k] = x->items[1]->text; int d = dc_find_derive(m, dn[k]);
+        res[k] = dc_run_derive(r, d);
+        if (!res[k]) return dc_invalid(m, "Then: Derive %s: cyclic reference", dn[k]);
+        DcStatus st = dc_result_status(res[k]);
+        if (st != DC_CHECKED) return dc_unsupported(m, "Then: premise Derive %s is %s, not Checked: the hypothesis that it is a graded arrow is missing, so there is nothing to compose", dn[k], dc_status_name(st));
+    }
+    return dc_invalid(m, "Then: the target of %s is the induced machine (Output %s Machine) but %s abstracts the admitted machine %s; graded arrows compose only when target(first) = source(second) "
+                      "(defects would add, spec l.802), and InduceApprox does not take an induced machine as its source in this release, so no graded chain exists to compose", dn[0], dn[0], dn[1], then_bind(res[1], "Source"));
+}
 Sx *dc_req_then(DcRun *r, const Sx *q, int slot) {
     DcModule *m = r->m; char why[256]; int d[2];
     if (q->n != 3) return dc_invalid(m, "Then: expected two arrows");
+    if (dc_eval_beyond_release() && (then_is_graded(m, q->items[1]) || then_is_graded(m, q->items[2]))) return then_graded(r, q);   /* m6-graded step 2b (beyond release only; release answers stay byte-identical) */
     for (int k = 0; k < 2; k++) {
         const Sx *x = q->items[k + 1];
         const char *what = sx_head_is(x, "Output") && x->n == 3 && sx_is_sym(x->items[2], "Value") ? "Value" : "AbstractionMap";

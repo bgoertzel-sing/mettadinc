@@ -892,14 +892,36 @@ static int element_ok(const DcAModule *m, const Sx *t0, const Sx *e) {
     }
     return 0;
 }
+/* review-fixes D1 (spec 5.4): a Cases map with two rows for the same pattern is refused, naming the duplicate.
+ * Review 1 F1: applied to every Map the module can see, its own and imported ones, so an Import cannot bypass it. */
+static void check_dup_cases(DcAdmission *a, DcAModule *m, const Sx *it, const char *where) {
+    char b[512], s[61];
+    for (size_t i = 2; i < it->n; i++) {
+        const Sx *x = it->items[i];
+        if (x->kind != SX_LIST || !x->n || !sx_is_sym(x->items[0], "Cases")) continue;
+        for (size_t k = 2; k < x->n; k++) {
+            const Sx *c = x->items[k];
+            if (c->kind != SX_LIST || !c->n) continue;
+            for (size_t j = 1; j < k; j++) {
+                const Sx *e = x->items[j];
+                if (e->kind == SX_LIST && e->n && sx_equal(e->items[0], c->items[0])) {
+                    snprintf(s, sizeof s, "%.60s", shw(c->items[0], b, sizeof b));
+                    diag(a, m->name, c->items[0], where, "duplicate case %s", s);
+                    break;
+                }
+            }
+        }
+    }
+}
 static void check_module_rules(DcAdmission *a, DcAModule *m) {
     char b[512], s[61], where[320], cyc[2048];
     DcGraph calls = {0}, deps = {0};
     for (size_t di = 0; di < m->ndecl; di++) {
         const DcADecl *d = &m->decls[di];
-        if (!d->own) continue;
         const Sx *it = d->form;
-        snprintf(where, sizeof where, "%s:%s.%s", a->fname, m->name, d->name);
+        snprintf(where, sizeof where, "%s:%s.%s%s", a->fname, m->name, d->name, d->own ? "" : " (imported)");
+        if (!strcmp(d->kind, "Map")) check_dup_cases(a, m, it, where);
+        if (!d->own) continue;
         if (!strcmp(d->kind, "Map")) {
             for (size_t i = 2; i < it->n; i++) {
                 const Sx *x = it->items[i];
@@ -1049,10 +1071,11 @@ void dc_admission_free(DcAdmission *a) {
 /* M4-estimates: Estimates (EstimateRate, CompareRates) joins the opt-in set. */
 /* M5: Dynamics Nondeterministic and the Simulation library join the opt-in set. */
 /* M6: Contracts joins the opt-in set. */
-static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", "Simulation", "Contracts", "Hives", "Transfers", NULL };   /* M6: Hives + Transfers opt-in */
+static const char *const M4_LIBS[] = { "Linear", "Search", "Decisions", "Estimates", "Simulation", "Contracts", "Hives", "Transfers", "Hyperseed", "Neural", "Discovery", "BitVectors", "FiniteSets", NULL };   /* M7: Hyperseed/Neural/Discovery/BitVectors/FiniteSets opt-in */   /* M6: Hives + Transfers opt-in */
 static int m4_allowed(const char *key, const char *val) {
     if (!val) return 0;
     if (!strcmp(key, "dynamics")) return !strcmp(val, "Stochastic") || !strcmp(val, "Nondeterministic");   /* M5 */
+    if (!strcmp(key, "carriers") && val && !strcmp(val, "Snapshot")) return 1;   /* M7 Z01 opt-in */
     if (!strcmp(key, "libraries")) { for (int i = 0; M4_LIBS[i]; i++) if (!strcmp(val, M4_LIBS[i])) return 1; }
     return 0;
 }

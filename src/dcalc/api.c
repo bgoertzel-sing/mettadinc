@@ -82,6 +82,86 @@ static Sx *m6_inline_imports(const Sx *all, const Sx *raw) {
     return out;
 }
 
+/* M7 opt-in (beyond release, (Use Hyperseed), M01): source-level expansion.
+ * - (Import M (Only n ...)) of a module in the run universe copies M's declarations other than Profile, Use,
+ *   Import and Derive at the Import (every Only name must be declared in M);
+ *   (review-1 F7) the copy is M's whole declaration set because Only names (e.g. a Machine) refer to M's other
+ *   Maps; visibility is still the Only list: m1_admission refuses an importer that names anything else
+ *   (fixture tests/dcalc/m7/fixtures/r7_only_scope.metta, run_m7_gates 'import scope' row);
+ * - Schema and Method declarations are dropped; (Derive X (Method args...)) binds the Method's Parameters to the
+ *   arguments and unfolds its Body: (LetResult $v E B) becomes (Derive X__v E) and B with $v := X__v, ending
+ *   with (Derive X E).  Returns a new module form, or NULL when nothing is expanded. */
+#define M7_NV 16
+static Sx *m7_subst(const Sx *x, const char **var, Sx **val, int n) {
+    if (x->kind == SX_SYM) { for (int i = n - 1; i >= 0; i--) if (sx_is_sym(x, var[i])) return sx_copy(val[i]); return sx_copy(x); }
+    if (x->kind != SX_LIST) return sx_copy(x);
+    Sx *l = sx_list(); for (size_t i = 0; i < x->n; i++) sx_push(l, m7_subst(x->items[i], var, val, n)); return l;
+}
+static int m7_body(Sx *out, const char *dn, const Sx *b, const char **var, Sx **val, int n, int depth) {
+    if (depth > 8) return -1;
+    if (sx_head_is(b, "LetResult") && b->n == 4 && b->items[1]->kind == SX_SYM && b->items[1]->text[0] == '$' && n < M7_NV) {
+        char nm[256]; snprintf(nm, sizeof nm, "%s__%s", dn, b->items[1]->text + 1);
+        Sx *d = sx_list(); sx_push(d, sx_sym("Derive")); sx_push(d, sx_sym(nm)); sx_push(d, m7_subst(b->items[2], var, val, n)); sx_push(out, d);
+        var[n] = b->items[1]->text; val[n] = sx_sym(nm);
+        int rc = m7_body(out, dn, b->items[3], var, val, n + 1, depth + 1); sx_free(val[n]); return rc;
+    }
+    Sx *d = sx_list(); sx_push(d, sx_sym("Derive")); sx_push(d, sx_sym(dn)); sx_push(d, m7_subst(b, var, val, n)); sx_push(out, d);
+    return 0;
+}
+static const Sx *m7_named(const Sx *raw, const char *head, const char *name) {
+    for (size_t i = 2; i < raw->n; i++) { const Sx *d = raw->items[i];
+        if (sx_head_is(d, head) && d->n >= 2 && sx_is_sym(d->items[1], name)) return d; }
+    return NULL;
+}
+static Sx *m7_expand(const Sx *all, const Sx *raw) {
+    int uses = 0, any = 0;
+    for (size_t i = 2; i < raw->n; i++) if (sx_head_is(raw->items[i], "Use"))
+        for (size_t k = 1; k < raw->items[i]->n; k++) if (sx_is_sym(raw->items[i]->items[k], "Hyperseed") || sx_is_sym(raw->items[i]->items[k], "Discovery")) uses = 1;   /* M7: Hyperseed, Discovery (F07 screens import FortyBits) */
+    if (!uses) return NULL;
+    Sx *out = sx_list();
+    for (size_t i = 0; i < raw->n; i++) {
+        const Sx *d = raw->items[i];
+        if (i >= 2 && (sx_head_is(d, "Schema") || sx_head_is(d, "Method"))) { any = 1; continue; }
+        if (i >= 2 && sx_head_is(d, "Derive") && d->n == 3 && d->items[1]->kind == SX_SYM && d->items[2]->kind == SX_LIST
+            && d->items[2]->n >= 1 && d->items[2]->items[0]->kind == SX_SYM) {
+            const Sx *mt = m7_named(raw, "Method", d->items[2]->items[0]->text);
+            const Sx *pa = mt ? sx_find(mt, "Parameters", 2) : NULL, *bo = mt ? sx_find(mt, "Body", 2) : NULL;
+            if (mt && pa && bo && bo->n == 2 && pa->n == d->items[2]->n && pa->n - 1 <= M7_NV) {
+                const char *var[M7_NV]; Sx *val[M7_NV]; int n = 0, ok = 1;
+                for (size_t k = 1; k < pa->n && ok; k++) {
+                    const Sx *p = pa->items[k];
+                    if (p->kind != SX_LIST || p->n < 1 || p->items[0]->kind != SX_SYM || p->items[0]->text[0] != '$') { ok = 0; break; }
+                    var[n] = p->items[0]->text; val[n] = sx_copy(d->items[2]->items[k]); n++;
+                }
+                if (ok && m7_body(out, d->items[1]->text, bo->items[1], var, val, n, 0) == 0) any = 1;
+                else ok = 0;
+                for (int k = 0; k < n; k++) sx_free(val[k]);
+                if (ok) continue;
+            }
+        }
+        sx_push(out, sx_copy(d));
+        if (i < 2 || !sx_head_is(d, "Import") || d->n < 3 || d->items[1]->kind != SX_SYM) continue;
+        const Sx *only = NULL, *src = NULL;
+        for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Only")) only = d->items[k];
+        for (size_t k = 0; all && k < all->n; k++)
+            if (sx_head_is(all->items[k], "DC.Module") && all->items[k]->n >= 2 && sx_is_sym(all->items[k]->items[1], d->items[1]->text)) { src = all->items[k]; break; }
+        if (!only || !src || src == raw) continue;
+        int found = 1;
+        for (size_t j = 1; j < only->n && found; j++) {
+            found = 0;
+            for (size_t k = 2; k < src->n; k++) { const Sx *e = src->items[k];
+                if (e->kind == SX_LIST && e->n >= 2 && sx_is_sym(e->items[1], only->items[j]->kind == SX_SYM ? only->items[j]->text : "")) found = 1; }
+        }
+        if (!found) continue;
+        for (size_t k = 2; k < src->n; k++) { const Sx *e = src->items[k];
+            if (sx_head_is(e, "Profile") || sx_head_is(e, "Use") || sx_head_is(e, "Import") || sx_head_is(e, "Derive")) continue;
+            if (e->n >= 2 && e->items[1]->kind == SX_SYM && m7_named(raw, e->items[0]->kind == SX_SYM ? e->items[0]->text : "", e->items[1]->text)) continue;   /* the importer's own declaration wins */
+            sx_push(out, sx_copy(e)); any = 1; }
+    }
+    if (!any) { sx_free(out); return NULL; }
+    return out;
+}
+
 Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx *req) {
     const Sx *raw = NULL;
     for (size_t i = 0; all && i < all->n; i++) {
@@ -90,6 +170,13 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
     }
     if (!raw) return bare("InvalidInput", mn, "dc.run: field Module names no declared module");
     if (!req) return bare("InvalidInput", mn, "dc.run: field Request missing");
+    if (g_beyond)   /* review-1 F6: a kernel imported from MeTTaProN is a blocked dependency (docs/M7-BLOCKED.md), so Unsupported */
+        for (size_t i = 2; i < raw->n; i++) { const Sx *d = raw->items[i];
+            if (!sx_head_is(d, "TransitionKernel")) continue;
+            for (size_t k = 2; k < d->n; k++)
+                if (sx_head_is(d->items[k], "Import") && d->items[k]->n >= 2 && sx_is_sym(d->items[k]->items[1], "MeTTaProN"))
+                    return bare("Unsupported", mn, "TransitionKernel (Import MeTTaProN ..): the MeTTaProN shared kernel IR is not pinned (blocked dependency, spec 14.2; docs/M7-BLOCKED.md)");
+        }
     dc_binding_set_universe(all);
     DcBad *bad = calloc(32, sizeof *bad); char why[512];
     int nbad = dc_binding_scan(raw, basedir, bad, 32);
@@ -99,6 +186,7 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
     else {
         DcModule *m = calloc(1, sizeof *m); char err[512];
         Sx *inl = g_beyond ? m6_inline_imports(all, raw) : NULL;   /* M6 opt-in */
+        if (!inl && g_beyond) inl = m7_expand(all, raw);   /* M7 opt-in */
         if (dc_admit(inl ? inl : raw, m, err, sizeof err) != 0) {
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
             dc_module_free(m);   /* review 2 F6: release partially admitted carrier tables */

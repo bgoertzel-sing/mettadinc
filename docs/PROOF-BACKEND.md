@@ -14,13 +14,14 @@ independent checker. The pipeline is pinned:
 - `DCALC_CADICAL`: path to the CaDiCaL binary (required).
 - `DCALC_CAKE_LPR`: path to the cake_lpr binary (required).
 - `DCALC_PROOF_DIR`: scratch directory for CNF/LRAT files (optional).
-- `DCALC_CADICAL_SHA256`, `DCALC_CAKE_LPR_SHA256`: optional binary sha256 pins.
+- `DCALC_CADICAL_SHA256`, `DCALC_CAKE_LPR_SHA256`: binary sha256 pins (required for Checked; review-fixes D2).
 
 ## What dcalc enforces
 
 Once per process, before the first proof, dcalc runs `$DCALC_CADICAL --version`
-and refuses the backend unless it prints `3.0.1`. It hashes both binaries; if the
-optional `*_SHA256` variables are set the hashes must match. A refused backend
+and refuses the backend unless it prints `3.0.1`. It hashes both binaries; both `*_SHA256` variables must be set and the hashes must match.
+Without both pins the backend is refused (fail closed, review-fixes D2): otherwise any
+binary printing `s VERIFIED UNSAT` could make a claim Checked. A refused backend
 means no Checked answers: decision-diagram results stay Conditional, with the
 reason in the envelope. Every Proof form records `SolverSha256` and
 `CheckerSha256` (the binaries actually used), the CNF sha256 and the generator
@@ -37,8 +38,8 @@ least 9 GB).
 
 **Gate dependencies.** `tests/dcalc/mutations/run_m3_gates.py` needs only the Python 3
 standard library (no numpy) and the binaries built by `make tests` (including
-`build/dcalc/screen_m3`, which negative gate 7 runs). It works with or without the
-`DCALC_*_SHA256` pins set; with them set it also checks that a different solver
+`build/dcalc/screen_m3`, which negative gate 7 runs). It needs the
+`DCALC_*_SHA256` pins set (review-fixes D2); it also checks that a different solver
 binary is refused (neg 3b).
 
 ## Build

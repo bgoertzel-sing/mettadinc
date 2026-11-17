@@ -124,6 +124,16 @@ int main(int argc, char **argv) {
     const char *err = NULL; int line = 0;
     Sx *all = sx_parse_all(src, &err, &line); free(src);
     if (!all) { fprintf(stderr, "dcalc: parse error line %d: %s\n", line, err); return 2; }
+    /* M7 opt-in: library files after FILE (beyond release only) add their DC.Module forms to the universe so a
+     * cross-file (Import M (Only ...)) resolves; only FILE's dc.run forms are answered. */
+    for (int k = 2; k < argc && dc_eval_beyond_release(); k++) {
+        char *ls = slurp(argv[k]);
+        if (!ls) { fprintf(stderr, "dcalc: cannot read %s\n", argv[k]); sx_free(all); return 2; }
+        Sx *lib = sx_parse_all(ls, &err, &line); free(ls);
+        if (!lib) { fprintf(stderr, "dcalc: parse error in %s line %d: %s\n", argv[k], line, err); sx_free(all); return 2; }
+        for (size_t j = 0; j < lib->n; j++) if (sx_head_is(lib->items[j], "DC.Module")) sx_push(all, sx_copy(lib->items[j]));
+        sx_free(lib);
+    }
     for (size_t i = 0; i + 1 < all->n; i++) {
         if (!sx_is_sym(all->items[i], "!")) continue;
         const Sx *c = all->items[i + 1];

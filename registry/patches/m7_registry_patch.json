@@ -1,0 +1,21 @@
+{
+ "patch": "m7: local registry patch for t-2026-11-14-mettadinc-m7 (beyond-release only; every shape here is ours, not in the specification)",
+ "date": "2026-11-14",
+ "result_types": {
+  "MergedPairs": {
+   "fields": {
+    "Pair": "(Pair a b).. -- sorted pairs of states with the same Code but some differing observation"
+   },
+   "doc": "ours (M7): CheckNow availability value; the witness form repeats MergedPairs with (Merge (Pair a b) (Code c) (Observe obs va vb)) entries"
+  },
+  "SymbolicCheck": {
+   "fields": {
+    "Holds": "ForAllContent"
+   },
+   "doc": "ours (M7): snapshot receipt value (SymbolicCheck (Holds ForAllContent)); snapshot content is never read"
+  }
+ },
+ "notes": {
+  "m7-shapes": "Evidence and certificate shapes emitted beyond release by M7, invented by this implementation (not in the specification): (Evidence (PairCounts (Pairs n) (OldDiffer k) (NewDiffer k) (Created k) (Erased k))) for neural-audit DistinctionComparison; (Certificate (Kind SymbolicSnapshot) (CodeIsObservation obs code).. (IdentityAction act state)..) for snapshot receipts; (Certificate (Kind HomDimensionMismatch)) inside EquivalenceDecision for Discovery arithmetic probes; (Certificate (Kind ExactFlipCount) (Hypotheses (Law ProductBernoulliFullSupport) (Library Coordinates))) for ClockRates; (Certificate (Kind rule) (Rule RefinedQuotient) partition) for InduceExact / hyperseed methods ExactAbstraction."
+ }
+}
