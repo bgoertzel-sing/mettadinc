@@ -1,0 +1,11 @@
+Reads Outcomes Shared                         mine=['Agree'] envelope=['Agree'] OK
+Reads P(Agree) Shared                         mine=1 envelope=1 OK
+Reads Outcomes Fresh                          mine=['Agree', 'Differ'] envelope=['Agree', 'Differ'] OK
+Reads P(Agree) Fresh                          mine=1/2 envelope=1/2 OK
+Access CheckSimulation StageSim               mine=Checked envelope=Checked OK
+Access InduceExact StageQuotient              mine=Refuted envelope=Refuted OK
+  exactness witness ('fail', 'S0', 'S2')
+Access Safe (abstract)                        mine=Checked envelope=Checked OK
+Access Lockout (spurious abstract cex)        mine=Unknown envelope=Unknown OK
+  abstract within2 ['Admin', 'Auth', 'Locked', 'Start'] concrete within2 ['Admin', 'Auth', 'S0', 'S1', 'S2']
+CHECK_M5 PASS

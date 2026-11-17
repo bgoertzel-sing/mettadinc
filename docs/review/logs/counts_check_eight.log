@@ -1,0 +1,9 @@
+status Checked defects got {'Current': ('0', '0'), 'Update': ('1', '1'), 'Behavioral': ('1', '1')} mine {'Current': ('0', '0'), 'Update': ('1', '1'), 'Behavioral': ('1', '1')}
+kernel entries 24 mine 24 equal True
+word witness replays True
+update witness replays True
+(CheckUpdates KeepA) Refuted
+(CheckBehavioral KeepA) Refuted
+(CheckBehavioral KeepA (Horizon (Steps 0))) Checked
+(InduceExact KeepA) Refuted
+FAILS 0

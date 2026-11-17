@@ -1,0 +1,15 @@
+n=4 ZeroMachine bisim classes                 mine=8 expected=8 OK
+n=4 ParityMachine bisim classes               mine=8 expected=8 OK
+n=6 ZeroMachine bisim classes                 mine=8 expected=8 OK
+n=6 ParityMachine bisim classes               mine=8 expected=8 OK
+n=8 ZeroMachine bisim classes                 mine=8 expected=8 OK
+n=8 ParityMachine bisim classes               mine=8 expected=8 OK
+n=10 ZeroMachine bisim classes                mine=8 expected=8 OK
+n=10 ParityMachine bisim classes              mine=8 expected=8 OK
+n=12 ZeroMachine bisim classes                mine=8 expected=8 OK
+n=12 ParityMachine bisim classes              mine=8 expected=8 OK
+n=14 ZeroMachine bisim classes                mine=8 expected=8 OK
+n=14 ParityMachine bisim classes              mine=8 expected=8 OK
+F06 |Reach(0)| at n=40                        mine=[0, 1, 2, 3] expected=[0, 1, 2, 3] OK
+F05 smallest word outside every zero-tail block mine=4 expected=4 OK
+CHECK_M3 PASS

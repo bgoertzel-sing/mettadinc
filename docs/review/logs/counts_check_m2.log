@@ -1,0 +1,8 @@
+G01 brackets before/after/increase            mine=(Fraction(34, 45), Fraction(41, 45), Fraction(7, 45)) expected=(Fraction(34, 45), Fraction(41, 45), Fraction(7, 45)) OK
+G03 closed A-C entry                          mine=4/5 expected=4/5 OK
+G03 closed kernel Lukasiewicz-transitive      mine=True expected=True OK
+G04 Alpha transitive                          mine=False expected=False OK
+G02 threshold 9/10 Boolean-transitive         mine=False expected=False OK
+H05-H07 adequate at horizon 0/1/2             mine=[True, True, False] expected=[True, True, False] OK
+H08 InduceExact                               mine=False expected=False OK
+CHECK_M2 PASS

@@ -1,0 +1,26 @@
+;; Signed linear arrows need amplification factors.  Specification, Section 7.3.
+;; @excerpt linear-composition
+(DC.Module LinearComposition
+  (Profile Stochastic)
+  (Use Linear)
+  (Carrier Two (Of Symbol) (Enum e1 e2))
+  (Carrier Unit (Of Nat) (Enum 0))
+  (Map blank (From Two) (To Unit) (Cases (e1 0) (e2 0)))
+  (TransitionKernel Stay (From Two) (To Two) (Row e1 (Mass e1 1)) (Row e2 (Mass e2 1)))
+  (TransitionKernel Leak (From Two) (To Two)
+    (Row e1 (Mass e1 (Rat 9 10)) (Mass e2 (Rat 2 10)))
+    (Row e2 (Mass e1 (Rat 1 10)) (Mass e2 (Rat 9 10))))
+  (Machine M (States Two) (Observe blank blank) (Action step Stay))
+  (Machine N (States Two) (Observe blank blank) (Action step Stay))
+  (Machine P (States Two) (Observe blank blank) (Action step Leak))
+  (LinearArrow L (Source M) (Target N) (Kind Signed)
+    (Matrix (Rows (e1 (e1 2) (e2 -1)) (e2 (e1 -1) (e2 2)))))
+  (LinearArrow K (Source N) (Target P) (Kind Positive)
+    (Matrix (Rows (e1 (e1 1)) (e2 (e2 1)))))
+  (Derive LChecked (CheckLinearArrow L))
+  (Derive KChecked (CheckLinearArrow K))
+  (Derive LK (Then (Output LChecked Value) (Output KChecked Value))))
+;; @end
+!(dc.run LinearComposition LChecked)
+!(dc.run LinearComposition KChecked)
+!(dc.run LinearComposition LK)

@@ -1,0 +1,10 @@
+Triangle holonomy M1->M2->M3->M1              mine=swap expected=swap OK
+Triangle coherent (holonomy = id)             mine=False expected=False OK
+Triangle min violated correspondences         mine=1 expected=1 OK
+First additive error                          mine=1/10 expected=1/10 OK
+Second additive error                         mine=1/5 expected=1/5 OK
+Composite grade (L, eps)                      mine=(6, Fraction(1, 2)) expected=(6, Fraction(1, 2)) OK
+Direct error max                              mine=1/2 expected=1/2 OK
+Direct (6,1/2) Checked                        mine=True expected=True OK
+Direct (6,3/10) Refuted at input 0            mine=(False, Fraction(0, 1)) expected=(False, Fraction(0, 1)) OK
+CHECK_M6 PASS
