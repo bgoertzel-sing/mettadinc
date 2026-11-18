@@ -1,0 +1,27 @@
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_3.metta cli= ['Unsupported', None] oracle= ['Checked', '9/25']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_12.metta cli= ['Unsupported', None] oracle= ['Checked', '5/32']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_20.metta cli= ['Unsupported', None] oracle= ['Checked', '6/85']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_22.metta cli= ['Unsupported', None] oracle= ['Checked', '3/28']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_32.metta cli= ['Unsupported', None] oracle= ['Checked', '81/220']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_47.metta cli= ['Unsupported', None] oracle= ['Checked', '0']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_60.metta cli= ['Unsupported', None] oracle= ['Checked', '2307640/29923119']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_72.metta cli= ['Unsupported', None] oracle= ['Checked', '32/189']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_75.metta cli= ['Unsupported', None] oracle= ['Checked', '73197/305500']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_79.metta cli= ['Unsupported', None] oracle= ['Checked', '6/35']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_97.metta cli= ['Unsupported', None] oracle= ['Checked', '81/560']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_109.metta cli= ['Unsupported', None] oracle= ['Checked', '9/55']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_112.metta cli= ['Unsupported', None] oracle= ['Checked', '3/28']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_113.metta cli= ['Unsupported', None] oracle= ['Checked', '3/77']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_127.metta cli= ['Unsupported', None] oracle= ['Checked', '2/27']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_132.metta cli= ['Unsupported', None] oracle= ['Checked', '81/400']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_136.metta cli= ['Unsupported', None] oracle= ['Checked', '1/18']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_150.metta cli= ['Unsupported', None] oracle= ['Checked', '1/13']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_153.metta cli= ['Unsupported', None] oracle= ['Checked', '2092/19353']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_160.metta cli= ['Unsupported', None] oracle= ['Checked', '354/1595']
+DISAGREE kant_disc stoch_runs/mixture_s1/case_mixture_1_186.metta cli= ['Unsupported', None] oracle= ['Checked', '2/27']
+SUMMARY bisim          cases=200 disagree=0
+SUMMARY check_trace    cases=200 disagree=0
+SUMMARY kant_disc      cases=200 disagree=21
+SUMMARY kant_hor       cases=200 disagree=0
+SUMMARY linear_dim     cases=200 disagree=0
+SUMMARY trace_classes  cases=200 disagree=0

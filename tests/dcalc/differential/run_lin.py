@@ -35,9 +35,10 @@ def arrow_expect(src, tgt, L, signed):
     return ('Checked', (str(g['lam']), str(g['rho']))) if ok else ('Refuted', None), g
 
 
-def tag(kind, cli, exp, g, signed):
+def tag(kind, cli, exp, g, signed, raw=''):
     if kind in ('LC', 'KC'):
-        if cli[0] == 'Refuted' and exp[0] == 'Checked' and g['rho_obs'] > 0:
+        # review 1 F6: KNOWN-D2 also requires the CLI's stated reason to be the observation residual
+        if cli[0] == 'Refuted' and exp[0] == 'Checked' and g['rho_obs'] > 0 and 'observation report differs' in raw:
             return 'KNOWN-D2'
         if cli[0] == 'Checked' and exp[0] == 'Refuted' and signed and not g['valid']:
             return 'KNOWN-D3'
@@ -77,7 +78,7 @@ def main():
                 ok = cli == exp
                 t = 'OK'
                 if not ok:
-                    t = tag(kind, cli, exp, g, signed) if (kind != 'LK' or first_bad) else 'NEW'
+                    t = tag(kind, cli, exp, g, signed, lines[k] if k < len(lines) else '') if (kind != 'LK' or first_bad) else 'NEW'
                     first_bad = True
                 tally.setdefault(kind, {}).setdefault(t, 0); tally[kind][t] += 1
                 log.write(json.dumps({'case': name, 'kind': kind, 'tag': t, 'cli': [cli[0], cli[1]], 'oracle': [exp[0], exp[1]]}) + '\n')

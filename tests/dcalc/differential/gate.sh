@@ -12,6 +12,10 @@ canary() { # name file expected-regex
   if timeout 60 "$DC" --beyond-release "$2" 2>&1 | grep -qE "$3"; then echo "CANARY ok   $1"; else echo "CANARY FAIL $1"; fail=1; fi
 }
 canary seven_state_positive   $FIX/seven_state.metta            'PositiveDimension \(Interval 5 5\)'
+# review 1 F6: the D4 and D5 canaries below are EXPECTED-BUG canaries. They assert today's wrong answers
+# (D4: valid contract Refuted; D5: defect 1/2 where the spec gives 1), so they prove the gate reaches the
+# buggy code paths. When D4 or D5 is fixed, this canary fails on purpose: flip its regex to the spec answer
+# (D4: 'Status Checked'; D5: 'BehavioralDefect 1') and drop the matching KNOWN tag in classify.py.
 canary D4_con_clip_known      $H/disagreements/d_con_clip.metta 'Status Refuted'
 canary D5_kant_classpairs     $H/disagreements/d_kant_classpairs.metta 'BehavioralDefect \(Rat 1 2\)'
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
@@ -27,7 +31,13 @@ python3 $H/run_diff.py --seed 7 --count 20 --out "$OUT/diff" --dcalc "$DC" > "$O
 pilot diff_classify python3 $H/classify.py --runner diff --seed 7 --count 20 --out "$OUT/diff"
 python3 $H/run_con.py --seed 7 --count 20 --out "$OUT/con" --dcalc "$DC" > "$OUT/con.run.log" 2>&1
 pilot con_classify  python3 $H/classify.py --runner con --seed 7 --count 20 --out "$OUT/con"
-pilot lin           python3 $H/run_lin.py --seed 7 --count 20 --out "$OUT/lin"
+pilot lin           python3 $H/run_lin.py --seed 7 --count 200 --out "$OUT/lin" --dcalc "$DC"   # review 1 F1: 20 cases missed a rho mutant
 pilot pos           python3 $H/run_pos.py --seed 7 --count 20 --out "$OUT/pos" --dcalc "$DC"
+# review 1 F6: stochastic (D1 path, check trace, mixture family) and run_linear obs family are gated too
+python3 $H/run_stoch.py --seed 7 --count 20 --family random  --cli "$DC" --out "$OUT/stoch_r" > "$OUT/stoch_r.run.log" 2>&1
+pilot stoch_random  python3 $H/known_d1.py "$OUT/stoch_r.run.log" "$DC"
+python3 $H/run_stoch.py --seed 7 --count 20 --family mixture --cli "$DC" --out "$OUT/stoch_m" > "$OUT/stoch_m.run.log" 2>&1
+pilot stoch_mixture python3 $H/known_d1.py "$OUT/stoch_m.run.log" "$DC"
+pilot linear_obs    python3 $H/run_linear.py --seed 7 --count 50 --family obs --cli "$DC" --out "$OUT/linear_obs"
 [ $fail = 0 ] || { echo "GATE FAIL (pilot)"; exit 1; }
 echo "GATE PASS"

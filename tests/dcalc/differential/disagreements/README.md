@@ -110,6 +110,9 @@ D2_linear_arrow_obs_refuted.metta both show D2 (a third copy, d_lin_obs.metta, w
 - CLI: Refuted, "an audited pair violates the affine bound". Oracle: Checked, Grade 0 1.
 - Spec l.686-694: tolerance beta = max(0, 1 - |p - p'|), so the distance 1 - beta = min(1, |p - p'|) = 1 <= 0*0 + 1.
   ops_contracts.c ct_dist (l.33) uses |p - q| without the clip. The spec supports the oracle.
+  Review 1 F5: the shared tolerance distance dc_tol_dist (model.c:562, case DC_TOL_ONE_MINUS_ABS) also
+  returns the unclipped |a - b|, so a fix must cover both ct_dist and dc_tol_dist, or the M2 graded path
+  stays inconsistent with the registry definition max(0, 1 - |p - p'|).
 - Scale: run_con.py seed 1 x30 and seed 100 x200 (C1 104, C2 126, ThenContracts 122 disagreements out of 200).
   Replaying both runs with an unclipped oracle distance leaves 0 mismatches, so this is the only cause.
   Every ThenContracts disagreement is InvalidInput because an input contract was Refuted by D4.
