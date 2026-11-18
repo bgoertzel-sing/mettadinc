@@ -1,0 +1,12 @@
+(DC.Module Shrunk
+  (Profile Stochastic)
+  (Use Linear)
+  (Carrier S (Of Symbol) (Enum s0 s1 s2 s3))
+  (Carrier Report (Of Nat) (Enum 0 1))
+  (Map report (From S) (To Report) (Cases (s0 0) (s1 0) (s2 0) (s3 1)))
+  (TransitionKernel Ka (From S) (To S) (Row s0 (Mass s3 1)) (Row s1 (Mass s1 1)) (Row s2 (Mass s1 1)) (Row s3 (Mass s3 1)))
+  (TransitionKernel Kb (From S) (To S) (Row s0 (Mass s1 1)) (Row s1 (Mass s2 1)) (Row s2 (Mass s0 (Rat 1 6)) (Mass s3 (Rat 2 3)) (Mass s1 (Rat 1 6))) (Row s3 (Mass s1 1)))
+  (Machine Chain (States S) (Observe report report) (Action a Ka) (Action b Kb))
+  (Map merge (From S) (To S) (Cases (s0 s0) (s1 s0) (s2 s2) (s3 s3)))
+  (Representation Merge (Of Chain) (Encode merge)))
+!(dc.run Shrunk (MeasureBehavioral Merge (Discount (Rat 9 10))))
