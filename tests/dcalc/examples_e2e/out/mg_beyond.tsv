@@ -1,0 +1,93 @@
+module	request	status	reason
+OpenItems	(CheckNow WindowView)	Unsupported	library NatArith is outside the first release
+OpenItems	(CheckUpdates WindowView)	Unsupported	library NatArith is outside the first release
+OpenItems	(CheckBehavioral EventView)	Unsupported	library NatArith is outside the first release
+OpenItems	(CheckUpdates EventView)	Unsupported	library NatArith is outside the first release
+OpenItems	EngineMemory	Unsupported	library NatArith is outside the first release
+OpenItems	CommitmentMemory	Unsupported	library NatArith is outside the first release
+OpenItems	JointMemory	Unsupported	library NatArith is outside the first release
+OpenItems	(CheckBehavioral CapForEngine)	Unsupported	library NatArith is outside the first release
+OpenItems	(CheckNow CapForCommitments)	Unsupported	library NatArith is outside the first release
+SuggestionDedupe	(CheckBlockPartition OnceByTopic (Of TopicWatch))	Unsupported	library NatArith is outside the first release
+SuggestionDedupe	(CheckBlockPartition OnceByQuestion (Of QuestionWatch))	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow RecencyF)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow RecencyO)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow RecencyA)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow RelevanceF)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow RelevanceO)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow RelevanceA)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow ProtectedF)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow ProtectedO)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow ProtectedA)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow ConsumerF)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow ConsumerO)	Unsupported	library NatArith is outside the first release
+ContextBlock	(CheckNow ConsumerA)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(Defects MajorityC)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckBehavioral CountsC)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckUpdates CountsC)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckNow CountsE)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckNow CountsR)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckNow DistinctR)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckBehavioral DistinctR)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckUpdates DistinctC)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckBehavioral ProtectedR)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckUpdates ProtectedR)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckNow ProtectedE)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckUpdates ProvenanceAll)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckUpdates MinimalAll)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	(CheckBehavioral MinimalAll)	Unsupported	library NatArith is outside the first release
+EvidenceMemory	ContraMemory	Unsupported	library NatArith is outside the first release
+EvidenceMemory	EffMemory	Unsupported	library NatArith is outside the first release
+EvidenceMemory	RegenMemory	Unsupported	library NatArith is outside the first release
+EvidenceMemory	AnchorMemory	Unsupported	library NatArith is outside the first release
+EvidenceMemory	FullMemory	Unsupported	library NatArith is outside the first release
+AnchorMigration	(CheckAbstractionMap NaiveMigration)	Unsupported	CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment
+AnchorMigration	(CheckAbstractionMap CellMigration)	Unsupported	CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment
+TaskResume	(CheckNow NoReadSets)	Unsupported	CheckNow: Representation NoReadSets is outside the M0 fragment
+TaskResume	(CheckUpdates NoReadSets)	Unsupported	CheckUpdates: Representation NoReadSets is outside the M0 fragment
+TaskResume	(CheckBehavioral NoReadSets)	Unsupported	CheckBehavioral: Representation NoReadSets is outside the M2 fragment
+TaskResume	(CheckBehavioral ReadSets)	Unsupported	CheckBehavioral: Representation ReadSets is outside the M2 fragment
+TaskResume	ResumeMemory	Unsupported	MinimizeForQueries: Machine Resume is outside the M2 fragment
+ItemGoals	ReplyMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	NagMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	TriageMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	ReplyNagMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	AllGoalsMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	ReplyTriageMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckNow DaysLeft)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckNow NagForDays)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckNow BenFirst)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckNow NagForBenFirst)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckNow Cap3)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckNow NagForCap3)	Unsupported	library NatArith is outside the first release
+ItemGoals	DaysMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	BenFirstMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	Cap3Memory	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckAbstractionMap ToDeadline)	Unsupported	library NatArith is outside the first release
+ItemGoals	DeadlineMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckNow AntiAsNag)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckNow NagForAntiNag)	Unsupported	library NatArith is outside the first release
+ItemGoals	AntiNagMemory	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckInterpretation NagFollowUps DaysFollowUps)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckInterpretation NagFollowUps BenFirstFollowUps)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckInterpretation NagFollowUps Cap3FollowUps)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckInterpretation NagFollowUps DeadlineFollowUps (Via ToDeadline))	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckInterpretation NagFollowUps AntiNagFollowUps)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckInterpretation NagFollowUps AntiNagWaits)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckInterpretation NagFollowUps DeadlineFollowUps)	Unsupported	library NatArith is outside the first release
+ItemGoals	(CheckInterpretation DaysFollowUps DeadlineFollowUps (Via ToDeadline))	Unsupported	library NatArith is outside the first release
+ClaimArbitration	(CheckBlockPartition LawfulWeighted (Of WeightedLaw))	InvalidInput	memory_goals.metta:594:1: memory_goals.metta:ClaimArbitration: map-call cycle deadline -> deadline
+ClaimArbitration	(CheckBlockPartition LawfulNormFirst (Of NormFirstLaw))	InvalidInput	memory_goals.metta:594:1: memory_goals.metta:ClaimArbitration: map-call cycle deadline -> deadline
+ClaimArbitration	(CheckBlockPartition Agreement (Of ConflictWatch))	InvalidInput	memory_goals.metta:594:1: memory_goals.metta:ClaimArbitration: map-call cycle deadline -> deadline
+MotivationGrid	(CheckBlockPartition SafePlain (Of PlainWatch))	Unsupported	library NatArith is outside the first release
+MotivationGrid	(CheckBlockPartition SafeFloor (Of FloorWatch))	Unsupported	library NatArith is outside the first release
+MotivationGrid	(CheckImplementation OrderSwapFloor (Grade 1 (Rat 1 2)))	Unsupported	library NatArith is outside the first release
+MotivationGrid	(CheckImplementation OrderSwapDamped (Grade 1 (Rat 1 2)))	Unsupported	library NatArith is outside the first release
+MotivationGrid	(CheckImplementation OrderSwapSettled (Grade 1 (Rat 1 2)))	Unsupported	library NatArith is outside the first release
+MotivationGrid	(CheckImplementation OrderSwapSettled (Grade 1 (Rat 1 4)))	Unsupported	library NatArith is outside the first release
+MotivationGrid	(CheckImplementation NearBoundaryFloor (Grade (Rat 1 2) (Rat 3 4)))	Unsupported	library NatArith is outside the first release
+MotivationGrid	(CheckImplementation NearBoundaryFloor (Grade (Rat 1 2) (Rat 1 2)))	Unsupported	library NatArith is outside the first release
+MotivationGrid	(CheckImplementation NearBoundaryDamped (Grade (Rat 1 2) (Rat 5 8)))	Unsupported	library NatArith is outside the first release
+StaleMonitor	(CheckMonitor Stale)	Unsupported	library Laws is outside the first release
+StaleMonitor	(Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))	Unsupported	library Laws is outside the first release
+StaleMonitor	(Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))	Unsupported	library Laws is outside the first release

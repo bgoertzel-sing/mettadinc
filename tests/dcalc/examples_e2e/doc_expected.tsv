@@ -1,0 +1,307 @@
+run	idx	doc_answer	source
+ex1	1	Checked	doc03 Table 8
+ex1	3	Refuted	doc03 Table 8
+ex1	6	Checked	doc03 Table 8
+ex1	7	Refuted	doc03 Table 8
+ex1	8	Checked	doc03 Table 8
+ex1	14	Refuted	doc03 Table 8
+ex1	15	Refuted	doc03 Table 8
+ex1	20	Checked	doc03 Table 8
+ex1	21	Checked	doc03 Table 8
+ex1	22	Checked	doc03 Table 8
+ex1	28	Checked	doc03 Table 8
+ex1	29	Refuted	doc03 Table 8
+ex1	34	Checked	doc03 Table 8
+ex1	35	Checked	doc03 Table 8
+ex1	36	Checked (Conditional without proof replay)	doc03 Table 8
+ex1	37	Checked	doc03 Table 8
+ex1	39	Checked	doc03 Table 8
+ex1	41	Checked	doc03 Table 8
+ex1	43	Checked	doc03 Table 8
+ex1	45	Checked	doc03 Table 8
+ex1	49	Refuted	doc03 Table 8
+ex1	50	Checked	doc03 Table 8
+ex1	51	Checked	doc03 Table 8
+ex1	52	Refuted	doc03 Table 8
+ex1	54	Refuted	doc03 Table 8
+ex1	55	Checked	doc03 Table 8
+ex1	56	Refuted	doc03 Table 8
+ex1	57	Refuted	doc03 Table 8
+ex1	58	Checked	doc03 Table 8
+ex1	59	Checked	doc03 Table 8
+ex1	60	Refuted	doc03 Table 8
+ex1	61	Checked	doc03 Table 8
+ex2	1	Refuted	doc03 Table 10
+ex2	2	Refuted	doc03 Table 10
+ex2	3	Refuted	doc03 Table 10
+ex2	4	Checked	doc03 Table 10
+ex2	5	Unknown (no counterexample within 6 unrollings)	doc03 Table 10
+ex2	6	Checked	doc03 Table 10
+ex2	7	Refuted	doc03 Table 10
+ex2	8	Checked	doc03 Table 10
+ex2	9	Checked	doc03 Table 10
+ex2	10	Checked	doc03 Table 10
+ex2	11	Checked	doc03 Table 10
+ex2	12	Refuted	doc03 Table 10
+ex2	13	Refuted	doc03 Table 10
+ex2	14	Checked	doc03 Table 10
+ex2	15	Checked	doc03 Table 10
+ex3	1	Checked	doc03 Table 14
+ex3	2	Checked	doc03 Table 14
+ex3	3	Checked	doc03 Table 14
+ex3	4	Checked	doc03 Table 14
+ex3	5	Checked	doc03 Table 14
+ex3	6	Refuted	doc03 Table 14
+ex3	7	Checked	doc03 Table 14
+ex3	8	Checked	doc03 Table 14
+ex3	9	Refuted	doc03 Table 14
+ex3	10	Checked	doc03 Table 14
+ex3	11	Refuted	doc03 Table 14
+ex3	12	Checked	doc03 Table 14
+ex3	13	Checked	doc03 Table 14
+ex3	20	Checked	doc03 Table 14
+ex3	21	Checked	doc03 Table 14
+ex3	22	Refuted	doc03 Table 12
+ex3	23	Checked	doc03 Table 12
+ex3	24	Checked	doc03 Table 12
+ex3	25	Refuted	doc03 Table 12
+ex3	26	Refuted	doc03 Table 12
+ex3	27	Checked	doc03 Table 12
+ex3	28	Checked	doc03 Table 12
+ex3	29	Refuted	doc03 Table 13
+ex3	30	Checked	doc03 Table 13
+ex3	31	Refuted	doc03 Table 13
+ex3	32	Checked	doc03 Table 13
+ex3	14	Refuted (incoherent)	doc03 s5.6 l.1943
+ex3	15	value: exceeds tolerance at 12 pairs (no status word)	doc03 s5.6 l.1945
+ex3	16	value: 4/147 (no status word)	doc03 s5.6 l.1946
+ex3	17	Checked (coherent)	doc03 s5.6 l.1949
+ex3	18	Refuted (incoherent)	doc03 s5.6 l.1950
+ex3	19	Checked (coherent)	doc03 s5.6 l.1949
+ex4	1	Checked	doc03 Table 19
+ex4	2	Checked	doc03 Table 19
+ex4	3	Checked	doc03 Table 19
+ex4	4	Checked	doc03 Table 19
+ex4	5	Checked	doc03 Table 19
+ex4	6	Checked	doc03 Table 19
+ex4	7	Checked	doc03 Table 19
+ex4	8	Refuted	doc03 Table 19
+ex4	9	Refuted	doc03 Table 19
+ex4	10	Checked	doc03 Table 19
+ex4	11	Refuted	doc03 Table 19
+ex4	12	Checked	doc03 Table 19
+ex4	13	Checked	doc03 Table 19
+ex4	14	Checked	doc03 Table 19
+ex4	15	Checked	doc03 Table 19
+ex4	16	Checked	doc03 Table 19
+ex4	17	Refuted	doc03 Table 19
+ex4	18	Refuted	doc03 Table 19
+ex4	19	Checked	doc03 Table 19
+ex4	20	Checked	doc03 Table 19
+ex4	21	Checked	doc03 Table 19
+ex4	22	Checked	doc03 Table 19
+ex4	23	Refuted	doc03 Table 19
+ex4	24	Checked	doc03 Table 19
+ex4	25	Checked	doc03 Table 19
+ex4	26	Checked	doc03 Table 19
+ex4	27	Refuted	doc03 Table 19
+ex4	28	Refuted	doc03 Table 19
+ex4	29	Checked	doc03 Table 19
+ex4	30	Checked	doc03 Table 19
+ex4	31	Checked	doc03 Table 19
+ex4	32	Checked	doc03 Table 19
+ex4	33	Checked	doc03 Table 19
+ex4	34	Estimated	doc03 Table 19
+ex4	35	Estimated	doc03 Table 19
+ex4	36	Estimated	doc03 Table 19
+mg	1	Refuted	doc04 Table 3
+mg	2	Refuted	doc04 Table 3
+mg	3	Checked	doc04 Table 3
+mg	4	Checked	doc04 Table 3
+mg	5	Checked	doc04 Table 3
+mg	6	Checked	doc04 Table 3
+mg	7	Checked	doc04 Table 3
+mg	8	Checked	doc04 Table 3
+mg	9	Refuted	doc04 Table 3
+mg	12	Refuted	doc04 Table 4
+mg	13	Refuted	doc04 Table 4
+mg	14	Refuted	doc04 Table 4
+mg	15	Checked	doc04 Table 4
+mg	16	Refuted	doc04 Table 4
+mg	17	Refuted	doc04 Table 4
+mg	18	Refuted	doc04 Table 4
+mg	19	Refuted	doc04 Table 4
+mg	20	Checked	doc04 Table 4
+mg	21	Checked	doc04 Table 4
+mg	22	Refuted	doc04 Table 4
+mg	23	Checked	doc04 Table 4
+mg	25	Checked	doc04 Table 5 (policy row inferred from module name)
+mg	26	Checked	doc04 Table 5 (policy row inferred from module name)
+mg	27	Refuted	doc04 Table 5 (policy row inferred from module name)
+mg	28	Refuted	doc04 Table 5 (policy row inferred from module name)
+mg	29	Checked	doc04 Table 5 (policy row inferred from module name)
+mg	30	Refuted	doc04 Table 5 (policy row inferred from module name)
+mg	31	Refuted	doc04 Table 5 (policy row inferred from module name)
+mg	32	Checked	doc04 Table 5 (policy row inferred from module name)
+mg	33	Checked	doc04 Table 5 (policy row inferred from module name)
+mg	34	Refuted	doc04 Table 5 (policy row inferred from module name)
+mg	35	Checked	doc04 Table 5 (policy row inferred from module name)
+mg	36	Checked	doc04 Table 5 (policy row inferred from module name)
+mg	37	Checked	doc04 Table 5 (policy row inferred from module name)
+mg	24	value: least witness empty memory vs one supporting + one contradicting report from c (no status word)	doc04 s6.3 l.1300ff
+mg	38	value: 2 classes (no status word)	doc04 s6.3 l.1350
+mg	39	value: 5 classes (no status word)	doc04 s6.3 l.1350
+mg	40	value: 5 classes (no status word)	doc04 s6.3 l.1350
+mg	41	value: 5 classes (no status word)	doc04 s6.3 l.1351
+mg	42	value: 25 classes (no status word)	doc04 s6.3 l.1351
+mg	43	Refuted	doc04 s6.4 l.1422
+mg	44	Checked	doc04 s6.4 l.1425
+mg	45	Checked	doc04 s7.3 l.1518
+mg	46	Refuted	doc04 s7.3 l.1520
+mg	47	Refuted	doc04 s7.3 l.1522
+mg	48	Checked	doc04 s7.3 l.1524
+mg	49	value: 11 classes on 12 states (no status word)	doc04 s7.3 l.1524
+mg	50	value: 2 classes (no status word)	doc04 Table 6
+mg	51	value: 4 classes (no status word)	doc04 Table 6
+mg	52	value: 3 classes (no status word)	doc04 Table 6
+mg	53	value: 8 classes (no status word)	doc04 Table 6
+mg	54	value: 17 classes (no status word)	doc04 Table 6
+mg	55	value: 5 classes (no status word)	doc04 Table 6
+mg	56	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	57	Refuted	doc04 Table 7 (column mapping inferred from request names)
+mg	58	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	59	Refuted	doc04 Table 7 (column mapping inferred from request names)
+mg	60	Refuted	doc04 Table 7 (column mapping inferred from request names)
+mg	61	Refuted	doc04 Table 7 (column mapping inferred from request names)
+mg	62	value: 4 classes (no status word)	doc04 Table 7 (column mapping inferred from request names)
+mg	63	value: 7 classes (no status word)	doc04 Table 7 (column mapping inferred from request names)
+mg	64	value: 5 classes (no status word)	doc04 Table 7 (column mapping inferred from request names)
+mg	65	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	66	value: 4 classes (no status word)	doc04 Table 7 (column mapping inferred from request names)
+mg	67	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	68	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	69	value: 4 classes (no status word)	doc04 Table 7 (column mapping inferred from request names)
+mg	70	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	71	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	72	Refuted	doc04 Table 7 (column mapping inferred from request names)
+mg	73	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	74	Refuted	doc04 Table 7 (column mapping inferred from request names)
+mg	75	Checked	doc04 Table 7 (column mapping inferred from request names)
+mg	76	InvalidInput (negative fixture)	doc04 l.1875 + memory_goals.metta:586
+mg	77	InvalidInput (negative fixture)	memory_goals.metta:586
+mg	78	Refuted	doc04 l.2057
+mg	79	Checked	doc04 l.2060
+mg	80	Refuted	doc04 l.2060
+mg	81	Refuted	doc04 l.2262
+mg	82	Checked	doc04 l.2265
+mg	90	Checked	doc04 l.2356
+mg	83	Refuted	doc04 l.2274
+mg	84	Checked	doc04 l.2274
+mg	85	Checked (inferred: least eta 1/2 on settled states)	doc04 l.2275
+mg	86	Refuted (inferred: least eta 1/2 > 1/4)	doc04 l.2275
+mg	87	Checked (inferred: least eta 3/4)	doc04 l.2288
+mg	88	Refuted	doc04 l.2289
+mg	89	Checked (inferred: least eta 5/8)	doc04 l.2288
+mg	91	Estimated (fires at suggestion 21)	doc04 s11.3 l.2358
+mg	92	Estimated (never fires)	doc04 s11.3 l.2360
+mg	10	Refuted	doc04 l.930
+mg	11	Checked	doc04 l.932
+ls	1	Conditional	doc05 Table 5
+ls	2	Conditional	doc05 Table 5
+ls	3	Conditional	doc05 Table 5
+ls	4	Refuted	doc05 Table 5
+ls	5	Refuted	doc05 Table 5
+ls	6	Conditional	doc05 Table 5
+ls	7	Conditional	doc05 Table 5
+ls	8	Conditional	doc05 Table 5
+ls	9	InvalidInput	doc05 Table 5
+ls	11	Conditional	doc05 Table 7
+ls	12	Refuted	doc05 Table 7
+ls	13	Conditional	doc05 Table 7
+ls	14	Refuted	doc05 Table 7
+ls	15	Refuted	doc05 Table 7
+ls	16	Refuted	doc05 Table 7
+ls	17	Conditional	doc05 Table 7
+ls	18	Refuted	doc05 Table 7
+ls	19	Conditional	doc05 Table 7
+ls	20	Conditional	doc05 Table 7
+ls	10	Conditional	doc05 l.1385
+ls	21	Conditional	doc05 l.1728
+ls	22	Conditional	doc05 l.1728
+ls	23	Conditional	doc05 l.1736
+ls	24	Refuted	doc05 l.1744
+ls	25	InvalidInput (negative fixture)	doc05 l.1741 + live_memory.metta:354
+ls	26	Refuted	doc05 l.1873
+ls	27	Conditional	doc05 l.1869
+ls	35	Checked	doc05 l.1964
+ls	28	Conditional	doc05 l.1884
+ls	29	Refuted	doc05 l.1885
+ls	30	Conditional	doc05 l.1886
+ls	34	Estimated (79/400, interval [0.128, 0.282])	doc05 l.1965
+ls	36	Estimated (fires at suggestion 27, e-value 110.9)	doc05 l.1966
+ls	37	Estimated (mixture fires at suggestion 132)	doc05 l.1967
+ls	31	Estimated (miss rate in [0.901, 0.950])	doc05 l.1302
+ls	32	Estimated (miss rate <= 0.0061)	doc05 l.1303
+ls	33	Estimated (1856 discordant, lower end 0.9935)	doc05 l.1304
+wx	1	Conditional	doc06 Table 5
+wx	2	Conditional	doc06 Table 5
+wx	3	Conditional	doc06 Table 5
+wx	4	Refuted	doc06 Table 5
+wx	5	Refuted	doc06 Table 5
+wx	6	Conditional	doc06 Table 5
+wx	7	Conditional	doc06 Table 5
+wx	8	Conditional	doc06 Table 5
+wx	20	Checked	doc06 Table 7
+wx	21	Checked	doc06 Table 7
+wx	22	Checked	doc06 Table 7
+wx	23	Estimated (Ville: no alarm in 916 receipts)	doc06 Table 7
+wx	24	Estimated (ShiryaevRoberts: first alarm at receipt 399)	doc06 Table 7
+wx	25	Estimated (5/362, [0.0009, 0.0565])	doc06 Table 7
+wx	26	Estimated (5/15, [0.0512, 0.7525])	doc06 Table 7
+wx	27	Estimated (17/59, [0.1144, 0.5202])	doc06 Table 7
+wx	9	InvalidInput (missing: the step for snooze)	doc06 Table 10
+wx	10	Refuted	doc06 Table 10
+wx	11	Conditional	doc06 Table 10
+wx	12	Conditional	doc06 Table 10
+wx	13	Conditional	doc06 Table 10
+wx	14	Refuted	doc06 Table 10
+wx	15	Conditional	doc06 Table 10
+wx	16	Conditional	doc06 Table 10
+wx	17	Conditional	doc06 Table 10
+wx	18	Conditional	doc06 Table 10
+wx	19	Conditional	doc06 Table 10
+wx	28	Estimated (E1: 4 of 436, [0.0004, 0.0436])	doc06 Table 8
+wx	29	Estimated (E2: 5 of 453, [0.0007, 0.0460])	doc06 Table 8
+wx	30	Estimated (E6: 2 of 451, [0.0000, 0.0339])	doc06 Table 8
+wx	31	Estimated (E3: 314 against 0, [0.9676, 1])	doc06 Table 8
+wx	32	Estimated (E4: 2 of 140, [0.0001, 0.0969], not yet)	doc06 Table 8
+wx	33	Estimated (E5: 0 of 76, [0, 0.1111], not yet)	doc06 Table 8
+ex1	9	value: 1/10 (no status word)	doc03 Table 3 h=1
+ex1	10	value: 1/4 (no status word)	doc03 Table 3 h=2
+ex1	11	value: 1/2 (no status word)	doc03 Table 3 h=3
+ex1	13	value: 0.96 (no status word)	doc03 Table 3 gamma=9/10
+ex1	16	Checked (inferred: h=1 defect 1/10 <= 1/5)	doc03 Table 3
+ex1	17	value: now 33/340, update 1 (no status word)	doc03 Table 3 + l.760
+ex1	18	value: now 1/5, update 1 (no status word)	doc03 Table 3 + l.760
+ex1	19	value: now 4/11, update 1 (no status word)	doc03 Table 3 + l.760
+ex1	23	value: now 5/104 (no status word)	doc03 Table 5
+ex1	24	value: 3/22 (no status word)	doc03 Table 5 h=1
+ex1	27	value: 27/220 (no status word)	doc03 Table 5 gamma=9/10
+ex1	30	Checked (inferred: all-futures defect 1/5 <= 1/5)	doc03 Table 5
+ex1	31	value: now 33/340 (no status word)	doc03 Table 5
+ex1	32	value: now 1/5 (no status word)	doc03 Table 5
+ex1	33	value: now 4/11 (no status word)	doc03 Table 5
+ex1	48	Checked	doc03 l.985
+ex1	2	value: 225 classes (no status word)	doc03 l.725
+ex1	4	not stated (Steps 0 = status agreement now; no sentence)	doc03 s3.4
+ex1	5	Refuted (inferred: P1 has 17 classes vs 3 status classes)	doc03 l.734
+ex1	12	not stated (Within 1/2 refuted at length six, l.764)	doc03 l.764
+ex1	25	not stated (between 3/20 and 1/5)	doc03 Table 5
+ex1	26	value: 6/35 (inferred from length-five witness)	doc03 l.817
+ex1	53	Refuted (inferred: max-merge worst error 6/35 > 1/6)	doc03 l.994
+ex1	38	not stated (no sentence on FewestDiscounted found)	doc03 s3.8
+ex1	40	not stated (cold store on Grid10x7; no status sentence)	doc03 s3.9
+ex1	42	not stated (cold store on best buckets; no status sentence)	doc03 s3.9
+ex1	44	value: 10 centers at 1/5, 19.9 bits for six beliefs (no status word)	doc03 l.901 + Table 7
+ex1	46	Checked (inferred: product rule, Fewest is within 1/5; 26.4 bits)	doc03 l.959 + Table 7
+ex1	47	not stated (no discounted Grid6 value given)	doc03 s3.9

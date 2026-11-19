@@ -1,0 +1,34 @@
+module	request	status	reason
+WMTMStore	(CheckStatistic EventStat (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic JointStat (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic NagIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckNow WindowView)	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckUpdates WindowView)	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic Records (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic EngineIndex (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic NagIndexByKey (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic JointCarried (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckNow CarriedIndex)	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic RecordS (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic JointS (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic NagTwoIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckNow TwoForThree)	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic NagThreeIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic RebuildFromRecords (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic RebuildEngineIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic EngineIndexS (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic NagIndexS (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMReceipts	(CheckMonitor MissTenth)	Unsupported	library Laws is outside the first release
+WMTMReceipts	(CheckMonitor MissFifth)	Unsupported	library Laws is outside the first release
+WMTMReceipts	(CheckMonitor MissTwoFifths)	Unsupported	library Laws is outside the first release
+WMTMReceipts	(Detect MissTenth MissFifth MissTwoFifths (On Replies) (Level (Rat 1 100)) (Combine Mixture))	Unsupported	library Laws is outside the first release
+WMTMReceipts	(Detect MissTenth MissFifth MissTwoFifths (On Replies) (Combine Mixture) (Scheme ShiryaevRoberts) (MeanTimeToFalseAlarm 100000))	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(EstimateRate (On RepliesBefore) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(EstimateRate (On AuditAfterAlarm) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(EstimateRate (On AuditV2) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(EstimateRate (On RepliesGate) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(EstimateRate (On KeysGate) (Column ""duplicate"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(EstimateRate (On ClosuresGate) (Column ""spurious"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(CompareRates (On LivesGate) (First ""window_bad"") (Second ""event_bad"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(EstimateRate (On AuditRepliesGate) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+WMTMReceipts	"(EstimateRate (On AuditOpenGate) (Column ""false_close"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release

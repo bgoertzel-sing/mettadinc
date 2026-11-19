@@ -1,0 +1,16 @@
+module	request	status	reason
+AccessPolicy	(CheckBlockPartition NoBreach (Of SoDWatch))	Unsupported	library Families is outside the first release
+AccessPolicy	(CheckBlockPartition ClerksOnly (Of ClerkWatch))	Unsupported	library Families is outside the first release
+AccessPolicy	(CheckBlockPartition WellFormed (Of Hygiene))	Unsupported	library Families is outside the first release
+AccessPolicyFixed	(CheckBlockPartition NoBreach (Of SoDWatch))	Unsupported	library Families is outside the first release
+AccessPolicyFixed	(CheckBlockPartition ClerksOnly (Of ClerkWatch) (Budget (Unrollings 6)))	Unsupported	library Families is outside the first release
+AccessPolicyFixed	(CheckBlockPartition ClerksOnlyProved (Of ClerkWatch))	Unsupported	library Families is outside the first release
+AccessPolicyFixed	(CheckNow AssignmentsOnly)	Unsupported	library Families is outside the first release
+AccessPolicyFixed	WholeInterface	Unsupported	library Families is outside the first release
+AccessPolicyFixed	LiveInterface	Unsupported	library Families is outside the first release
+AccessPolicyFixed	BobSlice	Unsupported	library Families is outside the first release
+AccessPolicyFixed	(Defects BobOnly)	Unsupported	library Families is outside the first release
+AccessPolicyFixed	(InduceExact BobOnly)	Unsupported	library Families is outside the first release
+AccessPolicyFixed	(CheckBehavioral BobOnly)	Unsupported	library Families is outside the first release
+AccessPolicyFixed	BobQuotient	Unsupported	library Families is outside the first release
+AccessPolicyFixed	BobLiveQuotient	Unsupported	library Families is outside the first release
