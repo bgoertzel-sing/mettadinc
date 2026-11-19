@@ -1,0 +1,12 @@
+DISAGREE kant_disc stoch_runs/random_s2/case_random_2_19.metta cli= ['Unsupported', None] oracle= ['Checked', '1']
+DISAGREE kant_disc stoch_runs/random_s2/case_random_2_67.metta cli= ['Unsupported', None] oracle= ['Checked', '9/11']
+DISAGREE kant_disc stoch_runs/random_s2/case_random_2_169.metta cli= ['Unsupported', None] oracle= ['Checked', '9/10']
+DISAGREE kant_disc stoch_runs/random_s2/case_random_2_175.metta cli= ['Unsupported', None] oracle= ['Checked', '1/2']
+DISAGREE kant_disc stoch_runs/random_s2/case_random_2_182.metta cli= ['Unsupported', None] oracle= ['Checked', '99/170']
+DISAGREE kant_disc stoch_runs/random_s2/case_random_2_192.metta cli= ['Unsupported', None] oracle= ['Checked', '21/50']
+SUMMARY bisim          cases=200 disagree=0
+SUMMARY check_trace    cases=200 disagree=0
+SUMMARY kant_disc      cases=200 disagree=6
+SUMMARY kant_hor       cases=200 disagree=0
+SUMMARY linear_dim     cases=200 disagree=0
+SUMMARY trace_classes  cases=200 disagree=0
