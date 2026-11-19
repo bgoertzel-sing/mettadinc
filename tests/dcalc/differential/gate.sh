@@ -18,6 +18,9 @@ canary seven_state_positive   $FIX/seven_state.metta            'PositiveDimensi
 # (D4: 'Status Checked'; D5: 'BehavioralDefect 1') and drop the matching KNOWN tag in classify.py.
 canary D4_con_clip_known      $H/disagreements/d_con_clip.metta 'Status Refuted'
 canary D5_kant_classpairs     $H/disagreements/d_kant_classpairs.metta 'BehavioralDefect \(Rat 1 2\)'
+# t-2026-11-19 D2 fixed: regression gates with the spec answer (Def 3.8: S_y = Pi_y L - L Pi'_y is graded into rho).
+canary D2_obs_residual        $H/disagreements/D2_obs_residual_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho \(Rat 1 2\)\)\)'
+canary D2_linear_arrow_obs    $H/disagreements/D2_linear_arrow_obs_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho 1\)\)'
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
 echo "GATE canaries passed"
 # 2. Pilots (small, fixed seeds). Every disagreement must be a listed D-id, else the gate fails.

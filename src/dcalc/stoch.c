@@ -466,10 +466,13 @@ static Sx *st_realization_sx(const StMod *s, const StMach *M, const StSpan *B, i
 }
 
 /* ---- S07: linear arrows and positive realization ----
- * A linear arrow L : Source -> Target is checked by exact intertwining
- * K_a L = L K'_a for every action label a, observation preservation
- * (L(s,z) != 0 implies obs z = obs s for every observation label) and, for
- * Kind Positive, nonnegative entries with every row summing to exactly 1. */
+ * CheckLinearArrow (Def 3.8, spec 7.3 l.2465) replays the normalization and,
+ * for Kind Positive, nonnegative entries with every row summing to exactly 1.
+ * The intertwining residuals R_a = K_a L - L K'_a and the observation
+ * residuals S_y = Pi_y L - L Pi'_y are not validity conditions: st_grade puts
+ * both into rho, rho = max(max_a ||R_a||, max_y ||S_y||) (t-2026-11-19 D2).
+ * With inter set (PositiveRealization candidates, which must be exact) the
+ * arrow must also intertwine exactly and preserve observations (S_y = 0). */
 static int st_obs_same(const StMod *s, const StMach *A, int x, const StMach *B, int z, int j) {
     const StMap *ma = &s->map[A->om[j]];
     for (int k = 0; k < B->nobs; k++) if (!strcmp(B->ol[k], A->ol[j])) {
@@ -488,7 +491,7 @@ static int st_check_lin(const StMod *s, const StLin *L, char *why, size_t ws, in
         for (int z = 0; z < m; z++) {
             if (dc_rat_is_zero(L->a[x][z])) continue;
             if (!strcmp(L->kind, "Positive") && L->a[x][z].n < 0) { snprintf(why, ws, "negative entry at (%s %s)", CA->el[x], CB->el[z]); return 0; }
-            for (int j = 0; j < A->nobs; j++) if (!st_obs_same(s, A, x, B, z, j)) { snprintf(why, ws, "observation %s differs at (%s %s)", A->ol[j], CA->el[x], CB->el[z]); return 0; }
+            if (inter) for (int j = 0; j < A->nobs; j++) if (!st_obs_same(s, A, x, B, z, j)) { snprintf(why, ws, "observation %s differs at (%s %s)", A->ol[j], CA->el[x], CB->el[z]); return 0; }
             sum = dc_rat_add(sum, L->a[x][z], ovf);
         }
         if (!strcmp(L->kind, "Positive") && dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1", CA->el[x]); return 0; }
@@ -518,6 +521,20 @@ static void st_grade(const StMod *s, const StLin *L, DcRat *lam, DcRat *rho, int
         DcRat r = dc_rat(0, 1, ovf);
         for (int z = 0; z < m; z++) r = dc_rat_add(r, st_abs(L->a[x][z], ovf), ovf);
         *lam = dc_rat_max(*lam, r);
+    }
+    /* Observation residual S_y = Pi_y L - L Pi'_y (Pi_y: diagonal 0/1 projector onto the states whose
+     * observation value, the tuple of all observation labels, is y). S_y(x,z) = L(x,z)([obs x = y] - [obs' z = y]),
+     * so row x of S_y has norm sum_{z: obs' z != obs x} |L(x,z)| when y = obs x, and a sub-sum of that otherwise.
+     * Hence max_y ||S_y|| = max_x sum_{z: obs' z != obs x} |L(x,z)|. */
+    for (int x = 0; x < n; x++) {
+        DcRat r = dc_rat(0, 1, ovf);
+        for (int z = 0; z < m; z++) {
+            if (dc_rat_is_zero(L->a[x][z])) continue;
+            int same = 1;
+            for (int j = 0; j < A->nobs && same; j++) if (!st_obs_same(s, A, x, B, z, j)) same = 0;
+            if (!same) r = dc_rat_add(r, st_abs(L->a[x][z], ovf), ovf);
+        }
+        *rho = dc_rat_max(*rho, r);
     }
     for (int a = 0; a < A->nact; a++) {
         int b = -1;
@@ -1350,7 +1367,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         Sx *val = dc_form("Value", dc_form("LinearArrow", dc_sym(S.lin[li].kind), dc_form("Valid", dc_sym(ok ? "True" : "False"), NULL),
             dc_form("Grade", dc_form("Lambda", st_rsx(lam), NULL), dc_form("Rho", st_rsx(rho), NULL), NULL), NULL), NULL);
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("GradedIntertwining"), NULL),
-            dc_form("Residual", dc_sym("max_a max_x sum_z |K_a L - L K'_a|"), NULL), NULL), NULL);
+            dc_form("Residual", dc_sym("max(max_a max_x sum_z |K_a L - L K'_a|, max_y max_x sum_z |Pi_y L - L Pi'_y|)"), NULL), NULL), NULL);
         if (!ok) sx_push(ev->items[1], dc_form("Failure", dc_sym(why), NULL));
         return st_env(m, ok ? VERDICT_HOLDS : VERDICT_FAILS, q, "LinearArrow", a1, val, ev, NULL);
     }
