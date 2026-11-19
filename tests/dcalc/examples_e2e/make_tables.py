@@ -37,23 +37,56 @@ def inline_expect(path):
             if e: exp[(m.group(1), m.group(2))] = e
         buf = None
     return exp
+def load_doc():
+    """(run, 1-based request index) -> (document answer, source) from doc_expected.tsv (hand-transcribed)."""
+    d = {}
+    with open(os.path.join(H, 'doc_expected.tsv')) as fh:
+        r = csv.reader(fh, delimiter='\t'); next(r)
+        for run, idx, ans, src in r: d[(run, int(idx))] = (ans, src)
+    return d
+MS = {'ex3': 'M6', 'ex4': 'M4'}
+def classify(rid, mode, st, reason, doc):
+    """One class per (mode, answer). Order matters: specific causes before generic ones."""
+    dw = re.match(ST + '|Estimated', doc)
+    dw = dw.group(0) if dw else ''
+    if st == dw: return 'match' + (' (negative fixture)' if st == 'InvalidInput' else '')
+    if mode == 'release' and st == 'Unsupported' and rid in MS:
+        return 'match: doc03 s2.6 says %s is a %s target, Unsupported in the first release' % (rid, MS[rid])
+    if 'map-call cycle' in reason: return 'BUG: false map-call cycle, Map named like an Enum element (admit.c:776)'
+    if 'Reach' in reason or 'carrier' in reason.lower(): return 'BUG: stochastic reader rejects Reach carrier (stoch.c:52)'
+    if 'Import of unknown module' in reason: return 'CLI: release mode ignores LIBS (main.c:129)'
+    m = re.search(r'library (\w+) is outside', reason)
+    if m:
+        c = 'GATED: PROPOSED library %s admitted by no milestone' % m.group(1)
+        if rid == 'ex2': c += '; CONTRADICTS doc03 s2.6 (ex2 declared within the first release)'
+        return c
+    if 'Profile Dynamics Stochastic is outside the first release' in reason:
+        return 'GATED: stochastic profile outside the first release (doc03 s2.6: first release covers deterministic dynamics)'
+    m = re.search(r'Profile ([\\w ]+?) is outside the first release', reason)
+    if m: return 'GATED: Profile %s outside the first release (release gate, stoch profile is post-M0)' % m.group(1)
+    if re.search(r'outside the M[0-9] fragment', reason):
+        return 'GAP: M0 lowering takes only Enum/Product carriers (model.c:175); Subset/Reach carrier skipped'
+    return 'UNCLASSIFIED'
 def main():
-    per = collections.defaultdict(list)
+    per = collections.defaultdict(list); D = load_doc()
     for rid, doc, d, mod, libs in RUNS: per[doc].append((rid, d, mod))
     for doc, runs in sorted(per.items()):
-        L = ['# Document %s: per-request CLI answers' % doc, '',
-             '| run | module | request | release | beyond | reason (beyond) | bundle expects |', '|---|---|---|---|---|---|---|']
+        L = ['# Document %s: per-request comparison' % doc, '',
+             'Columns: the document\'s answer (with its source), our answer in release and in --beyond-release mode, the class of each answer, and the beyond-mode reason. See README for the class legend.', '',
+             '| run | # | module | request | document answer | source | release | beyond | class (release) | class (beyond) | reason (beyond) |',
+             '|---|---|---|---|---|---|---|---|---|---|---|']
         tot = collections.Counter()
         for rid, d, mod in runs:
             rel, bey = load(rid + '_release'), load(rid + '_beyond')
-            exp = inline_expect(os.path.join(E, d, mod))
             assert len(rel) == len(bey), rid
-            for a, b in zip(rel, bey):
+            for i, (a, b) in enumerate(zip(rel, bey), 1):
                 assert a[:2] == b[:2], (rid, a, b)
-                e = exp.get((a[0], a[1]), '')
-                L.append('| %s | %s | `%s` | %s | %s | %s | %s |' % (rid, a[0], a[1].replace('|', '\\|'), a[2], b[2], b[3].replace('|', '\\|'), e))
-                tot[(rid, a[2], b[2])] += 1
-        L += ['', '## Totals (run, release, beyond): count', ''] + ['- %s %s/%s: %d' % (k + (v,)) for k, v in sorted(tot.items())]
+                ans, src = D[(rid, i)]
+                cr = classify(rid, 'release', a[2], a[3], ans); cb = classify(rid, 'beyond', b[2], b[3], ans)
+                esc = lambda x: x.replace('|', '\\|')
+                L.append('| %s | %d | %s | `%s` | %s | %s | %s | %s | %s | %s | %s |' % (rid, i, a[0], esc(a[1]), esc(ans), src, a[2], b[2], cr, cb, esc(b[3])))
+                tot[('release', cr.split(':')[0].split(' (')[0])] += 1; tot[('beyond', cb.split(':')[0].split(' (')[0])] += 1
+        L += ['', '## Class totals (mode, class): count', ''] + ['- %s %s: %d' % (k + (v,)) for k, v in sorted(tot.items())]
         open(os.path.join(H, DOCS[doc]), 'w').write('\n'.join(L) + '\n')
-        print(DOCS[doc], sum(tot.values()), 'rows')
+        print(DOCS[doc], dict(tot))
 if __name__ == '__main__': main()

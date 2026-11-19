@@ -1,0 +1,32 @@
+;; GAP repro (review 1 finding 3): the M0 lowering accepts only Enum and Product carriers (model.c:175).
+;; S uses a Subset carrier, T a Reach carrier, U (control) a plain Enum. Same machine and request otherwise.
+(DC.Module S
+  (Profile Crisp)
+  (Carrier A (Of Symbol) (Enum p q))
+  (Map keep (From A) (To Bool) (Cases (p True) (q True)))
+  (Carrier B (Of Symbol) (Subset A keep))
+  (Map show (From B) (To B) (Cases (p p) (q q)))
+  (Map stay (From B) (To B) (Cases (p p) (q q)))
+  (Machine M (States B) (Observe show show) (Action stay stay))
+  (Representation R (Of M) (Encode show)))
+!(dc.run S (CheckNow R))
+(DC.Module T
+  (Profile Crisp)
+  (Carrier A (Of Symbol) (Enum p q))
+  (Map obs (From A) (To A) (Cases (p p) (q q)))
+  (Map step (From A) (To A) (Cases (p q) (q p)))
+  (Machine M0 (States A) (Observe obs obs) (Action step step))
+  (Carrier C (Of Symbol) (Reach M0 (From p)))
+  (Map show (From C) (To C) (Cases (p p) (q q)))
+  (Map stay (From C) (To C) (Cases (p p) (q q)))
+  (Machine M (States C) (Observe show show) (Action stay stay))
+  (Representation R (Of M) (Encode show)))
+!(dc.run T (CheckNow R))
+(DC.Module U
+  (Profile Crisp)
+  (Carrier A (Of Symbol) (Enum p q))
+  (Map show (From A) (To A) (Cases (p p) (q q)))
+  (Map stay (From A) (To A) (Cases (p p) (q q)))
+  (Machine M (States A) (Observe show show) (Action stay stay))
+  (Representation R (Of M) (Encode show)))
+!(dc.run U (CheckNow R))

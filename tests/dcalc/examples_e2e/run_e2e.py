@@ -5,7 +5,7 @@ real CLI, unedited, in release mode and with --beyond-release, and write one per
 usage: python3 tests/dcalc/examples_e2e/run_e2e.py [--dcalc build/dcalc/dcalc] [--out tests/dcalc/examples_e2e/out]
 Modules are run from their bundle directory exactly as published. Imported module files are passed as LIBS
 arguments (dcalc MODULE [LIBS...]); main.c loads LIBS only with --beyond-release.
-Document answers come from doc_expected.tsv (hand-transcribed from each document's results tables)."""
+Document answers are in doc_expected.tsv (hand-transcribed; used by make_tables.py)."""
 import argparse, collections, csv, os, re, subprocess, sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 E = os.path.join(ROOT, 'docs/e0/docs')
