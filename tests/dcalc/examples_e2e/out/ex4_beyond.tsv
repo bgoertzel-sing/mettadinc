@@ -1,0 +1,37 @@
+module	request	status	reason
+MarketDesk	CalmQuotient	Unsupported	library Laws is outside the first release
+MarketDesk	(CheckAbstractionMap CalmMirror)	Unsupported	library Laws is outside the first release
+MarketDesk	(OptimizePolicy CalmDesk (Under Flat))	Unsupported	library Laws is outside the first release
+MarketDesk	(OptimizePolicy CalmDesk (Through Risk) (Under Flat))	Unsupported	library Laws is outside the first release
+MarketDesk	(InduceExact RiskToxic)	Unsupported	library Laws is outside the first release
+MarketDesk	(CheckOptimal ToxicDesk (Policy calm-policy))	Unsupported	library Laws is outside the first release
+MarketDesk	(EvaluatePolicy ToxicDesk (Policy calm-policy) (Under Flat))	Unsupported	library Laws is outside the first release
+MarketDesk	(InduceExact RiskBuyers)	Unsupported	library Laws is outside the first release
+MarketDesk	(CheckUpdates RiskBuyers)	Unsupported	library Laws is outside the first release
+MarketDesk	(MeasureBehavioral RiskBuyers (Discount (Rat 9 10)))	Unsupported	library Laws is outside the first release
+MarketDesk	(CheckOptimal BuyersDesk (Policy calm-policy))	Unsupported	library Laws is outside the first release
+MarketDesk	(OptimizePolicy BuyersDesk (Under Flat))	Unsupported	library Laws is outside the first release
+MarketDesk	(OptimizePolicy BuyersDesk (Through RiskBuyers) (Under Flat))	Unsupported	library Laws is outside the first release
+MarketDesk	FlipChecked	Unsupported	library Laws is outside the first release
+MarketDesk	(PullbackPolicy Flip (Policy sellers-policy))	Unsupported	library Laws is outside the first release
+InformedFlow	(CheckEqual (AverageModel Split (Through Coarse) (Under Half)) ToxicDesk (Compare Means))	Unsupported	library Laws is outside the first release
+InformedFlow	(CheckEqual (AverageModel Split (Through Coarse) (Under Half)) ToxicDesk)	Unsupported	library Laws is outside the first release
+InformedFlow	(InduceExact Coarse)	Unsupported	library Laws is outside the first release
+InformedFlow	(OptimizePolicy Split (Through Coarse) (Under FlatHalf))	Unsupported	library Laws is outside the first release
+InformedFlow	(OptimizePolicy Split (Under FlatHalf))	Unsupported	library Laws is outside the first release
+InformedFlow	(EvaluatePolicy Split (With Signal) (Through Coarse) (Under FlatHalf))	Unsupported	library Laws is outside the first release
+NewsLeak	(CheckTrace MergeLeakWide (Policies ObservationBased))	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+NewsLeak	(CheckBehavioral MergeLeakWide)	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+NewsLeak	(MeasureBehavioral MergeLeakWide (Discount (Rat 9 10)))	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+NewsLeak	WideTraceClasses	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+NewsLeak	WideLinear	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+NewsLeak	(CheckTrace MergeLeak)	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+NewsLeak	(CheckBehavioral MergeLeak)	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+NewsLeak	DeskLinear	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+ShiftMonitors	(CheckMonitor Markouts)	Unsupported	library Laws is outside the first release
+ShiftMonitors	(CheckMonitor Fills)	Unsupported	library Laws is outside the first release
+ShiftMonitors	(CheckMonitor FillsToxic)	Unsupported	library Laws is outside the first release
+ShiftMonitors	(CheckMonitor MarkoutsBuyers)	Unsupported	library Laws is outside the first release
+ShiftMonitors	(Detect Markouts Fills (On ToxicTape) (Level (Rat 1 100)))	Unsupported	library Laws is outside the first release
+ShiftMonitors	(Detect Markouts Fills (On BuyersTape) (Level (Rat 1 100)))	Unsupported	library Laws is outside the first release
+ShiftMonitors	(Detect Markouts Fills (On CalmTape) (Level (Rat 1 100)))	Unsupported	library Laws is outside the first release

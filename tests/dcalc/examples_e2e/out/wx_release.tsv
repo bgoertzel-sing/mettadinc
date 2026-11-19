@@ -1,0 +1,34 @@
+module	request	status	reason
+WMTMStore	(CheckStatistic EventStat (Method Symbolic))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMStore	(CheckStatistic JointStat (Method Symbolic))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMStore	(CheckStatistic NagIndex (Method Symbolic))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMStore	(CheckNow WindowView)	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMStore	(CheckUpdates WindowView)	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMStore	(CheckStatistic Records (Method Lift))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMStore	(CheckStatistic EngineIndex (Method Lift))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMStore	(CheckStatistic NagIndexByKey (Method Lift))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic JointCarried (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckNow CarriedIndex)	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic RecordS (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic JointS (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic NagTwoIndex (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckNow TwoForThree)	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic NagThreeIndex (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic RebuildFromRecords (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic RebuildEngineIndex (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic EngineIndexS (Method Lift))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMRelease	(CheckStatistic NagIndexS (Method Lift))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMReceipts	(CheckMonitor MissTenth)	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	(CheckMonitor MissFifth)	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	(CheckMonitor MissTwoFifths)	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	(Detect MissTenth MissFifth MissTwoFifths (On Replies) (Level (Rat 1 100)) (Combine Mixture))	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	(Detect MissTenth MissFifth MissTwoFifths (On Replies) (Combine Mixture) (Scheme ShiryaevRoberts) (MeanTimeToFalseAlarm 100000))	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(EstimateRate (On RepliesBefore) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(EstimateRate (On AuditAfterAlarm) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(EstimateRate (On AuditV2) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(EstimateRate (On RepliesGate) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(EstimateRate (On KeysGate) (Column ""duplicate"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(EstimateRate (On ClosuresGate) (Column ""spurious"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(CompareRates (On LivesGate) (First ""window_bad"") (Second ""event_bad"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(EstimateRate (On AuditRepliesGate) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release
+WMTMReceipts	"(EstimateRate (On AuditOpenGate) (Column ""false_close"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	Profile Dynamics Stochastic is outside the first release

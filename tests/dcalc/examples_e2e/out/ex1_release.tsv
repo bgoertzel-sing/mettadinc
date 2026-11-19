@@ -1,0 +1,62 @@
+module	request	status	reason
+BeliefMemory	DecisionQuotient	Unsupported	library NatArith is outside the first release
+BeliefMemory	StatusRepair	Unsupported	library NatArith is outside the first release
+BeliefMemory	(CheckUpdates StatusOnly)	Unsupported	library NatArith is outside the first release
+BeliefMemory	(CheckBehavioral StatusOnly (Horizon (Steps 0)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(CheckBehavioral StatusOnly (Horizon (Steps 1)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	Staged2	Unsupported	library NatArith is outside the first release
+BeliefMemory	Staged2Machine	Unsupported	library NatArith is outside the first release
+BeliefMemory	(Defects RoundedTV20)	Unsupported	library NatArith is outside the first release
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 1)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 2)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 3)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 6)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Discount (Rat 9 10)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 2)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)) (Horizon (Steps 1)))	Unsupported	library NatArith is outside the first release
+BeliefMemory	(Defects RoundedTV10)	Unsupported	library NatArith is outside the first release
+BeliefMemory	(Defects Buckets7)	Unsupported	library NatArith is outside the first release
+BeliefMemory	(Defects Capped7)	Unsupported	library NatArith is outside the first release
+BeliefMemory	FewestAtFifth	Unsupported	library NatArith is outside the first release
+BeliefMemory	FewestAtHalf	Unsupported	library NatArith is outside the first release
+GentleMemory	DecisionQuotient	Unsupported	library NatArith is outside the first release
+GentleMemory	(Defects RoundedTV20)	Unsupported	library NatArith is outside the first release
+GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 1)))	Unsupported	library NatArith is outside the first release
+GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 4)))	Unsupported	library NatArith is outside the first release
+GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 5)))	Unsupported	library NatArith is outside the first release
+GentleMemory	(MeasureBehavioral RoundedTV20 (Discount (Rat 9 10)))	Unsupported	library NatArith is outside the first release
+GentleMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
+GentleMemory	(CheckBehavioral RoundedTV20 (Within (Rat 3 20)))	Unsupported	library NatArith is outside the first release
+GentleMemory	(CheckBehavioral Grid10x7 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
+GentleMemory	(Defects RoundedTV10)	Unsupported	library NatArith is outside the first release
+GentleMemory	(Defects Buckets7)	Unsupported	library NatArith is outside the first release
+GentleMemory	(Defects Capped7)	Unsupported	library NatArith is outside the first release
+GentleMemory	BestBuckets	Unsupported	library NatArith is outside the first release
+GentleMemory	BestGrid	Unsupported	library NatArith is outside the first release
+GentleMemory	Fewest	Unsupported	library NatArith is outside the first release
+GentleMemory	WeakestGreedy	Unsupported	library NatArith is outside the first release
+GentleMemory	FewestDiscounted	Unsupported	library NatArith is outside the first release
+GentleMemory	ColdStore	Unsupported	library NatArith is outside the first release
+GentleMemory	ColdStoreGrid	Unsupported	library NatArith is outside the first release
+GentleMemory	(InduceApprox RoundedTV20 (Horizon (Steps 4)))	Unsupported	library NatArith is outside the first release
+GentleMemory	ColdStoreBest	Unsupported	library NatArith is outside the first release
+GentleMemory	FewestCenters	Unsupported	library NatArith is outside the first release
+GentleMemory	ColdStoreCenters	Unsupported	library NatArith is outside the first release
+AgentMemory	(CheckBehavioral Grid6 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
+AgentMemory	(CheckBehavioral Fewest6 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
+AgentMemory	(MeasureBehavioral Grid6 (Discount (Rat 9 10)))	Unsupported	library NatArith is outside the first release
+ReceiptLedger	(CheckNow Counts)	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckUpdates Counts)	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(MeasureBehavioral Counts)	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckImplementation AddMerge (Grade 1 (Rat 6 35)))	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckImplementation AddMerge (Grade 1 (Rat 1 6)))	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckImplementation MaxMerge (Grade 1 (Rat 1 6)))	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckImplementation ThreeWay (Grade 1 0))	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckImplementation ThreeWayClean (Grade 1 0))	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckUpdates Compacted)	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckBehavioral Compacted (Within (Rat 1 10)))	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckUpdates CompactedSettled)	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(MeasureBehavioral CompactedSettled)	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckImplementation CompactMerge (Grade 1 0))	Unsupported	library Contracts is outside the first release
+ReceiptLedger	(CheckImplementation CompactMergeSettled (Grade 1 0))	Unsupported	library Contracts is outside the first release

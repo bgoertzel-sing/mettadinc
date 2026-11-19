@@ -1,0 +1,33 @@
+module	request	status	reason
+SkillShare	ABchecked	Unsupported	library Transfers is outside the first release
+SkillShare	BCchecked	Unsupported	library Transfers is outside the first release
+SkillShare	CAchecked	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckTransfer CAcal)	Unsupported	library Transfers is outside the first release
+SkillShare	CandidatesCA	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckTransfer NaiveAB)	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckValuePullback NaiveAB)	Unsupported	library Transfers is outside the first release
+SkillShare	RoundTrip	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckTransferHive Strict)	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckTransferHive FullGauge)	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckTransferHive Copied)	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckTransferHive Transported)	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckTransferHive FromBase)	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckKernelCoherence (Output Unsaturated Hive))	Unsupported	library Transfers is outside the first release
+SkillShare	(Holonomy (Output Unsaturated Hive) (Cycle A B C))	Unsupported	library Transfers is outside the first release
+SkillShare	(ConsensusCost (Output Unsaturated Hive))	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckKernelCoherence (Output SaturatedFull Hive))	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckKernelCoherence (Output SaturatedCopied Hive))	Unsupported	library Transfers is outside the first release
+SkillShare	(CheckKernelCoherence (Output SaturatedTransported Hive))	Unsupported	library Transfers is outside the first release
+SkillShare	SkillRoundTrip	Unsupported	library Transfers is outside the first release
+SkillShare	UpRoundTrip	Unsupported	library Transfers is outside the first release
+SkillShareDock	(CheckTransfer CAold)	Unsupported	library Transfers is outside the first release
+SkillShareDock	(CheckTransfer CAold (Metric ExpectedReward) (Within (Rat 1 2)))	Unsupported	library Transfers is outside the first release
+SkillShareDock	(CheckTransfer CAnew)	Unsupported	library Transfers is outside the first release
+SkillShareDock	(CheckTransferHive StaleGauge)	Unsupported	library Transfers is outside the first release
+SkillShareDock	(CheckTransferHive OldLibrary)	Unsupported	library Transfers is outside the first release
+SkillShareDock	(CheckTransferHive Docking)	Unsupported	library Transfers is outside the first release
+SkillShareDock	(CheckKernelCoherence (Output DockSaturated Hive))	Unsupported	library Transfers is outside the first release
+PalletBay	(CheckTransfer ACp)	Unsupported	library Transfers is outside the first release
+PalletBay	(CheckTransfer ACp (Metric ExpectedReward) (Within (Rat 1 2)))	Unsupported	library Transfers is outside the first release
+PalletBay	(CheckTransfer ACp (Metric ExpectedReward) (Within (Rat 1 4)))	Unsupported	library Transfers is outside the first release
+PalletBay	AtoCp	Unsupported	library Transfers is outside the first release

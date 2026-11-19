@@ -1,0 +1,38 @@
+module	request	status	reason
+LiveOpenItems	(CheckStatistic EventStat (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+LiveOpenItems	(CheckStatistic JointStat (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+LiveOpenItems	(CheckStatistic EngineStat (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+LiveOpenItems	(CheckNow WindowView)	Unsupported	library RationalArith is outside the first release
+LiveOpenItems	(CheckUpdates WindowView)	Unsupported	library RationalArith is outside the first release
+LiveOpenItems	(CheckStatistic EventIndex (Method Lift))	Unsupported	library RationalArith is outside the first release
+LiveOpenItems	(CheckStatistic JointIndex (Method Lift))	Unsupported	library RationalArith is outside the first release
+LiveOpenItems	(CheckStatistic EngineIndex (Method Lift))	Unsupported	library RationalArith is outside the first release
+LiveOpenItems	(CheckStatistic EngineAsItems (Method Lift))	InvalidInput	Keyed EngineAsItems: field Item: statistic EngineStat is of EngineTime, not of ItemTime (the Store's item machine); declare (View ...)
+LiveEvidence	(CheckStatistic FirstOrMore (Method Symbolic))	Unsupported	library NatArith is outside the first release
+LiveGoals	(CheckNow DaysLeft)	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckNow NagForDays)	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckNow BenFirst)	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckNow NagForBenFirst)	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckNow Cap3)	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckNow NagForCap3)	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckStatistic SaturateAtTwo (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckNow TwoForBoth)	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckStatistic SaturateAtThree (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+LiveGoals	(CheckStatistic Deadline (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+LiveArbitration	(CheckSimulation StutterWeighted)	Unsupported	library RationalArith is outside the first release
+LiveArbitration	(CheckSimulation StutterNormFirst)	Unsupported	library RationalArith is outside the first release
+LiveArbitration	(CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterNormFirst) (Init live-start))	Unsupported	library RationalArith is outside the first release
+LiveArbitration	(CheckSafety Weighted (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))	Unsupported	library RationalArith is outside the first release
+LiveArbitration	(CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))	InvalidInput	CheckSafety NormFirst: field Via: simulation StutterWeighted targets Weighted, not NormFirst
+LiveMotivation	(CheckBlockPartition SafePlain (Of PlainWatch) (Budget (Unrollings 8)))	Unsupported	library RationalArith is outside the first release
+LiveMotivation	(CheckBlockPartition SafeFloor (Of FloorWatch))	Unsupported	library RationalArith is outside the first release
+LiveMotivation	(CheckImplementation OrderSwapGoals (Grade 1 (Rat 9 10)))	Unsupported	library RationalArith is outside the first release
+LiveMotivation	(CheckImplementation OrderSwapGoals (Grade 1 (Rat 4 5)))	Unsupported	library RationalArith is outside the first release
+LiveMotivation	(CheckImplementation OrderSwapSettled (Grade 1 0))	Unsupported	library RationalArith is outside the first release
+LiveReceipts	"(EstimateRate (On ContextReceipts) (Column ""relevance_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+LiveReceipts	"(EstimateRate (On ContextReceipts) (Column ""consumer_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+LiveReceipts	"(CompareRates (On ContextReceipts) (First ""relevance_A"") (Second ""consumer_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+LiveReceipts	"(EstimateRate (On LiveSuggestions) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
+LiveReceipts	(CheckMonitor StaleFifth)	Unsupported	library Laws is outside the first release
+LiveReceipts	(Detect StaleFifth (On TenPercent) (Level (Rat 1 100)))	Unsupported	library Laws is outside the first release
+LiveReceipts	(Detect StaleTenth StaleFifth StaleTwoFifths (On TenPercent) (Level (Rat 1 100)) (Combine Mixture))	Unsupported	library Laws is outside the first release

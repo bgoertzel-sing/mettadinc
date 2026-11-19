@@ -1,0 +1,15 @@
+;; Control for stoch_reach_carrier.metta: same module without the (Reach ...) carrier; answers Checked.
+;; Minimal reproduction (ex4 NewsLeak): a stochastic module whose carrier is a (Reach ...) scope.
+;; Spec l.1719 allows carrier-expr (Reach machine (From element+)); stoch.c:52 accepts only (Enum ...).
+(DC.Module R
+  (Profile Stochastic)
+  (Use Linear)
+  (Carrier S (Of Symbol) (Enum a b c))
+  (Carrier O (Of Symbol) (Enum o p))
+  (Map obs (From S) (To O) (Cases (a o) (b o) (c p)))
+  (TransitionKernel K (From S) (To S) (Row a (Mass b 1)) (Row b (Mass b 1)) (Row c (Mass c 1)))
+  (Machine M (States S) (Observe obs obs) (Action go K))
+  (Derive LM (MinimalLinear M))
+  )
+
+!(dc.run R LM)
