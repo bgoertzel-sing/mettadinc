@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tag every disagreement of a run_diff.py / run_con.py output dir as a listed D-id or NEW.
 Regenerates the cases from the seed (same rng order as the runner) and replays the CLI's known behaviour:
-  D4 (run_con): CLI uses the unclipped distance |p - q|  -> oracle with gap = |p - q| must reproduce the CLI.
+  run_con: no known bug (D4 fixed in t-2026-11-19-mettadinc-d4-contract-clip): every disagreement is NEW.
   D5 (run_diff kant_h): CLI defect = max_x d(x, rep(x))  -> must equal the CLI value.
 usage: classify.py --runner diff|con --seed N --count K --out DIR   (exit 1 if any NEW)"""
 import argparse, collections, json, os, random, sys
@@ -40,17 +40,12 @@ def main():
     else:
         import gen_con, run_con
         cases = [gen_con.rand_case(rng, 'CN%d_%d' % (a.seed, i))[0] for i in range(a.count)]
-        clip = {}
         for i, c in enumerate(cases):
-            clip[i] = run_con.expect(c)
-        oracle.gap = lambda p, q: abs(F(p) - F(q))
-        for i, c in enumerate(cases):
-            u = run_con.expect(c)
             for k in ('C1', 'C2', 'C12'):
                 r = got.get(('CN%d_%d' % (a.seed, i), k))
                 if r is None: tags['MISSING'] += 1; continue
                 if r['ok']: tags['OK'] += 1; continue
-                t = 'KNOWN-D4' if str(u[k]) == r['got'] else 'NEW'
+                t = 'NEW'  # D4 fixed: the CLI must agree with the clipped oracle
                 tags[t] += 1
                 if t == 'NEW': print('NEW', 'CN%d_%d' % (a.seed, i), k, r['got'], r['expect'])
     print('CLASSIFY', a.runner, dict(sorted(tags.items())))

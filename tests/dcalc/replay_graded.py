@@ -172,7 +172,7 @@ def dist(M, t, a, b):
     T = M.tol[t]; k = T['kind']
     if k == 'Trivial': return Q(0)
     if k == 'Discrete': return Q(0) if a == b else Q(1)
-    if k == 'OneMinusAbsoluteDifference': return abs(a - b)
+    if k == 'OneMinusAbsoluteDifference': return min(Q(1), abs(a - b))  # spec l.686-694: clipped at 1 (D4)
     return 1 - T['k'][a, b]
 
 def separated(M, t):
