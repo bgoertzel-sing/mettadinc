@@ -19,10 +19,10 @@ LiveGoals	(CheckStatistic SaturateAtTwo (Method Symbolic))	Unsupported	library R
 LiveGoals	(CheckNow TwoForBoth)	Unsupported	library RationalArith is outside the first release
 LiveGoals	(CheckStatistic SaturateAtThree (Method Symbolic))	Unsupported	library RationalArith is outside the first release
 LiveGoals	(CheckStatistic Deadline (Method Symbolic))	Unsupported	library RationalArith is outside the first release
-LiveArbitration	(CheckSimulation StutterWeighted)	Unsupported	live_memory.metta:283:3: LiveArbitration: Import of unknown module ClaimArbitration (imported from outside this file; a single-file run cannot resolve it)
-LiveArbitration	(CheckSimulation StutterNormFirst)	Unsupported	live_memory.metta:283:3: LiveArbitration: Import of unknown module ClaimArbitration (imported from outside this file; a single-file run cannot resolve it)
-LiveArbitration	(CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterNormFirst) (Init live-start))	Unsupported	live_memory.metta:283:3: LiveArbitration: Import of unknown module ClaimArbitration (imported from outside this file; a single-file run cannot resolve it)
-LiveArbitration	(CheckSafety Weighted (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))	Unsupported	live_memory.metta:283:3: LiveArbitration: Import of unknown module ClaimArbitration (imported from outside this file; a single-file run cannot resolve it)
+LiveArbitration	(CheckSimulation StutterWeighted)	Unsupported	library RationalArith is outside the first release
+LiveArbitration	(CheckSimulation StutterNormFirst)	Unsupported	library RationalArith is outside the first release
+LiveArbitration	(CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterNormFirst) (Init live-start))	Unsupported	library RationalArith is outside the first release
+LiveArbitration	(CheckSafety Weighted (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))	Unsupported	library RationalArith is outside the first release
 LiveArbitration	(CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterWeighted) (Init live-start))	InvalidInput	CheckSafety NormFirst: field Via: simulation StutterWeighted targets Weighted, not NormFirst
 LiveMotivation	(CheckBlockPartition SafePlain (Of PlainWatch) (Budget (Unrollings 8)))	Unsupported	library RationalArith is outside the first release
 LiveMotivation	(CheckBlockPartition SafeFloor (Of FloorWatch))	Unsupported	library RationalArith is outside the first release
