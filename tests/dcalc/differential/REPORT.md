@@ -17,6 +17,7 @@ compares each state only with its class representative instead of all same-code 
 (spec Def 4.4(3)). D1 is a CLI that answers Unsupported (int64 overflow with a discount). D2 and D3 are CheckLinearArrow
 accept/refute bugs. Open for decision: which D-ids to fix (each fix is a separate C task), and spec gap N1. N1: when a
 PositiveRealization candidate is Rejected, the spec does not say what bound to report, and the CLI keeps the LumpedQuotient bound.
+This rule is provisional, pending Ben (docs/e0/OPEN_QUESTIONS.md item 13).
 
 ## Results
 
@@ -41,6 +42,7 @@ After the replay, 0 cases are left unexplained. run_contracts.py was dropped bec
 - D4 CheckImplementation: OneMinusAbsoluteDifference distance not clipped at 1 (ct_dist in ops_contracts.c and the shared dc_tol_dist in model.c:562; a fix must cover both; spec l.686-694).
 - D5 MeasureBehavioral: defect = max d(x, rep(x)), not the maximum over all same-code pairs (spec Def 4.4(3)).
 - N1 (spec gap, not a defect): the bound reported for a Rejected PositiveRealization candidate is not specified.
+  The current rule (keep the LumpedQuotient bound) is provisional, pending Ben (docs/e0/OPEN_QUESTIONS.md item 13).
 
 ## Reproduction and gate
 
@@ -70,6 +72,6 @@ composed grade to compare with an oracle. Then over linear arrows (run_lin, run_
 
 ## Not done / open
 
-- Fixes for D1-D5 are separate C tasks, and N1 needs a spec decision.
+- Fixes for D1-D5 are separate C tasks, and N1 needs a spec decision (provisional, pending Ben: OPEN_QUESTIONS.md item 13).
 - The PositiveRealization oracle adopts the CLI's rule for a Rejected candidate (N1), so the rand-mode agreements
   are weaker evidence on that point.

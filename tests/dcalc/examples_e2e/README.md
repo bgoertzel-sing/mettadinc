@@ -48,6 +48,11 @@ Class legend:
 
 No Checked, Refuted, Conditional or Estimated answer in the documents is reproduced, because no request reaches a decision procedure.
 
+## Scope notes
+
+- **The bundles' registry patches are not skipped.** All 7 bundle patches (ex1-ex4, mg, ls, wx) are already part of `registry/mettadinc_registry.json`: Ben's decision 1 adopted them before M0, and `tools/adopt_registry.py` applies them (see `registry/SOURCES.md`, which lists each patch with its sha256). dcalc reads that registry, because `src/dcalc/registry_gen.c` is generated from it by `tools/gen_registry.py`. So running the modules unedited against the repository registry is the patched setup the documents assume.
+- **Table 10 rows M1 and M2 are excluded.** In doc03 Table 10 (mettadinc_worked_examples.txt:1551-1556), the rows "mutation M1 (approver rule reads the auditor session): NoBreach" and "mutation M2 (revoking clerk keeps approver): ClerksOnlyProved" are checked only by the oracle. `ex2_oracle.py` (section 8, `MUTATIONS`, l.678ff) runs them on mutated copies of the source. They are not `dc.run` forms in `access_policy.metta`, which has 15 requests, so the CLI has nothing to run for them and they are not among the 15 ex2 rows of `doc_expected.tsv`.
+
 ## Findings
 
 1. **ex2 contradicts the documents.** Doc03 s2.6 says "Example 2 lies entirely within" the first release. dcalc rejects all 15 ex2 requests in both modes with "library Families is outside the first release". Either the manifest or the document is wrong. This is the main mismatch a user who follows the documents will hit.
