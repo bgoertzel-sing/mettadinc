@@ -2,7 +2,7 @@
 """Tag every disagreement of a run_diff.py / run_con.py output dir as a listed D-id or NEW.
 Regenerates the cases from the seed (same rng order as the runner) and replays the CLI's known behaviour:
   D4 (run_con): CLI uses the unclipped distance |p - q|  -> oracle with gap = |p - q| must reproduce the CLI.
-  D5 (run_diff kant_h): CLI defect = max_x d(x, rep(x))  -> must equal the CLI value.
+  D5 is fixed (t-2026-11-19-mettadinc-d5-behavioral-classpairs): a kant_h disagreement is no longer accepted as known.
 usage: classify.py --runner diff|con --seed N --count K --out DIR   (exit 1 if any NEW)"""
 import argparse, collections, json, os, random, sys
 from fractions import Fraction as F
@@ -29,12 +29,7 @@ def main():
                 r = got.get((name, kind))
                 if r is None: tags['MISSING'] += 1; continue
                 if r['ok']: tags['OK'] += 1; continue
-                t = 'NEW'
-                if kind == 'kant_h' and r['status'] == 'Checked':
-                    h = int(req.split('Steps ')[1].split(')')[0])
-                    d = oracle.horizon_distances(m, h)
-                    rep = max([d.get((x, enc[x]), F(0)) for x in m['states']] + [F(0)])
-                    if str(rep) == r['got']: t = 'KNOWN-D5'
+                t = 'NEW'   # D5 fixed: no KNOWN-D5 tag any more
                 tags[t] += 1
                 if t == 'NEW': print('NEW', name, kind, r['got'], r['expect'])
     else:

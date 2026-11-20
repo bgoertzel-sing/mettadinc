@@ -12,12 +12,15 @@ canary() { # name file expected-regex
   if timeout 60 "$DC" --beyond-release "$2" 2>&1 | grep -qE "$3"; then echo "CANARY ok   $1"; else echo "CANARY FAIL $1"; fail=1; fi
 }
 canary seven_state_positive   $FIX/seven_state.metta            'PositiveDimension \(Interval 5 5\)'
-# review 1 F6: the D4 and D5 canaries below are EXPECTED-BUG canaries. They assert today's wrong answers
-# (D4: valid contract Refuted; D5: defect 1/2 where the spec gives 1), so they prove the gate reaches the
-# buggy code paths. When D4 or D5 is fixed, this canary fails on purpose: flip its regex to the spec answer
-# (D4: 'Status Checked'; D5: 'BehavioralDefect 1') and drop the matching KNOWN tag in classify.py.
+# review 1 F6: the D4 canary below is an EXPECTED-BUG canary. It asserts today's wrong answer
+# (valid contract Refuted), so it proves the gate reaches the buggy code path. When D4 is fixed, it fails on
+# purpose: flip its regex to the spec answer ('Status Checked') and drop the KNOWN-D4 tag in classify.py.
 canary D4_con_clip_known      $H/disagreements/d_con_clip.metta 'Status Refuted'
-canary D5_kant_classpairs     $H/disagreements/d_kant_classpairs.metta 'BehavioralDefect \(Rat 1 2\)'
+# D5 fixed (t-2026-11-19-mettadinc-d5-behavioral-classpairs): spec Def 4.4(3) / l.1080 gives defect 1 = d_beh(a, c)
+# on BOTH requests (horizon 1 and unbounded); the witness pair is (a, c). The old answer 1/2 must not appear.
+o=$(timeout 60 "$DC" --beyond-release $H/disagreements/d_kant_classpairs.metta 2>&1)
+if [ "$(printf '%s\n' "$o" | grep -cE 'Status Checked.*Value \(BehavioralDefect 1\).*Pair a c')" = 2 ] && ! printf '%s\n' "$o" | grep -qE 'BehavioralDefect \(Rat'; then
+  echo "CANARY ok   D5_kant_classpairs"; else echo "CANARY FAIL D5_kant_classpairs"; fail=1; fi
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
 echo "GATE canaries passed"
 # 2. Pilots (small, fixed seeds). Every disagreement must be a listed D-id, else the gate fails.
