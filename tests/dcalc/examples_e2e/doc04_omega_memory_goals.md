@@ -81,9 +81,9 @@ Columns: the document's answer (with its source), our answer in release and in -
 | mg | 75 | ItemGoals | `(CheckInterpretation NagFollowUps AntiNagWaits)` | Checked | doc04 Table 7 (column mapping inferred from request names) | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
 | mg | 76 | ItemGoals | `(CheckInterpretation NagFollowUps DeadlineFollowUps)` | InvalidInput (negative fixture) | doc04 l.1875 + memory_goals.metta:586 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
 | mg | 77 | ItemGoals | `(CheckInterpretation DaysFollowUps DeadlineFollowUps (Via ToDeadline))` | InvalidInput (negative fixture) | memory_goals.metta:586 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
-| mg | 78 | ClaimArbitration | `(CheckBlockPartition LawfulWeighted (Of WeightedLaw))` | Refuted | doc04 l.2057 | InvalidInput | InvalidInput | BUG: false map-call cycle, Map named like an Enum element (admit.c:776) | BUG: false map-call cycle, Map named like an Enum element (admit.c:776) | memory_goals.metta:594:1: memory_goals.metta:ClaimArbitration: map-call cycle deadline -> deadline |
-| mg | 79 | ClaimArbitration | `(CheckBlockPartition LawfulNormFirst (Of NormFirstLaw))` | Checked | doc04 l.2060 | InvalidInput | InvalidInput | BUG: false map-call cycle, Map named like an Enum element (admit.c:776) | BUG: false map-call cycle, Map named like an Enum element (admit.c:776) | memory_goals.metta:594:1: memory_goals.metta:ClaimArbitration: map-call cycle deadline -> deadline |
-| mg | 80 | ClaimArbitration | `(CheckBlockPartition Agreement (Of ConflictWatch))` | Refuted | doc04 l.2060 | InvalidInput | InvalidInput | BUG: false map-call cycle, Map named like an Enum element (admit.c:776) | BUG: false map-call cycle, Map named like an Enum element (admit.c:776) | memory_goals.metta:594:1: memory_goals.metta:ClaimArbitration: map-call cycle deadline -> deadline |
+| mg | 78 | ClaimArbitration | `(CheckBlockPartition LawfulWeighted (Of WeightedLaw))` | Refuted | doc04 l.2057 | Unsupported | Unsupported | GATED: PROPOSED library Families admitted by no milestone | GATED: PROPOSED library Families admitted by no milestone | library Families is outside the first release |
+| mg | 79 | ClaimArbitration | `(CheckBlockPartition LawfulNormFirst (Of NormFirstLaw))` | Checked | doc04 l.2060 | Unsupported | Unsupported | GATED: PROPOSED library Families admitted by no milestone | GATED: PROPOSED library Families admitted by no milestone | library Families is outside the first release |
+| mg | 80 | ClaimArbitration | `(CheckBlockPartition Agreement (Of ConflictWatch))` | Refuted | doc04 l.2060 | Unsupported | Unsupported | GATED: PROPOSED library Families admitted by no milestone | GATED: PROPOSED library Families admitted by no milestone | library Families is outside the first release |
 | mg | 81 | MotivationGrid | `(CheckBlockPartition SafePlain (Of PlainWatch))` | Refuted | doc04 l.2262 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
 | mg | 82 | MotivationGrid | `(CheckBlockPartition SafeFloor (Of FloorWatch))` | Checked | doc04 l.2265 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
 | mg | 83 | MotivationGrid | `(CheckImplementation OrderSwapFloor (Grade 1 (Rat 1 2)))` | Refuted | doc04 l.2274 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
@@ -99,9 +99,7 @@ Columns: the document's answer (with its source), our answer in release and in -
 
 ## Class totals (mode, class): count
 
-- beyond BUG: 3
 - beyond GAP: 7
-- beyond GATED: 82
-- release BUG: 3
+- beyond GATED: 85
 - release GAP: 7
-- release GATED: 82
+- release GATED: 85
