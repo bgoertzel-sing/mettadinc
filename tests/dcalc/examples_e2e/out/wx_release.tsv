@@ -1,23 +1,23 @@
 module	request	status	reason
-WMTMStore	(CheckStatistic EventStat (Method Symbolic))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMStore	(CheckStatistic JointStat (Method Symbolic))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMStore	(CheckStatistic NagIndex (Method Symbolic))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMStore	(CheckNow WindowView)	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMStore	(CheckUpdates WindowView)	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMStore	(CheckStatistic Records (Method Lift))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMStore	(CheckStatistic EngineIndex (Method Lift))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMStore	(CheckStatistic NagIndexByKey (Method Lift))	Unsupported	wmtm_example.metta:16:3: WMTMStore: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic JointCarried (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckNow CarriedIndex)	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic RecordS (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic JointS (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic NagTwoIndex (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckNow TwoForThree)	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic NagThreeIndex (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic RebuildFromRecords (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic RebuildEngineIndex (Method Symbolic))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic EngineIndexS (Method Lift))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
-WMTMRelease	(CheckStatistic NagIndexS (Method Lift))	Unsupported	wmtm_example.metta:66:3: WMTMRelease: Import of unknown module LiveOpenItems (imported from outside this file; a single-file run cannot resolve it)
+WMTMStore	(CheckStatistic EventStat (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic JointStat (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic NagIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckNow WindowView)	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckUpdates WindowView)	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic Records (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic EngineIndex (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMStore	(CheckStatistic NagIndexByKey (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic JointCarried (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckNow CarriedIndex)	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic RecordS (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic JointS (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic NagTwoIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckNow TwoForThree)	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic NagThreeIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic RebuildFromRecords (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic RebuildEngineIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic EngineIndexS (Method Lift))	Unsupported	library RationalArith is outside the first release
+WMTMRelease	(CheckStatistic NagIndexS (Method Lift))	Unsupported	library RationalArith is outside the first release
 WMTMReceipts	(CheckMonitor MissTenth)	Unsupported	Profile Dynamics Stochastic is outside the first release
 WMTMReceipts	(CheckMonitor MissFifth)	Unsupported	Profile Dynamics Stochastic is outside the first release
 WMTMReceipts	(CheckMonitor MissTwoFifths)	Unsupported	Profile Dynamics Stochastic is outside the first release

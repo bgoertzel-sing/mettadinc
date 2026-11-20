@@ -37,13 +37,13 @@ Class legend:
 - `GATED`: the request uses a PROPOSED library that no milestone admits, or a stochastic profile in release mode.
 - `GAP`: the M0 lowering skips Subset and Reach carriers (model.c:175).
 - `BUG`: a checker bug (findings 3 and 4).
-- `CLI`: in release mode the LIBS imports are not loaded (main.c:129).
+- `CLI`: in release mode the LIBS imports are not loaded (main.c:129). Fixed by t-2026-11-20-mettadinc-release-libs: no row has this class now.
 
 ## Totals (306 requests: ex1 61, ex2 15, ex3 32, ex4 36, mg 92, ls 37, wx 33)
 
 | mode | match | GATED | GAP | BUG | CLI |
 |---|---|---|---|---|---|
-| release | 70 (ex3 32 + ex4 36 by s2.6; 2 ls fixtures) | 203 | 7 | 3 | 23 |
+| release | 70 (ex3 32 + ex4 36 by s2.6; 2 ls fixtures) | 226 | 7 | 3 | 0 |
 | beyond | 2 (ls fixtures) | 286 | 7 | 11 | 0 |
 
 No Checked, Refuted, Conditional or Estimated answer in the documents is reproduced, because no request reaches a decision procedure.
@@ -56,4 +56,4 @@ No Checked, Refuted, Conditional or Estimated answer in the documents is reprodu
 4. **False map-call cycle when a Map has the same name as an Enum element** (doc04 ClaimArbitration: 3 requests, both modes). `sym_atoms` (admit.c:776) records every symbol that names a Map as a call. This check runs before the library gate.
 5. **Seven library-free doc04 requests are not lowered.** AnchorMigration (memory_goals.metta:341, Subset carriers) and TaskResume (:390, Reach carrier) use no library. All 7 of their requests answer "outside the M0/M2 fragment" because the M0 lowering takes only Enum and Product carriers (model.c:175). The spec grammar allows both carrier forms, and doc04 s6.4 says AnchorMigration "uses only forms of the base registry".
 6. **Negative fixtures.** The 2 ls fixtures (live_memory.metta:102 and :354) return InvalidInput as intended. The 2 doc04 ItemGoals fixtures (memory_goals.metta:586) should return InvalidInput but come back Unsupported, because the NatArith gate hides them.
-7. **CLI.** Release mode ignores LIBS (main.c:129), so the cross-file imports in ls and wx fail with "Import of unknown module".
+7. **CLI (fixed, t-2026-11-20-mettadinc-release-libs).** Release mode ignored LIBS (main.c:129), so the cross-file imports in ls and wx failed with "Import of unknown module". Release mode now loads LIBS. The 23 rows (ls 21-24, wx 1-19) resolve the import and are GATED by the first-release gate (PROPOSED library RationalArith), the same reason as in beyond mode.

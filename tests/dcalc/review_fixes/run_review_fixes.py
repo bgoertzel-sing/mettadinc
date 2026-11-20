@@ -36,6 +36,23 @@ r = rows(os.path.join(FXD, 'import_cross', 'lib.metta'), ['--beyond-release', os
 b = r.get('Availability (CheckNow Bias)')
 report('D1 import (cross-file main.metta lib.metta, --beyond-release): importer -> InvalidInput "(imported): duplicate case Absent"',
        b is not None and b[0] == 'InvalidInput' and '(imported): duplicate case Absent' in b[1], r)
+# release LIBS (t-2026-11-20-mettadinc-release-libs): release mode loads library files after FILE, and the gate still applies
+RL = os.path.join(FXD, 'release_libs')
+def full(args):
+    o = subprocess.run([DC] + list(args), capture_output=True, text=True, timeout=120)
+    return [l for l in o.stdout.splitlines() if ' => ' in l]
+for mode in ([], ['--beyond-release']):
+    tag = mode[0] if mode else 'release'
+    cross = full(mode + [os.path.join(RL, 'main_ok.metta'), os.path.join(RL, 'lib_ok.metta')])
+    single = full(mode + [os.path.join(RL, 'single_ok.metta')])
+    report('release LIBS (%s): main_ok.metta lib_ok.metta resolves the import and equals the single-file answer' % tag,
+           bool(cross) and cross == single and not any('Import of unknown module' in l for l in cross), cross)
+    r = rows(os.path.join(RL, 'lib_gated.metta'), mode + [os.path.join(RL, 'main_gated.metta')])   # dcalc [mode] main_gated lib_gated
+    report('release LIBS (%s): import of a NatArith module stays Unsupported "library NatArith is outside the first release"' % tag,
+           bool(r) and all(st == 'Unsupported' and 'library NatArith is outside the first release' in why for st, why in r.values()), r)
+r = rows(os.path.join(RL, 'main_ok.metta'))
+report('release LIBS: main_ok.metta alone still answers "Import of unknown module LibCar"',
+       bool(r) and all(st == 'Unsupported' and 'Import of unknown module LibCar' in why for st, why in r.values()), r)
 # partial Cases: Encode map without Both -> InvalidInput naming map and state
 r = rows(os.path.join(FXD, 'mut_m7_partial.metta'), ['--beyond-release'])
 b = r.get('Availability (CheckNow Bias)')
