@@ -18,4 +18,7 @@ mutant() {   # name file sed-expr
 mutant lin_rho_lastrow stoch.c 's/\*rho = dc_rat_max(\*rho, row);/*rho = row;/'
 # M2: behavioral layer distance halved (Kantorovich recurrence)
 mutant kant_half stoch.c 's/nd\[x\]\[y\] = dc_rat_mul(gamma, best, ovf);/nd[x][y] = dc_rat_mul(dc_rat_mul(gamma, best, ovf), dc_rat(1, 2, ovf), ovf);/'
+# M3 (D5, t-2026-11-19-mettadinc-d5-behavioral-classpairs): defect restricted to pairs where one state is the
+# other's representative (the old max_x d(x, rep(x))); the D5 canary must catch it
+mutant d5_rep_only stoch.c 's/if (E->tab\[x\] == E->tab\[y\] && dc_rat_cmp(d\[x\]\[y\], def) > 0)/if ((E->tab[x] == y || E->tab[y] == x) \&\& dc_rat_cmp(d[x][y], def) > 0)/'
 [ $rc = 0 ] && echo "MUTATION CHECK PASS" || echo "MUTATION CHECK FAIL"; exit $rc

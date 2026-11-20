@@ -22,7 +22,7 @@ PositiveRealization candidate is Rejected, the spec does not say what bound to r
 
 | Runner (oracle) | Operations | Seeds x cases | Checks | Disagreements |
 |---|---|---|---|---|
-| run_diff.py (oracle.py) | TracePartition, MinimalLinear, MinimizeForQueries, MeasureBehavioral horizon | 100 x200 | 800 | 1, KNOWN-D5 |
+| run_diff.py (oracle.py) | TracePartition, MinimalLinear, MinimizeForQueries, MeasureBehavioral horizon | 100 x200 | 800 | 1, KNOWN-D5 (after the D5 fix: 0) |
 | run_con.py (gen_con.py, clip per spec) | CheckImplementation C1, C2, ThenContracts | 100 x200 | 600 | 352, all KNOWN-D4 |
 | run_lin.py (oracle.py linear_arrow) | CheckLinearArrow KC/LC, Then | 11 x200, 100 x200 | 1,200 | D2/D3 only, plus Then downstream; 0 NEW |
 | run_pos.py (oracle.py positive_realization) | PositiveRealization perm/quot/rand | 1 x30, 11 x200, 100 x200 | 430 | 0 |
@@ -39,15 +39,16 @@ After the replay, 0 cases are left unexplained. run_contracts.py was dropped bec
 - D2 CheckLinearArrow: Refuted when the observation residual S_y is nonzero; Rho omits S_y.
 - D3 CheckLinearArrow: a Signed arrow is accepted without the normalization L eta' = eta.
 - D4 CheckImplementation: OneMinusAbsoluteDifference distance not clipped at 1 (ct_dist in ops_contracts.c and the shared dc_tol_dist in model.c:562; a fix must cover both; spec l.686-694).
-- D5 MeasureBehavioral: defect = max d(x, rep(x)), not the maximum over all same-code pairs (spec Def 4.4(3)).
+- D5 MeasureBehavioral: defect = max d(x, rep(x)), not the maximum over all same-code pairs (spec Def 4.4(3)). FIXED in t-2026-11-19-mettadinc-d5-behavioral-classpairs.
 - N1 (spec gap, not a defect): the bound reported for a Rejected PositiveRealization candidate is not specified.
 
 ## Reproduction and gate
 
 From the repo root after building dcalc: `sh tests/dcalc/differential/gate.sh [path/to/dcalc]` (about 10 s).
-It runs 3 known-answer canaries through dcalc --beyond-release (seven_state [5,5], D4, D5). The D4 and D5 canaries
-are labelled EXPECTED-BUG: they assert today's wrong answers and must be flipped to the spec answer when the defect
-is fixed. Then it runs pilots at seed 7: run_diff and run_con x20 (each with classify.py), run_lin x200 (raised from
+It runs 3 known-answer canaries through dcalc --beyond-release (seven_state [5,5], D4, D5). The D4 canary
+is labelled EXPECTED-BUG: it asserts today's wrong answer and must be flipped to the spec answer when D4 is fixed.
+The D5 canary is a normal gate (D5 fixed, t-2026-11-19-mettadinc-d5-behavioral-classpairs): both requests must give
+BehavioralDefect 1 with Pair a c, and the old 1/2 must not appear. Then it runs pilots at seed 7: run_diff and run_con x20 (each with classify.py), run_lin x200 (raised from
 20 after review 1), run_pos x20, run_stoch random and mixture x20 (each disagreement re-run and checked to be D1 by
 known_d1.py), and run_linear obs x50. Any disagreement without a D-id fails it. Result on dd0960a: GATE PASS.
 The gate is wired into tools/dcalc-run-all.sh as step `differential` (skip with DCALC_SKIP_DIFFERENTIAL=1).

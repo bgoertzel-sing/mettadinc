@@ -734,9 +734,13 @@ static int st_bstep(const StMod *s, const StMach *M, const int *oc, DcRat gamma,
     }
     return *ovf ? -1 : 0;
 }
-static DcRat st_defect(const StCar *C, const StMap *E, DcRat (*d)[ST_MAXE], int *wx, int *ovf) {
-    DcRat def = dc_rat(0, 1, ovf); *wx = -1;
-    for (int x = 0; x < C->n; x++) if (dc_rat_cmp(d[x][E->tab[x]], def) > 0) { def = d[x][E->tab[x]]; *wx = x; }
+/* D5 (spec Def 4.4(3), l.1080): the behavioral defect is the largest distance between ANY two states with
+ * the same code, not only between a state and its representative. The witness is the first pair (wx < wy,
+ * carrier order) that attains the maximum. */
+static DcRat st_defect(const StCar *C, const StMap *E, DcRat (*d)[ST_MAXE], int *wx, int *wy, int *ovf) {
+    DcRat def = dc_rat(0, 1, ovf); *wx = *wy = -1;
+    for (int x = 0; x < C->n; x++) for (int y = x + 1; y < C->n; y++)
+        if (E->tab[x] == E->tab[y] && dc_rat_cmp(d[x][y], def) > 0) { def = d[x][y]; *wx = x; *wy = y; }
     return def;
 }
 /* ---- review 1 F2: replayable behavioral certificates (spec certificate table) ----
@@ -1224,7 +1228,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         if (handle && wi && (!chk || st_rat(wi->items[1], &b) || b.n < 0)) return dc_invalid(m, "%s: (Within b) needs CheckBehavioral and b >= 0", head);
         if (handle && !hz && !wi) { static DcRat d0[ST_MAXE][ST_MAXE]; int o2 = 0; if (!st_behav(&S, M, g, d0, &o2)) handle = 0; }   /* S03/S04 path */
         if (handle) {
-            int n = C->n, oc[ST_MAXE], wx = -1, ch = 1, layers = 0, lim = hz ? h : (wi && dc_rat_cmp(g, dc_rat(1, 1, &ovf)) == 0 ? 40 : 20);   /* review 3 F2: Discount < 1 goes on to the exact fixed point */
+            int n = C->n, oc[ST_MAXE], wx = -1, wy = -1, ch = 1, layers = 0, lim = hz ? h : (wi && dc_rat_cmp(g, dc_rat(1, 1, &ovf)) == 0 ? 40 : 20);   /* review 3 F2: Discount < 1 goes on to the exact fixed point */
             static DcRat d[ST_MAXE][ST_MAXE], nd[ST_MAXE][ST_MAXE];
             for (int x = 0; x < n; x++) { oc[x] = -1;
                 for (int y = 0; y < x && oc[x] < 0; y++) { int same = 1;
@@ -1232,15 +1236,15 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
                     if (same) oc[x] = oc[y]; }
                 if (oc[x] < 0) oc[x] = x; }
             for (int x = 0; x < n; x++) for (int y = 0; y < n; y++) d[x][y] = dc_rat(oc[x] != oc[y], 1, &ovf);
-            DcRat def = st_defect(C, E, d, &wx, &ovf);
+            DcRat def = st_defect(C, E, d, &wx, &wy, &ovf);
             while (layers < lim && ch && !(wi && !hz && dc_rat_cmp(def, b) > 0)) {   /* review 3 F1: a Horizon is always computed to layer h */
                 if (st_bstep(&S, M, oc, g, d, nd, &ch, &ovf)) {   /* review 4 F3: with Discount < 1 and no Horizon, stop layering and solve the fixed point exactly */
                     int o1 = 0; if (hz || dc_rat_cmp(g, dc_rat(1, 1, &o1)) >= 0) return dc_unsupported(m, "%s: rational overflow (int64) or transport limit", head);
-                    ovf = 0; def = st_defect(C, E, d, &wx, &ovf); break; }
-                memcpy(d, nd, sizeof d); layers++; def = st_defect(C, E, d, &wx, &ovf);
+                    ovf = 0; def = st_defect(C, E, d, &wx, &wy, &ovf); break; }
+                memcpy(d, nd, sizeof d); layers++; def = st_defect(C, E, d, &wx, &wy, &ovf);
             }
             if (ovf) return dc_unsupported(m, "%s: rational overflow (int64)", head);
-            Sx *pair = wx >= 0 ? dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[E->tab[wx]]), NULL) : NULL;
+            Sx *pair = wx >= 0 ? dc_form("Pair", dc_sym(C->el[wx]), dc_sym(C->el[wy]), NULL) : NULL;
             if (hz) {
                 Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(def), NULL), dc_form("Horizon", dc_form("Steps", dc_int(h), NULL), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
                 Sx *cert = st_layered_cert(&S, M, g, h, &ovf);   /* review 1 F2: layer kernels and couplings */
@@ -1248,7 +1252,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
                 sx_push(cert, dc_form("Layers", dc_int(layers), NULL));
                 Sx *ev = dc_form("Evidence", cert, NULL);
                 if (pair) { sx_free(pair);   /* review 2 F1: the depth-h modal test is the lower certificate (invariant 18) */
-                    Sx *lt = st_layer_test(&S, M, g, wx, E->tab[wx], layers, &ovf);
+                    Sx *lt = st_layer_test(&S, M, g, wx, wy, layers, &ovf);
                     if (!lt || ovf) { sx_free(val); sx_free(ev); return dc_unsupported(m, "%s: no replayable depth-%d modal test", head, layers); }
                     sx_push(ev, lt); }
                 /* review 3 F1: CheckBehavioral under a Horizon decides D_h <= Within (default 0): the depth-h Test refutes, the LayeredPrefixpoint confirms */
@@ -1261,7 +1265,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
                 Sx *val = dc_form("Value", dc_form("WithinBound", dc_sym(bad ? "False" : "True"), NULL), dc_form("BehavioralDefect", st_rsx(def), NULL), NULL);
                 if (pair) sx_free(pair);
                 /* review 2 F1: a refutation carries the layer modal test (gap > b); a pass carries the Prefixpoint of the fixed point (D <= b) */
-                Sx *cert = bad ? st_layer_test(&S, M, g, wx, E->tab[wx], layers, &ovf) : st_prefix_cert(&S, M, g, d, "Prefixpoint", &ovf);
+                Sx *cert = bad ? st_layer_test(&S, M, g, wx, wy, layers, &ovf) : st_prefix_cert(&S, M, g, d, "Prefixpoint", &ovf);
                 if (!cert || ovf) { if (cert) sx_free(cert); sx_free(val); return dc_unsupported(m, "%s: no replayable %s certificate", head, bad ? "test" : "prefixpoint"); }
                 return st_env(m, bad ? VERDICT_FAILS : VERDICT_HOLDS, q, "Representation", a1, val, dc_form("Evidence", cert, NULL), NULL);
             }
@@ -1272,7 +1276,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             if (frc != 0 && chk) return dc_unsupported(m, "%s: no exact fixed point reached; the Within bound cannot be decided", head);   /* review 3 F2 */
             if (frc != 0 && prpos) return dc_unsupported(m, "%s: refining the interval to Precision > 0 is not implemented", head);   /* review 3 F3 */
             if (frc == 0) {
-                DcRat dv = st_defect(C, E, d, &wx, &ovf); int holds = !wi || dc_rat_cmp(dv, b) <= 0;
+                DcRat dv = st_defect(C, E, d, &wx, &wy, &ovf); int holds = !wi || dc_rat_cmp(dv, b) <= 0;
                 Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(dv), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
                 if (wi) sx_push(val, dc_form("WithinBound", dc_sym(holds ? "True" : "False"), NULL));
                 /* review 1 F2 (invariant 18): upper Prefixpoint and lower DualPostfixpoint, both carrying their data */
@@ -1325,8 +1329,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         static DcRat d[ST_MAXE][ST_MAXE]; int rc = st_behav(&S, M, g, d, &ovf);
         if (rc == -1) return dc_unsupported(m, "%s: rational overflow (int64) or transport limit", head);
         if (rc == -2) return dc_unsupported(m, "%s: no exact fixed point within %d rounds", head, ST_BEH_ROUNDS);
-        DcRat def = dc_rat(0, 1, &ovf); int wx = -1;
-        for (int x = 0; x < C->n; x++) if (dc_rat_cmp(d[x][E->tab[x]], def) > 0) { def = d[x][E->tab[x]]; wx = x; }
+        int wx = -1, wy = -1; DcRat def = st_defect(C, E, d, &wx, &wy, &ovf);   /* D5: all same-code pairs */
         Sx *val = dc_form("Value", dc_form("BehavioralDefect", st_rsx(def), NULL), dc_form("Discount", st_rsx(g), NULL), NULL);
         /* review 1 F2 (invariant 18): an upper certificate (Prefixpoint: D with couplings) and, when the
          * defect is positive, a lower certificate (Test: a Definition 4.9 modal test) that meet at the value */
@@ -1334,8 +1337,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         if (!up || ovf) return dc_unsupported(m, "%s: no prefixpoint certificate could be built", head);
         Sx *ev = dc_form("Evidence", up, NULL);
         if (wx >= 0) {
-            int y = E->tab[wx];
-            Sx *mw = st_modal_witness(&S, M, g, wx < y ? wx : y, wx < y ? y : wx, -1, &ovf);   /* review 2 F2: carrier order, the oracle key's orientation */   /* a Definition 4.9 test, replayable */
+            Sx *mw = st_modal_witness(&S, M, g, wx, wy, -1, &ovf);   /* D5: wx < wy, carrier order */   /* review 2 F2: carrier order, the oracle key's orientation */   /* a Definition 4.9 test, replayable */
             if (!mw || ovf) return dc_unsupported(m, "%s: no modal test witness could be built", head);
             sx_push(ev, dc_form("Certificate", dc_form("Kind", dc_sym("Test"), NULL), mw, NULL));
         }
