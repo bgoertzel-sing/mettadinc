@@ -12,12 +12,15 @@ canary() { # name file expected-regex
   if timeout 60 "$DC" --beyond-release "$2" 2>&1 | grep -qE "$3"; then echo "CANARY ok   $1"; else echo "CANARY FAIL $1"; fail=1; fi
 }
 canary seven_state_positive   $FIX/seven_state.metta            'PositiveDimension \(Interval 5 5\)'
-# review 1 F6: the D4 and D5 canaries below are EXPECTED-BUG canaries. They assert today's wrong answers
+# review 1 F6: the D4 and D5 canaries below (and D6) are EXPECTED-BUG canaries. They assert today's wrong answers
 # (D4: valid contract Refuted; D5: defect 1/2 where the spec gives 1), so they prove the gate reaches the
 # buggy code paths. When D4 or D5 is fixed, this canary fails on purpose: flip its regex to the spec answer
 # (D4: 'Status Checked'; D5: 'BehavioralDefect 1') and drop the matching KNOWN tag in classify.py.
 canary D4_con_clip_known      $H/disagreements/d_con_clip.metta 'Status Refuted'
 canary D5_kant_classpairs     $H/disagreements/d_kant_classpairs.metta 'BehavioralDefect \(Rat 1 2\)'
+# D6 (t-2026-11-20-mettadinc-d6-trace-check): EXPECTED-BUG canary. It asserts today's wrong horizon trace
+# defect 1/2 (the spec gives 1, pair a c). When D6 is fixed this fails on purpose: flip the regex to 'TraceDefect 1\)'.
+canary D6_trace_classpairs    $H/disagreements/D6_trace_classpairs.metta 'TraceDefect \(Rat 1 2\)'
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
 echo "GATE canaries passed"
 # 2. Pilots (small, fixed seeds). Every disagreement must be a listed D-id, else the gate fails.
