@@ -26,6 +26,9 @@ if [ "$(printf '%s\n' "$o" | grep -cE 'Status Checked.*Value \(BehavioralDefect 
 # t-2026-11-19 D2 fixed: regression gates with the spec answer (Def 3.8: S_y = Pi_y L - L Pi'_y is graded into rho).
 canary D2_obs_residual        $H/disagreements/D2_obs_residual_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho \(Rat 1 2\)\)\)'
 canary D2_linear_arrow_obs    $H/disagreements/D2_linear_arrow_obs_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho 1\)\)'
+# D6 (t-2026-11-20-mettadinc-d6-trace-check): EXPECTED-BUG canary. It asserts today's wrong horizon trace
+# defect 1/2 (the spec gives 1, pair a c). When D6 is fixed this fails on purpose: flip the regex to 'TraceDefect 1\)'.
+canary D6_trace_classpairs    $H/disagreements/D6_trace_classpairs.metta 'TraceDefect \(Rat 1 2\)'
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
 echo "GATE canaries passed"
 # 2. Pilots (small, fixed seeds). Every disagreement must be a listed D-id, else the gate fails.

@@ -141,6 +141,23 @@ D2_linear_arrow_obs_refuted.metta both show D2 (a third copy, d_lin_obs.metta, w
 - Found as run_diff.py seed 100 case 177 (horizon 3: CLI 17/192 = d(s0, s1), oracle 5/48 = d(s0, s2)).
   1 in 200 cases, because few random encodings merge 3 or more states at positive distance.
 
+## D6 MeasureTrace / CheckTrace with a Horizon: the trace defect only compares each state with its representative
+- Minimal input: D6_trace_classpairs.metta (the D5 chain: a -> p, c -> q, b -> 1/2 p + 1/2 q; encoding sends a, b, c to b).
+- CLI: Checked, TraceDefect 1/2, Pair b a (MeasureTrace at Horizon 1 and 3, and at Horizon 1 with Policies ObservationBased);
+  CheckTrace Horizon 1 Within 3/4: WithinBound True. Oracle: 1 = max_w TV(P_a^w, P_c^w), so WithinBound False.
+- Spec Def 4.4(4), l.1044-1059: q is trace-adequate through horizon h when every pair with equal codes has equal
+  laws; the defect is the max over x, x' with q(x) = q(x') of max_w TV(P_x^w, P_x'^w), i.e. over all same-code
+  pairs. stoch.c (MeasureTrace/CheckTrace handler, about l.1171) loops over x and compares only with y = E(x),
+  which is smaller when a class has 3 or more states. The spec supports the oracle.
+- Unbounded CheckTrace (no Horizon, stoch.c about l.1295) is not affected: trace equivalence is an equivalence
+  relation, so "every x is equivalent to E(x)" implies every same-code pair is equivalent. It answers Refuted here.
+  MeasureTrace has no unbounded form (it requires a Horizon).
+- Scale: run_trace_hor.py (new runner; run_stoch.py's check_trace kind is the unbounded crisp check, which D6 does not
+  reach) at Horizon 2, seeds 1, 2, 3 x 200 cases each, every case with a 3-state class: 5 of 600 disagree (seed 1: 0,
+  seed 2: 4, seed 3: 1), e.g. seed 2 case 108 CLI 7/18 vs oracle 5/9. In all 600 cases the CLI equals the
+  representative-only value, so this is the only cause.
+- Found by reading the code during t-2026-11-19-mettadinc-d5-behavioral-classpairs; confirmed in t-2026-11-20-mettadinc-d6-trace-check.
+
 ## PositiveRealization (run_pos.py): no disagreements
 - seed 1 x30 and seed 100 x200 (exact permutation 48, bisimulation quotient 102, random candidate 50): 0 disagreements.
   Expected interval [signed minimum, min(k, lumped quotient size)] with Replayed, or [signed minimum, lumped] with Rejected (see N1).
