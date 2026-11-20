@@ -17,8 +17,10 @@ canary seven_state_positive   $FIX/seven_state.metta            'PositiveDimensi
 # purpose: flip its regex to 'BehavioralDefect 1' and drop KNOWN-D5 in classify.py.
 # D4 fixed (t-2026-11-19-mettadinc-d4-contract-clip): spec l.686-694 clips the distance at 1, so both minimal
 # inputs are Checked with Grade 0 1. These are normal gates now, no longer EXPECTED-BUG canaries.
-canary D4_con_clip           $H/disagreements/d_con_clip.metta 'Status Checked'
-canary D4_con_clip_two_point $H/disagreements/D4_contract_distance_unclipped.metta 'Status Checked'
+canary D4_con_clip           $H/disagreements/d_con_clip.metta 'Status Checked.*Value \(Grade \(Rat 0 1\) \(Rat 1 1\)'
+canary D4_con_clip_two_point $H/disagreements/D4_contract_distance_unclipped.metta 'Status Checked.*Value \(Grade \(Rat 0 1\) \(Rat 1 1\)'
+# review-1 F2: dc_tol_dist (model.c) site. Observations 0 and 2 are distance min(1,2) = 1, kernel degree 0 (unclipped: -1).
+canary D4_tol_dist           $H/disagreements/D4_tol_dist_unclipped.metta 'Status Checked.*\(Entry P Q 0\) \(Entry Q P 0\)'
 canary D5_kant_classpairs     $H/disagreements/d_kant_classpairs.metta 'BehavioralDefect \(Rat 1 2\)'
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
 echo "GATE canaries passed"

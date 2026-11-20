@@ -45,8 +45,8 @@ After the replay, 0 cases are left unexplained. run_contracts.py was dropped bec
 ## Reproduction and gate
 
 From the repo root after building dcalc: `sh tests/dcalc/differential/gate.sh [path/to/dcalc]` (about 10 s).
-It runs 3 known-answer canaries through dcalc --beyond-release (seven_state [5,5], D4, D5). The D4 canary now asserts the spec answer (Checked, Grade 0 1) and a second D4 canary
-(D4_contract_distance_unclipped) was added; the D5 canary
+It runs 5 known-answer canaries through dcalc --beyond-release (seven_state [5,5], three D4, D5). The D4 canaries assert the spec answer:
+d_con_clip and D4_contract_distance_unclipped give Checked, Grade 0 1 (ct_dist site), and D4_tol_dist_unclipped gives kernel degree 0 (dc_tol_dist site); the D5 canary
 is labelled EXPECTED-BUG: it asserts today's wrong answer and must be flipped to the spec answer when the defect
 is fixed. Then it runs pilots at seed 7: run_diff and run_con x20 (each with classify.py), run_lin x200 (raised from
 20 after review 1), run_pos x20, run_stoch random and mixture x20 (each disagreement re-run and checked to be D1 by

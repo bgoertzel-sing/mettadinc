@@ -18,4 +18,8 @@ mutant() {   # name file sed-expr
 mutant lin_rho_lastrow stoch.c 's/\*rho = dc_rat_max(\*rho, row);/*rho = row;/'
 # M2: behavioral layer distance halved (Kantorovich recurrence)
 mutant kant_half stoch.c 's/nd\[x\]\[y\] = dc_rat_mul(gamma, best, ovf);/nd[x][y] = dc_rat_mul(dc_rat_mul(gamma, best, ovf), dc_rat(1, 2, ovf), ovf);/'
+# M3 (D4 review-1 F2): dc_tol_dist (model.c) unclipped again; only the D4_tol_dist canary sees it
+mutant d4_tol_unclipped model.c 's/return dc_rat_min(one, dc_rat_abs(dc_rat_sub(a, b, ovf))); }/return dc_rat_abs(dc_rat_sub(a, b, ovf)); }/'
+# M4 (D4): ct_dist (ops_contracts.c) unclipped again
+mutant d4_con_unclipped ops_contracts.c 's/\*d = dc_rat_min((DcRat){1, 1}, dc_rat_abs(dc_rat_sub(a, b, ovf)));/*d = dc_rat_abs(dc_rat_sub(a, b, ovf));/'
 [ $rc = 0 ] && echo "MUTATION CHECK PASS" || echo "MUTATION CHECK FAIL"; exit $rc

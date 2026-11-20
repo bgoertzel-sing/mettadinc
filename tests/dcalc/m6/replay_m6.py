@@ -99,7 +99,7 @@ class Mod:
         k = self.tol.get(t)
         if k == 'Trivial': return Q(0)
         if k == 'Discrete': return Q(0) if a == b else Q(1)
-        if k == 'OneMinusAbsoluteDifference' and isinstance(a, Q) and isinstance(b, Q): return abs(a - b)
+        if k == 'OneMinusAbsoluteDifference' and isinstance(a, Q) and isinstance(b, Q): return min(Q(1), abs(a - b))  # spec l.686-694: d = 1 - max(0, 1-|p-q|) = min(1, |p-q|) (D4)
         raise ValueError('distance %s not replayable' % t)
     def worst(self, name, L, eta):
         """(holds, first violating (xh, x, gap, bound) or None)"""

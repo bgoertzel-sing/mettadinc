@@ -106,8 +106,8 @@ D2_linear_arrow_obs_refuted.metta both show D2 (a third copy, d_lin_obs.metta, w
 
 ## D4 CheckImplementation: the OneMinusAbsoluteDifference distance is not clipped at 1
 - Status: FIXED (t-2026-11-19-mettadinc-d4-contract-clip). ct_dist (ops_contracts.c) and dc_tol_dist (model.c, DC_TOL_ONE_MINUS_ABS) now return min(1, |p - q|). Both minimal inputs give Checked, Grade 0 1; gate.sh checks them as normal gates; the contracts family at seed 100 x200 now agrees 600/600.
-- STATUS: FIXED on branch hive/t-2026-11-19-mettadinc-d4-contract-clip. ct_dist (ops_contracts.c) and dc_tol_dist (model.c, DC_TOL_ONE_MINUS_ABS) both return min(1, |p - p'|).
-  Both minimal inputs now give Checked, Grade 0 1; run_con seed 100 x200 gives 0 disagreements. The text below describes the bug before the fix.
+  Review-1 F2: D4_tol_dist_unclipped.metta exercises the dc_tol_dist site (observations 0 and 2, kernel degree 0; unclipped gave -1).
+  The replayers replay_m6.py and replay_graded.py clip the distance too, and mutate_gate.sh has one mutant per site.
 - Minimal input: d_con_clip.metta (one audited point, f(0) = 0, f-hat(0) = 2, requested grade (0, 1)).
   D4_contract_distance_unclipped.metta is the same bug with two audited points.
 - CLI: Refuted, "an audited pair violates the affine bound". Oracle: Checked, Grade 0 1.
