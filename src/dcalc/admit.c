@@ -111,11 +111,13 @@ static void collect_names(DcAModule *m, const char *head, const Sx *it) {
 
 /* parse_profile */
 static void parse_profile(DcAdmission *a, DcAModule *m, const Sx *it) {
-    char b[512];
+    char b[512] = "";
     const Sx *P = reg_section("profiles");
     if (it->n == 2 && it->items[1]->kind != SX_LIST) {
-        const Sx *sh = dc_reg_get(dc_reg_get(P, "shorthands"), key_of(it->items[1], b, sizeof b));
-        if (!sh || sh->n != 4) { diag(a, m->name, it, m->name, "unknown profile shorthand %s", b[0] ? b : it->items[1]->text); return; }
+        /* key_of returns the symbol text without writing b, so name the shorthand by its return value, never by b. */
+        const char *k = key_of(it->items[1], b, sizeof b);
+        const Sx *sh = dc_reg_get(dc_reg_get(P, "shorthands"), k);
+        if (!sh || sh->n != 4) { diag(a, m->name, it, m->name, "unknown profile shorthand %s", k); return; }
         m->dynamics = dc_reg_str(sh->items[1]); m->values = dc_reg_str(sh->items[2]); m->carriers = dc_reg_str(sh->items[3]);
         return;
     }

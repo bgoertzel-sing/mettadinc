@@ -67,5 +67,30 @@ r = rows(FORTY, ['--beyond-release'])
 c = r.get('FortyBitsScreens Cone')
 report('item 4: ConeOfInfluence Unsupported, reason "not implemented by the symbolic engine"',
        c is not None and c[0] == 'Unsupported' and 'not implemented by the symbolic engine' in c[1] and 'M3 in progress' not in c[1], c)
+# t-2026-11-20-mettadinc-admit-profile-uninit: parse_profile read an uninitialized buffer when naming an
+# unknown profile shorthand, so the reason sometimes held garbage. Repeated release runs must all give exactly
+# "unknown profile shorthand Quantum" with byte-identical output; the sanitized build (limits_sanitized step) must be clean.
+BADP = os.path.join(ROOT, 'docs', 'review', 'inputs', 'mut_m1_badprofile.metta')
+WANT = re.compile(r'^.*mut_m1_badprofile\.metta:3:3: LiteralCongruence: unknown profile shorthand Quantum$')
+def raw(exe, path, env=None):
+    o = subprocess.run([exe, path], capture_output=True, timeout=120, env=env)
+    return o.returncode, o.stdout.decode('latin-1'), o.stderr.decode('latin-1')
+def why_all(out):
+    return [m.group(1) for m in re.finditer(r'\(Reason "([^"]*)"', out)]
+N = int(os.environ.get('DCALC_BADPROFILE_RUNS', '20'))
+outs = [raw(DC, BADP) for _ in range(N)]
+bad = [i for i, (rc, out, _) in enumerate(outs) if rc != 0 or not why_all(out) or not all(WANT.match(w) for w in why_all(out))]
+report('profile shorthand: %d release runs of mut_m1_badprofile -> every reason exactly "unknown profile shorthand Quantum"' % N,
+       not bad, [why_all(outs[i][1])[:1] for i in bad[:3]])
+report('profile shorthand: %d release runs byte-identical' % N, len(set(o for _, o, _ in outs)) == 1, len(set(o for _, o, _ in outs)))
+SAN = os.path.join(ROOT, 'build', 'dcalc-sanitized', 'dcalc')
+if os.path.exists(SAN):
+    env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
+    res = [raw(SAN, BADP, env) for _ in range(3)]
+    clean = all(rc == 0 and 'Sanitizer' not in err and 'runtime error' not in err and why_all(out) and all(WANT.match(w) for w in why_all(out)) for rc, out, err in res)
+    report('profile shorthand: ASan+UBSan build, 3 runs -> exit 0, no sanitizer report, reason Quantum', clean,
+           [(rc, err[-200:]) for rc, _, err in res])
+else:
+    report('profile shorthand: sanitized build (build/dcalc-sanitized/dcalc, built by the limits_sanitized step)', False, 'missing')
 print('review_fixes: %s (%d failing)' % ('PASS' if not fails else 'FAIL', fails))
 sys.exit(1 if fails else 0)
