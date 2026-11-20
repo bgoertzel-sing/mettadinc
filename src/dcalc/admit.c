@@ -809,13 +809,14 @@ static void map_calls(const Sx *x, const DcAModule *m, DcStrSet *out) {
         } else map_calls(y, m, out);
     }
 }
-/* one Map section (Body, Cases, ...): its head keyword is not a call; a Cases row (pattern value) is not an
- * application either, so its pattern and value are walked one by one. */
+/* one Map section (Body, Cases, Table, Choice): its head keyword is not a call. A row of a Cases, Table or
+ * Choice body (spec map-body grammar: (Cases (pattern expr)+) | (Table (in out)+) | (Choice (in out+)+)) is
+ * not an application either, so the row's items are walked one by one. */
 static void map_section_calls(const Sx *x, const DcAModule *m, DcStrSet *out) {
-    int cases = sx_is_sym(x->items[0], "Cases");
+    int rows = sx_is_sym(x->items[0], "Cases") || sx_is_sym(x->items[0], "Table") || sx_is_sym(x->items[0], "Choice");
     for (size_t k = 1; k < x->n; k++) {
         const Sx *r = x->items[k];
-        if (cases && r->kind == SX_LIST) { for (size_t j = 0; j < r->n; j++) map_calls(r->items[j], m, out); }
+        if (rows && r->kind == SX_LIST) { for (size_t j = 0; j < r->n; j++) map_calls(r->items[j], m, out); }
         else map_calls(r, m, out);
     }
 }
