@@ -12,16 +12,17 @@ canary() { # name file expected-regex
   if timeout 60 "$DC" --beyond-release "$2" 2>&1 | grep -qE "$3"; then echo "CANARY ok   $1"; else echo "CANARY FAIL $1"; fail=1; fi
 }
 canary seven_state_positive   $FIX/seven_state.metta            'PositiveDimension \(Interval 5 5\)'
-# review 1 F6: the D5 canary below is an EXPECTED-BUG canary. It asserts today's wrong answer (defect 1/2
-# where the spec gives 1), so it proves the gate reaches the buggy code path. When D5 is fixed, it fails on
-# purpose: flip its regex to 'BehavioralDefect 1' and drop KNOWN-D5 in classify.py.
 # D4 fixed (t-2026-11-19-mettadinc-d4-contract-clip): spec l.686-694 clips the distance at 1, so both minimal
 # inputs are Checked with Grade 0 1. These are normal gates now, no longer EXPECTED-BUG canaries.
 canary D4_con_clip           $H/disagreements/d_con_clip.metta 'Status Checked.*Value \(Grade \(Rat 0 1\) \(Rat 1 1\)'
 canary D4_con_clip_two_point $H/disagreements/D4_contract_distance_unclipped.metta 'Status Checked.*Value \(Grade \(Rat 0 1\) \(Rat 1 1\)'
 # review-1 F2: dc_tol_dist (model.c) site. Observations 0 and 2 are distance min(1,2) = 1, kernel degree 0 (unclipped: -1).
 canary D4_tol_dist           $H/disagreements/D4_tol_dist_unclipped.metta 'Status Checked.*\(Entry P Q 0\) \(Entry Q P 0\)'
-canary D5_kant_classpairs     $H/disagreements/d_kant_classpairs.metta 'BehavioralDefect \(Rat 1 2\)'
+# D5 fixed (t-2026-11-19-mettadinc-d5-behavioral-classpairs): spec Def 4.4(3) / l.1080 gives defect 1 = d_beh(a, c)
+# on BOTH requests (horizon 1 and unbounded); the witness pair is (a, c). The old answer 1/2 must not appear.
+o=$(timeout 60 "$DC" --beyond-release $H/disagreements/d_kant_classpairs.metta 2>&1)
+if [ "$(printf '%s\n' "$o" | grep -cE 'Status Checked.*Value \(BehavioralDefect 1\).*Pair a c')" = 2 ] && ! printf '%s\n' "$o" | grep -qE 'BehavioralDefect \(Rat'; then
+  echo "CANARY ok   D5_kant_classpairs"; else echo "CANARY FAIL D5_kant_classpairs"; fail=1; fi
 # t-2026-11-19 D2 fixed: regression gates with the spec answer (Def 3.8: S_y = Pi_y L - L Pi'_y is graded into rho).
 canary D2_obs_residual        $H/disagreements/D2_obs_residual_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho \(Rat 1 2\)\)\)'
 canary D2_linear_arrow_obs    $H/disagreements/D2_linear_arrow_obs_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho 1\)\)'
