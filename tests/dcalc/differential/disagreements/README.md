@@ -103,6 +103,7 @@ D2_linear_arrow_obs_refuted.metta both show D2 (a third copy, d_lin_obs.metta, w
   dimension. Spec l.2469-2476 only describes the supplied-candidate path ("without one the request
   returns Unknown after its budget") and does not say what a rejected candidate should do or that
   the lumped quotient may be used. The oracle follows the CLI here; the spec should state the rule.
+- Provisional, pending Ben: the rule above is what dcalc does now and is not settled (docs/e0/OPEN_QUESTIONS.md item 13).
 
 ## D4 CheckImplementation: the OneMinusAbsoluteDifference distance is not clipped at 1
 - Minimal input: d_con_clip.metta (one audited point, f(0) = 0, f-hat(0) = 2, requested grade (0, 1)).

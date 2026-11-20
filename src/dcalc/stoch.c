@@ -1569,6 +1569,9 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         char why[200] = ""; int cok = li >= 0 ? st_check_lin(&S, &S.lin[li], why, sizeof why, &ovf, 1) : 0;
         int cdim = li >= 0 ? S.car[S.mach[S.lin[li].tgt].states].n : 0;
         if (cok && cdim < upper) upper = cdim;
+        /* N1, provisional, pending Ben: if the candidate is Rejected, upper stays at the LumpedQuotient size and the
+           answer stays Checked. Spec l.2469-2476 does not cover this case. See docs/e0/OPEN_QUESTIONS.md item 13 and
+           tests/dcalc/differential/REPORT.md (N1). */
         Sx *val = dc_form("Value", dc_form("PositiveDimension", dc_form("Interval", dc_int(B.dim), dc_int(upper), NULL), NULL), NULL);
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SignedMinimumAndReplayedCandidate"), NULL),
             dc_form("SignedMinimum", dc_int(B.dim), NULL), dc_form("LumpedQuotient", dc_int(lumped), NULL), NULL), NULL);

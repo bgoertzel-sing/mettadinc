@@ -560,6 +560,8 @@ M2 **[assigned]**; M0 fixed the obligation generator's interface ("The generator
 > rule, including U-statistics and anytime-valid monitors; kernel import once the MeTTaProN IR is
 > pinned.
 
+Repository note (not from the plan): when the supplied candidate is Rejected, `dcalc --beyond-release` still answers `PositiveRealization` with Checked and an interval whose upper end is the LumpedQuotient size (N1). The spec does not cover this case. The rule is provisional, pending Ben: see OPEN_QUESTIONS.md item 13.
+
 ### Acceptance claims
 
 Plan list: **S01-S07, L01-L03, V01-V04, R01-R06, O01-O04, U01-U04** (28 claims, 0 of them Supported in release 1).
