@@ -119,11 +119,18 @@ for f, want in (('map_name_element_clash', 'Unsupported'), ('map_name_equals_ele
         r = norm(rows(os.path.join(REP, f + '.metta'), mode), f)
         c = norm(rows(os.path.join(REP, f + '_control.metta'), mode), f)
         ok = bool(r) and all(st == want and 'map-call cycle' not in why for st, why in r.values()) and list(r.values()) == list(c.values())
-        report('map-name-cycle (%s): %s -> %s, same answer as its _control, no map-call cycle' % (mode[0] if mode else 'release', f, want), ok, (r, c))
+        report('map-name-cycle (%s): %s -> %s, same answer as its _control, no map-call cycle' % ('beyond' if mode else 'release', f, want), ok, (r, c))
+# review 1: Table and Choice rows (spec map-body grammar) are data rows too, not applications
+for f, want in (('table_clash', 'Checked'), ('choice_clash', 'Unsupported')):
+    for mode in ([], ['--beyond-release']):
+        r = norm(rows(os.path.join(MNC, f + '.metta'), mode), f)
+        c = norm(rows(os.path.join(MNC, f + '_control.metta'), mode), f)
+        ok = bool(r) and all(st == want and 'map-call cycle' not in why for st, why in r.values()) and list(r.values()) == list(c.values())
+        report('map-name-cycle (%s): %s -> %s, same answer as its _control, no map-call cycle' % ('beyond' if mode else 'release', f, want), ok, (r, c))
 for f in ('real_cycle_head', 'real_cycle_bare'):
     for mode in ([], ['--beyond-release']):
         r = rows(os.path.join(MNC, f + '.metta'), mode)
         ok = bool(r) and all(st == 'InvalidInput' and 'map-call cycle f -> g -> f' in why for st, why in r.values())
-        report('map-name-cycle (%s): %s still InvalidInput "map-call cycle f -> g -> f"' % (mode[0] if mode else 'release', f), ok, r)
+        report('map-name-cycle (%s): %s still InvalidInput "map-call cycle f -> g -> f"' % ('beyond' if mode else 'release', f), ok, r)
 print('review_fixes: %s (%d failing)' % ('PASS' if not fails else 'FAIL', fails))
 sys.exit(1 if fails else 0)
