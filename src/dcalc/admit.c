@@ -777,6 +777,49 @@ static void sym_atoms(const Sx *x, const DcAModule *m, const char *kind, DcStrSe
     if (x->kind == SX_SYM) { DcADecl *d = find_decl(m, x->text); if (d && !strcmp(d->kind, kind)) dc_ss_add(out, x->text); }
     else if (x->kind == SX_LIST) for (size_t i = 0; i < x->n; i++) sym_atoms(x->items[i], m, kind, out);
 }
+/* map-name-cycle fix (spec 5.4: "Admitted expressions are literals, constructors, field access, typed map
+ * application"; eval_body/eval_rat_body evaluate a call only as a list whose head names a Map).
+ * map_calls records a Map name as called where it is the head of a list (an application). A bare symbol in
+ * an argument or value position is a data value when it is an Enum element of a carrier of this module;
+ * any other bare Map name is still counted, so no cycle through a bare map reference is missed. */
+static int is_enum_elem(const DcAModule *m, const char *name) {
+    for (size_t i = 0; i < m->ndecl; i++) {
+        const DcADecl *d = &m->decls[i];
+        if (strcmp(d->kind, "Carrier") || !d->form) continue;
+        for (size_t j = 2; j < d->form->n; j++) {
+            const Sx *x = d->form->items[j];
+            if (!sx_head_is(x, "Enum")) continue;
+            for (size_t k = 1; k < x->n; k++) if (sx_is_sym(x->items[k], name)) return 1;
+        }
+    }
+    return 0;
+}
+static void map_calls(const Sx *x, const DcAModule *m, DcStrSet *out) {
+    if (x->kind == SX_SYM) {
+        DcADecl *d = find_decl(m, x->text);
+        if (d && !strcmp(d->kind, "Map") && !is_enum_elem(m, x->text)) dc_ss_add(out, x->text);
+        return;
+    }
+    if (x->kind != SX_LIST) return;
+    for (size_t i = 0; i < x->n; i++) {
+        const Sx *y = x->items[i];
+        if (i == 0 && y->kind == SX_SYM) {   /* application head */
+            DcADecl *d = find_decl(m, y->text);
+            if (d && !strcmp(d->kind, "Map")) dc_ss_add(out, y->text);
+        } else map_calls(y, m, out);
+    }
+}
+/* one Map section (Body, Cases, Table, Choice): its head keyword is not a call. A row of a Cases, Table or
+ * Choice body (spec map-body grammar: (Cases (pattern expr)+) | (Table (in out)+) | (Choice (in out+)+)) is
+ * not an application either, so the row's items are walked one by one. */
+static void map_section_calls(const Sx *x, const DcAModule *m, DcStrSet *out) {
+    int rows = sx_is_sym(x->items[0], "Cases") || sx_is_sym(x->items[0], "Table") || sx_is_sym(x->items[0], "Choice");
+    for (size_t k = 1; k < x->n; k++) {
+        const Sx *r = x->items[k];
+        if (rows && r->kind == SX_LIST) { for (size_t j = 0; j < r->n; j++) map_calls(r->items[j], m, out); }
+        else map_calls(r, m, out);
+    }
+}
 /* pattern variables with repeats, as printed keys */
 static void pattern_vars(const Sx *x, char ***v, size_t *n, size_t *cap) {
     if (is_var(x)) { grow((void **)v, cap, *n, sizeof **v); (*v)[(*n)++] = x->text; }
@@ -942,7 +985,7 @@ static void check_module_rules(DcAdmission *a, DcAModule *m) {
                     if (dup) diag(a, m->name, bl, where, "nonlinear Body binders %s", shw(bl, b, sizeof b));
                 }
                 if (sx_is_sym(x->items[0], "From") || sx_is_sym(x->items[0], "To")) continue;
-                sym_atoms(x, m, "Map", g_node(&calls, d->name));
+                map_section_calls(x, m, g_node(&calls, d->name));
             }
         } else if (!strcmp(d->kind, "Derive")) {
             DcStrSet *o = g_node(&deps, d->name);

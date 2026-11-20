@@ -23,9 +23,9 @@ Repros, run from R, in both modes:
 
     build/dcalc/dcalc --beyond-release tests/dcalc/examples_e2e/repro/stoch_reach_carrier.metta          # InvalidInput (finding 3)
     build/dcalc/dcalc --beyond-release tests/dcalc/examples_e2e/repro/stoch_reach_carrier_control.metta  # Checked
-    build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_element_clash.metta          # InvalidInput "map-call cycle deadline -> deadline" (finding 4)
+    build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_element_clash.metta          # Unsupported, same as its control (finding 4, fixed; was InvalidInput "map-call cycle deadline -> deadline")
     build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_element_clash_control.metta  # passes admission
-    build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_equals_element.metta         # same bug, smaller variant (+ _control)
+    build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_equals_element.metta         # Checked, same as its control (finding 4, fixed; smaller variant)
     build/dcalc/dcalc tests/dcalc/examples_e2e/repro/carrier_subset_reach.metta            # S Subset, T Reach: Unsupported "outside the M0 fragment"; U Enum: Checked (finding 5)
 
 ## Tables
@@ -36,15 +36,15 @@ Class legend:
 - `match`: same status as the document. This includes the negative fixtures, and ex3/ex4 Unsupported in release mode, because doc03 s2.6 (l.488-493) names ex3 and ex4 as M6 and M4 conformance targets that a first release answers with Unsupported.
 - `GATED`: the request uses a PROPOSED library that no milestone admits, or a stochastic profile in release mode.
 - `GAP`: the M0 lowering skips Subset and Reach carriers (model.c:175).
-- `BUG`: a checker bug (findings 3 and 4).
+- `BUG`: a checker bug (finding 3; finding 4 is fixed).
 - `CLI`: in release mode the LIBS imports are not loaded (main.c:129).
 
 ## Totals (306 requests: ex1 61, ex2 15, ex3 32, ex4 36, mg 92, ls 37, wx 33)
 
 | mode | match | GATED | GAP | BUG | CLI |
 |---|---|---|---|---|---|
-| release | 70 (ex3 32 + ex4 36 by s2.6; 2 ls fixtures) | 203 | 7 | 3 | 23 |
-| beyond | 2 (ls fixtures) | 286 | 7 | 11 | 0 |
+| release | 70 (ex3 32 + ex4 36 by s2.6; 2 ls fixtures) | 206 | 7 | 0 | 23 |
+| beyond | 2 (ls fixtures) | 289 | 7 | 8 | 0 |
 
 No Checked, Refuted, Conditional or Estimated answer in the documents is reproduced, because no request reaches a decision procedure.
 
@@ -53,7 +53,7 @@ No Checked, Refuted, Conditional or Estimated answer in the documents is reprodu
 1. **ex2 contradicts the documents.** Doc03 s2.6 says "Example 2 lies entirely within" the first release. dcalc rejects all 15 ex2 requests in both modes with "library Families is outside the first release". Either the manifest or the document is wrong. This is the main mismatch a user who follows the documents will hit.
 2. **PROPOSED libraries are admitted by no milestone.** The registry's `first_release` list is Core, GradedKernels, BitVectors and FiniteSets. `M4_LIBS` (admit.c:1074) does not list NatArith, Families, Laws, RationalArith, Parallel, Monitors, Statistics or BoundedSets. This gates ex1, ex2, mg (except AnchorMigration/TaskResume), ls and wx. The gate reports only the first failing library (admit.c:1096).
 3. **The stochastic reader rejects `(Reach ...)` carriers** (ex4 NewsLeak: all 8 requests return InvalidInput in beyond mode). stoch.c:52 requires `(Enum ...)`, but spec l.1719 allows `(Reach M (From s+))`.
-4. **False map-call cycle when a Map has the same name as an Enum element** (doc04 ClaimArbitration: 3 requests, both modes). `sym_atoms` (admit.c:776) records every symbol that names a Map as a call. This check runs before the library gate.
+4. **False map-call cycle when a Map has the same name as an Enum element** (doc04 ClaimArbitration: 3 requests, both modes). `sym_atoms` (admit.c:776) records every symbol that names a Map as a call. This check runs before the library gate. **Fixed** (t-2026-11-20-mettadinc-map-name-cycle): the map-call graph (`map_section_calls`/`map_calls` in admit.c, replacing `sym_atoms` there) now counts a Map name as a call only at an application head (spec 5.4 "typed map application"), or as a bare symbol that is not an Enum element of the module; rows of Cases, Table and Choice bodies are data rows, not applications. The 3 ClaimArbitration requests now reach the library gate: Unsupported, GATED (PROPOSED library Families) in both modes. Gates: tests/dcalc/review_fixes (repros vs _control, real f <-> g cycle still rejected).
 5. **Seven library-free doc04 requests are not lowered.** AnchorMigration (memory_goals.metta:341, Subset carriers) and TaskResume (:390, Reach carrier) use no library. All 7 of their requests answer "outside the M0/M2 fragment" because the M0 lowering takes only Enum and Product carriers (model.c:175). The spec grammar allows both carrier forms, and doc04 s6.4 says AnchorMigration "uses only forms of the base registry".
 6. **Negative fixtures.** The 2 ls fixtures (live_memory.metta:102 and :354) return InvalidInput as intended. The 2 doc04 ItemGoals fixtures (memory_goals.metta:586) should return InvalidInput but come back Unsupported, because the NatArith gate hides them.
 7. **CLI.** Release mode ignores LIBS (main.c:129), so the cross-file imports in ls and wx fail with "Import of unknown module".
