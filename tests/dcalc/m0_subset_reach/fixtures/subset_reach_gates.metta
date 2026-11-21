@@ -1,6 +1,9 @@
 ;; Gates for t-2026-11-20-mettadinc-m0-subset-reach: Subset and Reach carriers in the Crisp M0 lowering.
 ;; Subset: spec 5.3 (txt l.1774) "(Subset C p) restricts a carrier by an admitted predicate"; grammar l.1718.
 ;; Reach:  spec 5.3 "Reachability scopes" (txt l.1810) "the forward closure of the initial set under the actions of M"; grammar l.1719.
+;; Limit (review 1, finding 3): chained carriers restrict maps one level only. A Subset of a Subset (or of a Reach
+;;  carrier) accepts a predicate/map declared on its direct parent carrier or that parent's type; a map declared on the
+;;  grandparent carrier gives InvalidInput "does not start at the state carrier". Never a wrong Checked; follow-up item.
 ;; Hand answers (run_m0_subset_reach.py checks them):
 ;;  S2  B = {x in {p,q,r} | keep x = True} = {p,q}; enc p->k1, q->k2 injective on B -> CheckNow Checked.
 ;;  S2C same machine on all of A: enc p = enc r = k1 but obs p = o1, obs r = o2 -> Refuted, witness (p r).
