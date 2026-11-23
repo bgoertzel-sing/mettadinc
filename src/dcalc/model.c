@@ -90,15 +90,24 @@ static void car_drop(DcCarrier *c) {
 /* ---- M2: forward-closed subsets (Carrier C (Of T) (Reach M (From e ...))) ----
  * The states of M reachable from the listed elements under every action of M,
  * in parent order.  Maps on the parent are used on C by restriction. */
+static const Sx *find_decl(const DcModule *m, const char *head, const char *name);
 static int admit_reach(DcModule *m, DcCarrier *c, const char *nm, const Sx *body, char *err, size_t es) {
-    if (strcmp(m->profile, "Graded")) return -2;
+    /* spec 5.3 "Reachability scopes": (Reach M (From s...)) denotes the forward closure of the
+     * initial set under the actions of M.  Enumerated: bounded by M's state carrier (<= 4096). */
+    if (strcmp(m->profile, "Graded") && strcmp(m->profile, "Crisp")) return -2;
     const Sx *fr = body->n == 3 ? body->items[2] : NULL;
     int mi = body->n == 3 && name_ok(body->items[1]) ? dc_find_machine(m, body->items[1]->text) : -1;
+    /* a machine skipped as outside the fragment makes its Reach scope outside it too */
+    if (mi < 0 && body->n == 3 && name_ok(body->items[1]) && dc_is_skipped(m, body->items[1]->text)) return -2;
     if (mi < 0 || !sx_head_is(fr, "From") || fr->n < 2) return fail(err, es, "Carrier %s: expected (Reach Machine (From e ...)) after the machine is declared", nm);
     const DcMachine *mc = &m->mach[mi]; const DcCarrier *P = &m->car[mc->states]; size_t n = P->n;
     int *in = calloc(n ? n : 1, sizeof(int)), *qu = malloc((n ? n : 1) * sizeof(int)); size_t h = 0, t = 0;
     for (size_t k = 1; k < fr->n; k++) {
         int i = dc_carrier_index(P, fr->items[k]);
+        if (i < 0 && name_ok(fr->items[k])) {   /* a start may name a declared (Const name Carrier value) */
+            const Sx *cd = find_decl(m, "Const", fr->items[k]->text);
+            if (cd && cd->n == 4) i = dc_carrier_index(P, cd->items[3]);
+        }
         if (i < 0) { char *x = sx_print(fr->items[k]); fail(err, es, "Carrier %s: Reach start %s is not a state of %s", nm, x, mc->name); free(x); free(in); free(qu); return -1; }
         if (!in[i]) { in[i] = 1; qu[t++] = i; }
     }
@@ -106,6 +115,55 @@ static int admit_reach(DcModule *m, DcCarrier *c, const char *nm, const Sx *body
     c->n = t; c->elems = calloc(t ? t : 1, sizeof(Sx *)); c->sub_idx = malloc((t ? t : 1) * sizeof(int));
     size_t k = 0; for (size_t i = 0; i < n; i++) if (in[i]) { c->elems[k] = sx_copy(P->elems[i]); c->sub_idx[k++] = (int)i; }
     c->reach_parent = mc->states + 1; free(in); free(qu);
+    m->ncar++; return 0;
+}
+/* ---- (Carrier C (Of T) (Subset P p)) ----
+ * spec 5.3 (l.1774): "(Subset C p) restricts a carrier by an admitted predicate"; grammar
+ * carrier-expr (Subset carrier predicate-map).  Enumerated: the elements x of P, in P's
+ * order, with p(x) = True.  p is a (Map p (From P|T) (To Bool) (Cases ...)) where T is P's
+ * (Of T) type; every element must match exactly one case and give True or False.  The size
+ * is bounded by P (Enum/Product <= 4096).  Maps on P are used on C by restriction. */
+static const Sx *find_decl(const DcModule *m, const char *head, const char *name) {
+    const Sx *src = m->source;
+    for (size_t i = 2; src && i < src->n; i++) {
+        const Sx *d = src->items[i];
+        if (sx_head_is(d, head) && d->n > 1 && sx_is_sym(d->items[1], name)) return d;
+    }
+    return NULL;
+}
+static int admit_subset(DcModule *m, DcCarrier *c, const char *nm, const Sx *body, char *err, size_t es) {
+    int pi = body->n == 3 && name_ok(body->items[1]) ? dc_find_carrier(m, body->items[1]->text) : -1;
+    if (pi < 0 && body->n == 3 && name_ok(body->items[1]) && dc_is_skipped(m, body->items[1]->text)) return -2;
+    if (pi < 0 || !name_ok(body->items[2])) return fail(err, es, "Carrier %s: expected (Subset Carrier predicate) after the carrier is declared", nm);
+    const char *pn = body->items[2]->text;
+    const Sx *pd = find_decl(m, "Map", pn), *pc = find_decl(m, "Carrier", m->car[pi].name);
+    if (!pd || pd->n != 5) return fail(err, es, "Carrier %s: Subset predicate %s is not a declared map", nm, pn);
+    const Sx *fr = pd->items[2], *to = pd->items[3], *cs = pd->items[4];
+    const Sx *ptype = pc && pc->n >= 3 && sx_head_is(pc->items[2], "Of") && pc->items[2]->n == 2 ? pc->items[2]->items[1] : NULL;
+    if (!sx_head_is(fr, "From") || fr->n != 2 || !(sx_is_sym(fr->items[1], m->car[pi].name) || (ptype && sx_equal(fr->items[1], ptype))))
+        return fail(err, es, "Carrier %s: Subset predicate %s does not start at carrier %s or its type", nm, pn, m->car[pi].name);
+    if (!sx_head_is(to, "To") || to->n != 2 || !sx_is_sym(to->items[1], "Bool")) return fail(err, es, "Carrier %s: Subset predicate %s must map to Bool", nm, pn);
+    if (!sx_head_is(cs, "Cases")) return fail(err, es, "[M0] Carrier %s: Subset predicate %s: only Cases predicates are in the M0 fragment", nm, pn);
+    const DcCarrier *P = &m->car[pi]; size_t n = P->n, t = 0;
+    int *in = calloc(n ? n : 1, sizeof(int));
+    for (size_t i = 0; i < n; i++) {
+        int hit = 0;
+        for (size_t j = 1; j < cs->n; j++) {
+            const Sx *row = cs->items[j]; Env e = {0}; int ok = 1;
+            if (row->kind != SX_LIST || row->n != 2) { free(in); return fail(err, es, "Carrier %s: Subset predicate %s: Cases row %zu is not a pair", nm, pn, j - 1); }
+            if (!match(row->items[0], P->elems[i], &e)) continue;
+            if (hit) { char *x = sx_print(P->elems[i]); fail(err, es, "Carrier %s: Subset predicate %s: input %s matches more than one case", nm, pn, x); free(x); free(in); return -1; }
+            hit = 1; Sx *v = eval_body(row->items[1], &e, &ok);
+            if (ok == 2 || ok == 3) { sx_free(v); free(in); return fail(err, es, "[M0] Carrier %s: Subset predicate %s uses an operator outside the M0 fragment", nm, pn); }
+            int b = ok == 1 && sx_is_sym(v, "True") ? 1 : ok == 1 && sx_is_sym(v, "False") ? 0 : -1; sx_free(v);
+            if (b < 0) { char *x = sx_print(P->elems[i]); fail(err, es, "Carrier %s: Subset predicate %s gives no Bool on %s", nm, pn, x); free(x); free(in); return -1; }
+            if (b) { in[i] = 1; t++; }
+        }
+        if (!hit) { char *x = sx_print(P->elems[i]); fail(err, es, "Carrier %s: Subset predicate %s has no case for %s", nm, pn, x); free(x); free(in); return -1; }
+    }
+    c->n = t; c->elems = calloc(t ? t : 1, sizeof(Sx *)); c->sub_idx = malloc((t ? t : 1) * sizeof(int));
+    size_t k = 0; for (size_t i = 0; i < n; i++) if (in[i]) { c->elems[k] = sx_copy(P->elems[i]); c->sub_idx[k++] = (int)i; }
+    c->reach_parent = pi + 1; free(in);
     m->ncar++; return 0;
 }
 /* A map on the parent of a Reach carrier, restricted to it (same name).  With
@@ -146,6 +204,7 @@ static int admit_carrier(DcModule *m, const Sx *d, char *err, size_t es) {
     DcCarrier *c = &m->car[m->ncar];
     memset(c, 0, sizeof *c); snprintf(c->name, sizeof c->name, "%s", nm);
     if (sx_head_is(body, "Reach")) return admit_reach(m, c, nm, body, err, es);
+    if (sx_head_is(body, "Subset")) return admit_subset(m, c, nm, body, err, es);
     if (sx_head_is(body, "Enum")) {
         c->n = body->n - 1; c->elems = calloc(c->n ? c->n : 1, sizeof(Sx *));
         for (size_t i = 0; i < c->n; i++) {
