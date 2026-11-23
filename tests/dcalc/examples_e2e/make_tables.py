@@ -65,7 +65,7 @@ def classify(rid, mode, st, reason, doc):
     m = re.search(r'Profile ([\\w ]+?) is outside the first release', reason)
     if m: return 'GATED: Profile %s outside the first release (release gate, stoch profile is post-M0)' % m.group(1)
     if re.search(r'outside the M[0-9] fragment', reason):
-        return 'GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Reach carriers are lowered'
+        return 'GAP: M0 lowering rejects (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_b..d, f); Bool Observe maps (a) and Subset/Reach carriers are lowered'
     return 'UNCLASSIFIED'
 def main():
     per = collections.defaultdict(list); D = load_doc()

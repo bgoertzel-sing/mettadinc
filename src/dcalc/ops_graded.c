@@ -39,7 +39,8 @@ static int g_repr(const DcModule *m, const Sx *q, const char *req, Sx **out) {
         if (m->car[m->mach[m->rep[ri].machine].states].n > 256) { *out = dc_unsupported(m, "%s: more than 256 states is outside the M2 table engine", req); return -1; }
         return ri;
     }
-    *out = dc_declared_unsupported(m, nm) ? dc_unsupported(m, "%s: Representation %s is outside the M2 fragment", req, nm)
+    *out = dc_declared_unsupported(m, nm) ? (dc_skip_why(m, nm)[0] ? dc_unsupported(m, "%s: Representation %s is outside the M2 fragment: %s", req, nm, dc_skip_why(m, nm))
+                                                                   : dc_unsupported(m, "%s: Representation %s is outside the M2 fragment", req, nm))
                                           : dc_invalid(m, "%s: field Representation names no declared representation (%s)", req, nm);
     return -1;
 }

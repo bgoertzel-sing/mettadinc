@@ -90,7 +90,8 @@ Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int slot) {
     if (q->n < 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "InduceExact: field Representation missing or not a name");
     const char *nm = q->items[1]->text; int ri = dc_find_repr(m, nm);
     if (ri < 0) {
-        if (dc_declared_unsupported(m, nm)) return dc_unsupported(m, "InduceExact: Representation %s is outside the M0 fragment", nm);
+        if (dc_declared_unsupported(m, nm)) return dc_skip_why(m, nm)[0] ? dc_unsupported(m, "InduceExact: Representation %s is outside the M0 fragment: %s", nm, dc_skip_why(m, nm))
+                                                                          : dc_unsupported(m, "InduceExact: Representation %s is outside the M0 fragment", nm);
         return dc_invalid(m, "InduceExact: field Representation names no declared representation (%s)", nm);
     }
     if (m->mach[m->rep[ri].machine].graded_obs || m->mach[m->rep[ri].machine].nmerge || (m->rep[ri].tol >= 0 && m->tol[m->rep[ri].tol].kind != DC_TOL_TRIVIAL))
