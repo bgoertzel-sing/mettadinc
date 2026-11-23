@@ -25,4 +25,7 @@ mutant d4_con_unclipped ops_contracts.c 's/\*d = dc_rat_min((DcRat){1, 1}, dc_ra
 # M5 (D5, t-2026-11-19-mettadinc-d5-behavioral-classpairs): defect restricted to pairs where one state is the
 # other's representative (the old max_x d(x, rep(x))); the D5 canary must catch it
 mutant d5_rep_only stoch.c 's/if (E->tab\[x\] == E->tab\[y\] && dc_rat_cmp(d\[x\]\[y\], def) > 0)/if ((E->tab[x] == y || E->tab[y] == x) \&\& dc_rat_cmp(d[x][y], def) > 0)/'
+# M6 (D3, t-2026-11-19-mettadinc-d3-signed-normalization): the row-sum normalization checked only for Kind Positive
+# again (the old behaviour); the D3 canary must catch it
+mutant d3_positive_only stoch.c 's/        if (dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1"/        if (!strcmp(L->kind, "Positive") \&\& dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1"/'
 [ $rc = 0 ] && echo "MUTATION CHECK PASS" || echo "MUTATION CHECK FAIL"; exit $rc

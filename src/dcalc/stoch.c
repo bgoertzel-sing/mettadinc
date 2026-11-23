@@ -494,7 +494,9 @@ static int st_check_lin(const StMod *s, const StLin *L, char *why, size_t ws, in
             if (inter) for (int j = 0; j < A->nobs; j++) if (!st_obs_same(s, A, x, B, z, j)) { snprintf(why, ws, "observation %s differs at (%s %s)", A->ol[j], CA->el[x], CB->el[z]); return 0; }
             sum = dc_rat_add(sum, L->a[x][z], ovf);
         }
-        if (!strcmp(L->kind, "Positive") && dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1", CA->el[x]); return 0; }
+        /* D3 fixed (t-2026-11-19-mettadinc-d3-signed-normalization): spec Def 3.8 / l.2465, the normalization
+         * L eta' = eta (eta = eta' = 1, stochastic machines) holds for EVERY Kind, Signed included. */
+        if (dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1", CA->el[x]); return 0; }
     }
     for (int a = 0; a < A->nact; a++) {
         int b = -1;

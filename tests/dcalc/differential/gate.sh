@@ -26,6 +26,14 @@ if [ "$(printf '%s\n' "$o" | grep -cE 'Status Checked.*Value \(BehavioralDefect 
 # t-2026-11-19 D2 fixed: regression gates with the spec answer (Def 3.8: S_y = Pi_y L - L Pi'_y is graded into rho).
 canary D2_obs_residual        $H/disagreements/D2_obs_residual_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho \(Rat 1 2\)\)\)'
 canary D2_linear_arrow_obs    $H/disagreements/D2_linear_arrow_obs_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho 1\)\)'
+# t-2026-11-19 D3 fixed: spec Def 3.8 (a linear arrow satisfies L eta' = eta) and l.2465 (CheckLinearArrow replays the
+# normalization) hold for every Kind. The Signed arrow L (row s0 sums to 2) is Refuted naming the row, Valid False;
+# the normalized Signed arrow E stays Checked with Grade (1, 0). The old answer (L Checked, Valid True) must not appear.
+o=$(timeout 60 "$DC" --beyond-release $H/disagreements/D3_signed_arrow_normalization.metta 2>&1)
+if printf '%s\n' "$o" | grep -qE 'Status Refuted.*Claim \(CheckLinearArrow L\).*LinearArrow Signed \(Valid False\).*Failure row s0 does not sum to 1' \
+   && printf '%s\n' "$o" | grep -qE 'Status Checked.*Claim \(CheckLinearArrow E\).*LinearArrow Signed \(Valid True\) \(Grade \(Lambda 1\) \(Rho 0\)\)' \
+   && ! printf '%s\n' "$o" | grep -qE 'Status Checked.*Claim \(CheckLinearArrow L\)'; then
+  echo "CANARY ok   D3_signed_arrow_normalization"; else echo "CANARY FAIL D3_signed_arrow_normalization"; fail=1; fi
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
 echo "GATE canaries passed"
 # 2. Pilots (small, fixed seeds). Every disagreement must be a listed D-id, else the gate fails.
