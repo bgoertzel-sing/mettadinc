@@ -30,7 +30,7 @@ static int ct_dist(const DcModule *m, int tol, const Sx *x, const Sx *y, DcRat *
     switch (m->tol[tol].kind) {
     case DC_TOL_TRIVIAL: return 0;
     case DC_TOL_DISCRETE: if (!sx_equal(x, y)) d->n = 1; return 0;
-    case DC_TOL_ONE_MINUS_ABS: if (dc_sx_rat(x, &a) || dc_sx_rat(y, &b)) return 1; *d = dc_rat_abs(dc_rat_sub(a, b, ovf)); return 0;
+    case DC_TOL_ONE_MINUS_ABS: if (dc_sx_rat(x, &a) || dc_sx_rat(y, &b)) return 1; *d = dc_rat_min((DcRat){1, 1}, dc_rat_abs(dc_rat_sub(a, b, ovf))); return 0;  /* spec l.686-694: min(1, |p - q|) */
     default: return 1;
     }
 }

@@ -562,7 +562,7 @@ DcRat dc_tol_dist(const DcModule *m, int tol, int i, int j, int *ovf) {
     case DC_TOL_ONE_MINUS_ABS: {
         DcRat a, b; const DcCarrier *c = &m->car[t->on];
         if (dc_sx_rat(c->elems[i], &a) || dc_sx_rat(c->elems[j], &b)) { *ovf = 1; return z; }
-        return dc_rat_abs(dc_rat_sub(a, b, ovf)); }
+        return dc_rat_min(one, dc_rat_abs(dc_rat_sub(a, b, ovf))); }  /* spec l.686-694: d = min(1, |p - q|) */
     case DC_TOL_SYM_TABLE: return dc_rat_sub(one, t->table[(size_t)i * m->car[t->on].n + j], ovf);
     }
     return z;
