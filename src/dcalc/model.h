@@ -102,7 +102,7 @@ typedef struct {
     char tmap[64][DC_MAX_NAME]; size_t ntmap;    /* M0 maps with a type form in From or To, tabulated per use carrier */
     char unsupported_first[2 * DC_MAX_NAME + 32];
     /* a reason naming the form for a skipped declaration (only set where a form-specific reason exists:
-     * Bool Observe maps, type-form maps and what uses them) */
+     * Bool Observe maps, type-form maps, Like machines and what uses them) */
     struct { char name[DC_MAX_NAME]; char why[256]; } skipwhy[32]; size_t nskipwhy;
 } DcModule;
 
@@ -127,7 +127,7 @@ DcRat dc_tol_dist(const DcModule *m, int tol, int i, int j, int *ovf);  /* dista
 /* 1 when name was declared by a declaration outside the M0 fragment. */
 int dc_is_skipped(const DcModule *m, const char *name);
 /* The reason a skipped declaration is outside the fragment, naming the form, or "" when none was recorded
- * (Bool Observe maps, type-form maps and the declarations that are skipped because they use one). */
+ * (Bool Observe maps, type-form maps, Like machines and the declarations that are skipped because they use one). */
 const char *dc_skip_why(const DcModule *m, const char *name);
 
 void dc_sha256_hex(const char *data, size_t n, char out[65]);
