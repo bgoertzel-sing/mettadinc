@@ -36,7 +36,7 @@ After the replay, 0 cases are left unexplained. run_contracts.py was dropped bec
 ## Defects (details and spec references in disagreements/README.md)
 
 - D1 MeasureBehavioral with discount: Unsupported "rational overflow (int64)" where the oracle gives an exact value.
-- D2 CheckLinearArrow: Refuted when the observation residual S_y is nonzero; Rho omits S_y.
+- D2 CheckLinearArrow: Refuted when the observation residual S_y is nonzero; Rho omits S_y. **Fixed** in t-2026-11-19-mettadinc-d2-linear-obs-residual: graded into rho, KNOWN-D2 tag removed, both minimal inputs are gate.sh canaries with the spec answer.
 - D3 CheckLinearArrow: a Signed arrow is accepted without the normalization L eta' = eta.
 - D4 CheckImplementation: OneMinusAbsoluteDifference distance not clipped at 1 (ct_dist in ops_contracts.c and the shared dc_tol_dist in model.c:562; a fix must cover both; spec l.686-694).
 - D5 MeasureBehavioral: defect = max d(x, rep(x)), not the maximum over all same-code pairs (spec Def 4.4(3)).
@@ -51,7 +51,7 @@ is fixed. Then it runs pilots at seed 7: run_diff and run_con x20 (each with cla
 20 after review 1), run_pos x20, run_stoch random and mixture x20 (each disagreement re-run and checked to be D1 by
 known_d1.py), and run_linear obs x50. Any disagreement without a D-id fails it. Result on dd0960a: GATE PASS.
 The gate is wired into tools/dcalc-run-all.sh as step `differential` (skip with DCALC_SKIP_DIFFERENTIAL=1).
-KNOWN-D2 in run_lin now also requires the CLI's stated reason "observation report differs"; reruns at seeds
+(Historical, before the D2 fix:) KNOWN-D2 in run_lin also required the CLI's stated reason "observation report differs"; reruns at seeds
 7, 11, 100 x200 still give 0 NEW.
 
 ## Mutation check

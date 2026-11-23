@@ -39,6 +39,11 @@ No C fixes in this task (order stop-line).
 
 ## D2 CheckLinearArrow: a nonzero entry between states with different reports is Refuted instead of graded
 
+**FIXED (t-2026-11-19-mettadinc-d2-linear-obs-residual).** st_check_lin no longer refutes on differing observations
+(that check now applies only to exact PositiveRealization candidates), and st_grade adds max_y ||S_y|| to rho.
+This file now answers Checked, (Lambda 1) (Rho 1/2), and is a regression gate in gate.sh (canary D2_obs_residual).
+The text below records the original disagreement.
+
 - File: `D2_obs_residual_refuted.metta`. Source and target are 2-state absorbing machines
   (s0/t0 report 0, s1/t1 report 1). Positive arrow L: s0 -> (t0 1/2, t1 1/2), s1 -> t1.
 - CLI: `(Status Refuted)`, `(Valid False)`, `(Grade (Lambda 1) (Rho 0))`,
@@ -54,6 +59,8 @@ No C fixes in this task (order stop-line).
   printed grade is not a valid grade for L.
 
 ## D2 arrow: CheckLinearArrow refutes an arrow whose source and target reports differ
+
+**FIXED (same task).** Now Checked, (Lambda 1) (Rho 1); regression gate D2_linear_arrow_obs in gate.sh.
 
 - File: `D2_linear_arrow_obs_refuted.metta`. Two one-state machines: A0 reports 0, B0 reports 1,
   and L = [[1]], declared Positive. Built by hand as the smallest case of the pattern; all 65
