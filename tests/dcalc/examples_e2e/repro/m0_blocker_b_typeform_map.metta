@@ -1,5 +1,6 @@
 ;; Remaining M0 blocker (b): a map declared with a type, (From (Tuple Symbol Symbol)), instead of a carrier name.
-;; B1 -> Unsupported (blocker); B1C control (From AB)/(To AB) -> Checked.
+;; B1 -> Unsupported at 8ae0fa7 (blocker); Checked since t-2026-11-23-mettadinc-m0-typeform-maps (tests/dcalc/m0_typeform_maps).
+;; B1C control (From AB)/(To AB) -> Checked.
 (DC.Module B1
   (Profile Crisp)
   (Carrier A (Of Symbol) (Enum p q))

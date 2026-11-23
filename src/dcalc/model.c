@@ -46,6 +46,7 @@ static int parse_int(const Sx *x, long *out) {
 }
 static int allow_rat;   /* M2: set by admit_map only for a Graded map into a value carrier */
 static int allow_xor;   /* M7: set by admit_map only on a (Use Neural) module in beyond-release: (Xor a b) on bits */
+static char tf_why[256]; /* the form-naming reason the declaration being admitted is outside M0 (type-form maps), "" if none */
 static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
     if (b->kind == SX_SYM && b->text[0] == '$') {
         for (int i = 0; i < e->n; i++) if (!strcmp(e->var[i], b->text)) return sx_copy(e->val[i]);
@@ -98,7 +99,7 @@ static int admit_reach(DcModule *m, DcCarrier *c, const char *nm, const Sx *body
     const Sx *fr = body->n == 3 ? body->items[2] : NULL;
     int mi = body->n == 3 && name_ok(body->items[1]) ? dc_find_machine(m, body->items[1]->text) : -1;
     /* a machine skipped as outside the fragment makes its Reach scope outside it too */
-    if (mi < 0 && body->n == 3 && name_ok(body->items[1]) && dc_is_skipped(m, body->items[1]->text)) return -2;
+    if (mi < 0 && body->n == 3 && name_ok(body->items[1]) && dc_is_skipped(m, body->items[1]->text)) { snprintf(tf_why, sizeof tf_why, "%s", dc_skip_why(m, body->items[1]->text)); return -2; }
     if (mi < 0 || !sx_head_is(fr, "From") || fr->n < 2) return fail(err, es, "Carrier %s: expected (Reach Machine (From e ...)) after the machine is declared", nm);
     const DcMachine *mc = &m->mach[mi]; const DcCarrier *P = &m->car[mc->states]; size_t n = P->n;
     int *in = calloc(n ? n : 1, sizeof(int)), *qu = malloc((n ? n : 1) * sizeof(int)); size_t h = 0, t = 0;
@@ -338,12 +339,235 @@ static Sx *eval_set_body(const Sx *b, const char *var, const Sx *val, int *ok) {
     *ok = 2; return sx_sym("?");
 }
 
+/* ---- M0: maps declared with a type form in From or To ----
+ * Spec 5.1 grammar: a declaration is (head name field* [body]) with heads and fields from the
+ * registry, and the registry gives Map's From and To the field type "expr" (a carrier name or a
+ * type expression), so (Map f (From (Tuple Symbol Symbol)) (To (Tuple Symbol Symbol)) (Cases ...))
+ * is well formed.  Spec 5.2: every carrier states its element type, (Carrier C (Of T) ...).
+ * Spec 5.3 (admission obligations): on an enumerated carrier, admission checks coverage of the
+ * cases, absence of overlaps and that outputs stay in the carrier, by enumeration.
+ * Lowering (Crisp profile only):
+ *  - a map whose From is a type T is a function on values of T; it is tabulated on the carrier
+ *    where it is used (a machine's states for Observe/Action/Encode, the Source machine's states
+ *    for an AbstractionMap), which must declare (Of T); coverage and overlaps are checked there;
+ *  - a map whose From is a carrier P is tabulated on P at declaration, and on a Subset or Reach
+ *    carrier of P where used, as for any map on P;
+ *  - a To type U: every value must have type U.  Where the value must be a state (Action,
+ *    AbstractionMap) the state carrier must declare (Of U) and the value must be one of its
+ *    elements, otherwise InvalidInput (the update leaves the carrier).  Elsewhere (Observe,
+ *    Encode) the values are collected in an image carrier named by the printed type U, shared by
+ *    all maps into U; values are compared by equality, as in Ben's reference evaluator.
+ * Supported type forms: (Tuple T ...) with T among Symbol, Bool, Nat, Int or a nested Tuple.
+ * Other type forms are Unsupported, naming the form; a malformed one is InvalidInput. */
+static int is_tmap(const DcModule *m, const char *s) { for (size_t i = 0; i < m->ntmap; i++) if (!strcmp(m->tmap[i], s)) return 1; return 0; }
+/* 1: a type form inside the M0 fragment; 0: malformed; -1: a type outside the M0 fragment */
+static int type_form_ok(const Sx *t) {
+    if (t->kind == SX_SYM)
+        return !strcmp(t->text, "Symbol") || !strcmp(t->text, "Bool") || !strcmp(t->text, "Nat") || !strcmp(t->text, "Int") ? 1 : -1;
+    if (t->kind != SX_LIST || t->n == 0 || t->items[0]->kind != SX_SYM || t->items[0]->text[0] == '$') return 0;
+    if (!sx_head_is(t, "Tuple")) return -1;
+    if (t->n < 2) return 0;
+    int r = 1;
+    for (size_t i = 1; i < t->n; i++) { int k = type_form_ok(t->items[i]); if (k == 0) return 0; if (k < 0) r = -1; }
+    return r;
+}
+static int int_lit(const Sx *v, int nat) {
+    if (!v || v->kind != SX_SYM) return 0;
+    const char *p = v->text; if (*p == '-') { if (nat) return 0; p++; }
+    if (!*p) return 0;
+    for (; *p; p++) if (*p < '0' || *p > '9') return 0;
+    return 1;
+}
+/* v has (a supported) type t */
+static int has_type(const Sx *v, const Sx *t) {
+    if (t->kind == SX_SYM) {
+        if (!strcmp(t->text, "Bool")) return sx_is_sym(v, "True") || sx_is_sym(v, "False");
+        if (!strcmp(t->text, "Nat")) return int_lit(v, 1);
+        if (!strcmp(t->text, "Int")) return int_lit(v, 0);
+        if (!strcmp(t->text, "Symbol")) return v->kind == SX_SYM && v->text[0] != '$' && strcmp(v->text, "?");
+        return 0;
+    }
+    if (!sx_head_is(v, "Tuple") || v->n != t->n) return 0;
+    for (size_t i = 1; i < t->n; i++) if (!has_type(v->items[i], t->items[i])) return 0;
+    return 1;
+}
+/* a Cases pattern can match some value of type t */
+static int pattern_fits(const Sx *pat, const Sx *t) {
+    if (pat->kind == SX_SYM && pat->text[0] == '$') return 1;
+    if (pat->kind != SX_LIST) return has_type(pat, t);
+    if (t->kind != SX_LIST || !sx_head_is(pat, "Tuple") || pat->n != t->n) return 0;
+    for (size_t i = 1; i < t->n; i++) if (!pattern_fits(pat->items[i], t->items[i])) return 0;
+    return 1;
+}
+/* operators of a Cases body that eval_body evaluates (anything else is outside the M0 fragment) */
+static int body_in_fragment(const DcModule *m, const Sx *b) {
+    if (b->kind != SX_LIST) return 1;
+    if (b->n && b->items[0]->kind == SX_SYM) {
+        const char *h = b->items[0]->text;
+        if (!(!strcmp(h, "Tuple") || ((!strcmp(h, "Add") || !strcmp(h, "Mul")) && b->n == 3) || (m->neural && !strcmp(h, "Xor") && b->n == 3))) return 0;
+        for (size_t i = 1; i < b->n; i++) if (!body_in_fragment(m, b->items[i])) return 0;
+        return 1;
+    }
+    for (size_t i = 0; i < b->n; i++) if (!body_in_fragment(m, b->items[i])) return 0;
+    return 1;
+}
+/* the declared element type of carrier c: (Of T) of its declaration, or an image carrier's type */
+static const Sx *carrier_type(const DcModule *m, int c) {
+    if (m->car[c].type) return m->car[c].type;
+    const Sx *d = find_decl(m, "Carrier", m->car[c].name);
+    return d && d->n >= 3 && sx_head_is(d->items[2], "Of") && d->items[2]->n == 2 ? d->items[2]->items[1] : NULL;
+}
+static int image_carrier(DcModule *m, const Sx *t, char *err, size_t es) {
+    char *nm = sx_print(t);
+    if (!nm) return fail(err, es, "Map: out of memory");
+    for (size_t i = 0; i < m->ncar; i++) if (m->car[i].image && !strcmp(m->car[i].name, nm)) { free(nm); return (int)i; }
+    if (strlen(nm) >= DC_MAX_NAME || m->ncar >= sizeof m->car / sizeof m->car[0]) {
+        fail(err, es, "[M0] Map: To type %s needs a value carrier the table engine cannot hold", nm); snprintf(tf_why, sizeof tf_why, "%s", err + 5); free(nm); return -1;
+    }
+    DcCarrier *c = &m->car[m->ncar]; memset(c, 0, sizeof *c);
+    snprintf(c->name, sizeof c->name, "%s", nm); free(nm);
+    c->image = 1; c->type = sx_copy(t);
+    return (int)m->ncar++;
+}
+static int image_add(DcCarrier *c, const Sx *v) {
+    int at = dc_carrier_index(c, v);
+    if (at >= 0) return at;
+    if (c->n >= 4096) return -1;
+    Sx **e = realloc(c->elems, (c->n + 1) * sizeof *e); if (!e) return -1;
+    c->elems = e; c->elems[c->n] = sx_copy(v); return (int)c->n++;
+}
+/* Tabulates the type-form map nm on carrier dom.  tgt >= 0: every value must be an element of
+ * carrier tgt (an Action or an AbstractionMap); tgt < 0: values go to the declared To carrier or
+ * to the image carrier of the To type.  An identical earlier instance is reused.
+ * Returns the map index, or -1 with err set. */
+static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err, size_t es) {
+    const Sx *d = find_decl(m, "Map", nm);
+    if (!d || d->n != 5) return fail(err, es, "Map %s: declaration not found", nm);
+    const Sx *fr = d->items[2]->items[1], *to = d->items[3]->items[1], *body = d->items[4];
+    const DcCarrier *D = &m->car[dom];
+    if (fr->kind == SX_SYM) {
+        int p = dc_find_carrier(m, fr->text);
+        if (!(dom == p || (D->reach_parent && D->reach_parent - 1 == p)))
+            return fail(err, es, "Map %s: From carrier %s does not contain carrier %s, where the map is used", nm, fr->text, D->name);
+    } else {
+        const Sx *dt = carrier_type(m, dom);
+        if (!dt || !sx_equal(dt, fr)) {
+            char *a = sx_print(fr), *b = dt ? sx_print(dt) : NULL;
+            fail(err, es, "Map %s: From type %s is not the element type of carrier %s, where the map is used, which is %s", nm, a, D->name, b ? b : "undeclared");
+            free(a); free(b); return -1;
+        }
+    }
+    const Sx *totype = to->kind == SX_LIST ? to : NULL; int tc;
+    if (tgt >= 0) {
+        if (totype) {
+            const Sx *tt = carrier_type(m, tgt);
+            if (!tt || !sx_equal(tt, totype)) {
+                char *a = sx_print(totype), *b = tt ? sx_print(tt) : NULL;
+                fail(err, es, "Map %s: To type %s is not the element type of carrier %s, where its values must lie, which is %s", nm, a, m->car[tgt].name, b ? b : "undeclared");
+                free(a); free(b); return -1;
+            }
+        } else {
+            int q = dc_find_carrier(m, to->text);
+            if (!(q == tgt || (m->car[tgt].reach_parent && m->car[tgt].reach_parent - 1 == q)))
+                return fail(err, es, "Map %s: To carrier %s does not contain carrier %s, where its values must lie", nm, to->text, m->car[tgt].name);
+        }
+        tc = tgt;
+    } else if (totype) { if ((tc = image_carrier(m, totype, err, es)) < 0) return -1; }
+    else tc = dc_find_carrier(m, to->text);
+    if (tc < 0) return fail(err, es, "Map %s: field To names no declared carrier", nm);
+    for (size_t i = 0; i < m->nmap; i++) if (!strcmp(m->map[i].name, nm) && m->map[i].from == dom && m->map[i].to == tc) return (int)i;
+    if (m->nmap >= sizeof m->map / sizeof m->map[0]) return fail(err, es, "Map %s: too many maps", nm);
+    DcCarrier *T = &m->car[tc];
+    int *tab = malloc((D->n ? D->n : 1) * sizeof(int)), cases = sx_head_is(body, "Cases");
+    for (size_t i = 0; i < D->n; i++) {
+        size_t hit = 0; const Sx *out = NULL; Env e = {0};
+        for (size_t j = 1; j < body->n; j++) {
+            const Sx *row = body->items[j]; Env e1 = {0};
+            if (!(cases ? match(row->items[0], D->elems[i], &e1) : sx_equal(row->items[0], D->elems[i]))) continue;
+            if (hit) {
+                char *xs = sx_print(D->elems[i]);
+                fail(err, es, cases ? "Map %s: input %s matches Cases rows %zu and %zu; overlapping cases are rejected" : "Map %s: input %s has Table rows %zu and %zu", nm, xs, hit - 1, j - 1);
+                free(xs); free(tab); return -1;
+            }
+            hit = j; out = row->items[1]; e = e1;
+        }
+        if (!hit) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: not total on carrier %s; no value for %s", nm, D->name, xs); free(xs); free(tab); return -1; }
+        int ok = 1; allow_xor = m->neural; Sx *v = cases ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0;
+        if (ok == 2) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, hit - 1); snprintf(tf_why, sizeof tf_why, "%s", err + 5); return -1; }
+        if (ok == 3) { sx_free(v); free(tab); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, hit - 1); }
+        if (ok != 1 || (totype && !has_type(v, totype))) {
+            char *xs = sx_print(D->elems[i]), *vs = sx_print(v), *ts = totype ? sx_print(totype) : NULL;
+            if (ok != 1) fail(err, es, "Map %s: row %zu gives no value on %s", nm, hit - 1, xs);
+            else fail(err, es, "Map %s: row %zu gives %s on %s, which is not of the To type %s", nm, hit - 1, vs, xs, ts);
+            free(xs); free(vs); free(ts); sx_free(v); free(tab); return -1;
+        }
+        int b = T->image ? image_add(T, v) : dc_carrier_index(T, v);
+        if (b < 0) {
+            char *xs = sx_print(D->elems[i]), *vs = sx_print(v);
+            if (T->image) { fail(err, es, "[M0] Map %s: more than 4096 values of type %s", nm, T->name); snprintf(tf_why, sizeof tf_why, "%s", err + 5); }
+            else fail(err, es, "Map %s: sends %s to %s, which leaves carrier %s", nm, xs, vs, T->name);
+            free(xs); free(vs); sx_free(v); free(tab); return -1;
+        }
+        sx_free(v); tab[i] = b;
+    }
+    DcMap *mp = &m->map[m->nmap]; memset(mp, 0, sizeof *mp);
+    snprintf(mp->name, sizeof mp->name, "%s", nm); mp->from = dom; mp->to = tc; mp->table = tab;
+    return (int)m->nmap++;
+}
+/* Admission of a Crisp map with a type form in From or To (the other side a declared carrier
+ * or a type form): shape checks here, tabulation where it is used (typed_map_on). */
+static int admit_typed_map(DcModule *m, const Sx *d, const char *nm, char *err, size_t es) {
+    const Sx *fr = d->items[2]->items[1], *to = d->items[3]->items[1], *body = d->items[4];
+    const Sx *side[2] = { fr, to }; const char *fld[2] = { "From", "To" };
+    for (int k = 0; k < 2; k++) {
+        if (side[k]->kind != SX_LIST) continue;
+        int t = type_form_ok(side[k]); char *s = sx_print(side[k]);
+        if (t == 0) fail(err, es, "Map %s: field %s: %s is not a well-formed type", nm, fld[k], s);
+        else if (t < 0) { fail(err, es, "[M0] Map %s: field %s: type %s is outside the M0 fragment, which admits Tuple types over Symbol, Bool, Nat and Int", nm, fld[k], s); snprintf(tf_why, sizeof tf_why, "%s", err + 5); }
+        free(s);
+        if (t <= 0) return -1;
+    }
+    int cases = sx_head_is(body, "Cases");
+    if (!cases && !sx_head_is(body, "Table")) {
+        fail(err, es, "[M0] Map %s: a %s body on a type-form map is outside the M0 fragment, which admits Table and Cases", nm, body->kind == SX_LIST && body->n && body->items[0]->kind == SX_SYM ? body->items[0]->text : "non-form");
+        snprintf(tf_why, sizeof tf_why, "%s", err + 5); return -1;
+    }
+    for (size_t j = 1; j < body->n; j++) {
+        const Sx *row = body->items[j];
+        if (row->kind != SX_LIST || row->n != 2) return fail(err, es, "Map %s: %s row %zu is not a pair", nm, cases ? "Cases" : "Table", j - 1);
+        if (cases && !body_in_fragment(m, row->items[1])) {
+            fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1);
+            snprintf(tf_why, sizeof tf_why, "Map %s: Cases row %zu of a type-form map uses an operator outside the M0 fragment, which admits Tuple, Add and Mul", nm, j - 1); return -1;
+        }
+        if (fr->kind == SX_LIST && !(cases ? pattern_fits(row->items[0], fr) : has_type(row->items[0], fr))) {
+            char *ps = sx_print(row->items[0]), *ts = sx_print(fr);
+            fail(err, es, "Map %s: %s row %zu: %s cannot be a value of the From type %s", nm, cases ? "Cases" : "Table", j - 1, ps, ts);
+            free(ps); free(ts); return -1;
+        }
+        if (!cases && to->kind == SX_LIST && !has_type(row->items[1], to)) {
+            char *vs = sx_print(row->items[1]), *ts = sx_print(to);
+            fail(err, es, "Map %s: Table row %zu: %s is not of the To type %s", nm, j - 1, vs, ts);
+            free(vs); free(ts); return -1;
+        }
+    }
+    if (m->ntmap >= sizeof m->tmap / sizeof m->tmap[0]) return fail(err, es, "Map %s: too many maps", nm);
+    if (fr->kind == SX_SYM && typed_map_on(m, nm, dc_find_carrier(m, fr->text), -1, err, es) < 0) return -1;
+    snprintf(m->tmap[m->ntmap++], DC_MAX_NAME, "%s", nm);
+    return 0;
+}
+
 static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n != 5 || !name_ok(d->items[1])) return fail(err, es, "[M0] Map: expected (Map name (From C) (To C) (Table|Cases ...))");
     const char *nm = d->items[1]->text;
-    if (dc_find_map(m, nm) >= 0) return fail(err, es, "Map %s: duplicate name", nm);
+    if (dc_find_map(m, nm) >= 0 || is_tmap(m, nm)) return fail(err, es, "Map %s: duplicate name", nm);
     if (m->nmap >= 64) return fail(err, es, "Map %s: too many maps", nm);
     const Sx *fr = d->items[2], *to = d->items[3], *body = d->items[4];
+    /* M0: a type form in From or To, the other side a type form or a declared carrier (Crisp) */
+    if (!strcmp(m->profile, "Crisp") && sx_head_is(fr, "From") && fr->n == 2 && sx_head_is(to, "To") && to->n == 2
+        && (fr->items[1]->kind == SX_LIST || to->items[1]->kind == SX_LIST)
+        && (fr->items[1]->kind == SX_LIST || (name_ok(fr->items[1]) && dc_find_carrier(m, fr->items[1]->text) >= 0))
+        && (to->items[1]->kind == SX_LIST || (name_ok(to->items[1]) && dc_find_carrier(m, to->items[1]->text) >= 0)))
+        return admit_typed_map(m, d, nm, err, es);
     int fprod = -1;
     if (sx_head_is(fr, "From") && fr->n == 2 && sx_head_is(fr->items[1], "Product") && !strcmp(m->profile, "Graded")) {
         fprod = product_carrier(m, fr->items[1], err, es); if (fprod < 0) return -1; }
@@ -447,9 +671,14 @@ static int admit_ports(DcModule *m, DcMachine *mc, const Sx *d, int is_obs, char
     if (d->n == 3 && name_ok(d->items[1]) && d->items[2]->kind == SX_LIST) return -2;
     if ((ptol < 0 && d->n != 3) || !name_ok(d->items[1]) || !name_ok(d->items[2])) return fail(err, es, "Machine %s: field %s expects (%s label map)", mc->name, field, field);
     if (*np >= 16) return fail(err, es, "Machine %s: field %s: too many", mc->name, field);
-    int mp = dc_find_map(m, d->items[2]->text);
-    if (mp < 0) return fail(err, es, "Machine %s: field %s names no declared map (%s)", mc->name, field, d->items[2]->text);
-    if ((mp = restrict_map(m, mp, mc->states, !is_obs, err, es)) < 0) return -1;
+    int mp;
+    if (is_tmap(m, d->items[2]->text)) {   /* M0 type-form map: tabulated on the states; an Action's values must be states */
+        if ((mp = typed_map_on(m, d->items[2]->text, mc->states, is_obs ? -1 : mc->states, err, es)) < 0) return -1;
+    } else {
+        mp = dc_find_map(m, d->items[2]->text);
+        if (mp < 0) return fail(err, es, "Machine %s: field %s names no declared map (%s)", mc->name, field, d->items[2]->text);
+        if ((mp = restrict_map(m, mp, mc->states, !is_obs, err, es)) < 0) return -1;
+    }
     if (m->map[mp].from != mc->states) return fail(err, es, "Machine %s: field %s map %s does not start at the state carrier", mc->name, field, d->items[2]->text);
     if (!is_obs && m->map[mp].to != mc->states) return fail(err, es, "Machine %s: field Action map %s does not end at the state carrier", mc->name, d->items[2]->text);
     for (size_t i = 0; i < *np; i++) if (!strcmp(ports[i].label, d->items[1]->text)) return fail(err, es, "Machine %s: field %s label %s repeated", mc->name, field, d->items[1]->text);
@@ -516,12 +745,16 @@ static int admit_repr(DcModule *m, const Sx *d, char *err, size_t es) {
     DcRepr *r = &m->rep[m->nrep]; memset(r, 0, sizeof *r); snprintf(r->name, sizeof r->name, "%s", nm);
     const Sx *of = sx_find(d, "Of", 2), *en = sx_find(d, "Encode", 2), *co = sx_find(d, "Codes", 2);
     if (of && of->n == 2 && name_ok(of->items[1]) && dc_find_machine(m, of->items[1]->text) < 0
-        && declared_in_source(m, "Machine", of->items[1]->text)) return -2;   /* machine outside M0 */
+        && declared_in_source(m, "Machine", of->items[1]->text)) { snprintf(tf_why, sizeof tf_why, "%s", dc_skip_why(m, of->items[1]->text)); return -2; }   /* machine outside M0 */
     if (!of || of->n != 2 || !name_ok(of->items[1]) || (r->machine = dc_find_machine(m, of->items[1]->text)) < 0)
         return fail(err, es, "Representation %s: field Of names no declared machine (%s)", nm, of && of->n == 2 && of->items[1]->kind == SX_SYM ? of->items[1]->text : "?");
-    if (!en || en->n != 2 || !name_ok(en->items[1]) || (r->encode = dc_find_map(m, en->items[1]->text)) < 0)
-        return fail(err, es, "Representation %s: field Encode names no declared map (%s)", nm, en && en->n == 2 && en->items[1]->kind == SX_SYM ? en->items[1]->text : "?");
-    if ((r->encode = restrict_map(m, r->encode, m->mach[r->machine].states, 0, err, es)) < 0) return -1;
+    if (en && en->n == 2 && name_ok(en->items[1]) && is_tmap(m, en->items[1]->text)) {   /* M0 type-form map */
+        if ((r->encode = typed_map_on(m, en->items[1]->text, m->mach[r->machine].states, -1, err, es)) < 0) return -1;
+    } else {
+        if (!en || en->n != 2 || !name_ok(en->items[1]) || (r->encode = dc_find_map(m, en->items[1]->text)) < 0)
+            return fail(err, es, "Representation %s: field Encode names no declared map (%s)", nm, en && en->n == 2 && en->items[1]->kind == SX_SYM ? en->items[1]->text : "?");
+        if ((r->encode = restrict_map(m, r->encode, m->mach[r->machine].states, 0, err, es)) < 0) return -1;
+    }
     if (m->map[r->encode].from != m->mach[r->machine].states)
         return fail(err, es, "Representation %s: field Encode map does not start at the states of %s", nm, m->mach[r->machine].name);
     r->codes = DC_CODES_EXACT; r->tol = -1;
@@ -549,6 +782,14 @@ static int admit_abs(DcModule *m, const Sx *d, char *err, size_t es) {
     if (!so || so->n != 2) return fail(err, es, "AbstractionMap %s: field Source missing", nm);
     if (!ta || ta->n != 2 || !name_ok(ta->items[1]) || (a->target = dc_find_machine(m, ta->items[1]->text)) < 0)
         return fail(err, es, "AbstractionMap %s: field Target names no declared machine (%s)", nm, ta && ta->n == 2 && ta->items[1]->kind == SX_SYM ? ta->items[1]->text : "?");
+    if (mp && mp->n == 2 && name_ok(mp->items[1]) && is_tmap(m, mp->items[1]->text)) {
+        /* M0 type-form map: tabulated on the Source machine's states into the Target's states */
+        int si = so->items[1]->kind == SX_SYM ? dc_find_machine(m, so->items[1]->text) : -1;
+        if (si < 0 && so->items[1]->kind == SX_SYM && dc_is_skipped(m, so->items[1]->text)) { snprintf(tf_why, sizeof tf_why, "%s", dc_skip_why(m, so->items[1]->text)); return -2; }
+        if (si < 0 && so->items[1]->kind != SX_SYM) { fail(err, es, "[M0] AbstractionMap %s: a type-form Map with a derived Source is outside the M0 fragment", nm); snprintf(tf_why, sizeof tf_why, "%s", err + 5); return -1; }
+        if (si < 0) return fail(err, es, "AbstractionMap %s: field Source names no declared machine (%s)", nm, so->items[1]->text);
+        if ((a->map = typed_map_on(m, mp->items[1]->text, m->mach[si].states, m->mach[a->target].states, err, es)) < 0) return -1;
+    } else
     if (!mp || mp->n != 2 || !name_ok(mp->items[1]) || (a->map = dc_find_map(m, mp->items[1]->text)) < 0)
         return fail(err, es, "AbstractionMap %s: field Map names no declared map (%s)", nm, mp && mp->n == 2 && mp->items[1]->kind == SX_SYM ? mp->items[1]->text : "?");
     if (m->map[a->map].to != m->mach[a->target].states)
@@ -676,6 +917,17 @@ int dc_is_skipped(const DcModule *m, const char *name) {
     for (size_t i = 0; i < m->nskip; i++) if (!strcmp(m->skipped[i], name)) return 1;
     return 0;
 }
+const char *dc_skip_why(const DcModule *m, const char *name) {
+    for (size_t i = 0; i < m->nskipwhy; i++) if (!strcmp(m->skipwhy[i].name, name)) return m->skipwhy[i].why;
+    return "";
+}
+/* The recorded reason of the skipped declaration an admission error references ("... (Name)"), or "". */
+static const char *referenced_why(const DcModule *m, const char *err) {
+    const char *o = strrchr(err, '('), *c = o ? strchr(o, ')') : NULL;
+    if (!o || !c || c - o - 1 >= DC_MAX_NAME) return "";
+    char nm[DC_MAX_NAME]; memcpy(nm, o + 1, (size_t)(c - o - 1)); nm[c - o - 1] = 0;
+    return dc_skip_why(m, nm);
+}
 /* An admission error that only references a skipped declaration ("... (Name)")
  * is a fragment limit too. */
 static int refers_to_skipped(const DcModule *m, const char *err) {
@@ -703,7 +955,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
     m->bitvectors = uses_lib(m, "BitVectors") && dc_eval_beyond_release();   /* M7 opt-in */
     m->finitesets = uses_lib(m, "FiniteSets") && dc_eval_beyond_release();   /* M7 opt-in */
     for (size_t i = 2; i < form->n; i++) {
-        const Sx *d = form->items[i]; int rc = 0;
+        const Sx *d = form->items[i]; int rc = 0; tf_why[0] = 0;
         if (d->kind != SX_LIST || d->n == 0 || d->items[0]->kind != SX_SYM)
             return fail(err, es, "DC.Module %s: declaration %zu is not a form", m->name, i - 2);
         const char *h = d->items[0]->text;
@@ -753,7 +1005,16 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
         else if (!strcmp(h, "Tolerance")) rc = admit_tol(m, d, err, es);
         else if (!strcmp(h, "Measure")) rc = admit_meas(m, d, err, es);
         else rc = -2;
-        if (rc == -1 && (strstr(err, "[M0]") || refers_to_skipped(m, err))) rc = -2;
+        if (rc == -1 && (strstr(err, "[M0]") || refers_to_skipped(m, err))) {
+            rc = -2;
+            if (!tf_why[0] && !strstr(err, "[M0]")) snprintf(tf_why, sizeof tf_why, "%s", referenced_why(m, err));
+        }
+        else if (rc == -1) tf_why[0] = 0;
+        /* a form-naming reason (type-form maps and what uses them) is kept for the requests */
+        if (rc == -2 && tf_why[0] && d->n > 1 && d->items[1]->kind == SX_SYM && m->nskipwhy < sizeof m->skipwhy / sizeof m->skipwhy[0]) {
+            snprintf(m->skipwhy[m->nskipwhy].name, DC_MAX_NAME, "%.63s", d->items[1]->text);
+            snprintf(m->skipwhy[m->nskipwhy].why, sizeof m->skipwhy[0].why, "%s", tf_why); m->nskipwhy++;
+        }
         if (rc == -2 && !strcmp(h, "Import")) {
             /* imported names come from another module: outside M0 */
             const Sx *only = sx_find(d, "Only", 2);
@@ -774,7 +1035,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
 }
 
 void dc_module_free(DcModule *m) {
-    for (size_t i = 0; i < m->ncar; i++) { for (size_t j = 0; j < m->car[i].n; j++) sx_free(m->car[i].elems[j]); free(m->car[i].elems); free(m->car[i].sub_idx); }
+    for (size_t i = 0; i < m->ncar; i++) { for (size_t j = 0; j < m->car[i].n; j++) sx_free(m->car[i].elems[j]); free(m->car[i].elems); free(m->car[i].sub_idx); sx_free(m->car[i].type); }
     for (size_t i = 0; i < m->nmap; i++) free(m->map[i].table);
     for (size_t i = 0; i < m->ntol; i++) free(m->tol[i].table);
     for (size_t i = 0; i < m->nabs; i++) sx_free(m->abs[i].source);

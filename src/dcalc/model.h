@@ -16,6 +16,8 @@ typedef struct {
     int value;           /* M2: synthesized carrier of a builtin value type (Rational01); grows during admission */
     int reach_parent;    /* M2: (Reach M (From e ...)): parent carrier + 1, 0 = none */
     int *sub_idx;        /* M2: sub_idx[i] = index of element i in the parent carrier */
+    int image;           /* M0 type-form To: the values a (To type) map takes, named by the printed type; grows during admission */
+    Sx *type;            /* image carriers: their element type (owned); NULL otherwise */
 } DcCarrier;
 
 typedef struct {
@@ -95,6 +97,8 @@ typedef struct {
     char basedir[512];       /* M4-estimates: directory Stream sources resolve against (set by dc_eval_request) */
     char profile_unsupported[2 * DC_MAX_NAME + 64];  /* non-empty: the whole module is outside M0 (reason) */
     char skipped[64][DC_MAX_NAME]; size_t nskip;  /* their names */
+    char tmap[64][DC_MAX_NAME]; size_t ntmap;    /* M0 maps with a type form in From or To, tabulated per use carrier */
+    struct { char name[DC_MAX_NAME]; char why[256]; } skipwhy[32]; size_t nskipwhy;   /* reason a skipped declaration is outside M0, when it names a form (type-form maps) */
     char unsupported_first[2 * DC_MAX_NAME + 32];
 } DcModule;
 
@@ -118,6 +122,9 @@ int dc_sx_rat(const Sx *v, DcRat *out);                 /* (Rat p q) or integer;
 DcRat dc_tol_dist(const DcModule *m, int tol, int i, int j, int *ovf);  /* distance in [0,1] */
 /* 1 when name was declared by a declaration outside the M0 fragment. */
 int dc_is_skipped(const DcModule *m, const char *name);
+/* The reason a skipped declaration is outside the fragment, naming the form, or "" when none was recorded.
+ * Recorded only for type-form maps and the declarations that are skipped because they use one. */
+const char *dc_skip_why(const DcModule *m, const char *name);
 
 void dc_sha256_hex(const char *data, size_t n, char out[65]);
 #endif

@@ -38,7 +38,11 @@ static int need_repr(const DcModule *m, const Sx *q, const char *req, Sx **out) 
             *out = dc_unsupported(m, "%s: Representation %s needs the graded engine", req, nm); return -1; }
         return ri;
     }
-    if (dc_declared_unsupported(m, nm)) *out = dc_unsupported(m, "%s: Representation %s is outside the M0 fragment", req, nm);
+    if (dc_declared_unsupported(m, nm)) {
+        const char *why = dc_skip_why(m, nm);   /* a form-naming reason (type-form maps), when one was recorded */
+        *out = why[0] ? dc_unsupported(m, "%s: Representation %s is outside the M0 fragment: %s", req, nm, why)
+                      : dc_unsupported(m, "%s: Representation %s is outside the M0 fragment", req, nm);
+    }
     else *out = dc_invalid(m, "%s: field Representation names no declared representation (%s)", req, nm);
     return -1;
 }
