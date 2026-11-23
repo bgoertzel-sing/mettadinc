@@ -1,0 +1,12 @@
+# every tracked .metta outside cetta/ (227 files), each alone from its directory, release and --beyond-release
+# base binary: 8ae0fa7 build (sha256 5e3cd4f3bce140a7); new binary: 544bc76 build (sha256 b3ec2a5262c6ccf7); same tree (544bc76)
+# diff -rq sweep-old sweep-new:
+Files sweep-old/tests_dcalc_examples_e2e_repro_m0_blocker_b_typeform_map.metta.beyond.out and sweep-new/tests_dcalc_examples_e2e_repro_m0_blocker_b_typeform_map.metta.beyond.out differ
+Files sweep-old/tests_dcalc_examples_e2e_repro_m0_blocker_b_typeform_map.metta.release.out and sweep-new/tests_dcalc_examples_e2e_repro_m0_blocker_b_typeform_map.metta.release.out differ
+Files sweep-old/tests_dcalc_m0_typeform_maps_fixtures_typeform_gates.metta.beyond.out and sweep-new/tests_dcalc_m0_typeform_maps_fixtures_typeform_gates.metta.beyond.out differ
+Files sweep-old/tests_dcalc_m0_typeform_maps_fixtures_typeform_gates.metta.release.out and sweep-new/tests_dcalc_m0_typeform_maps_fixtures_typeform_gates.metta.release.out differ
+Files sweep-old/tests_dcalc_m0_typeform_maps_fixtures_typeform_negative.metta.beyond.out and sweep-new/tests_dcalc_m0_typeform_maps_fixtures_typeform_negative.metta.beyond.out differ
+Files sweep-old/tests_dcalc_m0_typeform_maps_fixtures_typeform_negative.metta.release.out and sweep-new/tests_dcalc_m0_typeform_maps_fixtures_typeform_negative.metta.release.out differ
+Files sweep-old/tests_dcalc_m0_typeform_maps_fixtures_typeform_unsupported.metta.beyond.out and sweep-new/tests_dcalc_m0_typeform_maps_fixtures_typeform_unsupported.metta.beyond.out differ
+Files sweep-old/tests_dcalc_m0_typeform_maps_fixtures_typeform_unsupported.metta.release.out and sweep-new/tests_dcalc_m0_typeform_maps_fixtures_typeform_unsupported.metta.release.out differ
+# files compared: 454; nonzero exits in new: 0

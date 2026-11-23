@@ -1,0 +1,11 @@
+--- src/dcalc/model.c	2026-11-23 14:08:24.801284981 -0700
++++ model.c	2026-11-23 14:11:46.389605425 -0700
+@@ -483,7 +483,7 @@
+         size_t hit = 0; const Sx *out = NULL; Env e = {0};
+         for (size_t j = 1; j < body->n; j++) {
+             const Sx *row = body->items[j]; Env e1 = {0};
+-            if (!(cases ? match(row->items[0], D->elems[i], &e1) : sx_equal(row->items[0], D->elems[i]))) continue;
++            if (!(cases ? match(row->items[0], D->elems[D->n - 1 - i], &e1) : sx_equal(row->items[0], D->elems[D->n - 1 - i]))) continue;
+             if (hit) {
+                 char *xs = sx_print(D->elems[i]);
+                 fail(err, es, cases ? "Map %s: input %s matches Cases rows %zu and %zu; overlapping cases are rejected" : "Map %s: input %s has Table rows %zu and %zu", nm, xs, hit - 1, j - 1);

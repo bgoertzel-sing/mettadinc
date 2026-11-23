@@ -1,0 +1,11 @@
+--- src/dcalc/model.c	2026-11-23 14:08:24.801284981 -0700
++++ model.c	2026-11-23 14:11:46.399779516 -0700
+@@ -501,7 +501,7 @@
+             else fail(err, es, "Map %s: row %zu gives %s on %s, which is not of the To type %s", nm, hit - 1, vs, xs, ts);
+             free(xs); free(vs); free(ts); sx_free(v); free(tab); return -1;
+         }
+-        int b = T->image ? image_add(T, v) : dc_carrier_index(T, v);
++        int b = T->image ? image_add(T, T->n ? T->elems[0] : v) : dc_carrier_index(T, v);
+         if (b < 0) {
+             char *xs = sx_print(D->elems[i]), *vs = sx_print(v);
+             if (T->image) { fail(err, es, "[M0] Map %s: more than 4096 values of type %s", nm, T->name); snprintf(tf_why, sizeof tf_why, "%s", err + 5); }
