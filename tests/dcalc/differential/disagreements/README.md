@@ -110,6 +110,7 @@ D2_linear_arrow_obs_refuted.metta both show D2 (a third copy, d_lin_obs.metta, w
   dimension. Spec l.2469-2476 only describes the supplied-candidate path ("without one the request
   returns Unknown after its budget") and does not say what a rejected candidate should do or that
   the lumped quotient may be used. The oracle follows the CLI here; the spec should state the rule.
+- Provisional, pending Ben: the rule above is what dcalc does now and is not settled (docs/e0/OPEN_QUESTIONS.md item 13).
 
 ## D4 CheckImplementation: the OneMinusAbsoluteDifference distance is not clipped at 1
 - Status: FIXED (t-2026-11-19-mettadinc-d4-contract-clip). ct_dist (ops_contracts.c) and dc_tol_dist (model.c, DC_TOL_ONE_MINUS_ABS) now return min(1, |p - q|). Both minimal inputs give Checked, Grade 0 1; gate.sh checks them as normal gates; the contracts family at seed 100 x200 now agrees 600/600.
