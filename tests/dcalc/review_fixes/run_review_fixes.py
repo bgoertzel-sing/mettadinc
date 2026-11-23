@@ -4,7 +4,7 @@ D2 (unpinned proof backend fails closed) and the refreshed ConeOfInfluence reaso
 Needs DCALC_CADICAL (real solver); the pinned check also needs DCALC_CAKE_LPR and both *_SHA256 pins."""
 import os, re, subprocess, sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-DC = os.path.join(ROOT, 'build', 'dcalc', 'dcalc')
+DC = os.environ.get('DCALC_REVIEW_DC') or os.path.join(ROOT, 'build', 'dcalc', 'dcalc')   # override: mutation check
 HERE = os.path.dirname(os.path.abspath(__file__))
 FXD = os.path.join(HERE, 'fixtures'); CHK = os.path.join(HERE, 'checks')
 FORTY = os.path.join(ROOT, 'docs', 'e0', 'docs', '01_language_specification', 'validation_package', 'fixtures', 'forty_bits.metta')
@@ -109,5 +109,28 @@ if os.path.exists(SAN):
            [(rc, err[-200:]) for rc, _, err in res])
 else:
     report('profile shorthand: sanitized build (build/dcalc-sanitized/dcalc, built by the limits_sanitized step)', False, 'missing')
+# map-name-cycle (t-2026-11-20): a Map named like an Enum element is not a call where the name is a data value
+# (spec 5.4: typed map application); the repros give their control's answer, real cycles stay rejected.
+REP = os.path.join(ROOT, 'tests', 'dcalc', 'examples_e2e', 'repro'); MNC = os.path.join(FXD, 'map_name_cycle')
+def norm(r, f):
+    return {k: (st, why.replace(f + '_control', 'F').replace(f, 'F')) for k, (st, why) in r.items()}
+for f, want in (('map_name_element_clash', 'Unsupported'), ('map_name_equals_element', 'Checked')):
+    for mode in ([], ['--beyond-release']):
+        r = norm(rows(os.path.join(REP, f + '.metta'), mode), f)
+        c = norm(rows(os.path.join(REP, f + '_control.metta'), mode), f)
+        ok = bool(r) and all(st == want and 'map-call cycle' not in why for st, why in r.values()) and list(r.values()) == list(c.values())
+        report('map-name-cycle (%s): %s -> %s, same answer as its _control, no map-call cycle' % ('beyond' if mode else 'release', f, want), ok, (r, c))
+# review 1: Table and Choice rows (spec map-body grammar) are data rows too, not applications
+for f, want in (('table_clash', 'Checked'), ('choice_clash', 'Unsupported')):
+    for mode in ([], ['--beyond-release']):
+        r = norm(rows(os.path.join(MNC, f + '.metta'), mode), f)
+        c = norm(rows(os.path.join(MNC, f + '_control.metta'), mode), f)
+        ok = bool(r) and all(st == want and 'map-call cycle' not in why for st, why in r.values()) and list(r.values()) == list(c.values())
+        report('map-name-cycle (%s): %s -> %s, same answer as its _control, no map-call cycle' % ('beyond' if mode else 'release', f, want), ok, (r, c))
+for f in ('real_cycle_head', 'real_cycle_bare'):
+    for mode in ([], ['--beyond-release']):
+        r = rows(os.path.join(MNC, f + '.metta'), mode)
+        ok = bool(r) and all(st == 'InvalidInput' and 'map-call cycle f -> g -> f' in why for st, why in r.values())
+        report('map-name-cycle (%s): %s still InvalidInput "map-call cycle f -> g -> f"' % ('beyond' if mode else 'release', f), ok, r)
 print('review_fixes: %s (%d failing)' % ('PASS' if not fails else 'FAIL', fails))
 sys.exit(1 if fails else 0)
