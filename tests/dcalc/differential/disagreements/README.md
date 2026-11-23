@@ -142,6 +142,11 @@ D2_linear_arrow_obs_refuted.metta both show D2 (a third copy, d_lin_obs.metta, w
   1 in 200 cases, because few random encodings merge 3 or more states at positive distance.
 
 ## D6 MeasureTrace / CheckTrace with a Horizon: the trace defect only compares each state with its representative
+- Status: FIXED (t-2026-11-24-mettadinc-d6-trace-fix-v2). The horizon MeasureTrace/CheckTrace handler (stoch.c, also the
+  ObservationBased policy variant) now takes the maximum over every pair of states with the same code (E(x) == E(y)), as
+  D5's st_defect does. The witness is the first pair attaining the maximum (here a, c). All 3 MeasureTrace requests give
+  Checked, TraceDefect 1, Pair a c; CheckTrace Horizon 1 Within 3/4 gives Refuted, WithinBound False. gate.sh asserts
+  both (normal gate, no longer EXPECTED-BUG); mutate_gate.sh mutant d6_rep_only restores the old rule and is caught.
 - Minimal input: D6_trace_classpairs.metta (the D5 chain: a -> p, c -> q, b -> 1/2 p + 1/2 q; encoding sends a, b, c to b).
 - CLI: Checked, TraceDefect 1/2, Pair b a (MeasureTrace at Horizon 1 and 3, and at Horizon 1 with Policies ObservationBased);
   CheckTrace Horizon 1 Within 3/4: WithinBound True. Oracle: 1 = max_w TV(P_a^w, P_c^w), so WithinBound False.
