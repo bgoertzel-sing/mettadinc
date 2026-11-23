@@ -1,0 +1,7 @@
+# byte-diff of every tracked .metta (224 files outside cetta/, each run alone from its directory), release and --beyond-release
+# base binary: build of 8ae0fa7, sha256 5e3cd4f3bce140a7c0e748175b77a413092dd25ccb913aaec88aaac4b21afea3
+# new binary:  build of this branch, sha256 057afd752c9bdf787f5800d9d95d33496eb415727878768b99099a93c026d054
+# script: run_all_metta.sh below; base run twice (base, base2): 0 differing files (deterministic)
+# outputs compared: 448 files; differing:
+Files base/tests_dcalc_examples_e2e_repro_m0_blocker_a_bool_observe.metta.beyond.out and new_all/tests_dcalc_examples_e2e_repro_m0_blocker_a_bool_observe.metta.beyond.out differ
+Files base/tests_dcalc_examples_e2e_repro_m0_blocker_a_bool_observe.metta.release.out and new_all/tests_dcalc_examples_e2e_repro_m0_blocker_a_bool_observe.metta.release.out differ
