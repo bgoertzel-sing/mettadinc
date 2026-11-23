@@ -88,6 +88,28 @@ export METTAPEDIA_ROOT="$REPO/build/no-mettapedia-here"
 [ -e "$METTAPEDIA_ROOT" ] && die "$METTAPEDIA_ROOT exists; the frozen baseline is defined without Mettapedia"
 unset RHOLANG_CLI
 
+# Drift guard: refuse to build a CeTTa that is not the pinned one.  The pin is the gitlink recorded in the
+# superproject's HEAD (git ls-tree HEAD cetta); the checkout is git -C cetta rev-parse HEAD.  An uninitialised
+# submodule (empty cetta/) would make that rev-parse answer with the SUPERPROJECT's HEAD, so cetta/ must also be
+# the top level of its own repository.  On any mismatch: name both commits and exit 2 before anything is built.
+pin_guard(){
+  git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1 \
+    || die "drift guard: $REPO is not a git checkout, so the pinned commit (git ls-tree HEAD cetta) cannot be read; refusing to build"
+  PIN_COMMIT=$(git -C "$REPO" ls-tree HEAD cetta | awk '$2=="commit"{print $3}')
+  [ -n "$PIN_COMMIT" ] || die "drift guard: HEAD of $REPO records no gitlink for cetta; refusing to build"
+  CETTA_TOP=$(git -C "$CETTA" rev-parse --show-toplevel 2>/dev/null || true)
+  if [ "$CETTA_TOP" != "$(cd "$CETTA" && pwd -P)" ]; then
+    die "drift guard: cetta/ is not a checked-out submodule (git -C cetta answers for ${CETTA_TOP:-no repository}); pinned commit $PIN_COMMIT (git ls-tree HEAD cetta), checkout commit none; run git submodule update --init cetta"
+  fi
+  CHECKOUT_COMMIT=$(git -C "$CETTA" rev-parse HEAD 2>/dev/null || echo none)
+  if [ "$CHECKOUT_COMMIT" != "$PIN_COMMIT" ]; then
+    die "drift guard: submodule checkout cetta/ is at $CHECKOUT_COMMIT (git -C cetta rev-parse HEAD) but HEAD pins $PIN_COMMIT (git ls-tree HEAD cetta); refusing to build a CeTTa that is not the pinned one (git submodule update cetta)"
+  fi
+  say "cetta-baseline: drift guard OK: cetta/ at $CHECKOUT_COMMIT = pinned $PIN_COMMIT"
+}
+pin_guard
+if [ "${1:-}" = "--check-pin" ]; then say "cetta-baseline: --check-pin: pin matches, nothing built"; exit 0; fi
+
 say "cetta-baseline: repo $REPO"
 say "cetta-baseline: repo commit $(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo unknown)"
 say "cetta-baseline: pin $(sed -n 's/^- Commit: //p' "$REPO/docs/CETTA-PIN.md" 2>/dev/null | head -1)"
