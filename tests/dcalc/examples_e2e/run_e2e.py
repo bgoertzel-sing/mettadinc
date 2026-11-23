@@ -4,7 +4,7 @@ real CLI, unedited, in release mode and with --beyond-release, and write one per
 
 usage: python3 tests/dcalc/examples_e2e/run_e2e.py [--dcalc build/dcalc/dcalc] [--out tests/dcalc/examples_e2e/out]
 Modules are run from their bundle directory exactly as published. Imported module files are passed as LIBS
-arguments (dcalc MODULE [LIBS...]); main.c loads LIBS only with --beyond-release.
+arguments (dcalc MODULE [LIBS...]); main.c loads LIBS in both modes (t-2026-11-20-mettadinc-release-libs).
 Document answers are in doc_expected.tsv (hand-transcribed; used by make_tables.py)."""
 import argparse, collections, csv, os, re, subprocess, sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
@@ -23,7 +23,7 @@ LINE = re.compile(r'^(\S+) (.*?) => \(Result \(Status (\w+)\)')
 REASON = re.compile(r'\(Reason "((?:[^"\\]|\\.)*)"\)')
 
 def run(dc, d, mod, libs, beyond):
-    cmd = [dc] + (['--beyond-release'] if beyond else []) + [mod] + (libs if beyond else [])
+    cmd = [dc] + (['--beyond-release'] if beyond else []) + [mod] + libs
     p = subprocess.run(cmd, cwd=os.path.join(E, d), capture_output=True, text=True, timeout=900)
     rows = []
     for l in p.stdout.splitlines():

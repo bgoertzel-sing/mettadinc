@@ -124,9 +124,11 @@ int main(int argc, char **argv) {
     const char *err = NULL; int line = 0;
     Sx *all = sx_parse_all(src, &err, &line); free(src);
     if (!all) { fprintf(stderr, "dcalc: parse error line %d: %s\n", line, err); return 2; }
-    /* M7 opt-in: library files after FILE (beyond release only) add their DC.Module forms to the universe so a
-     * cross-file (Import M (Only ...)) resolves; only FILE's dc.run forms are answered. */
-    for (int k = 2; k < argc && dc_eval_beyond_release(); k++) {
+    /* Library files after FILE add their DC.Module forms to the universe so a cross-file (Import M ...)
+     * resolves; only FILE's dc.run forms are answered.  Loaded in both modes (t-2026-11-20-mettadinc-release-libs):
+     * an Import copies the source module's libraries into the importer (admit.c), so the first-release gate
+     * (dc_admit_unsupported) still judges everything an imported module brings; loading never widens admission. */
+    for (int k = 2; k < argc; k++) {
         char *ls = slurp(argv[k]);
         if (!ls) { fprintf(stderr, "dcalc: cannot read %s\n", argv[k]); sx_free(all); return 2; }
         Sx *lib = sx_parse_all(ls, &err, &line); free(ls);
