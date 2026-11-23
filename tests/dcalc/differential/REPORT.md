@@ -25,7 +25,7 @@ This rule is provisional, pending Ben (docs/e0/OPEN_QUESTIONS.md item 13).
 |---|---|---|---|---|
 | run_diff.py (oracle.py) | TracePartition, MinimalLinear, MinimizeForQueries, MeasureBehavioral horizon | 100 x200 | 800 | 1, KNOWN-D5 (after the D5 fix: 0) |
 | run_con.py (gen_con.py, clip per spec) | CheckImplementation C1, C2, ThenContracts | 100 x200 | 600 | 352, all KNOWN-D4 before the D4 fix; 0 after it (seed 100 x200, C1/C2/C12 200/200 each) |
-| run_lin.py (oracle.py linear_arrow) | CheckLinearArrow KC/LC, Then | 11 x200, 100 x200 | 1,200 | D2/D3 only, plus Then downstream; 0 NEW |
+| run_lin.py (oracle.py linear_arrow) | CheckLinearArrow KC/LC, Then | 11 x200, 100 x200 | 1,200 | D2/D3 only, plus Then downstream; 0 NEW (after the D2 and D3 fixes: 0 disagreements, KC/LC/LK all OK at seeds 11 and 100) |
 | run_pos.py (oracle.py positive_realization) | PositiveRealization perm/quot/rand | 1 x30, 11 x200, 100 x200 | 430 | 0 |
 | run_stoch.py (oracle_stoch.py, oracle_lp.py) | bisim, trace classes, linear dim, Kantorovich horizon/discount, check trace | random seeds 2, 1 and mixture seeds 3, 1; x200 each, 6 kinds | 4,800 | 50, all D1 (24 = random s2 6 + mixture s3 18); inputs in stoch_runs/ |
 | run_linear.py (oracle_linear.py) | CheckLinearArrow obs/random/exact, Then | 6 x200 x3 | 600 | obs 0; others all D2 |
@@ -38,7 +38,7 @@ After the replay, 0 cases are left unexplained. run_contracts.py was dropped bec
 
 - D1 MeasureBehavioral with discount: Unsupported "rational overflow (int64)" where the oracle gives an exact value.
 - D2 CheckLinearArrow: Refuted when the observation residual S_y is nonzero; Rho omits S_y. **Fixed** in t-2026-11-19-mettadinc-d2-linear-obs-residual: graded into rho, KNOWN-D2 tag removed, both minimal inputs are gate.sh canaries with the spec answer.
-- D3 CheckLinearArrow: a Signed arrow is accepted without the normalization L eta' = eta.
+- D3 CheckLinearArrow: a Signed arrow is accepted without the normalization L eta' = eta. **Fixed** in t-2026-11-19-mettadinc-d3-signed-normalization: st_check_lin checks L eta' = eta (every row sums to 1) for every Kind and Refutes naming the row; KNOWN-D3 tag removed from run_lin.py; the minimal input is a gate.sh regression gate (L Refuted, E Checked (1, 0)); mutant d3_positive_only in mutate_gate.sh.
 - D4 CheckImplementation: OneMinusAbsoluteDifference distance not clipped at 1 (ct_dist in ops_contracts.c and the shared dc_tol_dist in model.c:562; a fix must cover both; spec l.686-694). FIXED: ct_dist and dc_tol_dist now return min(1, |p - p'|); the KNOWN-D4 tag was removed from classify.py. FIXED by t-2026-11-19-mettadinc-d4-contract-clip (both sites clipped; contracts family 600/600 agree).
 - D5 MeasureBehavioral: defect = max d(x, rep(x)), not the maximum over all same-code pairs (spec Def 4.4(3)). FIXED in t-2026-11-19-mettadinc-d5-behavioral-classpairs.
 - N1 (spec gap, not a defect): the bound reported for a Rejected PositiveRealization candidate is not specified.

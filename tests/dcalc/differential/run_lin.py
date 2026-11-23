@@ -4,7 +4,8 @@ Requests per case: CheckLinearArrow L, CheckLinearArrow K, Then(L, K).
 Oracle rule (spec Def 3.8, l.2465; Prop 3.9): valid iff L eta' = eta (rows sum to 1, both machines
 stochastic) and, when Kind Positive, L >= 0. Grade (||L||, max(max_a ||R_a||, max_y ||S_y||)).
 Then: Checked with the Prop 3.9 grade when both parts are Checked, else InvalidInput.
-Each disagreement is tagged KNOWN-D3 (see disagreements/README.md) or NEW. KNOWN-D2 was removed when D2 was fixed (t-2026-11-19).
+Each LC/KC disagreement is tagged NEW (Then: DOWNSTREAM). KNOWN-D2 and KNOWN-D3 were removed when D2 and D3
+were fixed (t-2026-11-19).
 usage: run_lin.py --seed N --count K --out DIR [--dcalc PATH]"""
 import argparse, json, os, random, re, subprocess, sys
 from fractions import Fraction as F
@@ -39,8 +40,9 @@ def tag(kind, cli, exp, g, signed, raw=''):
     if kind in ('LC', 'KC'):
         # t-2026-11-19 D2 fixed: a nonzero observation residual is graded (rho includes max_y ||S_y||), so a
         # Refuted-with-'observation report differs' answer is no longer a known bug; it is tagged NEW.
-        if cli[0] == 'Checked' and exp[0] == 'Refuted' and signed and not g['valid']:
-            return 'KNOWN-D3'
+        # t-2026-11-19 D3 fixed: L eta' = eta is checked for every Kind (spec Def 3.8, l.2465), so a Signed arrow
+        # Checked without the normalization is no longer a known bug; no KNOWN-D3 tag any more, it is tagged NEW.
+        return 'NEW'
     if kind == 'LK':
         return 'DOWNSTREAM'      # Then disagreements are tagged downstream if LC/KC already differ
     return 'NEW'

@@ -28,4 +28,7 @@ mutant d5_rep_only stoch.c 's/if (E->tab\[x\] == E->tab\[y\] && dc_rat_cmp(d\[x\
 # M6 (D6, t-2026-11-24-mettadinc-d6-trace-fix-v2): horizon trace defect restricted to (E(x), x) pairs again (the old
 # representative-only rule); the D6 gate must catch it
 mutant d6_rep_only stoch.c 's/for (int x = 0; x < n; x++) for (int j = -1; j < n; j++) {/for (int x = 0; x < n; x++) for (int j = -1; j < 0; j++) {/'
+# M7 (D3, t-2026-11-19-mettadinc-d3-signed-normalization): the row-sum normalization checked only for Kind Positive
+# again (the old behaviour); the D3 canary must catch it
+mutant d3_positive_only stoch.c 's/        if (dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1"/        if (!strcmp(L->kind, "Positive") \&\& dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1"/'
 [ $rc = 0 ] && echo "MUTATION CHECK PASS" || echo "MUTATION CHECK FAIL"; exit $rc

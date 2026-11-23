@@ -36,6 +36,8 @@ No C fixes in this task (order stop-line).
   l.2465 says "CheckLinearArrow L replays the intertwining residuals, the normalization
   L eta' = eta and ...". Code (read only): st_check_lin in src/dcalc/stoch.c tests the row sum
   only when Kind is Positive, so a Signed row with any sum passes.
+- **Fixed** (t-2026-11-19-mettadinc-d3-signed-normalization): the normalization is checked for every Kind. L is
+  `(Status Refuted)`, `(LinearArrow Signed (Valid False) ...)`, Failure "row s0 does not sum to 1"; E stays Checked (1, 0).
 
 ## D2 CheckLinearArrow: a nonzero entry between states with different reports is Refuted instead of graded
 
