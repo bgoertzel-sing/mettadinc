@@ -96,6 +96,8 @@ typedef struct {
     char profile_unsupported[2 * DC_MAX_NAME + 64];  /* non-empty: the whole module is outside M0 (reason) */
     char skipped[64][DC_MAX_NAME]; size_t nskip;  /* their names */
     char unsupported_first[2 * DC_MAX_NAME + 32];
+    /* a reason naming the form for a skipped declaration (only set where a form-specific reason exists) */
+    struct { char name[DC_MAX_NAME]; char why[192]; } skipwhy[8]; size_t nskipwhy;
 } DcModule;
 
 /* Admission result: 0 ok; otherwise err names the field ("Map keep-ab: ..."). */
@@ -118,6 +120,8 @@ int dc_sx_rat(const Sx *v, DcRat *out);                 /* (Rat p q) or integer;
 DcRat dc_tol_dist(const DcModule *m, int tol, int i, int j, int *ovf);  /* distance in [0,1] */
 /* 1 when name was declared by a declaration outside the M0 fragment. */
 int dc_is_skipped(const DcModule *m, const char *name);
+/* The form-specific reason a skipped declaration is outside the fragment, or "" when none was recorded. */
+const char *dc_skip_why(const DcModule *m, const char *name);
 
 void dc_sha256_hex(const char *data, size_t n, char out[65]);
 #endif

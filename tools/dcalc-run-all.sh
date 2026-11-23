@@ -61,6 +61,7 @@ step m7_gates;         $R m7_gates "python3 tests/dcalc/mutations/run_m7_gates.p
 step m7_replay;        $R m7_replay "sh tests/dcalc/m7/run_m7_replay.sh > build/m7_replay.out; r=\$?; tail -1 build/m7_replay.out; exit \$r" || rc=1   # M7 independent replay of W/N/Q/X/Z fixtures
 step review_fixes;     $R review_fixes "python3 tests/dcalc/review_fixes/run_review_fixes.py > build/review_fixes.out; r=\$?; tail -1 build/review_fixes.out; exit \$r" || rc=1   # D1, partial Cases, D2 fail-closed, Cone reason (t-2026-11-14-mettadinc-review-fixes)
 step m0_subset_reach;  $R m0_subset_reach "python3 tests/dcalc/m0_subset_reach/run_m0_subset_reach.py > build/m0_subset_reach.out; r=\$?; tail -1 build/m0_subset_reach.out; exit \$r" || rc=1   # Subset/Reach carriers in Crisp M0 (t-2026-11-20-mettadinc-m0-subset-reach)
+step m0_like;          $R m0_like "python3 tests/dcalc/m0_like/run_m0_like.py > build/m0_like.out; r=\$?; tail -1 build/m0_like.out; exit \$r" || rc=1   # Machine Like in Crisp M0 (t-2026-11-23-mettadinc-m0-like-machines)
 step differential;     if [ "${DCALC_SKIP_DIFFERENTIAL:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_DIFFERENTIAL=1)"; else $R differential "sh tests/dcalc/differential/gate.sh build/dcalc/dcalc > build/differential_gate.out; r=\$?; tail -1 build/differential_gate.out; exit \$r" || rc=1; fi   # optional differential gate (t-2026-11-18-mettadinc-m4m6-differential)
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
