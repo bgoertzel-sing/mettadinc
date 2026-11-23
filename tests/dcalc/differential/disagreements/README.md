@@ -129,6 +129,10 @@ D2_linear_arrow_obs_refuted.metta both show D2 (a third copy, d_lin_obs.metta, w
   Every ThenContracts disagreement is InvalidInput because an input contract was Refuted by D4.
 
 ## D5 MeasureBehavioral: the defect only compares each state with its representative
+- Status: FIXED (t-2026-11-19-mettadinc-d5-behavioral-classpairs). st_defect (stoch.c) now takes the maximum of d(x, y)
+  over every pair x < y with the same code (horizon and unbounded paths). The witness is the first pair in carrier order
+  that attains the maximum (here a, c); the Pair, depth-h Test and modal witness use it. Both requests now give
+  Checked, BehavioralDefect 1, Pair a c. gate.sh asserts this; mutate_gate.sh mutant d5_rep_only restores the old rule.
 - Minimal input: d_kant_classpairs.metta (a -> p, c -> q, b -> 1/2 p + 1/2 q; encoding sends a, b, c to b).
 - CLI: Checked, BehavioralDefect 1/2 (horizon 1 and unbounded). Oracle: 1 = d_beh(a, c).
 - Spec Def 4.4(3) and l.1080: delta_beh is "the largest behavioral distance between two states with the same

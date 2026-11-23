@@ -22,4 +22,7 @@ mutant kant_half stoch.c 's/nd\[x\]\[y\] = dc_rat_mul(gamma, best, ovf);/nd[x][y
 mutant d4_tol_unclipped model.c 's/return dc_rat_min(one, dc_rat_abs(dc_rat_sub(a, b, ovf))); }/return dc_rat_abs(dc_rat_sub(a, b, ovf)); }/'
 # M4 (D4): ct_dist (ops_contracts.c) unclipped again
 mutant d4_con_unclipped ops_contracts.c 's/\*d = dc_rat_min((DcRat){1, 1}, dc_rat_abs(dc_rat_sub(a, b, ovf)));/*d = dc_rat_abs(dc_rat_sub(a, b, ovf));/'
+# M5 (D5, t-2026-11-19-mettadinc-d5-behavioral-classpairs): defect restricted to pairs where one state is the
+# other's representative (the old max_x d(x, rep(x))); the D5 canary must catch it
+mutant d5_rep_only stoch.c 's/if (E->tab\[x\] == E->tab\[y\] && dc_rat_cmp(d\[x\]\[y\], def) > 0)/if ((E->tab[x] == y || E->tab[y] == x) \&\& dc_rat_cmp(d[x][y], def) > 0)/'
 [ $rc = 0 ] && echo "MUTATION CHECK PASS" || echo "MUTATION CHECK FAIL"; exit $rc
