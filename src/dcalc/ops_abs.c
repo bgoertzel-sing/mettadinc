@@ -108,7 +108,8 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
     if (q->n != 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "CheckAbstractionMap: field AbstractionMap missing or not a name");
     const char *nm = q->items[1]->text; int ai = dc_find_abs(m, nm);
     if (ai < 0) {
-        if (dc_declared_unsupported(m, nm)) return dc_unsupported(m, "CheckAbstractionMap: AbstractionMap %s is outside the M0 fragment", nm);
+        if (dc_declared_unsupported(m, nm)) return dc_skip_why(m, nm)[0] ? dc_unsupported(m, "CheckAbstractionMap: AbstractionMap %s is outside the M0 fragment: %s", nm, dc_skip_why(m, nm))
+                                                                          : dc_unsupported(m, "CheckAbstractionMap: AbstractionMap %s is outside the M0 fragment", nm);
         return dc_invalid(m, "CheckAbstractionMap: field AbstractionMap names no declared abstraction map (%s)", nm);
     }
     const DcAbsMap *a = &m->abs[ai]; const DcMap *mp = &m->map[a->map];
@@ -116,7 +117,8 @@ Sx *dc_req_check_abs(DcRun *r, const Sx *q, int slot) {
     if (a->source->kind == SX_SYM) {
         int si = dc_find_machine(m, a->source->text);
         if (si < 0) {
-            if (dc_declared_unsupported(m, a->source->text)) return dc_unsupported(m, "CheckAbstractionMap %s: Source %s is outside the M0 fragment", nm, a->source->text);
+            if (dc_declared_unsupported(m, a->source->text)) return dc_skip_why(m, a->source->text)[0] ? dc_unsupported(m, "CheckAbstractionMap %s: Source %s is outside the M0 fragment: %s", nm, a->source->text, dc_skip_why(m, a->source->text))
+                                                                                        : dc_unsupported(m, "CheckAbstractionMap %s: Source %s is outside the M0 fragment", nm, a->source->text);
             return dc_invalid(m, "CheckAbstractionMap %s: field Source names no declared machine (%s)", nm, a->source->text);
         }
         dc_view_of_machine(m, si, &sv);

@@ -343,7 +343,8 @@ Sx *dc_req_beh_tol(DcRun *run, const Sx *q) {
     DcModule *m = run->m; const char *h = "BehavioralTolerance";
     if (q->n < 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "%s: field machine missing or not a name", h);
     const char *nm = q->items[1]->text; int mi = dc_find_machine(m, nm);
-    if (mi < 0) return dc_declared_unsupported(m, nm) ? dc_unsupported(m, "%s: Machine %s is outside the M2 fragment", h, nm)
+    if (mi < 0) return dc_declared_unsupported(m, nm) ? (dc_skip_why(m, nm)[0] ? dc_unsupported(m, "%s: Machine %s is outside the M2 fragment: %s", h, nm, dc_skip_why(m, nm))
+                                                               : dc_unsupported(m, "%s: Machine %s is outside the M2 fragment", h, nm))
                                                       : dc_invalid(m, "%s: field machine names no declared machine (%s)", h, nm);
     int horizon = -1, sh = 0, sg = 0, sp = 0; DcRat g = R1, prec = RZ; char gtxt[48] = "";
     for (size_t i = 2; i < q->n; i++) {
