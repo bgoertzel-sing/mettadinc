@@ -1,16 +1,16 @@
 module	request	status	reason
-AccessPolicy	(CheckBlockPartition NoBreach (Of SoDWatch))	Unsupported	library Families is outside the first release
-AccessPolicy	(CheckBlockPartition ClerksOnly (Of ClerkWatch))	Unsupported	library Families is outside the first release
-AccessPolicy	(CheckBlockPartition WellFormed (Of Hygiene))	Unsupported	library Families is outside the first release
-AccessPolicyFixed	(CheckBlockPartition NoBreach (Of SoDWatch))	Unsupported	library Families is outside the first release
-AccessPolicyFixed	(CheckBlockPartition ClerksOnly (Of ClerkWatch) (Budget (Unrollings 6)))	Unsupported	library Families is outside the first release
-AccessPolicyFixed	(CheckBlockPartition ClerksOnlyProved (Of ClerkWatch))	Unsupported	library Families is outside the first release
-AccessPolicyFixed	(CheckNow AssignmentsOnly)	Unsupported	library Families is outside the first release
-AccessPolicyFixed	WholeInterface	Unsupported	library Families is outside the first release
-AccessPolicyFixed	LiveInterface	Unsupported	library Families is outside the first release
-AccessPolicyFixed	BobSlice	Unsupported	library Families is outside the first release
-AccessPolicyFixed	(Defects BobOnly)	Unsupported	library Families is outside the first release
-AccessPolicyFixed	(InduceExact BobOnly)	Unsupported	library Families is outside the first release
-AccessPolicyFixed	(CheckBehavioral BobOnly)	Unsupported	library Families is outside the first release
-AccessPolicyFixed	BobQuotient	Unsupported	library Families is outside the first release
-AccessPolicyFixed	BobLiveQuotient	Unsupported	library Families is outside the first release
+AccessPolicy	(CheckBlockPartition NoBreach (Of SoDWatch))	Refuted	
+AccessPolicy	(CheckBlockPartition ClerksOnly (Of ClerkWatch))	Refuted	
+AccessPolicy	(CheckBlockPartition WellFormed (Of Hygiene))	Refuted	
+AccessPolicyFixed	(CheckBlockPartition NoBreach (Of SoDWatch))	Checked	
+AccessPolicyFixed	(CheckBlockPartition ClerksOnly (Of ClerkWatch) (Budget (Unrollings 6)))	Unknown	no counterexample within the unrollings of the budget; the partition is not inductive
+AccessPolicyFixed	(CheckBlockPartition ClerksOnlyProved (Of ClerkWatch))	Checked	
+AccessPolicyFixed	(CheckNow AssignmentsOnly)	Unsupported	CheckNow: an encoding wider than 12 bits is outside this step of M3
+AccessPolicyFixed	WholeInterface	Unsupported	MinimizeForQueries: more than 256 classes, 64 tests or BDD limit
+AccessPolicyFixed	LiveInterface	Unsupported	MinimizeForQueries: a machine on a reach carrier is outside this step of M3
+AccessPolicyFixed	BobSlice	Unsupported	request InduceExact: not implemented by the symbolic engine (it answers CheckBlockPartition, MinimizeForQueries, CheckNow, CheckBehavioral, MeasureBehavioral, and ClockRates under Use Discovery; see docs/M7-BLOCKED.md; module read: 6 carriers, 106 maps, 6 machines)
+AccessPolicyFixed	(Defects BobOnly)	Unsupported	request Defects: not implemented by the symbolic engine (it answers CheckBlockPartition, MinimizeForQueries, CheckNow, CheckBehavioral, MeasureBehavioral, and ClockRates under Use Discovery; see docs/M7-BLOCKED.md; module read: 6 carriers, 106 maps, 6 machines)
+AccessPolicyFixed	(InduceExact BobOnly)	Unsupported	request InduceExact: not implemented by the symbolic engine (it answers CheckBlockPartition, MinimizeForQueries, CheckNow, CheckBehavioral, MeasureBehavioral, and ClockRates under Use Discovery; see docs/M7-BLOCKED.md; module read: 6 carriers, 106 maps, 6 machines)
+AccessPolicyFixed	(CheckBehavioral BobOnly)	Unsupported	CheckBehavioral: class, test or BDD limit reached
+AccessPolicyFixed	BobQuotient	Unsupported	MinimizeForQueries: more than 256 classes, 64 tests or BDD limit
+AccessPolicyFixed	BobLiveQuotient	Unsupported	MinimizeForQueries: a machine on a reach carrier is outside this step of M3
