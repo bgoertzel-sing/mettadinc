@@ -91,7 +91,7 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
             }
             const Sx *cs = st_field(d, "Cases");
             if (mp->from < 0 || mp->to < 0 || !cs) {
-                int frag = (mp->from < 0 && st_known(src, ff)) || (mp->to < 0 && st_known(src, tf)) || (!cs && ff && tf && (st_field(d, "Body") || st_field(d, "Parameters")));
+                int frag = (mp->from < 0 && st_known(src, ff)) || (mp->to < 0 && st_known(src, tf)) || (!cs && ff && tf && (st_field(d, "Body") || st_field(d, "Parameters") || st_field(d, "Table") || st_field(d, "Choice")));
                 if (frag && !(mp->from < 0 && !st_known(src, ff)) && !(mp->to < 0 && !st_known(src, tf))) return st_frag(err, es, "map needs (From C) (To C) (Cases ...):", nm);
                 return st_err(err, es, "map needs (From C) (To C) (Cases ...):", nm);
             }

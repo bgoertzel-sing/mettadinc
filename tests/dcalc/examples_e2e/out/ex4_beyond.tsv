@@ -20,14 +20,14 @@ InformedFlow	(InduceExact Coarse)	Unsupported	library Laws is outside the first 
 InformedFlow	(OptimizePolicy Split (Through Coarse) (Under FlatHalf))	Unsupported	library Laws is outside the first release
 InformedFlow	(OptimizePolicy Split (Under FlatHalf))	Unsupported	library Laws is outside the first release
 InformedFlow	(EvaluatePolicy Split (With Signal) (Through Coarse) (Under FlatHalf))	Unsupported	library Laws is outside the first release
-NewsLeak	(CheckTrace MergeLeakWide (Policies ObservationBased))	InvalidInput	stochastic module: carrier is not an enumeration: Seen
-NewsLeak	(CheckBehavioral MergeLeakWide)	InvalidInput	stochastic module: carrier is not an enumeration: Seen
-NewsLeak	(MeasureBehavioral MergeLeakWide (Discount (Rat 9 10)))	InvalidInput	stochastic module: carrier is not an enumeration: Seen
-NewsLeak	WideTraceClasses	InvalidInput	stochastic module: carrier is not an enumeration: Seen
-NewsLeak	WideLinear	InvalidInput	stochastic module: carrier is not an enumeration: Seen
-NewsLeak	(CheckTrace MergeLeak)	InvalidInput	stochastic module: carrier is not an enumeration: Seen
-NewsLeak	(CheckBehavioral MergeLeak)	InvalidInput	stochastic module: carrier is not an enumeration: Seen
-NewsLeak	DeskLinear	InvalidInput	stochastic module: carrier is not an enumeration: Seen
+NewsLeak	(CheckTrace MergeLeakWide (Policies ObservationBased))	Unsupported	stochastic module: form outside the stochastic backend fragment (libraries: Linear): carrier is not an enumeration: Seen
+NewsLeak	(CheckBehavioral MergeLeakWide)	Unsupported	stochastic module: form outside the stochastic backend fragment (libraries: Linear): carrier is not an enumeration: Seen
+NewsLeak	(MeasureBehavioral MergeLeakWide (Discount (Rat 9 10)))	Unsupported	stochastic module: form outside the stochastic backend fragment (libraries: Linear): carrier is not an enumeration: Seen
+NewsLeak	WideTraceClasses	Unsupported	stochastic module: form outside the stochastic backend fragment (libraries: Linear): carrier is not an enumeration: Seen
+NewsLeak	WideLinear	Unsupported	stochastic module: form outside the stochastic backend fragment (libraries: Linear): carrier is not an enumeration: Seen
+NewsLeak	(CheckTrace MergeLeak)	Unsupported	stochastic module: form outside the stochastic backend fragment (libraries: Linear): carrier is not an enumeration: Seen
+NewsLeak	(CheckBehavioral MergeLeak)	Unsupported	stochastic module: form outside the stochastic backend fragment (libraries: Linear): carrier is not an enumeration: Seen
+NewsLeak	DeskLinear	Unsupported	stochastic module: form outside the stochastic backend fragment (libraries: Linear): carrier is not an enumeration: Seen
 ShiftMonitors	(CheckMonitor Markouts)	Unsupported	library Laws is outside the first release
 ShiftMonitors	(CheckMonitor Fills)	Unsupported	library Laws is outside the first release
 ShiftMonitors	(CheckMonitor FillsToxic)	Unsupported	library Laws is outside the first release
