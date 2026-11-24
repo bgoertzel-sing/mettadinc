@@ -12,7 +12,8 @@ static int fail(char *err, size_t n, const char *fmt, ...) {
 }
 static int name_ok(const Sx *x) { return x && x->kind == SX_SYM && strlen(x->text) < DC_MAX_NAME; }
 
-int dc_find_carrier(const DcModule *m, const char *s) { for (size_t i = 0; i < m->ncar; i++) if (!strcmp(m->car[i].name, s)) return (int)i; return -1; }
+/* The implicit Bool carrier is never found by name: only a (To Bool) Observe map reaches it (bool_carrier). */
+int dc_find_carrier(const DcModule *m, const char *s) { for (size_t i = 0; i < m->ncar; i++) if (!m->car[i].builtin_bool && !strcmp(m->car[i].name, s)) return (int)i; return -1; }
 int dc_find_map(const DcModule *m, const char *s) { for (size_t i = 0; i < m->nmap; i++) if (!strcmp(m->map[i].name, s)) return (int)i; return -1; }
 int dc_find_machine(const DcModule *m, const char *s) { for (size_t i = 0; i < m->nmach; i++) if (!strcmp(m->mach[i].name, s)) return (int)i; return -1; }
 int dc_find_repr(const DcModule *m, const char *s) { for (size_t i = 0; i < m->nrep; i++) if (!strcmp(m->rep[i].name, s)) return (int)i; return -1; }
@@ -46,6 +47,8 @@ static int parse_int(const Sx *x, long *out) {
 }
 static int allow_rat;   /* M2: set by admit_map only for a Graded map into a value carrier */
 static int allow_xor;   /* M7: set by admit_map only on a (Use Neural) module in beyond-release: (Xor a b) on bits */
+static int allow_bool;  /* set only by admit_bool_observe_map: (To Bool) resolves to the implicit Bool carrier */
+static char pending_why[192];   /* a form-specific reason for the declaration being admitted when it returns -2 */
 static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
     if (b->kind == SX_SYM && b->text[0] == '$') {
         for (int i = 0; i < e->n; i++) if (!strcmp(e->var[i], b->text)) return sx_copy(e->val[i]);
@@ -338,6 +341,46 @@ static Sx *eval_set_body(const Sx *b, const char *var, const Sx *val, int *ok) {
     *ok = 2; return sx_sym("?");
 }
 
+/* ---- (To Bool) maps as Observe ports (t-2026-11-23-mettadinc-m0-bool-observe) ----
+ * Bool is a builtin type of the Core library (registry libraries.Core.builtin_types) whose values are the
+ * Core constants True and False.  Spec Def 3.1/3.2 (txt l.676-700): each query label j of an interface has a
+ * value type Y_j with crisp equality unless declared otherwise, and o_j : X -> Y_j is total.  An
+ * (Observe label map) whose map is (Map f (From C) (To Bool) (Cases|Table ...)) is therefore the query
+ * o_j = f with Y_j = Bool = {False, True} under literal equality, exactly as an Enum carrier with those two
+ * elements would be.  Spec 5.4 (l.1851-1857): every input matches exactly one case and outputs stay in the
+ * declared type, so a case giving anything other than True or False, a missing or an overlapping case is
+ * InvalidInput.  Only this use is lowered: the carrier is made on demand for a Crisp Observe port, it is
+ * never found by name (no Tolerance, Carrier or Product can name it), and a Representation whose Encode map
+ * targets Bool stays Unsupported with that reason. */
+static int bool_carrier(DcModule *m) {
+    for (size_t i = 0; i < m->ncar; i++) if (m->car[i].builtin_bool) return (int)i;
+    if (m->ncar >= sizeof m->car / sizeof m->car[0]) return -1;
+    DcCarrier *c = &m->car[m->ncar]; memset(c, 0, sizeof *c);
+    snprintf(c->name, sizeof c->name, "Bool"); c->builtin_bool = 1;
+    c->n = 2; c->elems = calloc(2, sizeof(Sx *)); c->elems[0] = sx_sym("False"); c->elems[1] = sx_sym("True");
+    return (int)m->ncar++;
+}
+static int admit_map(DcModule *m, const Sx *d, char *err, size_t es);
+static const Sx *find_decl(const DcModule *m, const char *head, const char *name);
+/* The map named by an Observe port was skipped at its declaration because its target (To Bool) named no
+ * carrier.  Admit it now, on the implicit Bool carrier.  Returns the map index, -2 when this is not that form
+ * (the caller keeps its old behaviour), -1 with err set when admission fails. */
+static int admit_bool_observe_map(DcModule *m, const char *name, char *err, size_t es) {
+    if (strcmp(m->profile, "Crisp") || !dc_is_skipped(m, name) || dc_find_carrier(m, "Bool") >= 0) return -2;
+    const Sx *d = find_decl(m, "Map", name);
+    if (!d || d->n != 5 || !sx_head_is(d->items[3], "To") || d->items[3]->n != 2 || !sx_is_sym(d->items[3]->items[1], "Bool")) return -2;
+    allow_bool = 1; int rc = admit_map(m, d, err, es); allow_bool = 0;
+    if (rc) return -1;
+    for (size_t i = 0; i < m->nskip; i++) if (!strcmp(m->skipped[i], name)) {   /* admitted now: no longer skipped */
+        memmove(m->skipped[i], m->skipped[i + 1], (m->nskip - i - 1) * sizeof m->skipped[0]); m->nskip--; break; }
+    if (m->unsupported_decls > 0) m->unsupported_decls--;
+    return (int)m->nmap - 1;
+}
+const char *dc_skip_why(const DcModule *m, const char *name) {
+    for (size_t i = 0; i < m->nskipwhy; i++) if (!strcmp(m->skipwhy[i].name, name)) return m->skipwhy[i].why;
+    return "";
+}
+
 static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n != 5 || !name_ok(d->items[1])) return fail(err, es, "[M0] Map: expected (Map name (From C) (To C) (Table|Cases ...))");
     const char *nm = d->items[1]->text;
@@ -351,6 +394,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
     if (!sx_head_is(to, "To") || to->n != 2 || !name_ok(to->items[1])) return fail(err, es, "[M0] Map %s: field To", nm);
     int f = fprod >= 0 ? fprod : dc_find_carrier(m, fr->items[1]->text), t = dc_find_carrier(m, to->items[1]->text);
     if (t < 0 && !strcmp(m->profile, "Graded")) t = dc_value_carrier(m, to->items[1]->text);
+    if (t < 0 && allow_bool && !strcmp(to->items[1]->text, "Bool")) t = bool_carrier(m);
     if (f < 0) return fail(err, es, "Map %s: field From names no declared carrier (%s)", nm, fr->items[1]->text);
     if (t < 0) return fail(err, es, "Map %s: field To names no declared carrier (%s)", nm, to->items[1]->text);
     DcCarrier *F = &m->car[f], *T = &m->car[t];
@@ -448,6 +492,16 @@ static int admit_ports(DcModule *m, DcMachine *mc, const Sx *d, int is_obs, char
     if ((ptol < 0 && d->n != 3) || !name_ok(d->items[1]) || !name_ok(d->items[2])) return fail(err, es, "Machine %s: field %s expects (%s label map)", mc->name, field, field);
     if (*np >= 16) return fail(err, es, "Machine %s: field %s: too many", mc->name, field);
     int mp = dc_find_map(m, d->items[2]->text);
+    if (mp < 0 && is_obs && ptol < 0) {
+        mp = admit_bool_observe_map(m, d->items[2]->text, err, es);
+        if (mp == -1) {   /* still outside the fragment: keep the reason, naming the form, for the requests */
+            if (strstr(err, "[M0]")) snprintf(pending_why, sizeof pending_why, "Observe %s: %s", d->items[1]->text, strstr(err, "[M0] ") ? strstr(err, "[M0] ") + 5 : err);
+            return -1;
+        }
+        const Sx *bd = mp == -2 && strcmp(m->profile, "Crisp") ? find_decl(m, "Map", d->items[2]->text) : NULL;
+        if (bd && bd->n == 5 && sx_head_is(bd->items[3], "To") && bd->items[3]->n == 2 && sx_is_sym(bd->items[3]->items[1], "Bool"))
+            snprintf(pending_why, sizeof pending_why, "Observe %s: map %s targets Bool; a (To Bool) Observe map is lowered only in a Crisp module", d->items[1]->text, d->items[2]->text);
+    }
     if (mp < 0) return fail(err, es, "Machine %s: field %s names no declared map (%s)", mc->name, field, d->items[2]->text);
     if ((mp = restrict_map(m, mp, mc->states, !is_obs, err, es)) < 0) return -1;
     if (m->map[mp].from != mc->states) return fail(err, es, "Machine %s: field %s map %s does not start at the state carrier", mc->name, field, d->items[2]->text);
@@ -516,7 +570,11 @@ static int admit_repr(DcModule *m, const Sx *d, char *err, size_t es) {
     DcRepr *r = &m->rep[m->nrep]; memset(r, 0, sizeof *r); snprintf(r->name, sizeof r->name, "%s", nm);
     const Sx *of = sx_find(d, "Of", 2), *en = sx_find(d, "Encode", 2), *co = sx_find(d, "Codes", 2);
     if (of && of->n == 2 && name_ok(of->items[1]) && dc_find_machine(m, of->items[1]->text) < 0
-        && declared_in_source(m, "Machine", of->items[1]->text)) return -2;   /* machine outside M0 */
+        && declared_in_source(m, "Machine", of->items[1]->text)) {   /* machine outside M0 */
+        const char *why = dc_skip_why(m, of->items[1]->text);
+        if (why[0]) snprintf(pending_why, sizeof pending_why, "Machine %s: %s", of->items[1]->text, why);
+        return -2;
+    }
     if (!of || of->n != 2 || !name_ok(of->items[1]) || (r->machine = dc_find_machine(m, of->items[1]->text)) < 0)
         return fail(err, es, "Representation %s: field Of names no declared machine (%s)", nm, of && of->n == 2 && of->items[1]->kind == SX_SYM ? of->items[1]->text : "?");
     if (!en || en->n != 2 || !name_ok(en->items[1]) || (r->encode = dc_find_map(m, en->items[1]->text)) < 0)
@@ -524,6 +582,10 @@ static int admit_repr(DcModule *m, const Sx *d, char *err, size_t es) {
     if ((r->encode = restrict_map(m, r->encode, m->mach[r->machine].states, 0, err, es)) < 0) return -1;
     if (m->map[r->encode].from != m->mach[r->machine].states)
         return fail(err, es, "Representation %s: field Encode map does not start at the states of %s", nm, m->mach[r->machine].name);
+    if (m->car[m->map[r->encode].to].builtin_bool) {   /* only the Observe use of a Bool map is lowered */
+        snprintf(pending_why, sizeof pending_why, "Encode map %s targets Bool; a (To Bool) map is lowered only as an Observe port", m->map[r->encode].name);
+        return -2;
+    }
     r->codes = DC_CODES_EXACT; r->tol = -1;
     if (co) {
         int t = (co->n == 2 && name_ok(co->items[1])) ? dc_find_tol(m, co->items[1]->text) : -1;
@@ -703,7 +765,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
     m->bitvectors = uses_lib(m, "BitVectors") && dc_eval_beyond_release();   /* M7 opt-in */
     m->finitesets = uses_lib(m, "FiniteSets") && dc_eval_beyond_release();   /* M7 opt-in */
     for (size_t i = 2; i < form->n; i++) {
-        const Sx *d = form->items[i]; int rc = 0;
+        const Sx *d = form->items[i]; int rc = 0; pending_why[0] = 0;
         if (d->kind != SX_LIST || d->n == 0 || d->items[0]->kind != SX_SYM)
             return fail(err, es, "DC.Module %s: declaration %zu is not a form", m->name, i - 2);
         const char *h = d->items[0]->text;
@@ -762,6 +824,10 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
                     snprintf(m->skipped[m->nskip++], DC_MAX_NAME, "%.63s", only->items[k]->text);
         }
         if (rc == -2) {
+            if (pending_why[0] && d->n > 1 && d->items[1]->kind == SX_SYM && m->nskipwhy < sizeof m->skipwhy / sizeof m->skipwhy[0]) {
+                snprintf(m->skipwhy[m->nskipwhy].name, DC_MAX_NAME, "%.63s", d->items[1]->text);
+                snprintf(m->skipwhy[m->nskipwhy].why, sizeof m->skipwhy[0].why, "%s", pending_why); m->nskipwhy++;
+            }
             if (d->n > 1 && d->items[1]->kind == SX_SYM && m->nskip < 64)
                 snprintf(m->skipped[m->nskip++], DC_MAX_NAME, "%.63s", d->items[1]->text);
             char what[DC_MAX_NAME + 32];

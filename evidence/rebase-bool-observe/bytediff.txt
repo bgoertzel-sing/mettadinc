@@ -1,0 +1,10 @@
+# byte-diff of every tracked .metta (234 files outside cetta/, each run alone from its directory), release and --beyond-release
+# base binary: build of main eb5a662, sha256 5ed90b925c57ca98a4b9c4caf8338e0b9096a68636fcd6d7ece3653fd02cd81e
+# new binary:  build of this branch, sha256 6067c8b226f3a4237e19592ebdce01fbf6899fefc7aeca5bc419b259fb57de0f
+# script: evidence/m0-bool-observe/run_all_metta.sh; outputs compared: 468 files; differing:
+Files bd_base/tests_dcalc_examples_e2e_repro_m0_blocker_a_bool_observe.metta.beyond.out and bd_new/tests_dcalc_examples_e2e_repro_m0_blocker_a_bool_observe.metta.beyond.out differ
+Files bd_base/tests_dcalc_examples_e2e_repro_m0_blocker_a_bool_observe.metta.release.out and bd_new/tests_dcalc_examples_e2e_repro_m0_blocker_a_bool_observe.metta.release.out differ
+Files bd_base/tests_dcalc_m0_bool_observe_fixtures_bool_observe_gates.metta.beyond.out and bd_new/tests_dcalc_m0_bool_observe_fixtures_bool_observe_gates.metta.beyond.out differ
+Files bd_base/tests_dcalc_m0_bool_observe_fixtures_bool_observe_gates.metta.release.out and bd_new/tests_dcalc_m0_bool_observe_fixtures_bool_observe_gates.metta.release.out differ
+Files bd_base/tests_dcalc_m0_bool_observe_fixtures_doc04_desugared.metta.beyond.out and bd_new/tests_dcalc_m0_bool_observe_fixtures_doc04_desugared.metta.beyond.out differ
+Files bd_base/tests_dcalc_m0_bool_observe_fixtures_doc04_desugared.metta.release.out and bd_new/tests_dcalc_m0_bool_observe_fixtures_doc04_desugared.metta.release.out differ

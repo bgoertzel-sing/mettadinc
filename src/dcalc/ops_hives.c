@@ -37,7 +37,7 @@ static const Sx *hv_decl(const DcModule *m, const char *head, const char *name) 
     for (size_t i = 2; s && i < s->n; i++) { const Sx *d = s->items[i]; if (sx_head_is(d, head) && d->n > 1 && sx_is_sym(d->items[1], name)) return d; }
     return NULL;
 }
-static int hv_car(const DcModule *m, const char *name) { for (size_t i = 0; i < (size_t)m->ncar; i++) if (!strcmp(m->car[i].name, name)) return (int)i; return -1; }
+static int hv_car(const DcModule *m, const char *name) { for (size_t i = 0; i < (size_t)m->ncar; i++) if (!m->car[i].builtin_bool && !strcmp(m->car[i].name, name)) return (int)i; return -1; }   /* the implicit Bool carrier is never found by name */
 static int hv_elem(const DcModule *m, int c, const Sx *v) { for (size_t i = 0; i < m->car[c].n; i++) if (sx_equal(m->car[c].elems[i], v)) return (int)i; return -1; }
 static int hv_mem(const Hive *h, const char *nm) { for (int i = 0; i < h->nm; i++) if (!strcmp(h->mem[i].name, nm)) return i; return -1; }
 static Sx *hv_node(const DcModule *m, const Hive *h, int a) { const HvMem *M = &h->mem[h->mof[a]]; return dc_form("Node", dc_sym(M->name), sx_copy(m->car[M->car].elems[h->vof[a]]), NULL); }
