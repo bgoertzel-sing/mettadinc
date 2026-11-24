@@ -15,20 +15,23 @@ mutant() {   # name file sed-expr
   else echo "MUTANT $1 killed ($(grep -cE 'FAIL|NEW' "$d/gate.out") fail lines)"; fi
 }
 # M1: CheckLinearArrow rho keeps only the last row's residual (escaped the 20-case pilot in review 1)
-mutant lin_rho_lastrow stoch.c 's/\*rho = dc_rat_max(\*rho, row);/*rho = row;/'
+mutant lin_rho_lastrow stoch.c 's/\*rho = dc_q_max(\*rho, row);/*rho = row;/'
 # M2: behavioral layer distance halved (Kantorovich recurrence)
-mutant kant_half stoch.c 's/nd\[x\]\[y\] = dc_rat_mul(gamma, best, ovf);/nd[x][y] = dc_rat_mul(dc_rat_mul(gamma, best, ovf), dc_rat(1, 2, ovf), ovf);/'
+mutant kant_half stoch.c 's/nd\[x\]\[y\] = dc_q_mul(gamma, best, ovf);/nd[x][y] = dc_q_mul(dc_q_mul(gamma, best, ovf), dc_q(1, 2, ovf), ovf);/'
 # M3 (D4 review-1 F2): dc_tol_dist (model.c) unclipped again; only the D4_tol_dist canary sees it
 mutant d4_tol_unclipped model.c 's/return dc_rat_min(one, dc_rat_abs(dc_rat_sub(a, b, ovf))); }/return dc_rat_abs(dc_rat_sub(a, b, ovf)); }/'
 # M4 (D4): ct_dist (ops_contracts.c) unclipped again
 mutant d4_con_unclipped ops_contracts.c 's/\*d = dc_rat_min((DcRat){1, 1}, dc_rat_abs(dc_rat_sub(a, b, ovf)));/*d = dc_rat_abs(dc_rat_sub(a, b, ovf));/'
 # M5 (D5, t-2026-11-19-mettadinc-d5-behavioral-classpairs): defect restricted to pairs where one state is the
 # other's representative (the old max_x d(x, rep(x))); the D5 canary must catch it
-mutant d5_rep_only stoch.c 's/if (E->tab\[x\] == E->tab\[y\] && dc_rat_cmp(d\[x\]\[y\], def) > 0)/if ((E->tab[x] == y || E->tab[y] == x) \&\& dc_rat_cmp(d[x][y], def) > 0)/'
+mutant d5_rep_only stoch.c 's/if (E->tab\[x\] == E->tab\[y\] && dc_q_cmp(d\[x\]\[y\], def) > 0)/if ((E->tab[x] == y || E->tab[y] == x) \&\& dc_q_cmp(d[x][y], def) > 0)/'
 # M6 (D6, t-2026-11-24-mettadinc-d6-trace-fix-v2): horizon trace defect restricted to (E(x), x) pairs again (the old
 # representative-only rule); the D6 gate must catch it
 mutant d6_rep_only stoch.c 's/for (int x = 0; x < n; x++) for (int j = -1; j < n; j++) {/for (int x = 0; x < n; x++) for (int j = -1; j < 0; j++) {/'
 # M7 (D3, t-2026-11-19-mettadinc-d3-signed-normalization): the row-sum normalization checked only for Kind Positive
 # again (the old behaviour); the D3 canary must catch it
-mutant d3_positive_only stoch.c 's/        if (dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1"/        if (!strcmp(L->kind, "Positive") \&\& dc_rat_cmp(sum, dc_rat(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1"/'
+mutant d3_positive_only stoch.c 's/        if (dc_q_cmp(sum, dc_q(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1"/        if (!strcmp(L->kind, "Positive") \&\& dc_q_cmp(sum, dc_q(1, 1, ovf))) { snprintf(why, ws, "row %s does not sum to 1"/'
+# M8 (D1, t-2026-11-24-mettadinc-d1-exact-rationals): int64 semantics restored in qrat.c (a result that does not
+# fit int64 sets the overflow flag instead of becoming a bignum); the D1 canary and known_d1.py must catch it
+mutant d1_int64_restored qrat.c 's/DcQBig \*bg = arena_alloc(sizeof(DcQBig) + sizeof(limb) \* (num.n + den.n));/DcQBig *bg = NULL; set_ovf(ovf, 1);/'
 [ $rc = 0 ] && echo "MUTATION CHECK PASS" || echo "MUTATION CHECK FAIL"; exit $rc

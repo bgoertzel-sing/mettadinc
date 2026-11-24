@@ -5,6 +5,10 @@ No C fixes in this task (order stop-line).
 
 ## D1 kant_disc: MeasureBehavioral with a discount answers Unsupported ("rational overflow (int64)")
 
+**Fixed** (t-2026-11-24-mettadinc-d1-exact-rationals, docs/RATIONALS.md): the stochastic paths now use exact
+arbitrary-precision rationals (src/dcalc/qrat.c). This input answers `Checked` with `(BehavioralDefect (Rat 9 10))`,
+and gate.sh asserts it (canary `D1_kant_disc_exact`). The history below is kept for reference.
+
 - File: `D1_kant_disc_int64_overflow.metta` (4 states, 2 actions, discount 9/10), shrunk from
   seed 2, case 169 of the 200-case run (5 of the 6 hits had discount 9/10, 1 had 1/2).
 - CLI: `(Status Unsupported)`, `(Reason "MeasureBehavioral: rational overflow (int64)")`.
