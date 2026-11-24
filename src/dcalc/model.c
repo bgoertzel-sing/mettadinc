@@ -705,7 +705,10 @@ static int name_frag(const DcModule *m, const char *nm) {
     for (size_t i = 2; src && i < src->n; i++) {
         const Sx *d = src->items[i];
         if (sx_head_is(d, "Import")) imp = 1;
-        if (sx_head_is(d, "Carrier") && d->n >= 2 && d->items[1]->kind == SX_SYM && !strcmp(d->items[1]->text, nm)) return 0;
+        /* review 1 finding 4: a name declared locally (Carrier, or another kind such as a Map named where a
+         * carrier is expected) is resolved by admission; an unresolved reference to it is a wrong-kind spec
+         * violation (InvalidInput), not an import fragment limit. */
+        if (!sx_head_is(d, "Import") && d->n >= 2 && d->items[1]->kind == SX_SYM && !strcmp(d->items[1]->text, nm)) return 0;
     }
     return imp;
 }

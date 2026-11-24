@@ -132,5 +132,14 @@ for f in ('real_cycle_head', 'real_cycle_bare'):
         r = rows(os.path.join(MNC, f + '.metta'), mode)
         ok = bool(r) and all(st == 'InvalidInput' and 'map-call cycle f -> g -> f' in why for st, why in r.values())
         report('map-name-cycle (%s): %s still InvalidInput "map-call cycle f -> g -> f"' % ('beyond' if mode else 'release', f), ok, r)
+# lowering-unsupported review 1 finding 1: a duplicate Enum element on a symbolic module is a spec
+# violation (InvalidInput, naming the duplicate); a gap or non-power-of-two Enum is a fragment limit (Unsupported).
+LEN = os.path.join(FXD, 'lowering_enum')
+for f, want, frag in (('sym_enum_dup', 'InvalidInput', 'duplicate element: 1'), ('sym_enum_symdup', 'InvalidInput', 'duplicate element: a'),
+                      ('sym_enum_gap', 'Unsupported', 'outside the symbolic backend fragment'), ('sym_enum_np2', 'Unsupported', 'outside the symbolic backend fragment')):
+    for mode in ([], ['--beyond-release']):
+        r = rows(os.path.join(LEN, f + '.metta'), mode)
+        ok = bool(r) and all(st == want and frag in why for st, why in r.values())
+        report('lowering enum (%s): %s -> %s "%s"' % ('beyond' if mode else 'release', f, want, frag), ok, r)
 print('review_fixes: %s (%d failing)' % ('PASS' if not fails else 'FAIL', fails))
 sys.exit(1 if fails else 0)

@@ -316,6 +316,10 @@ static int sym_read(const Sx *src, SymMod *s, char *err, size_t es) {
             } else {
                 const Sx *en = sfield(d, "Enum");      /* (Enum 0 1 ..): Nat literals 0..2^k-1 */
                 if (!en || en->n < 2) return sterr_frag(err, es, "carrier is neither (BitVector w) nor (Enum ..)", d);
+                /* review 1 finding 1: a duplicate element is a spec violation (InvalidInput), checked before any fragment limit. */
+                for (size_t a = 1; a < en->n; a++)
+                    for (size_t b = a + 1; b < en->n; b++)
+                        if (sx_equal(en->items[a], en->items[b])) return sterr(err, es, "Enum: duplicate element", en->items[b]);
                 uint64_t v, mx = 0;
                 for (size_t k = 1; k < en->n; k++) { if (!lit_of(en->items[k], &v) || v != k - 1) return sterr_frag(err, es, "Enum must be 0..n-1", d); mx = v; }
                 int w = 1; while (w < 63 && (mx >> w)) w++;
