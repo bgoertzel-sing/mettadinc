@@ -56,15 +56,17 @@ static char pending_why[256];   /* a form-specific reason for the declaration be
  * registry lists Eq, If, Not, And and Or among the Core primitives (libraries.Core.primitives) and
  * Bool among Core's builtin types.  Meaning, as in Ben's reference evaluators (docs/e0 mg_eval.py
  * World.ev, ls_eval.py, metta_eval.py):
- *   (Eq a b)        True iff a and b are the same value (literal equality; integer literals by value)
+ *   (Eq a b)        True iff a and b are the same value (literal equality; integer literals by value at
+ *                   every depth, so (Tuple 1) and (Tuple 01) are the same value)
  *   (If c a b)      a if c is True, b if c is False; only the chosen branch is evaluated
  *   (Not c)         the Boolean complement
  *   (And c1 c2 ...) True iff every ci is True;  (Or c1 c2 ...) True iff some ci is True (two or more operands)
  * Lowered only in the Crisp profile (allow_logic, set where a Crisp module's Cases body is tabulated).
  * Malformed uses (If/Eq/Not with the wrong number of arguments; an If condition or a Not/And/Or
  * operand that is not True or False) set *ok = 4, the reason in logic_why: InvalidInput.
- * And/Or with fewer than two operands, a Const name read inside one of these forms, and these forms
- * in a non-Crisp module, stay outside the fragment (*ok = 2), the form named in logic_why: Unsupported. */
+ * And/Or with fewer than two operands, a Const name read by one of these forms (anywhere in an operand
+ * it evaluates: directly, or nested in a Tuple, Add or Mul; review 1 F1), and these forms in a non-Crisp
+ * module, stay outside the fragment (*ok = 2), the form named in logic_why: Unsupported. */
 static int allow_logic;
 static const DcModule *logic_mod;   /* with allow_logic: the module (its Const declarations) */
 static char logic_why[200];         /* the reason when eval_body sets *ok to 4, or to 2 on a logic form; "" otherwise */
@@ -79,13 +81,36 @@ static int logic_head(const Sx *b) {
 }
 static const Sx *find_decl(const DcModule *m, const char *head, const char *name);
 static Sx *eval_body(const Sx *b, const Env *e, int *ok);
+static int logic_head(const Sx *b);
+/* review 1 F1: the first Const name in an operand tree, or NULL.  A nested logic form is not entered: it
+ * checks its own operands when (and only if) it is evaluated, so an untaken If branch is not read. */
+static const char *logic_const_in(const Sx *a) {
+    if (a->kind == SX_SYM) return a->text[0] != '$' && find_decl(logic_mod, "Const", a->text) ? a->text : NULL;
+    if (a->kind != SX_LIST || logic_head(a)) return NULL;
+    for (size_t i = 0; i < a->n; i++) { const char *c = logic_const_in(a->items[i]); if (c) return c; }
+    return NULL;
+}
 /* an operand of a logic form; a Const name is not resolved by this lowering (outside the fragment) */
 static Sx *logic_arg(const char *h, const Sx *a, const Env *e, int *ok) {
-    if (a->kind == SX_SYM && a->text[0] != '$' && logic_mod && find_decl(logic_mod, "Const", a->text)) {
-        logic_bad(ok, 2, "(%s ...) reads the Const %s, which the M0 lowering of %s does not resolve", h, a->text, h);
+    const char *c = logic_mod ? logic_const_in(a) : NULL;
+    if (c) {
+        logic_bad(ok, 2, "(%s ...) reads the Const %s, which the M0 lowering of %s does not resolve", h, c, h);
         return sx_sym("?");
     }
     return eval_body(a, e, ok);
+}
+/* review 1 F2: Eq's value equality, integer literals by value at every depth (the reference compares Python values) */
+static int parse_int(const Sx *x, long *out);
+static int logic_eq(const Sx *x, const Sx *y) {
+    if (x->kind != y->kind) return 0;
+    if (x->kind == SX_LIST) {
+        if (x->n != y->n) return 0;
+        for (size_t i = 0; i < x->n; i++) if (!logic_eq(x->items[i], y->items[i])) return 0;
+        return 1;
+    }
+    long a, c;
+    if (x->kind == SX_SYM && parse_int(x, &a) == 1 && parse_int(y, &c) == 1) return a == c;
+    return sx_equal(x, y);
 }
 static void logic_on(const DcModule *m) { allow_logic = !strcmp(m->profile, "Crisp"); logic_mod = m; logic_why[0] = 0; }   /* around eval_body only */
 static void logic_off(void) { allow_logic = 0; logic_mod = NULL; }
@@ -97,8 +122,7 @@ static Sx *eval_logic(const Sx *b, const Env *e, int *ok) {
         if (na != 2) { logic_bad(ok, 4, "(Eq ...) takes 2 arguments, not %zu", na); return sx_sym("?"); }
         Sx *x = logic_arg(h, b->items[1], e, ok), *y = logic_arg(h, b->items[2], e, ok);
         if (*ok != 1) { sx_free(x); sx_free(y); return sx_sym("?"); }
-        long a, c; int pa = parse_int(x, &a), pc = parse_int(y, &c);
-        int eq = pa == 1 && pc == 1 ? a == c : sx_equal(x, y);
+        int eq = logic_eq(x, y);
         sx_free(x); sx_free(y); return sx_sym(eq ? "True" : "False");
     }
     if (!strcmp(h, "If")) {

@@ -3,7 +3,7 @@
 Task t-2026-11-23-mettadinc-m0-cases-logic. Base: mettadinc main fc6bffe (merge of PR #46; contains m0-subset-reach 8ae0fa7,
 the bool-observe and type-form rebases).
 
-    python3 tests/dcalc/m0_cases_logic/run_m0_cases_logic.py      # release and --beyond-release; 155 gates
+    python3 tests/dcalc/m0_cases_logic/run_m0_cases_logic.py      # release and --beyond-release; 167 gates
     python3 tests/dcalc/m0_cases_logic/make_doc04_logic.py        # regenerates fixtures/doc04_logic.metta from doc04
 
 ## What the spec says, and the lowering
@@ -22,7 +22,7 @@ Lowering (src/dcalc/model.c, `eval_logic`, called from `eval_body`; Crisp profil
 
 | form | value |
 |---|---|
-| `(Eq a b)` | True iff a and b are the same value: literal equality of the evaluated operands (integer literals compared by value) |
+| `(Eq a b)` | True iff a and b are the same value: literal equality of the evaluated operands, integer literals compared by value at every depth (so `(Tuple 1)` equals `(Tuple 01)`, as in the reference) |
 | `(If c a b)` | the value of a if c is True, of b if c is False; only the chosen branch is evaluated |
 | `(Not c)` | the complement of c |
 | `(And c1 ... cn)`, n >= 2 | True iff every ci is True |
@@ -36,9 +36,11 @@ and (To Bool) Observe maps (through `admit_map`).
   is not True or False (spec 5.4: primitives are total on their declared input type, Bool here); If/Eq/Not with the wrong
   number of arguments; and, as before, a value outside the To carrier (e.g. a Bool where the carrier has no True/False).
 - **Unsupported** (outside the fragment; the reason names the form): And/Or with fewer than two operands (the spec does not
-  fix their arity; the reference evaluator would take them, so they are not called malformed); a Const name read inside one
-  of these forms (the lowering does not resolve Const names: the reference evaluator does, so reading the name literally
-  would give a wrong answer); these forms in a non-Crisp module (Graded).
+  fix their arity; the reference evaluator would take them, so they are not called malformed); a Const name read by one of
+  these forms, directly or nested anywhere in an operand it evaluates (inside a Tuple, Add or Mul; review 1 F1) (the
+  lowering does not resolve Const names: the reference evaluator does, so reading the name literally would give a wrong
+  answer; a nested logic form checks its own operands when it is evaluated, so a Const in an If branch that is not taken
+  is not read); these forms in a non-Crisp module (Graded).
 
 ## Gates and how each expected answer is justified
 
@@ -66,6 +68,7 @@ and (To Bool) Observe maps (through `admit_map`).
 | LG5 (CheckNow R1) | Refuted (Pair q s), Observe live | live = Eq a q as a Bool Observe port: q True, s False; both code k2. |
 | LG6 (CheckNow R) | Checked | identity code. |
 | LG6 (CheckUpdates RF) | Refuted (Pair (q p) (q q)), Action pick | code fst = (q) for both; pick (q p) = (p q), code (p); pick (q q) = (q q), code (q). |
+| LG7 (CheckNow R) | Refuted (Pair 0 1), Observe ob | ob = If (Eq (Tuple n) (Tuple 01)) yes no: 01 is the integer 1 inside the Tuple too (review 1 F2), so ob is no, yes, no; code e merges 0 and 1. A literal comparison would make ob constant and answer Checked. |
 
    LG4, LG5 and LG6 are the modules that typeform_unsupported UE, bool_observe_gates BU2 and typeform_unsupported UB used to
    show this gap as Unsupported. Those three fixtures now use Xor (outside the Crisp fragment unless the module is Neural)
@@ -82,8 +85,12 @@ and (To Bool) Observe maps (through `admit_map`).
    Subset predicate with a non-Bool If condition).
 5. **logic_unsupported.metta**: UA unary And, UB nullary Or, UC Eq reading a Const, UD If/Eq in a Graded module answer
    Unsupported, the reason naming the form; UE (Sub in a taken If branch) is a control that stays Unsupported as before.
+   UF, UG, UH (review 1 F1) read a Const nested in an operand: in a Tuple inside Eq in an Observe map (UF; read literally,
+   result 1 answered Checked where the reference, resolving ka = a, answers Refuted (Pair a b) (Observe ob)), in a Tuple
+   inside Not/Eq in a Subset predicate (UG; result 1 kept all four states where the spec meaning keeps three), and in an
+   Add inside Eq (UH). Each answers Unsupported, the reason naming the form and the Const.
 
-The gate fails on the fc6bffe binary (118 failures) and on two wrong-meaning mutants that still answer Checked/Refuted:
+The gate (result 1 numbers; result 2 in evidence/m0-cases-logic/README.md) fails on the fc6bffe binary (118 failures) and on two wrong-meaning mutants that still answer Checked/Refuted:
 If with its branches swapped (38 failures) and Or computed as And (26 failures). See evidence/m0-cases-logic/.
 
 ## Limits
@@ -95,5 +102,8 @@ If with its branches swapped (38 failures) and Or computed as And (26 failures).
   no input reaches is not reported (on plain maps; type-form maps still check operators statically).
 - **Unused maps.** A type-form map that is declared but never used is shape-checked only, as before; a malformed logic form
   in it is not reported.
+- **Const names outside these forms.** A Const name in a Cases body that no If/Eq/And/Or/Not reads (e.g. a row giving
+  `(Tuple $s ka)` directly) is still taken as the literal symbol, as at fc6bffe (pre-existing; the type-form probe T1
+  shows it); only reads by the logic forms, where a literal reading changes a comparison, are refused here.
 - **Not covered here**: Lt/Le, Sub/Div, typed map application and Const resolution in bodies stay outside the fragment;
   so do gaps (d), (f) and (g), which still block doc04 rows 43-49 (see examples_e2e/README.md finding 5).
