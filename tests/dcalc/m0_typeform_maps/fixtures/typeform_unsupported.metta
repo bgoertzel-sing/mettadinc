@@ -19,7 +19,7 @@
   (Machine M (States AA) (Observe id id) (Action pick pick))
   (Representation R (Of M) (Encode id)))
 !(dc.run UB (CheckNow R))
-;; UC: a Body map with a type form (Body maps are outside Crisp M0)
+;; UC: a Body map with a type form (was Unsupported; Checked since t-2026-11-24-mettadinc-m0-body-maps lowered Body maps)
 (DC.Module UC
   (Profile Crisp)
   (Carrier A (Of Symbol) (Enum p q))
