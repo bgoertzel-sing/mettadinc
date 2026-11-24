@@ -1,0 +1,33 @@
+# every tracked .metta outside cetta/ (255 files), each alone, release and --beyond-release; main 49c51a9 binary vs this branch's binary on the same tree (evidence/m0-typeform-maps/run_all_metta.sh); files whose output differs:
+docs_e0_docs_04_omega_memory_goals_part1_validation_bundle_memory_goals.metta.beyond.out
+docs_e0_docs_04_omega_memory_goals_part1_validation_bundle_memory_goals.metta.release.out
+docs_e0_docs_05_live_memory_part2_validation_bundle_memory_goals.metta.beyond.out
+docs_e0_docs_05_live_memory_part2_validation_bundle_memory_goals.metta.release.out
+docs_e0_docs_06_wmtm_worked_example_validation_bundle_memory_goals.metta.beyond.out
+docs_e0_docs_06_wmtm_worked_example_validation_bundle_memory_goals.metta.release.out
+tests_dcalc_examples_e2e_repro_m0_blocker_b_typeform_map.metta.beyond.out
+tests_dcalc_examples_e2e_repro_m0_blocker_b_typeform_map.metta.release.out
+tests_dcalc_m0_typeform_maps_fixtures_typeform_gates.metta.beyond.out
+tests_dcalc_m0_typeform_maps_fixtures_typeform_gates.metta.release.out
+tests_dcalc_m0_typeform_maps_fixtures_typeform_negative.metta.beyond.out
+tests_dcalc_m0_typeform_maps_fixtures_typeform_negative.metta.release.out
+tests_dcalc_m0_typeform_maps_fixtures_typeform_unsupported.metta.beyond.out
+tests_dcalc_m0_typeform_maps_fixtures_typeform_unsupported.metta.release.out
+
+# the memory_goals.metta diffs (3 copies of the same doc04 bundle): TaskResume rows, status Unsupported unchanged, reason text only
+45,48c45,48
+< (Reason "CheckNow: Representation NoReadSets is outside the M0 fragment"))
+< (Reason "CheckUpdates: Representation NoReadSets is outside the M0 fragment"))
+< (Reason "CheckBehavioral: Representation NoReadSets is outside the M2 fragment"))
+< (Reason "CheckBehavioral: Representation ReadSets is outside the M2 fragment"))
+---
+> (Reason "CheckNow: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment"))
+> (Reason "CheckUpdates: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment"))
+> (Reason "CheckBehavioral: Representation NoReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment"))
+> (Reason "CheckBehavioral: Representation ReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment"))
+
+# probe B1 (beyond)
+1c1
+< B1 (CheckNow R) => (Result (Status Unsupported) (Claim) (Binding (Module B1) (Digest "f48017d756bbf47f9bdea1b261bff3b3994c25c744cd9e0571ae7026152be837") (Subject) (Source None) (Target None) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates 
+---
+> B1 (CheckNow R) => (Result (Status Checked) (Claim (CheckNow R) (Equality Literal)) (Binding (Module B1) (Digest "f48017d756bbf47f9bdea1b261bff3b3994c25c744cd9e0571ae7026152be837") (Subject (Representation R) (Machine M)) (Source M) (Target (Tuple Symbol Symbol)) (Interface (Tolerance Exact))) (Sc
