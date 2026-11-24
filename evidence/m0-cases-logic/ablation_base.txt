@@ -1,0 +1,36 @@
+== AnchorMigration, rewritten: nothing (doc04 as written)
+   (CheckAbstractionMap NaiveMigration) Unsupported -- CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment
+   (CheckAbstractionMap CellMigration) Unsupported -- CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment
+== AnchorMigration, rewritten: bool-observe map with type-form From (live-old/live-new -> From OldAll/NewAll)
+   (CheckAbstractionMap NaiveMigration) Unsupported -- CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment
+   (CheckAbstractionMap CellMigration) Unsupported -- CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment
+== AnchorMigration, rewritten: (f) Body map lesion -> Cases
+   (CheckAbstractionMap NaiveMigration) Unsupported -- CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment
+   (CheckAbstractionMap CellMigration) Unsupported -- CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment
+== AnchorMigration, rewritten: bool-observe map with type-form From (live-old/live-new -> From OldAll/NewAll); (f) Body map lesion -> Cases
+   (CheckAbstractionMap NaiveMigration) Unsupported -- CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment
+   (CheckAbstractionMap CellMigration) Unsupported -- CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment
+== TaskResume, rewritten: nothing (doc04 as written)
+   (CheckNow NoReadSets) Unsupported -- CheckNow: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckUpdates NoReadSets) Unsupported -- CheckUpdates: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckBehavioral NoReadSets) Unsupported -- CheckBehavioral: Representation NoReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckBehavioral ReadSets) Unsupported -- CheckBehavioral: Representation ReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   ResumeMemory Unsupported -- MinimizeForQueries: Machine Resume is outside the M2 fragment
+== TaskResume, rewritten: (d) Machine Like -> ports copied
+   (CheckNow NoReadSets) Unsupported -- CheckNow: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckUpdates NoReadSets) Unsupported -- CheckUpdates: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckBehavioral NoReadSets) Unsupported -- CheckBehavioral: Representation NoReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckBehavioral ReadSets) Unsupported -- CheckBehavioral: Representation ReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   ResumeMemory Unsupported -- MinimizeForQueries: Machine Resume is outside the M2 fragment
+== TaskResume, rewritten: (f) Body map checkpoint-with-reads -> Cases
+   (CheckNow NoReadSets) Unsupported -- CheckNow: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckUpdates NoReadSets) Unsupported -- CheckUpdates: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckBehavioral NoReadSets) Unsupported -- CheckBehavioral: Representation NoReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckBehavioral ReadSets) Unsupported -- CheckBehavioral: Representation ReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   ResumeMemory Unsupported -- MinimizeForQueries: Machine Resume is outside the M2 fragment
+== TaskResume, rewritten: (d) Machine Like -> ports copied; (f) Body map checkpoint-with-reads -> Cases
+   (CheckNow NoReadSets) Unsupported -- CheckNow: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckUpdates NoReadSets) Unsupported -- CheckUpdates: Representation NoReadSets is outside the M0 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckBehavioral NoReadSets) Unsupported -- CheckBehavioral: Representation NoReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   (CheckBehavioral ReadSets) Unsupported -- CheckBehavioral: Representation ReadSets is outside the M2 fragment: Machine Resume: Observe needs-revalidation: Map needs-revalidation: Cases row 0 uses an operator outside the M0 fragment
+   ResumeMemory Unsupported -- MinimizeForQueries: Machine Resume is outside the M2 fragment

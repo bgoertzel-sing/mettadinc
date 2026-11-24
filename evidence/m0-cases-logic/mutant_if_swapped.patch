@@ -1,0 +1,4 @@
+111c111
+<         return logic_arg(h, b->items[t ? 2 : 3], e, ok);
+---
+>         return logic_arg(h, b->items[t ? 3 : 2], e, ok);
