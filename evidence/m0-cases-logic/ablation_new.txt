@@ -1,0 +1,36 @@
+== AnchorMigration, rewritten: nothing (doc04 as written)
+   (CheckAbstractionMap NaiveMigration) Unsupported -- CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From
+   (CheckAbstractionMap CellMigration) Unsupported -- CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From
+== AnchorMigration, rewritten: bool-observe map with type-form From (live-old/live-new -> From OldAll/NewAll)
+   (CheckAbstractionMap NaiveMigration) Unsupported -- CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Map lesion: a Body body on a type-form map is outside the M0 fragment, which admits Table and Cases
+   (CheckAbstractionMap CellMigration) Unsupported -- CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Map lesion: a Body body on a type-form map is outside the M0 fragment, which admits Table and Cases
+== AnchorMigration, rewritten: (f) Body map lesion -> Cases
+   (CheckAbstractionMap NaiveMigration) Unsupported -- CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From
+   (CheckAbstractionMap CellMigration) Unsupported -- CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From
+== AnchorMigration, rewritten: bool-observe map with type-form From (live-old/live-new -> From OldAll/NewAll); (f) Body map lesion -> Cases
+   (CheckAbstractionMap NaiveMigration) Refuted
+   (CheckAbstractionMap CellMigration) Checked
+== TaskResume, rewritten: nothing (doc04 as written)
+   (CheckNow NoReadSets) Unsupported -- CheckNow: Representation NoReadSets is outside the M0 fragment
+   (CheckUpdates NoReadSets) Unsupported -- CheckUpdates: Representation NoReadSets is outside the M0 fragment
+   (CheckBehavioral NoReadSets) Unsupported -- CheckBehavioral: Representation NoReadSets is outside the M2 fragment
+   (CheckBehavioral ReadSets) Unsupported -- CheckBehavioral: Representation ReadSets is outside the M2 fragment
+   ResumeMemory Unsupported -- MinimizeForQueries: Machine Resume is outside the M2 fragment
+== TaskResume, rewritten: (d) Machine Like -> ports copied
+   (CheckNow NoReadSets) Checked
+   (CheckUpdates NoReadSets) Refuted
+   (CheckBehavioral NoReadSets) Refuted
+   (CheckBehavioral ReadSets) Unsupported -- CheckBehavioral: Representation ReadSets is outside the M2 fragment: Map checkpoint-with-reads: a Body body on a type-form map is outside the M0 fragment, which admits Table and Cases
+   ResumeMemory Checked
+== TaskResume, rewritten: (f) Body map checkpoint-with-reads -> Cases
+   (CheckNow NoReadSets) Unsupported -- CheckNow: Representation NoReadSets is outside the M0 fragment
+   (CheckUpdates NoReadSets) Unsupported -- CheckUpdates: Representation NoReadSets is outside the M0 fragment
+   (CheckBehavioral NoReadSets) Unsupported -- CheckBehavioral: Representation NoReadSets is outside the M2 fragment
+   (CheckBehavioral ReadSets) Unsupported -- CheckBehavioral: Representation ReadSets is outside the M2 fragment
+   ResumeMemory Unsupported -- MinimizeForQueries: Machine Resume is outside the M2 fragment
+== TaskResume, rewritten: (d) Machine Like -> ports copied; (f) Body map checkpoint-with-reads -> Cases
+   (CheckNow NoReadSets) Checked
+   (CheckUpdates NoReadSets) Refuted
+   (CheckBehavioral NoReadSets) Refuted
+   (CheckBehavioral ReadSets) Checked
+   ResumeMemory Checked
