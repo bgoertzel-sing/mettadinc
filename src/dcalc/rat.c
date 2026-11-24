@@ -37,3 +37,8 @@ int dc_rat_parse(const char *s, DcRat *out) {
     if (*e) return -1;
     int ovf = 0; *out = norm(p, q, &ovf); return ovf ? -1 : 0;
 }
+
+/* D1 (t-2026-11-24-mettadinc-d1-exact-rationals): the arbitrary-precision DcQ type is compiled in this
+ * translation unit, so every build that lists rat.c (src/dcalc/Makefile, the CeTTa DCALC_CORE_SRC list)
+ * gets it without a new source file in those lists.  See docs/RATIONALS.md. */
+#include "qrat.c"
