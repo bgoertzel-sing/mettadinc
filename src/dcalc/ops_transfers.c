@@ -53,7 +53,9 @@ static int tr_sys(const DcModule *m, const char *nm, TrSys *s, char *why, size_t
         const char *xn = arg1(s->d, "States"), *mn = arg1(s->d, "Methods");
         int frag = xn && mn && s->resp && decl(m, "Map", s->resp)
                    && (s->xs >= 0 || dc_name_known_elsewhere(m->source, xn)) && (s->ms >= 0 || dc_name_known_elsewhere(m->source, mn));
-        TR_FAIL(frag ? -2 : -1, "MethodSystem %s: expected (States Carrier) (Methods Carrier) (Response Map) over declared names", s->name);
+        if (frag) { char ub[160];   /* review 1 finding 3: name the form and the module's libraries */
+            TR_FAIL(-2, "MethodSystem %s: States %s / Methods %s is a carrier outside the transfer table engine fragment (libraries: %s)", s->name, xn, mn, dc_module_uses(m->source, ub, sizeof ub)); }
+        TR_FAIL(-1, "MethodSystem %s: expected (States Carrier) (Methods Carrier) (Response Map) over declared names", s->name);
     }
     for (size_t i = 0; i < m->car[s->xs].n; i++) for (size_t j = 0; j < m->car[s->ms].n; j++)
         if (!tr_resp(m, s, m->car[s->xs].elems[i], m->car[s->ms].elems[j])) TR_FAIL(-1, "MethodSystem %s: Response %s has no value at some (state, method)", s->name, s->resp);

@@ -1,0 +1,11 @@
+(DC.Module Q
+  (Profile (Dynamics Deterministic) (Values Crisp) (Carriers Symbolic))
+  (Use BitVectors)
+  (Carrier Bit (Of Nat) (Enum 0 2))
+  (Carrier Word (Of (BitVector 3)) (All))
+  (Map read0 (From Word) (To Bit) (Body ($x) (BitAt $x 0)))
+  (Map swap01 (From Word) (To Word) (Body ($x) (SwapBits $x 0 1)))
+  (Machine M (States Word) (Observe x0 read0) (Action swap swap01))
+  (Derive D (MinimizeForQueries M))
+  )
+!(dc.run Q D)

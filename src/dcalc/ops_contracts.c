@@ -89,7 +89,12 @@ static int ct_load(const DcModule *m, const char *name, CtImpl *c, char *why, si
             }
             if (!known) frag = 0;
         }
-        snprintf(why, wn, "Implementation %s: Ideal/Actual names no declared Map", name); return frag ? -2 : -1;
+        if (frag) {   /* review 1 finding 3: name the form and the module's libraries */
+            char ub[160]; const char *mn = c->ideal < 0 ? ia : aa;
+            snprintf(why, wn, "Implementation %s: Ideal/Actual Map %s is declared or imported but outside the contract table engine fragment (libraries: %s)", name, mn ? mn : "?", dc_module_uses(m->source, ub, sizeof ub));
+            return -2;
+        }
+        snprintf(why, wn, "Implementation %s: Ideal/Actual names no declared Map", name); return -1;
     }
     if (c->audit < 0) { snprintf(why, wn, "Implementation %s: Audit names no declared Carrier", name); return -1; }
     if (c->tin < 0 || c->tout < 0) { snprintf(why, wn, "Implementation %s: a distance names no declared Tolerance", name); return -1; }
