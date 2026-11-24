@@ -1,0 +1,12 @@
+diff --git a/src/dcalc/model.c b/src/dcalc/model.c
+index e8e528b..5206e71 100644
+--- a/src/dcalc/model.c
++++ b/src/dcalc/model.c
+@@ -371,6 +371,7 @@ static int admit_bool_observe_map(DcModule *m, const char *name, char *err, size
+     if (!d || d->n != 5 || !sx_head_is(d->items[3], "To") || d->items[3]->n != 2 || !sx_is_sym(d->items[3]->items[1], "Bool")) return -2;
+     allow_bool = 1; int rc = admit_map(m, d, err, es); allow_bool = 0;
+     if (rc) return -1;
++    { DcMap *mm = &m->map[m->nmap - 1]; for (size_t i = 0; i < (size_t)m->car[mm->from].n; i++) mm->table[i] = 1; }   /* MUTANT: every Bool observation True */
+     for (size_t i = 0; i < m->nskip; i++) if (!strcmp(m->skipped[i], name)) {   /* admitted now: no longer skipped */
+         memmove(m->skipped[i], m->skipped[i + 1], (m->nskip - i - 1) * sizeof m->skipped[0]); m->nskip--; break; }
+     if (m->unsupported_decls > 0) m->unsupported_decls--;

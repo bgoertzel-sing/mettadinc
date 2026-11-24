@@ -1,0 +1,17 @@
+CANARY ok   seven_state_positive
+CANARY ok   D4_con_clip
+CANARY ok   D4_con_clip_two_point
+CANARY ok   D4_tol_dist
+CANARY ok   D5_kant_classpairs
+CANARY ok   D2_obs_residual
+CANARY ok   D2_linear_arrow_obs
+CANARY ok   D6_trace_classpairs
+GATE canaries passed
+PILOT ok   diff_classify
+PILOT ok   con_classify
+PILOT ok   lin
+PILOT ok   pos
+PILOT ok   stoch_random
+PILOT ok   stoch_mixture
+PILOT ok   linear_obs
+GATE PASS

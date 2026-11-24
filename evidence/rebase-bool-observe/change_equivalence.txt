@@ -1,0 +1,4 @@
+# changed lines (+/-, no context) of the original change 8ae0fa7..26b14e3 vs the rebased change eb5a662..HEAD
+# files: 27 vs 27
+# diff of the two line lists (empty = identical):
+# end (diff exit 0)

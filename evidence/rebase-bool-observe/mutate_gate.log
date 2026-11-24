@@ -1,0 +1,10 @@
+MUTANT lin_rho_lastrow killed (3 fail lines)
+MUTANT kant_half killed (2 fail lines)
+MUTANT d4_tol_unclipped killed (2 fail lines)
+MUTANT d4_con_unclipped killed (3 fail lines)
+MUTANT d5_rep_only killed (2 fail lines)
+MUTANT d6_rep_only killed (2 fail lines)
+MUTATION CHECK PASS
+67.82user 3.08system 1:11.40elapsed 99%CPU (0avgtext+0avgdata 109444maxresident)k
+24inputs+115360outputs (2major+1367173minor)pagefaults 0swaps
+exit=0
