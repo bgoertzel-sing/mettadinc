@@ -25,7 +25,7 @@ ENTRIES = [
  (1, 'Keyed index with a statistic of the wrong machine', LM, ['(CheckStatistic EngineAsItems'], {'InvalidInput'}, 'field Item'),
  (2, 'CheckSafety via a simulation of another machine', LM, ['(CheckSafety NormFirst (Never (Shows unlawful True)) (Via StutterWeighted)'], {'InvalidInput'}, 'field Via'),
  (3, 'receipt stream that does not match its declared digest', 'TAMPERED:' + WX, ['(On RepliesGate)'], {'InvalidInput'}, 'field Digest'),
- (4, 'access policy approver rule reads the auditor session', AP, ['AccessPolicy '], {'Unsupported'}, None),
+ (4, 'access policy approver rule reads the auditor session', AP, ['AccessPolicy '], {'Refuted'}, None),   # Families admitted in release 1 (t-2026-11-24-mettadinc-families): the bug is found, no longer Unsupported
  (5, 'anti-nag passes CheckNow but fails interpretation', MG, ['AntiAsNag', 'NagForAntiNag'], {'Unsupported'}, None),
  (6, 'E2 does not transport to a policy withholding first proposals', WX, ['WMTM'], {'Unsupported'}, None),
  (7, 'Consumer accepting only some Conditional backends', MG, ['Consumer'], {'Unsupported'}, None),

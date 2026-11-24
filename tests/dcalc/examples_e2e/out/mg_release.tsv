@@ -76,9 +76,9 @@ ItemGoals	(CheckInterpretation NagFollowUps AntiNagFollowUps)	Unsupported	librar
 ItemGoals	(CheckInterpretation NagFollowUps AntiNagWaits)	Unsupported	library NatArith is outside the first release
 ItemGoals	(CheckInterpretation NagFollowUps DeadlineFollowUps)	Unsupported	library NatArith is outside the first release
 ItemGoals	(CheckInterpretation DaysFollowUps DeadlineFollowUps (Via ToDeadline))	Unsupported	library NatArith is outside the first release
-ClaimArbitration	(CheckBlockPartition LawfulWeighted (Of WeightedLaw))	Unsupported	library Families is outside the first release
-ClaimArbitration	(CheckBlockPartition LawfulNormFirst (Of NormFirstLaw))	Unsupported	library Families is outside the first release
-ClaimArbitration	(CheckBlockPartition Agreement (Of ConflictWatch))	Unsupported	library Families is outside the first release
+ClaimArbitration	(CheckBlockPartition LawfulWeighted (Of WeightedLaw))	Unsupported	request CheckBlockPartition is outside the M0 fragment
+ClaimArbitration	(CheckBlockPartition LawfulNormFirst (Of NormFirstLaw))	Unsupported	request CheckBlockPartition is outside the M0 fragment
+ClaimArbitration	(CheckBlockPartition Agreement (Of ConflictWatch))	Unsupported	request CheckBlockPartition is outside the M0 fragment
 MotivationGrid	(CheckBlockPartition SafePlain (Of PlainWatch))	Unsupported	library NatArith is outside the first release
 MotivationGrid	(CheckBlockPartition SafeFloor (Of FloorWatch))	Unsupported	library NatArith is outside the first release
 MotivationGrid	(CheckImplementation OrderSwapFloor (Grade 1 (Rat 1 2)))	Unsupported	library NatArith is outside the first release

@@ -97,6 +97,23 @@ report('neg 4c: forged sizes/proofs/successors/tests refused by replay', all(r >
 rb = '(RotateRange $x 2 39)'; assert src.count(rb) == 1
 v5 = run(src.replace(rb, '(RotateRange $x 1 39)'), 'neg5-rotate-bug').get(('FortyBits', 'OnReach'))
 report('neg 5: restored-bug source mutation changes OnReach verdict', st(L.get(('FortyBits', 'OnReach'))) == 'Checked' and st(v5) == 'Refuted', st(v5))
+# neg 5 on the access policy (reinstated with Families, t-2026-11-24-mettadinc-families; MILESTONES M3 neg 5,
+# access_policy.metta, ex2_oracle mutations M1/M2): restoring either known bug in the corrected module must
+# change its verdict from Checked to Refuted.
+AP = os.path.join(ROOT, 'docs/e0/docs/03_four_worked_examples/validation_bundles/ex2_access_policy/access_policy.metta')
+aps = open(AP).read()
+apm = ''.join(l for l in aps.splitlines(True) if not l.startswith('!(dc.run'))   # both modules, without the document's requests
+apq = '!(dc.run AccessPolicyFixed (CheckBlockPartition NoBreach (Of SoDWatch)))\n!(dc.run AccessPolicyFixed (CheckBlockPartition ClerksOnlyProved (Of ClerkWatch)))\n'
+m1a = '(approver (And (holds $u clerk $x) (Not (holds $u auditor $x))))'; assert apm.count(m1a) == 1
+m2a = '(clerk    (drop $u clerk (drop $u approver $x)))'; assert apm.count(m2a) == 1
+NB = ('AccessPolicyFixed', '(CheckBlockPartition NoBreach (Of SoDWatch))')
+CP = ('AccessPolicyFixed', '(CheckBlockPartition ClerksOnlyProved (Of ClerkWatch))')
+a0 = run(apm + apq, 'neg5-ap-fixed')
+a1 = run(apm.replace(m1a, '(approver (And (holds $u clerk $x) (Not (active $u auditor $x))))') + apq, 'neg5-ap-m1')
+a2 = run(apm.replace(m2a, '(clerk    (drop $u clerk $x))') + apq, 'neg5-ap-m2')
+report('neg 5: access policy as corrected: NoBreach, ClerksOnlyProved', st(a0.get(NB)) == 'Checked' and st(a0.get(CP)) == 'Checked', '%s %s' % (st(a0.get(NB)), st(a0.get(CP))))
+report('neg 5: mutation M1 (approver reads auditor session) refutes NoBreach', st(a1.get(NB)) == 'Refuted' and has(a1.get(NB), r'\(Path '), st(a1.get(NB)))
+report('neg 5: mutation M2 (revoking clerk keeps approver) refutes ClerksOnlyProved', st(a2.get(CP)) == 'Refuted' and st(a2.get(NB)) == 'Checked', '%s %s' % (st(a2.get(CP)), st(a2.get(NB))))
 # neg 6: no backend -> decision-diagram answers stay Conditional
 env6 = {k: v for k, v in os.environ.items() if k not in ('DCALC_CADICAL', 'DCALC_CAKE_LPR')}
 v6 = run(src, 'neg6-no-backend', env6); ss = [st(l) for l in v6.values()]

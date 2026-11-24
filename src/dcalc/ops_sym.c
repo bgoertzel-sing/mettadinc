@@ -94,6 +94,17 @@ static int sym_term(SymCtx *c, const Sx *t, SymVal *o) {
         if (j < i) return sterr(c->err, c->es, "RotateRange: empty range", t);
         *o = a; for (int k = i + 1; k <= j; k++) o->b[k] = a.b[k - 1]; o->b[i] = a.b[j]; return 0;
     }
+    if (!strcmp(h, "If") && n == 4) {   /* Core If on words: a bitwise multiplexer (Families elaboration emits it) */
+        SymVal cv;
+        if (sym_term(c, t->items[1], &cv) || to_bool(c, &cv, t->items[1])) return -1;
+        if (sym_term(c, t->items[2], &a) || sym_term(c, t->items[3], &b)) return -1;
+        if (a.w < 0 && b.w < 0) { if (a.k > 1 || b.k > 1) return sterr(c->err, c->es, "constant-only term", t); widen(&a, 1); widen(&b, 1); }
+        widen(&a, b.w); widen(&b, a.w);
+        if (a.w != b.w) return sterr(c->err, c->es, "width mismatch", t);
+        o->w = a.w;
+        for (int k = 0; k < a.w; k++) o->b[k] = dc_bdd_ite(bm, cv.b[0], a.b[k], b.b[k]);
+        return 0;
+    }
     if (!strcmp(h, "SetBit") && n == 4) {
         int i; if (sym_term(c, t->items[1], &a) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i)) return -1;
         if (sym_term(c, t->items[3], &b) || to_bool(c, &b, t->items[3])) return -1;
@@ -161,6 +172,11 @@ static int sym_ceval(const Sx *t, const char *var, uint64_t x, int W, uint64_t *
         int len = (int)(j - i + 1); uint64_t m = cmask(len), f = (a >> i) & m;
         uint64_t r = len == 1 ? f : (((f << 1) | (f >> (len - 1))) & m);
         *v = (a & ~(m << i)) | (r << i); *w = wa; return 0; }
+    if (!strcmp(h, "If") && n == 4) { uint64_t cv; int wc; EV(1, cv, wc); if (cv > 1) return -1; EV(2, a, wa); EV(3, b, wb);
+        if (wa < 0) wa = wb;
+        if (wb < 0) wb = wa;
+        if (wa != wb) return -1;
+        *v = cv ? a : b; *w = wa; if (*w > 0) *v &= cmask(*w); return 0; }
     if (!strcmp(h, "SetBit") && n == 4) { EV(1, a, wa); EV(3, b, wb); if (wa < 0 || !lit_of(t->items[2], &i) || i >= (uint64_t)wa || b > 1) return -1;
         *v = (a & ~((uint64_t)1 << i)) | (b << i); *w = wa; return 0; }
     if (!strcmp(h, "Parity") && n == 2) { EV(1, a, wa); if (wa < 0) return -1; *v = (uint64_t)__builtin_parityll(a); *w = 1; return 0; }
@@ -241,6 +257,10 @@ static int cnf_term(CCtx *x, const Sx *t, CVal *o) {
         *o = a; o->b[i] = a.b[j]; o->b[j] = a.b[i]; return 0; }
     if (!strcmp(h, "RotateRange") && n == 4) { CT(1, a); if (a.w < 0 || !IX(2, i, a.w) || !IX(3, j, a.w) || j < i) return -1;
         *o = a; for (uint64_t k = i + 1; k <= j; k++) o->b[k] = a.b[k - 1]; o->b[i] = a.b[j]; return 0; }
+    if (!strcmp(h, "If") && n == 4) { CVal cv; CT(1, cv); if (cbool(x, &cv)) return -1; CT(2, a); CT(3, b);
+        if (a.w < 0 && b.w < 0) { if (a.k > 1 || b.k > 1) return -1; cwiden(x, &a, 1); cwiden(x, &b, 1); }
+        cwiden(x, &a, b.w); cwiden(x, &b, a.w); if (a.w != b.w) return -1;
+        o->w = a.w; for (int k = 0; k < a.w; k++) o->b[k] = cnf_or(c, cnf_and(c, cv.b[0], a.b[k]), cnf_and(c, -cv.b[0], b.b[k])); return 0; }
     if (!strcmp(h, "SetBit") && n == 4) { CT(1, a); CT(3, b); if (a.w < 0 || !IX(2, i, a.w) || cbool(x, &b)) return -1;
         *o = a; o->b[i] = b.b[0]; return 0; }
     if (!strcmp(h, "Parity") && n == 2) { CT(1, a); if (a.w < 0) return -1;
@@ -272,13 +292,15 @@ static int cnf_term(CCtx *x, const Sx *t, CVal *o) {
 
 /* ---- module reader: the symbolic declarations are read from m->source ---- */
 #define SYM_NM 64
+#define SYM_MAXM 256   /* maps (Families instances are one map each) */
+#define SYM_MAXP 128   /* ports per machine (Families For entries expand to one port per element) */
 typedef struct { char name[SYM_NM]; int width; const Sx *reach; } SCar;   /* bit vector; reach != NULL: (Reach Machine (From k)) subset */
 typedef struct { char name[SYM_NM]; int from, to; const Sx *var, *body; } SMap;
 typedef struct { char name[SYM_NM]; int map; } SPort;
-typedef struct { char name[SYM_NM]; int states; SPort obs[8]; int nobs; SPort act[8]; int nact; } SMach;
+typedef struct { char name[SYM_NM]; int states; SPort obs[SYM_MAXP]; int nobs; SPort act[SYM_MAXP]; int nact; } SMach;
 typedef struct { char name[SYM_NM]; const Sx *form; } SDecl;
 typedef struct {
-    SCar car[16]; int ncar; SMap map[32]; int nmap; SMach mach[8]; int nmach;
+    SCar car[16]; int ncar; SMap map[SYM_MAXM]; int nmap; SMach mach[8]; int nmach;
     SDecl decl[32]; int ndecl;           /* Representation, BlockPartition, Reach, ... by name */
 } SymMod;
 
@@ -328,7 +350,7 @@ static int sym_read(const Sx *src, SymMod *s, char *err, size_t es) {
             }
             s->ncar++;
         } else if (!strcmp(h, "Map")) {
-            if (s->nmap == 32) return sterr(err, es, "too many maps", d);
+            if (s->nmap == SYM_MAXM) return sterr(err, es, "too many maps", d);
             SMap *mp = &s->map[s->nmap]; snprintf(mp->name, SYM_NM, "%s", nm);
             const Sx *fr = sfield(d, "From"), *to = sfield(d, "To"), *b = sfield(d, "Body");
             if (sname(fr, 1, &t) || (mp->from = sfind_car(s, t)) < 0) return sterr_name(err, es, "Map: From names no carrier", d, src, fr);
@@ -349,7 +371,7 @@ static int sym_read(const Sx *src, SymMod *s, char *err, size_t es) {
                     return sterr(err, es, "Machine: expected (Observe|Action port map)", f);
                 if (s->car[s->map[mi].from].width != s->car[M->states].width || (isact && s->car[s->map[mi].to].width != s->car[M->states].width)) return sterr(err, es, "Machine: port map has the wrong carriers", f);
                 SPort *P = isobs ? &M->obs[M->nobs] : &M->act[M->nact];
-                if ((isobs ? M->nobs : M->nact) == 8) return sterr(err, es, "too many ports", f);
+                if ((isobs ? M->nobs : M->nact) == SYM_MAXP) return sterr(err, es, "too many ports", f);
                 snprintf(P->name, SYM_NM, "%s", pn); P->map = mi;
                 if (isobs) M->nobs++; else M->nact++;
             }
@@ -401,7 +423,10 @@ static int mach_acts(SymEnv *e, const SymMod *S, const SMach *M, SymVal *av, cha
 }
 /* Forward closure of {start} under the actions, by breadth-first search on concrete
  * words; every word keeps its parent and action, so each has a reachability witness. */
-static int sym_reach(SymEnv *e, const SymVal *av, int nact, uint64_t start, RNode **out, int *nout, char *err, size_t es) {
+/* maxdepth >= 0: expand only words fewer than maxdepth actions from start (a (Budget (Unrollings k)) search).
+ * keep: on overflow return -3 with the words found so far in out and nout (a sound under-approximation of the
+ * reachable set, each word with its shortest path); otherwise -2 as before. */
+static int sym_reach(SymEnv *e, const SymVal *av, int nact, uint64_t start, int maxdepth, int keep, RNode **out, int *nout, char *err, size_t es) {
     if (e->W < 64 && (start >> e->W)) { snprintf(err, es, "initial word outside the width"); return -1; }
     size_t hc = 2 * SYM_REACH_MAX; int *ht = malloc(hc * sizeof *ht); RNode *nd = malloc(SYM_REACH_MAX * sizeof *nd);
     if (!ht || !nd) { free(ht); free(nd); snprintf(err, es, "out of memory"); return -2; }
@@ -409,24 +434,38 @@ static int sym_reach(SymEnv *e, const SymVal *av, int nact, uint64_t start, RNod
 #define RFIND(word, slot) do { slot = (size_t)(((word) * 0x9E3779B97F4A7C15ULL) >> 40) & (hc - 1); \
         while (ht[slot] >= 0 && nd[ht[slot]].w != (word)) slot = (slot + 1) & (hc - 1); } while (0)
     size_t sl; RFIND(start, sl); nd[0] = (RNode){ start, -1, -1 }; ht[sl] = 0; int n = 1;
-    for (int q = 0; q < n; q++)
+    int lend = 1, depth = 0, trunc = 0;
+    for (int q = 0; q < n; q++) {
+        if (q == lend) { depth++; lend = n; }
+        if (maxdepth >= 0 && depth >= maxdepth) { trunc = 1; break; }
         for (int a = 0; a < nact; a++) {
             uint64_t w = sv_eval(e, &av[a], nd[q].w);
             RFIND(w, sl);
             if (ht[sl] >= 0) continue;
-            if (n == SYM_REACH_MAX) { free(ht); free(nd); snprintf(err, es, "reachable set exceeds %d words", SYM_REACH_MAX); return -2; }
+            if (n == SYM_REACH_MAX) {
+                free(ht); snprintf(err, es, "reachable set exceeds %d words", SYM_REACH_MAX);
+                if (keep) { *out = nd; *nout = n; return -3; }
+                free(nd); return -2;
+            }
             nd[n] = (RNode){ w, q, a }; ht[sl] = n++;
         }
+    }
 #undef RFIND
-    free(ht); *out = nd; *nout = n; return 0;
+    free(ht); *out = nd; *nout = n; return trunc && keep ? -4 : 0;
 }
 
 /* 1: all obligations hold (BDD candidate); 0: refuted (*f); -1: invalid input (err); -2: BDD limit. */
+/* 1 when partition bp has a Successor naming action an explicitly (then Any does not cover it) */
+static int succ_named(const Sx *bp, const char *an) {
+    for (size_t k = 2; k < bp->n; k++) { const Sx *s = bp->items[k];
+        if (sx_head_is(s, "Successor") && s->n == 4 && s->items[1]->kind == SX_SYM && !strcmp(s->items[1]->text, an)) return 1; }
+    return 0;
+}
 static int sym_check_partition(SymEnv *e, const SymMod *S, const SMach *M, const SymVal *av, const Sx *bp, DcBdd C,
                                SymFail *f, char *err, size_t es) {
     DcBddMgr *bm = e->bm;
-    const char *bn[SYM_MAXB]; DcBdd B[SYM_MAXB]; uint64_t rep[SYM_MAXB]; int nb = 0, succ[SYM_MAXB][8];
-    for (int i = 0; i < SYM_MAXB; i++) for (int a = 0; a < 8; a++) succ[i][a] = -1;
+    const char *bn[SYM_MAXB]; DcBdd B[SYM_MAXB]; uint64_t rep[SYM_MAXB]; int nb = 0, succ[SYM_MAXB][SYM_MAXP];
+    for (int i = 0; i < SYM_MAXB; i++) for (int a = 0; a < SYM_MAXP; a++) succ[i][a] = -1;
     for (size_t k = 2; k < bp->n; k++) {
         const Sx *b = bp->items[k];
         if (!sx_head_is(b, "Block")) continue;
@@ -445,6 +484,12 @@ static int sym_check_partition(SymEnv *e, const SymMod *S, const SMach *M, const
         if (!sx_head_is(s, "Successor")) continue;
         if (s->n != 4 || s->items[1]->kind != SX_SYM || s->items[2]->kind != SX_SYM || s->items[3]->kind != SX_SYM)
             return sterr(err, es, "expected (Successor action from to)", s);
+        if (sx_is_sym(s->items[1], "Any")) {   /* Families constant Any: every action of the machine not named by its own Successor */
+            for (int t = 0; t < nb; t++) { if (!strcmp(bn[t], s->items[2]->text)) i = t; if (!strcmp(bn[t], s->items[3]->text)) j = t; }
+            if (i < 0 || j < 0) return sterr(err, es, "Successor names no block", s);
+            for (int t = 0; t < M->nact; t++) if (succ[i][t] < 0) succ[i][t] = j;
+            continue;
+        }
         for (int t = 0; t < M->nact; t++) if (!strcmp(M->act[t].name, s->items[1]->text)) a = t;
         for (int t = 0; t < nb; t++) { if (!strcmp(bn[t], s->items[2]->text)) i = t; if (!strcmp(bn[t], s->items[3]->text)) j = t; }
         if (a < 0 || i < 0 || j < 0) return sterr(err, es, "Successor names no action or block", s);
@@ -526,7 +571,7 @@ static int sym_replay(const SymMod *S, const SMach *M, const Sx *bp, const RNode
             uint64_t y; if (cmap(S, M->act[a].map, x, &y)) return 0;
             for (size_t k = 2; k < bp->n; k++) {
                 const Sx *sc = bp->items[k];
-                if (!sx_head_is(sc, "Successor") || sc->n != 4 || strcmp(sc->items[1]->text, M->act[a].name) || strcmp(sc->items[2]->text, bl[hi]->items[1]->text)) continue;
+                if (!sx_head_is(sc, "Successor") || sc->n != 4 || (strcmp(sc->items[1]->text, M->act[a].name) && !(sx_is_sym(sc->items[1], "Any") && !succ_named(bp, M->act[a].name))) || strcmp(sc->items[2]->text, bl[hi]->items[1]->text)) continue;
                 for (int j = 0; j < nb; j++) if (!strcmp(bl[j]->items[1]->text, sc->items[3]->text)) { int r = cblock(bl[j], y, W); if (r == 0) return 1; }
             }
         }
@@ -641,8 +686,24 @@ static int cnf_block(Cnf *c, const Sx *b, const int *vec, int W, int *lit) {
     *lit = v.b[0]; return 0;
 }
 /* goal = C(x) and (some universal obligation fails at x).  Membership is concrete. */
+/* CNF of the induction scope I at word vector v (see sym_induct): the Invariant map, else the union of the blocks. */
+static int cnf_scope(Cnf *c, const SymMod *S, const Sx *bp, const int *v, int W, int *out) {
+    const Sx *iv = sfield(bp, "Invariant");
+    if (iv) {
+        const char *in; int mi; CVal ob;
+        if (iv->n != 2 || sname(iv, 1, &in) || (mi = sfind_map(S, in)) < 0 || cnf_map(c, S, mi, v, &ob) || ob.w != 1) return -1;
+        *out = ob.b[0]; return 0;
+    }
+    int u = -c->tru;
+    for (size_t k = 2; k < bp->n; k++) {
+        int b; if (!sx_head_is(bp->items[k], "Block")) continue;
+        if (cnf_block(c, bp->items[k], v, W, &b)) return -1;
+        u = cnf_or(c, u, b);
+    }
+    *out = u; return 0;
+}
 static int sym_cnf_partition(Cnf *c, const SymMod *S, const SMach *M, const Sx *bp, const RNode *nd, int nn,
-                             int sel, int *nobl, const char **oname, int *goal) {   /* sel < 0: all obligations */
+                             int sel, int *nobl, const char **oname, int *goal, const SMach *R) {   /* R != NULL, nd == NULL: induction scope over the actions of R */   /* sel < 0: all obligations */
     int W = S->car[M->states].width, xv[SYM_MAXW], nb = 0, Bl[SYM_MAXB]; const Sx *bl[SYM_MAXB]; uint64_t rp[SYM_MAXB];
     for (int i = 0; i < W; i++) xv[i] = i + 1;
     if (cnf_init(c, W)) return -1;
@@ -650,6 +711,7 @@ static int sym_cnf_partition(Cnf *c, const SymMod *S, const SMach *M, const Sx *
     int oi = 0; const char *on = "All";
 #define OBL(name, t) do { int t_ = (t); if (sel < 0 || sel == oi) { viol = cnf_or(c, viol, t_); if (sel >= 0) on = (name); } oi++; } while (0)
     if (nd) { C = -T; for (int k = 0; k < nn; k++) { int e = T; for (int i = 0; i < W; i++) e = cnf_and(c, e, ((nd[k].w >> i) & 1) ? xv[i] : -xv[i]); C = cnf_or(c, C, e); } }
+    if (!nd && R && cnf_scope(c, S, bp, xv, W, &C)) return -1;
     for (size_t k = 2; k < bp->n; k++) {
         const Sx *b = bp->items[k];
         if (!sx_head_is(b, "Block")) continue;
@@ -671,12 +733,18 @@ static int sym_cnf_partition(Cnf *c, const SymMod *S, const SMach *M, const Sx *
         CVal y; if (cnf_map(c, S, M->act[a].map, xv, &y)) return -1;
         for (size_t k = 2; k < bp->n; k++) {
             const Sx *sc = bp->items[k]; int i = -1, j = -1, by;
-            if (!sx_head_is(sc, "Successor") || sc->n != 4 || strcmp(sc->items[1]->text, M->act[a].name)) continue;
+            if (!sx_head_is(sc, "Successor") || sc->n != 4 || (strcmp(sc->items[1]->text, M->act[a].name) && !(sx_is_sym(sc->items[1], "Any") && !succ_named(bp, M->act[a].name)))) continue;
             for (int t = 0; t < nb; t++) { if (!strcmp(bl[t]->items[1]->text, sc->items[2]->text)) i = t; if (!strcmp(bl[t]->items[1]->text, sc->items[3]->text)) j = t; }
             if (i < 0 || j < 0 || cnf_block(c, bl[j], y.b, W, &by)) return -1;
             OBL("Stability", cnf_and(c, Bl[i], -by));
         }
     }
+    if (!nd && R)   /* induction scope: every action of the reach machine keeps I */
+        for (int a = 0; a < R->nact; a++) {
+            CVal y; int iy;
+            if (cnf_map(c, S, R->act[a].map, xv, &y) || cnf_scope(c, S, bp, y.b, W, &iy)) return -1;
+            OBL("Consecution", -iy);
+        }
 #undef OBL
     *nobl = oi; *oname = on;
     *goal = cnf_and(c, C, viol);
@@ -708,8 +776,50 @@ static Sx *sym_reach_words(const RNode *nd, int nn, const SMach *R) {
     return l;
 }
 
+/* Induction scope of a BlockPartition on a reach carrier (doc03 s4.5): I = (Invariant map) when given, else the
+ * union of the blocks.  1: start in I and I closed under every action of the reach machine (*I set);
+ * 0: not inductive, *cti = least counterexample word (*cta = its action, -1 when start is outside I); <0 error. */
+static int sym_induct(SymEnv *e, const SymMod *S, const Sx *bp, const SymVal *rav, int nact, uint64_t start,
+                      DcBdd *I, uint64_t *cti, int *cta, char *err, size_t es) {
+    DcBddMgr *bm = e->bm; DcBdd J = 0; const Sx *iv = sfield(bp, "Invariant");
+    if (iv) {
+        const char *in; int mi; SymVal v;
+        if (iv->n != 2 || sname(iv, 1, &in) || (mi = sfind_map(S, in)) < 0) return sterr(err, es, "expected (Invariant map)", iv);
+        if (sym_apply(bm, S, mi, e->xv, &v, err, es)) return -1;
+        if (v.w != 1) return sterr(err, es, "the Invariant map must be Bool-valued", iv);
+        J = v.b[0];
+    } else
+        for (size_t k = 2; k < bp->n; k++) {
+            const Sx *b = bp->items[k], *bd = sx_head_is(b, "Block") && b->n == 4 ? b->items[2] : NULL;
+            if (!sx_head_is(b, "Block")) continue;
+            if (!bd || !sx_head_is(bd, "Body") || bd->n != 3 || bd->items[1]->kind != SX_LIST || bd->items[1]->n != 1 || bd->items[1]->items[0]->kind != SX_SYM)
+                return sterr(err, es, "expected (Block Name (Body ($x) predicate) representative)", b);
+            SymCtx c = { bm, bd->items[1]->items[0]->text, e->xv, e->W, err, es };
+            SymVal v; if (sym_term(&c, bd->items[2], &v) || to_bool(&c, &v, bd->items[2])) return -1;
+            J = dc_bdd_or(bm, J, v.b[0]);
+        }
+    if (!dc_bdd_eval(bm, J, start)) { *cti = start; *cta = -1; return 0; }
+    int found = 0;
+    for (int a = 0; a < nact; a++) {
+        DcBdd D = dc_bdd_and(bm, J, dc_bdd_not(bm, dc_bdd_compose(bm, J, rav[a].b)));   /* x in I, a(x) outside I */
+        uint64_t w;
+        if (dc_bdd_min_word(bm, D, &w) && (!found || w < *cti)) { *cti = w; *cta = a; found = 1; }
+    }
+    if (dc_bdd_failed(bm)) return -2;
+    if (found) return 0;
+    *I = J; return 1;
+}
 static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
-    char err[256]; const char *pn, *mn, *cn; const Sx *of = q->n == 3 ? q->items[2] : NULL;
+    char err[256]; const char *pn, *mn, *cn; const Sx *of = (q->n == 3 || q->n == 4) ? q->items[2] : NULL;
+    long budget = -1;
+    if (q->n == 4) {   /* (Budget (Unrollings k)), doc03 s4.5: the bounded search run after induction fails */
+        const Sx *bu = q->items[3]; uint64_t k;
+        if (!sx_head_is(bu, "Budget") || bu->n != 2 || bu->items[1]->kind != SX_LIST)
+            return dc_invalid(m, "CheckBlockPartition: expected (CheckBlockPartition Partition (Of Machine) (Budget ..))");
+        if (!sx_head_is(bu->items[1], "Unrollings") || bu->items[1]->n != 2 || !lit_of(bu->items[1]->items[1], &k) || k > 1000000)
+            return dc_unsupported(m, "CheckBlockPartition: only (Budget (Unrollings k)) is supported by the symbolic engine");
+        budget = (long)k;
+    }
     if (sname(q, 1, &pn) || !of || !sx_head_is(of, "Of") || sname(of, 1, &mn))
         return dc_invalid(m, "CheckBlockPartition: expected (CheckBlockPartition Partition (Of Machine))");
     const Sx *bp = sfind_decl(S, pn); int mi = sfind_mach(S, mn), ci;
@@ -719,22 +829,66 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
     if (sname(sfield(bp, "On"), 1, &cn) || (ci = sfind_car(S, cn)) < 0) return dc_invalid(m, "BlockPartition %s: (On carrier) missing", pn);
     if (S->car[ci].width != S->car[M->states].width) return dc_invalid(m, "BlockPartition %s: carrier width differs from machine states", pn);
     SymEnv E; if (senv_init(&E, S->car[ci].width)) return dc_unsupported(m, "CheckBlockPartition: out of memory");
-    SymVal av[8]; DcBdd C = 1; int nn = 0, rc; SymFail f; RNode *nd = NULL; const SMach *R = NULL;
+    SymVal av[SYM_MAXP]; DcBdd C = 1; int nn = 0, rc; SymFail f; RNode *nd = NULL; const SMach *R = NULL;
+    int partial = 0, ind = 0; SymFail fi; memset(&fi, 0, sizeof fi);
     if (mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(E.bm); return dc_invalid(m, "CheckBlockPartition: %s", err); }
     if (S->car[ci].reach) {
-        const Sx *rf = S->car[ci].reach; int ri = sfind_mach(S, rf->items[1]->text); uint64_t st; SymVal rav[8];
+        const Sx *rf = S->car[ci].reach; int ri = sfind_mach(S, rf->items[1]->text); uint64_t st; SymVal rav[SYM_MAXP];
         if (ri < 0 || !lit_of(rf->items[2]->items[1], &st)) { dc_bdd_free(E.bm); return dc_invalid(m, "carrier %s: bad (Reach Machine (From word))", cn); }
         R = &S->mach[ri];
-        if (mach_acts(&E, S, R, rav, err, sizeof err) || (rc = sym_reach(&E, rav, R->nact, st, &nd, &nn, err, sizeof err))) {
-            dc_bdd_free(E.bm); return dc_unsupported(m, "CheckBlockPartition: reach scope %s: %s", cn, err);
-        }
+        if (mach_acts(&E, S, R, rav, err, sizeof err)) { dc_bdd_free(E.bm); return dc_unsupported(m, "CheckBlockPartition: reach scope %s: %s", cn, err); }
+        rc = sym_reach(&E, rav, R->nact, st, budget >= 0 ? (int)budget : -1, 1, &nd, &nn, err, sizeof err);
+        if (rc == -3 || rc == -4) partial = rc;
+        else if (rc) { free(nd); dc_bdd_free(E.bm); return dc_unsupported(m, "CheckBlockPartition: reach scope %s: %s", cn, err); }
         C = 0; for (int k = 0; k < nn; k++) C = dc_bdd_or(E.bm, C, word_bdd(&E, nd[k].w));
+        if (partial) {
+            /* The explored words are a sound under-approximation of the scope.  Induction first (doc03 s4.5):
+             * I = the partition's Invariant, else the union of its blocks; when start lies in I and every action of
+             * the reach machine maps I into I, I contains the reach scope, and the partition checked on I holds on
+             * it.  Each representative must still be reachable (among the explored words). */
+            int repok = 1; char ei[256]; uint64_t cti = 0; int cta = -1; DcBdd I = 1;
+            for (size_t k = 2; k < bp->n; k++) {
+                const Sx *b2 = bp->items[k]; uint64_t rw;
+                if (sx_head_is(b2, "Block") && b2->n == 4 && lit_of(b2->items[3], &rw) && !dc_bdd_eval(E.bm, C, rw)) repok = 0;
+            }
+            int ir = repok ? sym_induct(&E, S, bp, rav, R->nact, st, &I, &cti, &cta, ei, sizeof ei) : 0;
+            if (ir < 0) { free(nd); dc_bdd_free(E.bm); return ir == -1 ? dc_invalid(m, "CheckBlockPartition: %s", ei) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
+            if (ir == 0 && repok) {
+                fi.obl = cta < 0 ? "Initiation" : "Consecution"; fi.wit = cti;
+                if (cta < 0) snprintf(fi.what, sizeof fi.what, "the initial word %llu is outside the induction scope", (unsigned long long)cti);
+                else snprintf(fi.what, sizeof fi.what, "action %s takes word %llu of the induction scope outside it", R->act[cta].name, (unsigned long long)cti);
+            } else if (ir == 0) { fi.obl = "Membership"; snprintf(fi.what, sizeof fi.what, "a representative is not among the explored words"); }
+            else {
+                int ri2 = sym_check_partition(&E, S, M, av, bp, I, &fi, ei, sizeof ei);
+                if (ri2 < 0) { free(nd); dc_bdd_free(E.bm); return ri2 == -1 ? dc_invalid(m, "CheckBlockPartition: %s", ei) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
+                if (ri2 > 0) { ind = 1; free(nd); nd = NULL; nn = 0; C = I; }
+            }
+        }
     }
     rc = sym_check_partition(&E, S, M, av, bp, C, &f, err, sizeof err);
     size_t nodes = dc_bdd_nodes(E.bm); dc_bdd_free(E.bm);
     sym_res_words = nn + (rc == 0); sym_res_nodes = nodes;
     for (size_t k = 2; k < bp->n; k++) if (sx_head_is(bp->items[k], "Block")) sym_res_words++;
     if (rc < 0) { free(nd); return rc == -1 ? dc_invalid(m, "CheckBlockPartition: %s", err) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
+    if (partial && !ind && rc > 0) {   /* not inductive, and no violation among the explored words */
+        free(nd);
+        char wb[32]; snprintf(wb, sizeof wb, "%llu", (unsigned long long)fi.wit);
+        if (budget < 0)
+            return dc_unsupported(m, "CheckBlockPartition: reach scope %s: reachable set exceeds %d words; the partition is not inductive on all words (%s at word %s) and the %d explored words show no violation",
+                                  cn, SYM_REACH_MAX, fi.obl ? fi.obl : "?", wb, nn);
+        DcScope sc = { "M3-SymbolicBitVector", -1, "", NULL };
+        char kb[32], nb2[32]; snprintf(kb, sizeof kb, "%ld", budget); snprintf(nb2, sizeof nb2, "%d", nn);
+        Sx *claim = dc_form("Claim", sx_copy(q), NULL);
+        Sx *subj = dc_form("Subject", dc_form("BlockPartition", dc_sym(pn), NULL), dc_form("Machine", dc_sym(mn), NULL), NULL);
+        Sx *val = dc_form("Value", dc_form("Partition", dc_sym(pn), NULL), NULL);
+        Sx *ev = dc_form("Evidence", dc_form("CounterexampleToInduction", dc_form("Word", dc_sym(wb), NULL),
+                         dc_form("Obligation", dc_sym(fi.obl ? fi.obl : "?"), NULL), dc_form("Detail", sx_str(fi.what), NULL), NULL),
+                         dc_form("Search", dc_form("Unrollings", dc_sym(kb), NULL), dc_form("Configurations", dc_sym(nb2), NULL),
+                                 dc_form("Complete", dc_sym(partial == -4 ? "True" : "False"), NULL), NULL), NULL);
+        return dc_envelope_scoped(m, VERDICT_HOLDS, 0, claim, subj, val, ev,
+                                  partial == -4 ? "no counterexample within the unrollings of the budget; the partition is not inductive"
+                                                : "the search stopped at the word limit before the budget; the partition is not inductive", &sc);
+    }
     /* obligation digest: partition text, machine, scope words */
     char *bt = sx_print(bp); size_t cap = strlen(bt) + 128 + (size_t)nn * 24, len; char *buf = malloc(cap), dg[65];
     len = (size_t)snprintf(buf, cap, "%s|%s|%s", bt, mn, nd ? "reach" : "all");
@@ -745,15 +899,42 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
     Sx *subj = dc_form("Subject", dc_form("BlockPartition", dc_sym(pn), NULL), dc_form("Machine", dc_sym(mn), NULL), NULL);
     char nb[32]; snprintf(nb, sizeof nb, "%zu", nodes);
     Sx *res;
+    Sx *wpath = NULL;
+    if (partial && rc == 0) {   /* partial scope: report the violation nearest the start, the first explored word in breadth-first order */
+        static const char *const OB[] = { "Coverage", "Disjointness", "Constancy", "Stability", 0 };
+        int hitk = -1;
+        for (int k = 0; k < nn && hitk < 0; k++)
+            for (int o = 0; OB[o]; o++) {
+                SymFail g = f; g.obl = OB[o]; g.wit = nd[k].w;
+                if (sym_replay(S, M, bp, NULL, 0, &g)) { f = g; hitk = k; break; }
+            }
+        if (hitk >= 0) {
+            int dp = 0; for (int k = hitk; nd[k].parent >= 0; k = nd[k].parent) dp++;
+            int *pa = malloc((size_t)(dp + 1) * sizeof *pa), i = dp;
+            for (int k = hitk; nd[k].parent >= 0; k = nd[k].parent) pa[--i] = nd[k].act;
+            wpath = dc_form("Path", NULL);
+            for (int k = 0; k < dp; k++) sx_push(wpath, dc_sym(R->act[pa[k]].name));
+            free(pa);
+            const char *lv = NULL;
+            if (!strcmp(f.obl, "Stability")) {   /* name the action that takes the word out of its block */
+                static SMach M1;
+                for (int x = 0; x < M->nact && !lv; x++) { M1 = *M; M1.nact = 1; M1.act[0] = M->act[x]; if (sym_replay(S, &M1, bp, NULL, 0, &f)) lv = M->act[x].name; }
+            }
+            if (lv) snprintf(f.what, sizeof f.what, "word %llu, %d actions from the start, violates Stability: action %s leaves its block", (unsigned long long)f.wit, dp, lv);
+            else snprintf(f.what, sizeof f.what, "word %llu, %d actions from the start, violates %s", (unsigned long long)f.wit, dp, f.obl);
+        }
+    }
     if (rc == 0) {
         char wb[32]; snprintf(wb, sizeof wb, "%llu", (unsigned long long)f.wit);
         Sx *val = dc_form("Value", dc_form("Refuted", dc_form("Obligation", dc_sym(f.obl), NULL), dc_form("Witness", dc_sym(wb), NULL), NULL), NULL);
         Sx *ev = dc_form("Evidence", dc_form("Witness", dc_form("Word", dc_sym(wb), NULL), dc_form("Obligation", dc_sym(f.obl), NULL), dc_form("Detail", sx_str(f.what), NULL), NULL), NULL);
+        if (wpath) sx_push(ev->items[1], wpath);
         int rep_ok = sym_replay(S, M, bp, nd, nn, &f);   /* concrete evaluator, no BDDs */
         res = dc_envelope_scoped(m, VERDICT_FAILS, rep_ok, claim, subj, val, ev, rep_ok ? NULL : "witness did not replay on the concrete evaluator", &sc);
     } else {
         Sx *val = dc_form("Value", dc_form("Partition", dc_sym(pn), NULL), NULL);
         if (nd) sx_push(val, dc_form("ReachScope", dc_sym(cn), sym_reach_words(nd, nn, R), NULL));
+        else if (ind) sx_push(val, dc_form("ReachScope", dc_sym(cn), dc_form("Inductive", sfield(bp, "Invariant") ? sx_copy(sfield(bp, "Invariant")) : dc_sym("UnionOfBlocks"), NULL), NULL));
         Sx *ev = dc_form("Evidence", dc_form("Certificate", dc_form("Kind", dc_sym("SymbolicPartition"), NULL),
                          dc_form("ObligationDigest", sx_str(dg), NULL), dc_form("BddNodes", dc_sym(nb), NULL), NULL), NULL);
         {   /* symbolic-partition certificate fields (Table 1): block predicates + representatives, successor map, invariant, reach words */
@@ -774,7 +955,7 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
         for (int ob = 0; ob < nob && pr == 1; ob++) {
             const char *on = "?"; int r1;
             memset(&cn, 0, sizeof cn);
-            if (sym_cnf_partition(&cn, S, M, bp, nd, nn, ob, &nob, &on, &goal) != 0) { pr = -1; snprintf(why, sizeof why, "CNF generation failed"); }
+            if (sym_cnf_partition(&cn, S, M, bp, nd, nn, ob, &nob, &on, &goal, ind ? R : NULL) != 0) { pr = -1; snprintf(why, sizeof why, "CNF generation failed"); }
             else if ((r1 = sym_prove(&cn, goal, pdg, why, sizeof why)) != 1) pr = r1;
             else sx_push(proofs, dc_form("Proof", dc_form("Obligation", dc_sym(on), dc_int(ob), NULL), dc_form("CnfSha256", sx_str(pdg), NULL), NULL));
             cnf_free(&cn);
@@ -1005,7 +1186,7 @@ static void lin_add(LBasis *L, uint64_t v) {
 }
 /* NULL when the machine is not linear; *ok = identities replayed and 2^k == ncl. */
 static Sx *sym_linear(const SymMod *S, const SMach *M, int ncl, int *ok) {
-    static LVal act[8], obs[8]; static LBasis L; int W = S->car[M->states].width; char hb[32];
+    static LVal act[SYM_MAXP], obs[SYM_MAXP]; static LBasis L; int W = S->car[M->states].width; char hb[32];
     *ok = 0;
     for (int a = 0; a < M->nact; a++) if (lin_map(S, M->act[a].map, &act[a])) return NULL;
     for (int p = 0; p < M->nobs; p++) if (lin_map(S, M->obs[p].map, &obs[p])) return NULL;
@@ -1076,7 +1257,7 @@ static int sup_map(const SymMod *S, int mi, MVal *o) {
     return o->w == S->car[mp->to].width ? 0 : -1;
 }
 static Sx *sym_cone(const SymMod *S, const SMach *M) {
-    static MVal act[8]; MVal ob; uint64_t cone = 0, prev; int W = S->car[M->states].width;
+    static MVal act[SYM_MAXP]; MVal ob; uint64_t cone = 0, prev; int W = S->car[M->states].width;
     for (int p = 0; p < M->nobs; p++) { if (sup_map(S, M->obs[p].map, &ob)) return NULL; for (int q = 0; q < ob.w; q++) cone |= ob.m[q]; }
     for (int a = 0; a < M->nact; a++) if (sup_map(S, M->act[a].map, &act[a])) return NULL;
     do { prev = cone;
@@ -1096,7 +1277,7 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     const SMach *M = &S->mach[mi];
     if (S->car[M->states].reach) return dc_unsupported(m, "%s: a machine on a reach carrier is outside this step of M3", h);
     SymEnv E; if (senv_init(&E, S->car[M->states].width)) return dc_unsupported(m, "%s: out of memory", h);
-    DcBddMgr *bm = E.bm; SymVal av[8], ob[8];
+    DcBddMgr *bm = E.bm; SymVal av[SYM_MAXP], ob[SYM_MAXP];
     static STest T[SYM_MAXT]; DcBdd cl[SYM_MAXCL]; int nt = 0, ncl = 1, rc = 0; cl[0] = 1;
     if (mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
     rc = sym_refine(bm, S, M, av, ob, E.xv, T, &nt, cl, &ncl, err, sizeof err);
@@ -1229,7 +1410,7 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
     int ew = S->car[S->map[ei].to].width;
     if (ew > 12) return dc_unsupported(m, "%s: an encoding wider than 12 bits is outside this step of M3", h);
     SymEnv E; if (senv_init(&E, S->car[M->states].width)) return dc_unsupported(m, "%s: out of memory", h);
-    DcBddMgr *bm = E.bm; SymVal enc, av[8], ob[8]; static STest T[SYM_MAXT]; DcBdd cl[SYM_MAXCL]; int nt = 0, ncl = 1, rc = 0;
+    DcBddMgr *bm = E.bm; SymVal enc, av[SYM_MAXP], ob[SYM_MAXP]; static STest T[SYM_MAXT]; DcBdd cl[SYM_MAXCL]; int nt = 0, ncl = 1, rc = 0;
     if (sym_apply(bm, S, ei, E.xv, &enc, err, sizeof err) || mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
     if (beh) rc = sym_refine(bm, S, M, av, ob, E.xv, T, &nt, cl, &ncl, err, sizeof err);
     else for (int p = 0; p < M->nobs && !rc; p++) if (sym_apply(bm, S, M->obs[p].map, E.xv, &ob[p], err, sizeof err)) rc = -2;
@@ -1370,7 +1551,7 @@ static Sx *sym_req_clock_rates(DcRun *r, const SymMod *S, const Sx *q) {
     int W = S->car[M->states].width;
     if (W < 1 || W > 52) return dc_unsupported(m, "%s: word width %d outside 1..52 (exact counting)", h, W);
     SymEnv E; if (senv_init(&E, W)) return dc_unsupported(m, "%s: out of memory", h);
-    DcBddMgr *bm = E.bm; SymVal av[8], ob[8];
+    DcBddMgr *bm = E.bm; SymVal av[SYM_MAXP], ob[SYM_MAXP];
     static STest T[SYM_MAXT]; DcBdd cl[SYM_MAXCL]; int nt = 0, ncl = 1; cl[0] = 1;
     if (mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
     int rc = sym_refine(bm, S, M, av, ob, E.xv, T, &nt, cl, &ncl, err, sizeof err);

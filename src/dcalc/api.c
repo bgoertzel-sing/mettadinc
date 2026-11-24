@@ -3,6 +3,7 @@
 #include "ops.h"
 #include "binding.h"
 #include "admit.h"
+#include "families.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -187,7 +188,10 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
         DcModule *m = calloc(1, sizeof *m); char err[512];
         Sx *inl = g_beyond ? m6_inline_imports(all, raw) : NULL;   /* M6 opt-in */
         if (!inl && g_beyond) inl = m7_expand(all, raw);   /* M7 opt-in */
-        if (dc_admit(inl ? inl : raw, m, err, sizeof err) != 0) {
+        char fw[512] = ""; int frc = 0;
+        if (!inl) frc = dc_families_expand(all, raw, &inl, fw, sizeof fw);   /* Families (release 1): source-level elaboration */
+        if (frc == -2) res = bare("Unsupported", mn, fw);
+        else if (dc_admit(inl ? inl : raw, m, err, sizeof err) != 0) {
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
             dc_module_free(m);   /* review 2 F6: release partially admitted carrier tables */
         }
