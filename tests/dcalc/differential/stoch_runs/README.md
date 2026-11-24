@@ -16,3 +16,6 @@ The first report's "24" is random seed 2 (6) plus mixture seed 3 (18). Seeds 1 w
 Each of the 50 disagreements was re-run through `dcalc --beyond-release`, and every one answers Unsupported
 "rational overflow (int64)" where the oracle gives an exact Checked value (D1). The other 5 kinds (bisim,
 trace classes, linear dimension, Kantorovich horizon, check trace) give 0 disagreements in all four runs.
+
+D1 fixed (t-2026-11-24-mettadinc-d1-exact-rationals): all 50 inputs now give the oracle value exactly.
+`known_d1.py --stored` re-runs them in gate.sh (pilot `stoch_d1_stored`) and fails on any mismatch or overflow.

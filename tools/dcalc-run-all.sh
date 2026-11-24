@@ -25,6 +25,7 @@ step() { echo "== $*"; }
 R="python3 tools/dcalc_res.py"; rm -f build/dcalc-resources.tsv
 step build;            $R build "cd src/dcalc && make -s CC='$CC'" || exit 1
 step test_boundaries;  $R test_boundaries "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/test_boundaries.c build/dcalc/libdcalc.a -lm -o build/dcalc/test_boundaries && { build/dcalc/test_boundaries > build/test_boundaries.out; r=\$?; tail -1 build/test_boundaries.out; exit \$r; }" || rc=1
+step qrat;             $R qrat "$CC -std=c11 -Wall -Wextra -O2 -Isrc/dcalc tests/dcalc/qrat/qrat_driver.c src/dcalc/qrat.c -o build/dcalc/qrat_driver && python3 tests/dcalc/qrat/test_qrat.py build/dcalc/qrat_driver" || rc=1   # D1 bignum unit test (t-2026-11-24-mettadinc-d1-exact-rationals)
 step check_claims;     $R check_claims "python3 tests/dcalc/check_claims.py > build/check_claims.out; r=\$?; tail -4 build/check_claims.out; exit \$r" || rc=1
 step negative_suite;   $R negative_suite "python3 tests/dcalc/negative/run_negative.py" || rc=1
 step refuted_abs;      $R refuted_abs "sh tests/dcalc/refuted_abs/run_refuted_abs.sh" || rc=1

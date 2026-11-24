@@ -40,6 +40,12 @@ if printf '%s\n' "$o" | grep -qE 'Status Refuted.*Claim \(CheckLinearArrow L\).*
    && printf '%s\n' "$o" | grep -qE 'Status Checked.*Claim \(CheckLinearArrow E\).*LinearArrow Signed \(Valid True\) \(Grade \(Lambda 1\) \(Rho 0\)\)' \
    && ! printf '%s\n' "$o" | grep -qE 'Status Checked.*Claim \(CheckLinearArrow L\)'; then
   echo "CANARY ok   D3_signed_arrow_normalization"; else echo "CANARY FAIL D3_signed_arrow_normalization"; fail=1; fi
+# D1 fixed (t-2026-11-24-mettadinc-d1-exact-rationals): the stochastic paths use exact arbitrary-precision
+# rationals (src/dcalc/qrat.c), so the shrunk D1 input is Checked with defect 9/10 (spec answer), no overflow.
+o=$(timeout 60 "$DC" --beyond-release $H/disagreements/D1_kant_disc_int64_overflow.metta 2>&1)
+if printf '%s\n' "$o" | grep -qE 'Status Checked.*Claim \(MeasureBehavioral Merge \(Discount \(Rat 9 10\)\)\).*Value \(BehavioralDefect \(Rat 9 10\)\)' \
+   && ! printf '%s\n' "$o" | grep -qE 'rational overflow|exact rational limit'; then
+  echo "CANARY ok   D1_kant_disc_exact"; else echo "CANARY FAIL D1_kant_disc_exact"; fail=1; fi
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
 echo "GATE canaries passed"
 # 2. Pilots (small, fixed seeds). Every disagreement must be a listed D-id, else the gate fails.
@@ -57,9 +63,11 @@ pilot lin           python3 $H/run_lin.py --seed 7 --count 200 --out "$OUT/lin" 
 pilot pos           python3 $H/run_pos.py --seed 7 --count 20 --out "$OUT/pos" --dcalc "$DC"
 # review 1 F6: stochastic (D1 path, check trace, mixture family) and run_linear obs family are gated too
 python3 $H/run_stoch.py --seed 7 --count 20 --family random  --cli "$DC" --out "$OUT/stoch_r" > "$OUT/stoch_r.run.log" 2>&1
-pilot stoch_random  python3 $H/known_d1.py "$OUT/stoch_r.run.log" "$DC"
+pilot stoch_random  python3 $H/known_d1.py "$OUT/stoch_r.run.log" "$DC" "$OUT/stoch_r"
 python3 $H/run_stoch.py --seed 7 --count 20 --family mixture --cli "$DC" --out "$OUT/stoch_m" > "$OUT/stoch_m.run.log" 2>&1
-pilot stoch_mixture python3 $H/known_d1.py "$OUT/stoch_m.run.log" "$DC"
+pilot stoch_mixture python3 $H/known_d1.py "$OUT/stoch_m.run.log" "$DC" "$OUT/stoch_m"
+# D1 hard check: the 50 stored overflow inputs must give the oracle value exactly
+pilot stoch_d1_stored python3 $H/known_d1.py --stored $H/stoch_runs "$DC"
 pilot linear_obs    python3 $H/run_linear.py --seed 7 --count 50 --family obs --cli "$DC" --out "$OUT/linear_obs"
 [ $fail = 0 ] || { echo "GATE FAIL (pilot)"; exit 1; }
 echo "GATE PASS"

@@ -25,3 +25,5 @@ tests: $(BUILD)/m3_incremental $(BUILD)/screen_m3 $(BUILD)/tv_m3
 clean:
 	rm -rf $(BUILD)
 .PHONY: all clean tests
+# D1: rat.c #includes qrat.c (one translation unit), so rebuild rat.o when qrat.c changes
+$(BUILD)/rat.o: qrat.c
