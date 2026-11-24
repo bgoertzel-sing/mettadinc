@@ -50,6 +50,8 @@ def classify(rid, mode, st, reason, doc):
     dw = re.match(ST + '|Estimated', doc)
     dw = dw.group(0) if dw else ''
     if st == dw: return 'match' + (' (negative fixture)' if st == 'InvalidInput' else '')
+    if doc.startswith('value:') and st in ('Checked', 'Refuted'):
+        return 'VALUE: the document gives a value, not a status word; dcalc answers %s, the value itself is not compared' % st
     if mode == 'release' and st == 'Unsupported' and rid in MS:
         return 'match: doc03 s2.6 says %s is a %s target, Unsupported in the first release' % (rid, MS[rid])
     if st == 'Unsupported' and 'backend fragment' in reason:

@@ -43,11 +43,11 @@ EvidenceMemory	AnchorMemory	Unsupported	library NatArith is outside the first re
 EvidenceMemory	FullMemory	Unsupported	library NatArith is outside the first release
 AnchorMigration	(CheckAbstractionMap NaiveMigration)	Unsupported	CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From
 AnchorMigration	(CheckAbstractionMap CellMigration)	Unsupported	CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From
-TaskResume	(CheckNow NoReadSets)	Unsupported	CheckNow: Representation NoReadSets is outside the M0 fragment
-TaskResume	(CheckUpdates NoReadSets)	Unsupported	CheckUpdates: Representation NoReadSets is outside the M0 fragment
-TaskResume	(CheckBehavioral NoReadSets)	Unsupported	CheckBehavioral: Representation NoReadSets is outside the M2 fragment
-TaskResume	(CheckBehavioral ReadSets)	Unsupported	CheckBehavioral: Representation ReadSets is outside the M2 fragment
-TaskResume	ResumeMemory	Unsupported	MinimizeForQueries: Machine Resume is outside the M2 fragment
+TaskResume	(CheckNow NoReadSets)	Checked	
+TaskResume	(CheckUpdates NoReadSets)	Refuted	
+TaskResume	(CheckBehavioral NoReadSets)	Refuted	
+TaskResume	(CheckBehavioral ReadSets)	Checked	
+TaskResume	ResumeMemory	Checked	
 ItemGoals	ReplyMemory	Unsupported	library NatArith is outside the first release
 ItemGoals	NagMemory	Unsupported	library NatArith is outside the first release
 ItemGoals	TriageMemory	Unsupported	library NatArith is outside the first release
