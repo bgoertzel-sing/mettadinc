@@ -51,7 +51,7 @@ def witness_ok(g, st, w):
 
 GATES = os.path.join(FXD, 'logic_gates.metta')
 rp, ref = reference(GATES)
-report('reference evaluator ran on logic_gates.metta (docs/e0 mg_eval + dclib) and answered all 32 requests', rp.returncode == 0 and len(ref) == 32, rp.stderr[-300:])
+report('reference evaluator ran on logic_gates.metta (docs/e0 mg_eval + dclib) and answered all 34 requests', rp.returncode == 0 and len(ref) == 34, rp.stderr[-300:])
 # doc04 with logic bodies verbatim: the generator's output is the committed fixture
 DOC = os.path.join(FXD, 'doc04_logic.metta')
 gen = subprocess.run([sys.executable, os.path.join(HERE, 'make_doc04_logic.py')], capture_output=True, text=True, timeout=60).stdout
@@ -86,6 +86,10 @@ UNS = {
     'UC (CheckNow R)': 'Map ob: Cases row 0: (Eq ...) reads the Const ka',
     'UD (CheckNow R)': 'Map ob: Cases row 0: (If ...) in a Cases body is lowered only in a Crisp module, not in profile Graded',
     'UE (CheckNow R)': 'Representation R is outside the M0 fragment',
+    # review 1 F1: Const names nested in an operand (Tuple, Add) are not read literally
+    'UF (CheckNow R)': 'Map ob: Cases row 0: (Eq ...) reads the Const ka',
+    'UG (CheckNow R)': 'Carrier T: Subset predicate keep: (Eq ...) reads the Const kp',
+    'UH (CheckNow R)': 'Map ob: Cases row 0: (Eq ...) reads the Const kn',
 }
 for mode in ([], ['--beyond-release']):
     tag = ' [%s]' % (mode[0] if mode else 'release')
