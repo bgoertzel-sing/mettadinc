@@ -45,10 +45,16 @@ static int in_car(const DcModule *m, int c, const Sx *v) { for (size_t i = 0; v 
 #define TR_FAIL(rc, ...) do { snprintf(why, wn, __VA_ARGS__); return rc; } while (0)
 static int tr_sys(const DcModule *m, const char *nm, TrSys *s, char *why, size_t wn) {
     memset(s, 0, sizeof *s); s->d = decl(m, "MethodSystem", nm);
-    if (!s->d) TR_FAIL(-1, "%s names no declared MethodSystem", nm ? nm : "?");
+    if (!s->d) TR_FAIL(dc_name_imported(m->source, nm) ? -2 : -1, "%s names no declared MethodSystem%s", nm ? nm : "?", dc_name_imported(m->source, nm) ? " (imported via Only; the import inliner copies only Carrier/Map/Tolerance)" : "");
     s->name = s->d->items[1]->text; s->resp = arg1(s->d, "Response");
     if ((s->xs = dc_find_carrier(m, arg1(s->d, "States") ? arg1(s->d, "States") : "")) < 0 || (s->ms = dc_find_carrier(m, arg1(s->d, "Methods") ? arg1(s->d, "Methods") : "")) < 0 || !s->resp || !decl(m, "Map", s->resp))
-        TR_FAIL(-1, "MethodSystem %s: expected (States Carrier) (Methods Carrier) (Response Map) over declared names", s->name);
+    {   /* lowering-unsupported: States/Methods that name a Carrier declared in the source (or a builtin/imported
+         * name) which the table engine skipped are a fragment limit (Unsupported); undeclared names stay InvalidInput. */
+        const char *xn = arg1(s->d, "States"), *mn = arg1(s->d, "Methods");
+        int frag = xn && mn && s->resp && decl(m, "Map", s->resp)
+                   && (s->xs >= 0 || dc_name_known_elsewhere(m->source, xn)) && (s->ms >= 0 || dc_name_known_elsewhere(m->source, mn));
+        TR_FAIL(frag ? -2 : -1, "MethodSystem %s: expected (States Carrier) (Methods Carrier) (Response Map) over declared names", s->name);
+    }
     for (size_t i = 0; i < m->car[s->xs].n; i++) for (size_t j = 0; j < m->car[s->ms].n; j++)
         if (!tr_resp(m, s, m->car[s->xs].elems[i], m->car[s->ms].elems[j])) TR_FAIL(-1, "MethodSystem %s: Response %s has no value at some (state, method)", s->name, s->resp);
     return 0;
@@ -71,6 +77,7 @@ static int tr_metric(const Sx *q, size_t from) {
     int met = 0;
     for (size_t i = from; i < q->n; i++) {
         const Sx *o = q->items[i];
+        if (sx_head_is(o, "Within") && o->n == 2) return -3;   /* lowering-unsupported: tolerance option not implemented */
         if (!sx_head_is(o, "Metric") || o->n != 2 || o->items[1]->kind != SX_SYM) return -1;
         if (!strcmp(o->items[1]->text, "RewardLawTV")) met = 0; else if (!strcmp(o->items[1]->text, "ExpectedReward")) met = 1; else return -2;
     }
@@ -95,6 +102,7 @@ static Sx *tr_check(DcRun *r, const Sx *q) {
     int met = tr_metric(q, 2);
     if (met == -1) return dc_invalid(m, "CheckTransfer: options must be (Metric Name)");
     if (met == -2) return dc_unsupported(m, "CheckTransfer: only the RewardLawTV and ExpectedReward metrics are evaluated");
+    if (met == -3) return dc_unsupported(m, "CheckTransfer: the (Within d) tolerance option is not implemented (library Transfers)");   /* lowering-unsupported */
     TR_LOAD("CheckTransfer")
     const DcCarrier *XB = &m->car[t.b.xs], *MA = &m->car[t.a.ms];
     /* observers declared on the target must be preserved */
@@ -180,7 +188,9 @@ static Sx *tr_compose(DcRun *r, const Sx *q) {
         const Sx *x = q->items[i];
         if (!sx_head_is(x, "Output") || x->n != 3 || x->items[1]->kind != SX_SYM || !sx_is_sym(x->items[2], "Transfer")) return dc_invalid(m, "ComposeTransfers: premise %zu is not (Output Derive Transfer)", i);
         int d = dc_find_derive(m, x->items[1]->text);
-        if (d < 0) return dc_invalid(m, "ComposeTransfers: %s names no declared Derive", x->items[1]->text);
+        if (d < 0) return dc_name_imported(m->source, x->items[1]->text)
+            ? dc_unsupported(m, "ComposeTransfers: %s is an imported Derive; the import inliner copies only Carrier/Map/Tolerance (libraries Transfers, Contracts)", x->items[1]->text)
+            : dc_invalid(m, "ComposeTransfers: %s names no declared Derive", x->items[1]->text);
         const Sx *res = dc_run_derive(r, d);
         if (!res) return dc_invalid(m, "ComposeTransfers: Derive %s: cyclic reference", x->items[1]->text);
         DcStatus st = dc_result_status(res);
@@ -189,12 +199,14 @@ static Sx *tr_compose(DcRun *r, const Sx *q) {
         if (!rqq || !sx_head_is(rqq, "CheckTransfer")) return dc_invalid(m, "ComposeTransfers: premise %s is not a CheckTransfer", x->items[1]->text);
         if (st != DC_CHECKED) return dc_invalid(m, "ComposeTransfers: premise %s is %s, not Checked (a value-pullback or refuted transfer is not accepted)", x->items[1]->text, dc_status_name(st));
         int pm = tr_metric(rqq, 2); DcRat dv;
+        if (pm == -3) return dc_unsupported(m, "ComposeTransfers: premise %s uses the (Within d) option, not implemented (library Transfers)", x->items[1]->text);   /* lowering-unsupported */
         if (met >= 0 && pm != met) return dc_unsupported(m, "ComposeTransfers: premises use different metrics");
         met = pm;
         const Sx *df = kid(kid(res, "Value"), "Defect");
         if (!df || df->n != 2 || dc_sx_rat(df->items[1], &dv)) return dc_invalid(m, "ComposeTransfers: premise %s carries no (Value (Defect d))", x->items[1]->text);
         sum = dc_rat_add(sum, dv, &ovf);
         int rc = tr_load(m, rqq->items[1], &t[k], why, sizeof why);
+        if (rc == -2) return dc_unsupported(m, "ComposeTransfers: %s", why);   /* lowering-unsupported */
         if (rc) return dc_invalid(m, "ComposeTransfers: %s", why);
         if (k && strcmp(t[k - 1].b.name, t[k].a.name)) return dc_invalid(m, "ComposeTransfers: %s ends at %s but %s starts at %s", t[k - 1].name, t[k - 1].b.name, t[k].name, t[k].a.name);
     }
@@ -267,7 +279,9 @@ static Sx *tr_hive(DcRun *r, const Sx *q) {
         if (x->n != 2 || x->items[1]->kind != SX_SYM) return dc_invalid(m, "CheckTransferHive %s: expected (Member MethodSystem)", hn);
         if (nm >= TH_MAXM) return dc_unsupported(m, "CheckTransferHive %s: more than %d members", hn, TH_MAXM);
         ThMem *M = &th_m[nm];
-        if (tr_sys(m, x->items[1]->text, &M->sys, why, sizeof why)) return dc_invalid(m, "CheckTransferHive %s: %s", hn, why);
+        { int trc = tr_sys(m, x->items[1]->text, &M->sys, why, sizeof why);
+          if (trc == -2) return dc_unsupported(m, "CheckTransferHive %s: %s", hn, why);
+          if (trc) return dc_invalid(m, "CheckTransferHive %s: %s", hn, why); }
         if (th_mi(nm, M->sys.name) >= 0) return dc_invalid(m, "CheckTransferHive %s: Member %s declared twice", hn, M->sys.name);
         M->ns = (int)m->car[M->sys.xs].n; M->na = (int)m->car[M->sys.ms].n;
         if (M->ns > TH_MAXV || M->na > TH_MAXV) return dc_unsupported(m, "CheckTransferHive %s: carriers above %d values", hn, TH_MAXV);
@@ -309,7 +323,9 @@ static Sx *tr_hive(DcRun *r, const Sx *q) {
         if (x->n != 2) return dc_invalid(m, "CheckTransferHive %s: expected (Edge Transfer)", hn);
         if (ne >= TH_MAXE) return dc_unsupported(m, "CheckTransferHive %s: more than %d edges", hn, TH_MAXE);
         ThEdge *E = &th_e[ne];
-        if (tr_load(m, x->items[1], &E->t, why, sizeof why)) return dc_invalid(m, "CheckTransferHive %s: %s", hn, why);
+        { int trc = tr_load(m, x->items[1], &E->t, why, sizeof why);
+          if (trc == -2) return dc_unsupported(m, "CheckTransferHive %s: %s", hn, why);
+          if (trc) return dc_invalid(m, "CheckTransferHive %s: %s", hn, why); }
         if ((E->src = th_mi(nm, E->t.a.name)) < 0 || (E->tgt = th_mi(nm, E->t.b.name)) < 0) return dc_invalid(m, "CheckTransferHive %s: Edge %s joins a non-member", hn, E->t.name);
         if (th_tab(m, E->t.phi, E->t.b.xs, E->t.a.xs, E->phi) || th_tab(m, E->t.iota, E->t.a.ms, E->t.b.ms, E->iota)) return dc_invalid(m, "CheckTransferHive %s: Edge %s maps are not total", hn, E->t.name);
         const DcCarrier *XB = &m->car[E->t.b.xs], *MA = &m->car[E->t.a.ms];

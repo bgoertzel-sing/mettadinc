@@ -28,6 +28,15 @@ static int sterr(char *err, size_t es, const char *msg, const Sx *t) {
     snprintf(err, es, "%s%s%.120s", msg, s ? ": " : "", s ? s : "");
     free(s); return -1;
 }
+/* lowering-unsupported: -2 = well-formed form outside the symbolic fragment (Unsupported). */
+static const Sx *sfield(const Sx *d, const char *h);
+static int sterr_frag(char *err, size_t es, const char *msg, const Sx *t) { sterr(err, es, msg, t); return -2; }
+/* An unresolved name: Unsupported when M1 knows it (builtin type, a Carrier the reader
+ * skipped, or an Import the reader does not follow); else a genuine undeclared name. */
+static int sterr_name(char *err, size_t es, const char *msg, const Sx *d, const Sx *src, const Sx *f) {
+    const char *n = f && f->kind == SX_LIST && f->n > 1 && f->items[1]->kind == SX_SYM ? f->items[1]->text : NULL;
+    return dc_name_known_elsewhere(src, n) || sfield(d, "Parameters") ? sterr_frag(err, es, msg, d) : sterr(err, es, msg, d);
+}
 static int lit_of(const Sx *t, uint64_t *v) {
     if (!t || t->kind != SX_SYM || !t->text[0]) return 0;
     char *e; unsigned long long x = strtoull(t->text, &e, 10);
@@ -302,15 +311,15 @@ static int sym_read(const Sx *src, SymMod *s, char *err, size_t es) {
                     if (rc->n != 3 || rc->items[1]->kind != SX_SYM || !sx_head_is(rc->items[2], "From") || rc->items[2]->n != 2)
                         return sterr(err, es, "expected (Reach Machine (From word))", d);
                     c->reach = rc;
-                } else if (!sfield(d, "All")) return sterr(err, es, "symbolic carrier must be (All) or (Reach ..)", d);
+                } else if (!sfield(d, "All")) return sterr_frag(err, es, "symbolic carrier must be (All) or (Reach ..)", d);
                 c->width = (int)w;
             } else {
                 const Sx *en = sfield(d, "Enum");      /* (Enum 0 1 ..): Nat literals 0..2^k-1 */
-                if (!en || en->n < 2) return sterr(err, es, "carrier is neither (BitVector w) nor (Enum ..)", d);
+                if (!en || en->n < 2) return sterr_frag(err, es, "carrier is neither (BitVector w) nor (Enum ..)", d);
                 uint64_t v, mx = 0;
-                for (size_t k = 1; k < en->n; k++) { if (!lit_of(en->items[k], &v) || v != k - 1) return sterr(err, es, "Enum must be 0..n-1", d); mx = v; }
+                for (size_t k = 1; k < en->n; k++) { if (!lit_of(en->items[k], &v) || v != k - 1) return sterr_frag(err, es, "Enum must be 0..n-1", d); mx = v; }
                 int w = 1; while (w < 63 && (mx >> w)) w++;
-                if (((uint64_t)1 << w) != mx + 1) return sterr(err, es, "Enum size must be a power of two on a symbolic module", d);
+                if (((uint64_t)1 << w) != mx + 1) return sterr_frag(err, es, "Enum size must be a power of two on a symbolic module", d);
                 c->width = w;
             }
             s->ncar++;
@@ -318,19 +327,19 @@ static int sym_read(const Sx *src, SymMod *s, char *err, size_t es) {
             if (s->nmap == 32) return sterr(err, es, "too many maps", d);
             SMap *mp = &s->map[s->nmap]; snprintf(mp->name, SYM_NM, "%s", nm);
             const Sx *fr = sfield(d, "From"), *to = sfield(d, "To"), *b = sfield(d, "Body");
-            if (sname(fr, 1, &t) || (mp->from = sfind_car(s, t)) < 0) return sterr(err, es, "Map: From names no carrier", d);
-            if (sname(to, 1, &t) || (mp->to = sfind_car(s, t)) < 0) return sterr(err, es, "Map: To names no carrier", d);
+            if (sname(fr, 1, &t) || (mp->from = sfind_car(s, t)) < 0) return sterr_name(err, es, "Map: From names no carrier", d, src, fr);
+            if (sname(to, 1, &t) || (mp->to = sfind_car(s, t)) < 0) return sterr_name(err, es, "Map: To names no carrier", d, src, to);
             if (!b || b->n != 3 || b->items[1]->kind != SX_LIST || b->items[1]->n != 1 || b->items[1]->items[0]->kind != SX_SYM)
-                return sterr(err, es, "Map: expected (Body ($x) term)", d);
+                return sfield(d, "Cases") || sfield(d, "Parameters") ? sterr_frag(err, es, "Map: expected (Body ($x) term)", d) : sterr(err, es, "Map: expected (Body ($x) term)", d);
             mp->var = b->items[1]->items[0]; mp->body = b->items[2]; s->nmap++;
         } else if (!strcmp(h, "Machine")) {
             if (s->nmach == 8) return sterr(err, es, "too many machines", d);
             SMach *M = &s->mach[s->nmach]; snprintf(M->name, SYM_NM, "%s", nm);
             const Sx *st = sfield(d, "States");
-            if (sname(st, 1, &t) || (M->states = sfind_car(s, t)) < 0) return sterr(err, es, "Machine: States names no carrier", d);
+            if (sname(st, 1, &t) || (M->states = sfind_car(s, t)) < 0) return sterr_name(err, es, "Machine: States names no carrier", d, src, st);
             for (size_t k = 2; k < d->n; k++) {
                 const Sx *f = d->items[k]; int isobs = sx_head_is(f, "Observe"), isact = sx_head_is(f, "Action");
-                if (!isobs && !isact) { if (sx_head_is(f, "States")) continue; return sterr(err, es, "Machine field outside the M3 symbolic fragment", f); }
+                if (!isobs && !isact) { if (sx_head_is(f, "States")) continue; return sterr_frag(err, es, "Machine field outside the M3 symbolic fragment", f); }
                 const char *pn, *mn; int mi;
                 if (f->n != 3 || sname(f, 1, &pn) || sname(f, 2, &mn) || (mi = sfind_map(s, mn)) < 0 || strlen(pn) >= SYM_NM)
                     return sterr(err, es, "Machine: expected (Observe|Action port map)", f);
@@ -1398,7 +1407,9 @@ static Sx *sym_policy(Sx *res) {
 Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     char err[256]; SymMod S;
     sym_res_words = -1; sym_res_nodes = 0; sym_res_xcheck = 0;
-    if (sym_read(r->m->source, &S, err, sizeof err)) return dc_invalid(r->m, "symbolic module: %s", err);
+    int rrc = sym_read(r->m->source, &S, err, sizeof err);
+    if (rrc == -2) { char ub[160]; return dc_unsupported(r->m, "symbolic module: form outside the symbolic backend fragment (libraries: %s): %s", dc_module_uses(r->m->source, ub, sizeof ub), err); }
+    if (rrc) return dc_invalid(r->m, "symbolic module: %s", err);
     if (!strcmp(head, "CheckBlockPartition")) return sym_policy(sym_req_partition(r->m, &S, q));
     if (!strcmp(head, "ClockRates") && r->m->discovery) return sym_req_clock_rates(r, &S, q);   /* M7 opt-in (F07) */
     if (!strcmp(head, "MinimizeForQueries")) return sym_policy(sym_req_minimize(r, &S, q, slot));

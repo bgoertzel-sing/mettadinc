@@ -87,6 +87,8 @@ static Sx *induce_exact_output(DcRun *r, const Sx *q) {
 Sx *dc_req_induce_exact(DcRun *r, const Sx *q, int slot) {
     DcModule *m = r->m;
     if (m->hyperseed && q->n >= 2 && sx_head_is(q->items[1], "Output")) return induce_exact_output(r, q);   /* M7 */
+    if (q->n >= 2 && sx_head_is(q->items[1], "Output") && q->items[1]->n == 3 && q->items[1]->items[1]->kind == SX_SYM && sx_is_sym(q->items[1]->items[2], "Representation"))
+        return dc_unsupported(m, "InduceExact: the (Output D Representation) form is evaluated only on a (Use Hyperseed) module (M7); libraries: Core");   /* lowering-unsupported */
     if (q->n < 2 || q->items[1]->kind != SX_SYM) return dc_invalid(m, "InduceExact: field Representation missing or not a name");
     const char *nm = q->items[1]->text; int ri = dc_find_repr(m, nm);
     if (ri < 0) {

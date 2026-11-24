@@ -19,7 +19,17 @@ Sx *dc_req_induce_approx(DcRun *run, const Sx *q, int slot) {
     if (q->n < 2) return dc_invalid(m, "InduceApprox: expected (InduceApprox (Output D Representation) ...)");
     const Sx *o = q->items[1];
     if (!sx_head_is(o, "Output") || o->n != 3 || o->items[1]->kind != SX_SYM || !sx_is_sym(o->items[2], "Representation"))
+    {   /* lowering-unsupported: (InduceApprox R) naming a declared (or imported) Representation directly is a
+         * well-formed doc form the M2 engine does not evaluate (it projects only (Output D Representation)). */
+        int known = 0;
+        for (size_t i = 2; o->kind == SX_SYM && m->source && i < m->source->n; i++) {
+            const Sx *x = m->source->items[i];
+            if (sx_head_is(x, "Representation") && x->n >= 2 && sx_is_sym(x->items[1], o->text)) { known = 1; break; }
+        }
+        if (o->kind == SX_SYM && (known || dc_name_imported(m->source, o->text)))
+            return dc_unsupported(m, "InduceApprox: a bare Representation name (%s) is not evaluated; only (Output D Representation) is (library Core/M2)", o->text);
         return dc_invalid(m, "InduceApprox: field 1 expects (Output D Representation)");
+    }
     const char *dn = o->items[1]->text; int d = dc_find_derive(m, dn);
     if (d < 0) return dc_invalid(m, "InduceApprox: names no declared Derive (%s)", dn);
     const Sx *pr = dc_run_derive(run, d);
