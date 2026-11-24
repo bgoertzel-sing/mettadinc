@@ -1,0 +1,16 @@
+== sanitized dcalc  tests/dcalc/m0_gap_g/fixtures/gapg_gates.metta
+exit 0; stderr bytes 0
+== sanitized dcalc --beyond-release tests/dcalc/m0_gap_g/fixtures/gapg_gates.metta
+exit 0; stderr bytes 0
+== sanitized dcalc  tests/dcalc/m0_gap_g/fixtures/gapg_negative.metta
+exit 0; stderr bytes 0
+== sanitized dcalc --beyond-release tests/dcalc/m0_gap_g/fixtures/gapg_negative.metta
+exit 0; stderr bytes 0
+== sanitized dcalc  tests/dcalc/examples_e2e/repro/m0_blocker_g_bool_typeform_from.metta
+exit 0; stderr bytes 0
+== sanitized dcalc --beyond-release tests/dcalc/examples_e2e/repro/m0_blocker_g_bool_typeform_from.metta
+exit 0; stderr bytes 0
+== sanitized dcalc  docs/e0/docs/04_omega_memory_goals_part1/validation_bundle/memory_goals.metta
+exit 0; stderr bytes 0
+== sanitized dcalc --beyond-release docs/e0/docs/04_omega_memory_goals_part1/validation_bundle/memory_goals.metta
+exit 0; stderr bytes 0

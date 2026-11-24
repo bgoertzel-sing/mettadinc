@@ -1,0 +1,10 @@
+--- src/dcalc/model.c	2026-11-24 09:11:47.007205663 -0700
++++ src/dcalc/model.c	2026-11-24 12:53:18.959490043 -0700
+@@ -488,6 +488,7 @@
+     if (is_tmap(m, name)) {   /* type-form From: tabulated on the states where it is used */
+         bool_carrier(m);
+         if ((at = typed_map_on(m, name, dom, -1, err, es)) < 0) { m->ntmap--; return -1; }   /* not admitted: stays skipped */
++        { size_t n = m->car[dom].n; for (size_t i = 0; i < n / 2; i++) { int t = m->map[at].table[i]; m->map[at].table[i] = m->map[at].table[n - 1 - i]; m->map[at].table[n - 1 - i] = t; } }   /* MUTANT reversed: state i gets the value of state n-1-i */
+     }
+     for (size_t i = 0; i < m->nskip; i++) if (!strcmp(m->skipped[i], name)) {   /* admitted now: no longer skipped */
+         memmove(m->skipped[i], m->skipped[i + 1], (m->nskip - i - 1) * sizeof m->skipped[0]); m->nskip--; break; }

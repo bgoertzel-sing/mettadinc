@@ -1,0 +1,136 @@
+PASS  reference evaluator ran on gapg_gates.metta and answered all 26 requests
+PASS  doc04 declares live-old/live-new as (To Bool) maps with type-form From (the form gated here)
+PASS  reference evaluator on memory_goals.metta: NaiveMigration Refuted at (absent none) by repair, CellMigration Checked; as recorded in mg_results.json
+PASS  probe G1: (Map live (From (Tuple Symbol Symbol)) (To Bool) ...) as Observe -> Checked, four singleton blocks (by hand: Encode id) [release]
+PASS  control G1C unchanged: Checked, four singleton blocks [release]
+PASS  probe G1 == control G1C byte-for-byte (module, digest aside) [release]
+FAIL  GG1 (CheckNow RF) -> Refuted (by hand) [release]  :: ('Checked', '', '(Result (Status Checked) (Claim (CheckNow RF) (Equality Literal)) (Binding (Module GG1) (Digest "2ba2b016521b1811ad402684aa45f38555b2e837ce79d0c043b0a09e973a5df3") (Subject (Representation RF) (Machine M)) (Source M) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Hori
+FAIL  GG1 (CheckNow RF) -> Refuted (Pair (Tuple p p) (Tuple p q)) (Observe same) (reference evaluator) [release]  :: ('Refuted', '(Pair (Tuple p p) (Tuple p q)) (Observe same)', ('Checked', '', '(Result (Status Checked) (Claim (CheckNow RF) (Equality Literal)) (Binding (Module GG1) (Digest "2ba2b016521b1811ad402684aa45f38555b2e837ce79d0c043b0a09e973a5df3") (Subject (Representation RF) (Machine M)) (Source M) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (I
+FAIL  GG1 (CheckNow RF) == declared-carrier twin GG1C [release]  :: (('Checked', '', '(Result (Status Checked) (Claim (CheckNow RF) (Equality Literal)) (Binding (Module GG1) (Digest "2ba2b016521b1811ad402684aa45f38555b2e837ce79d0c043b0a09e973a5df3") (Subject (Representation RF) (Machine M)) (Source M) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Hor
+PASS  GG1 (CheckUpdates RF) -> Refuted (by hand) [release]
+PASS  GG1 (CheckUpdates RF) -> Refuted (Pair (Tuple p p) (Tuple p q)) (Action swap) (reference evaluator) [release]
+PASS  GG1 (CheckUpdates RF) == declared-carrier twin GG1C [release]
+PASS  GG1 (CheckNow RE) -> Checked (by hand) [release]
+PASS  GG1 (CheckNow RE) -> Checked - (reference evaluator) [release]
+PASS  GG1 (CheckNow RE) == declared-carrier twin GG1C [release]
+PASS  GG1 (CheckUpdates RE) -> Checked (by hand) [release]
+PASS  GG1 (CheckUpdates RE) -> Checked - (reference evaluator) [release]
+PASS  GG1 (CheckUpdates RE) == declared-carrier twin GG1C [release]
+PASS  GG1 (CheckNow RI) -> Checked (by hand) [release]
+PASS  GG1 (CheckNow RI) -> Checked - (reference evaluator) [release]
+PASS  GG1 (CheckNow RI) == declared-carrier twin GG1C [release]
+FAIL  GG2 (CheckNow R1) -> Refuted (by hand) [release]  :: ('Checked', '', '(Result (Status Checked) (Claim (CheckNow R1) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (Representation R1) (Machine M1)) (Source M1) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Ho
+FAIL  GG2 (CheckNow R1) -> Refuted (Pair (Tuple p q) (Tuple q p)) (Observe live) (reference evaluator) [release]  :: ('Refuted', '(Pair (Tuple p q) (Tuple q p)) (Observe live)', ('Checked', '', '(Result (Status Checked) (Claim (CheckNow R1) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (Representation R1) (Machine M1)) (Source M1) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) 
+FAIL  GG2 (CheckNow R1) == declared-carrier twin GG2C [release]  :: (('Checked', '', '(Result (Status Checked) (Claim (CheckNow R1) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (Representation R1) (Machine M1)) (Source M1) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (H
+PASS  GG2 (CheckUpdates R1) -> Checked (by hand) [release]
+PASS  GG2 (CheckUpdates R1) -> Checked - (reference evaluator) [release]
+PASS  GG2 (CheckUpdates R1) == declared-carrier twin GG2C [release]
+FAIL  GG2 (CheckAbstractionMap H12) -> Checked (by hand) [release]  :: ('Refuted', '', '(Result (Status Refuted) (Claim (CheckAbstractionMap H12) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H12) (Source M1) (Target M2)) (Source M1) (Target M2) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (Reachab
+FAIL  GG2 (CheckAbstractionMap H12) -> Checked - (reference evaluator) [release]  :: ('Checked', '-', ('Refuted', '', '(Result (Status Refuted) (Claim (CheckAbstractionMap H12) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H12) (Source M1) (Target M2)) (Source M1) (Target M2) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllD
+FAIL  GG2 (CheckAbstractionMap H12) == declared-carrier twin GG2C [release]  :: (('Refuted', '', '(Result (Status Refuted) (Claim (CheckAbstractionMap H12) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H12) (Source M1) (Target M2)) (Source M1) (Target M2) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (Reacha
+FAIL  GG2 (CheckAbstractionMap H13) -> Refuted (by hand) [release]  :: ('Checked', '', '(Result (Status Checked) (Claim (CheckAbstractionMap H13) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H13) (Source M1) (Target M3)) (Source M1) (Target M3) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (Reachab
+FAIL  GG2 (CheckAbstractionMap H13) -> Refuted (State (Tuple p q)) (Observe live) (reference evaluator) [release]  :: ('Refuted', '(State (Tuple p q)) (Observe live)', ('Checked', '', '(Result (Status Checked) (Claim (CheckAbstractionMap H13) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H13) (Source M1) (Target M3)) (Source M1) (Target M3) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedD
+FAIL  GG2 (CheckAbstractionMap H13) == declared-carrier twin GG2C [release]  :: (('Checked', '', '(Result (Status Checked) (Claim (CheckAbstractionMap H13) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H13) (Source M1) (Target M3)) (Source M1) (Target M3) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (Reacha
+PASS  GG2 (CheckAbstractionMap H12I) -> Refuted (by hand) [release]
+PASS  GG2 (CheckAbstractionMap H12I) -> Refuted (State (Tuple p q)) (Observe live) (reference evaluator) [release]
+PASS  GG2 (CheckAbstractionMap H12I) == declared-carrier twin GG2C [release]
+PASS  GG2 (CheckAbstractionMap H13I) -> Checked (by hand) [release]
+PASS  GG2 (CheckAbstractionMap H13I) -> Checked - (reference evaluator) [release]
+PASS  GG2 (CheckAbstractionMap H13I) == declared-carrier twin GG2C [release]
+PASS  GG3 (CheckNow R) -> Checked (by hand) [release]
+PASS  GG3 (CheckNow R) -> Checked - (reference evaluator) [release]
+PASS  GG3 (CheckNow R) == declared-carrier twin GG3C [release]
+PASS  GG3 (CheckUpdates R) -> Checked (by hand) [release]
+PASS  GG3 (CheckUpdates R) -> Checked - (reference evaluator) [release]
+PASS  GG3 (CheckUpdates R) == declared-carrier twin GG3C [release]
+PASS  doc04 AnchorMigration (CheckAbstractionMap NaiveMigration) -> Refuted as doc04 s6.4 and the reference evaluator, memory_goals.metta verbatim [release]
+PASS  doc04 AnchorMigration (CheckAbstractionMap CellMigration) -> Checked as doc04 s6.4 and the reference evaluator, memory_goals.metta verbatim [release]
+PASS  NT1 -> InvalidInput "NT1.live: undeclared name Truth" [release]
+PASS  NT1 answers with the status of its declared-carrier twin (InvalidInput) [release]
+PASS  NF1 -> InvalidInput "NF1.live: undeclared name BB" [release]
+PASS  NF1 answers with the status of its declared-carrier twin (InvalidInput) [release]
+PASS  NF2 -> InvalidInput "Map live: From type (Tuple Symbol Symbol Symbol) is not the element type of carr" [release]
+PASS  NF2 answers with the status of its declared-carrier twin (InvalidInput) [release]
+PASS  NW1 -> InvalidInput "Map live: sends (Tuple p p) to p, which leaves carrier Bool" [release]
+PASS  NW1 answers with the status of its declared-carrier twin (InvalidInput) [release]
+PASS  NW2 -> InvalidInput "Map live: not total on carrier AA; no value for (Tuple q q)" [release]
+PASS  NW2 answers with the status of its declared-carrier twin (InvalidInput) [release]
+PASS  NW3 -> InvalidInput "Map live: input (Tuple p p) matches Cases rows 0 and 1; overlapping cases are re" [release]
+PASS  NW3 answers with the status of its declared-carrier twin (InvalidInput) [release]
+PASS  NG1 -> Unsupported "Observe live: map live targets Bool; a (To Bool) Observe map is lowered only in " [release]
+PASS  NG1 answers with the status of its declared-carrier twin (Unsupported) [release]
+PASS  NA1 -> Unsupported "CheckNow: Representation R is outside the M0 fragment" [release]
+PASS  NA1 answers with the status of its declared-carrier twin (Unsupported) [release]
+PASS  NE1 -> Unsupported "Encode map live targets Bool; a (To Bool) map is lowered only as an Observe port" [release]
+PASS  NE1 answers with the status of its declared-carrier twin (Unsupported) [release]
+PASS  NU1 -> Unsupported "Observe live: Map live: Body uses Eq, an operator outside the M0 fragment" [release]
+PASS  NU1 answers with the status of its declared-carrier twin (Unsupported) [release]
+PASS  NU2 -> Unsupported "Observe live: Map live: Cases row 0 uses an operator outside the M0 fragment" [release]
+PASS  NU2 answers with the status of its declared-carrier twin (Unsupported) [release]
+PASS  probe G1: (Map live (From (Tuple Symbol Symbol)) (To Bool) ...) as Observe -> Checked, four singleton blocks (by hand: Encode id) [--beyond-release]
+PASS  control G1C unchanged: Checked, four singleton blocks [--beyond-release]
+PASS  probe G1 == control G1C byte-for-byte (module, digest aside) [--beyond-release]
+FAIL  GG1 (CheckNow RF) -> Refuted (by hand) [--beyond-release]  :: ('Checked', '', '(Result (Status Checked) (Claim (CheckNow RF) (Equality Literal)) (Binding (Module GG1) (Digest "2ba2b016521b1811ad402684aa45f38555b2e837ce79d0c043b0a09e973a5df3") (Subject (Representation RF) (Machine M)) (Source M) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Hori
+FAIL  GG1 (CheckNow RF) -> Refuted (Pair (Tuple p p) (Tuple p q)) (Observe same) (reference evaluator) [--beyond-release]  :: ('Refuted', '(Pair (Tuple p p) (Tuple p q)) (Observe same)', ('Checked', '', '(Result (Status Checked) (Claim (CheckNow RF) (Equality Literal)) (Binding (Module GG1) (Digest "2ba2b016521b1811ad402684aa45f38555b2e837ce79d0c043b0a09e973a5df3") (Subject (Representation RF) (Machine M)) (Source M) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (I
+FAIL  GG1 (CheckNow RF) == declared-carrier twin GG1C [--beyond-release]  :: (('Checked', '', '(Result (Status Checked) (Claim (CheckNow RF) (Equality Literal)) (Binding (Module GG1) (Digest "2ba2b016521b1811ad402684aa45f38555b2e837ce79d0c043b0a09e973a5df3") (Subject (Representation RF) (Machine M)) (Source M) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Hor
+PASS  GG1 (CheckUpdates RF) -> Refuted (by hand) [--beyond-release]
+PASS  GG1 (CheckUpdates RF) -> Refuted (Pair (Tuple p p) (Tuple p q)) (Action swap) (reference evaluator) [--beyond-release]
+PASS  GG1 (CheckUpdates RF) == declared-carrier twin GG1C [--beyond-release]
+PASS  GG1 (CheckNow RE) -> Checked (by hand) [--beyond-release]
+PASS  GG1 (CheckNow RE) -> Checked - (reference evaluator) [--beyond-release]
+PASS  GG1 (CheckNow RE) == declared-carrier twin GG1C [--beyond-release]
+PASS  GG1 (CheckUpdates RE) -> Checked (by hand) [--beyond-release]
+PASS  GG1 (CheckUpdates RE) -> Checked - (reference evaluator) [--beyond-release]
+PASS  GG1 (CheckUpdates RE) == declared-carrier twin GG1C [--beyond-release]
+PASS  GG1 (CheckNow RI) -> Checked (by hand) [--beyond-release]
+PASS  GG1 (CheckNow RI) -> Checked - (reference evaluator) [--beyond-release]
+PASS  GG1 (CheckNow RI) == declared-carrier twin GG1C [--beyond-release]
+FAIL  GG2 (CheckNow R1) -> Refuted (by hand) [--beyond-release]  :: ('Checked', '', '(Result (Status Checked) (Claim (CheckNow R1) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (Representation R1) (Machine M1)) (Source M1) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Ho
+FAIL  GG2 (CheckNow R1) -> Refuted (Pair (Tuple p q) (Tuple q p)) (Observe live) (reference evaluator) [--beyond-release]  :: ('Refuted', '(Pair (Tuple p q) (Tuple q p)) (Observe live)', ('Checked', '', '(Result (Status Checked) (Claim (CheckNow R1) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (Representation R1) (Machine M1)) (Source M1) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) 
+FAIL  GG2 (CheckNow R1) == declared-carrier twin GG2C [--beyond-release]  :: (('Checked', '', '(Result (Status Checked) (Claim (CheckNow R1) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (Representation R1) (Machine M1)) (Source M1) (Target A) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (H
+PASS  GG2 (CheckUpdates R1) -> Checked (by hand) [--beyond-release]
+PASS  GG2 (CheckUpdates R1) -> Checked - (reference evaluator) [--beyond-release]
+PASS  GG2 (CheckUpdates R1) == declared-carrier twin GG2C [--beyond-release]
+FAIL  GG2 (CheckAbstractionMap H12) -> Checked (by hand) [--beyond-release]  :: ('Refuted', '', '(Result (Status Refuted) (Claim (CheckAbstractionMap H12) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H12) (Source M1) (Target M2)) (Source M1) (Target M2) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (Reachab
+FAIL  GG2 (CheckAbstractionMap H12) -> Checked - (reference evaluator) [--beyond-release]  :: ('Checked', '-', ('Refuted', '', '(Result (Status Refuted) (Claim (CheckAbstractionMap H12) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H12) (Source M1) (Target M2)) (Source M1) (Target M2) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllD
+FAIL  GG2 (CheckAbstractionMap H12) == declared-carrier twin GG2C [--beyond-release]  :: (('Refuted', '', '(Result (Status Refuted) (Claim (CheckAbstractionMap H12) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H12) (Source M1) (Target M2)) (Source M1) (Target M2) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (Reacha
+FAIL  GG2 (CheckAbstractionMap H13) -> Refuted (by hand) [--beyond-release]  :: ('Checked', '', '(Result (Status Checked) (Claim (CheckAbstractionMap H13) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H13) (Source M1) (Target M3)) (Source M1) (Target M3) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (Reachab
+FAIL  GG2 (CheckAbstractionMap H13) -> Refuted (State (Tuple p q)) (Observe live) (reference evaluator) [--beyond-release]  :: ('Refuted', '(State (Tuple p q)) (Observe live)', ('Checked', '', '(Result (Status Checked) (Claim (CheckAbstractionMap H13) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H13) (Source M1) (Target M3)) (Source M1) (Target M3) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedD
+FAIL  GG2 (CheckAbstractionMap H13) == declared-carrier twin GG2C [--beyond-release]  :: (('Checked', '', '(Result (Status Checked) (Claim (CheckAbstractionMap H13) (Equality Literal)) (Binding (Module GG2) (Digest "5b37956c6e87257b2825c771769d3e4ab33615a8b5cecb414b0f499808c4e74e") (Subject (AbstractionMap H13) (Source M1) (Target M3)) (Source M1) (Target M3) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (Reacha
+PASS  GG2 (CheckAbstractionMap H12I) -> Refuted (by hand) [--beyond-release]
+PASS  GG2 (CheckAbstractionMap H12I) -> Refuted (State (Tuple p q)) (Observe live) (reference evaluator) [--beyond-release]
+PASS  GG2 (CheckAbstractionMap H12I) == declared-carrier twin GG2C [--beyond-release]
+PASS  GG2 (CheckAbstractionMap H13I) -> Checked (by hand) [--beyond-release]
+PASS  GG2 (CheckAbstractionMap H13I) -> Checked - (reference evaluator) [--beyond-release]
+PASS  GG2 (CheckAbstractionMap H13I) == declared-carrier twin GG2C [--beyond-release]
+PASS  GG3 (CheckNow R) -> Checked (by hand) [--beyond-release]
+PASS  GG3 (CheckNow R) -> Checked - (reference evaluator) [--beyond-release]
+PASS  GG3 (CheckNow R) == declared-carrier twin GG3C [--beyond-release]
+PASS  GG3 (CheckUpdates R) -> Checked (by hand) [--beyond-release]
+PASS  GG3 (CheckUpdates R) -> Checked - (reference evaluator) [--beyond-release]
+PASS  GG3 (CheckUpdates R) == declared-carrier twin GG3C [--beyond-release]
+PASS  doc04 AnchorMigration (CheckAbstractionMap NaiveMigration) -> Refuted as doc04 s6.4 and the reference evaluator, memory_goals.metta verbatim [--beyond-release]
+PASS  doc04 AnchorMigration (CheckAbstractionMap CellMigration) -> Checked as doc04 s6.4 and the reference evaluator, memory_goals.metta verbatim [--beyond-release]
+PASS  NT1 -> InvalidInput "NT1.live: undeclared name Truth" [--beyond-release]
+PASS  NT1 answers with the status of its declared-carrier twin (InvalidInput) [--beyond-release]
+PASS  NF1 -> InvalidInput "NF1.live: undeclared name BB" [--beyond-release]
+PASS  NF1 answers with the status of its declared-carrier twin (InvalidInput) [--beyond-release]
+PASS  NF2 -> InvalidInput "Map live: From type (Tuple Symbol Symbol Symbol) is not the element type of carr" [--beyond-release]
+PASS  NF2 answers with the status of its declared-carrier twin (InvalidInput) [--beyond-release]
+PASS  NW1 -> InvalidInput "Map live: sends (Tuple p p) to p, which leaves carrier Bool" [--beyond-release]
+PASS  NW1 answers with the status of its declared-carrier twin (InvalidInput) [--beyond-release]
+PASS  NW2 -> InvalidInput "Map live: not total on carrier AA; no value for (Tuple q q)" [--beyond-release]
+PASS  NW2 answers with the status of its declared-carrier twin (InvalidInput) [--beyond-release]
+PASS  NW3 -> InvalidInput "Map live: input (Tuple p p) matches Cases rows 0 and 1; overlapping cases are re" [--beyond-release]
+PASS  NW3 answers with the status of its declared-carrier twin (InvalidInput) [--beyond-release]
+PASS  NG1 -> Unsupported "Observe live: map live targets Bool; a (To Bool) Observe map is lowered only in " [--beyond-release]
+PASS  NG1 answers with the status of its declared-carrier twin (Unsupported) [--beyond-release]
+PASS  NA1 -> Unsupported "CheckNow: Representation R is outside the M0 fragment" [--beyond-release]
+PASS  NA1 answers with the status of its declared-carrier twin (Unsupported) [--beyond-release]
+PASS  NE1 -> Unsupported "Encode map live targets Bool; a (To Bool) map is lowered only as an Observe port" [--beyond-release]
+PASS  NE1 answers with the status of its declared-carrier twin (Unsupported) [--beyond-release]
+PASS  NU1 -> Unsupported "Observe live: Map live: Body uses Eq, an operator outside the M0 fragment" [--beyond-release]
+PASS  NU1 answers with the status of its declared-carrier twin (Unsupported) [--beyond-release]
+PASS  NU2 -> Unsupported "Observe live: Map live: Cases row 0 uses an operator outside the M0 fragment" [--beyond-release]
+PASS  NU2 answers with the status of its declared-carrier twin (Unsupported) [--beyond-release]
+m0_gap_g: FAIL (24 failing)

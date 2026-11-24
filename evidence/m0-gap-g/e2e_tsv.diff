@@ -1,0 +1,30 @@
+diff --git a/tests/dcalc/examples_e2e/out/mg_beyond.tsv b/tests/dcalc/examples_e2e/out/mg_beyond.tsv
+index ffd4429..de21dbc 100644
+--- a/tests/dcalc/examples_e2e/out/mg_beyond.tsv
++++ b/tests/dcalc/examples_e2e/out/mg_beyond.tsv
+@@ -41,8 +41,8 @@ EvidenceMemory	EffMemory	Unsupported	library NatArith is outside the first relea
+ EvidenceMemory	RegenMemory	Unsupported	library NatArith is outside the first release
+ EvidenceMemory	AnchorMemory	Unsupported	library NatArith is outside the first release
+ EvidenceMemory	FullMemory	Unsupported	library NatArith is outside the first release
+-AnchorMigration	(CheckAbstractionMap NaiveMigration)	Unsupported	CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From
+-AnchorMigration	(CheckAbstractionMap CellMigration)	Unsupported	CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From
++AnchorMigration	(CheckAbstractionMap NaiveMigration)	Refuted	
++AnchorMigration	(CheckAbstractionMap CellMigration)	Checked	
+ TaskResume	(CheckNow NoReadSets)	Checked	
+ TaskResume	(CheckUpdates NoReadSets)	Refuted	
+ TaskResume	(CheckBehavioral NoReadSets)	Refuted	
+diff --git a/tests/dcalc/examples_e2e/out/mg_release.tsv b/tests/dcalc/examples_e2e/out/mg_release.tsv
+index fc61a04..78e1396 100644
+--- a/tests/dcalc/examples_e2e/out/mg_release.tsv
++++ b/tests/dcalc/examples_e2e/out/mg_release.tsv
+@@ -41,8 +41,8 @@ EvidenceMemory	EffMemory	Unsupported	library NatArith is outside the first relea
+ EvidenceMemory	RegenMemory	Unsupported	library NatArith is outside the first release
+ EvidenceMemory	AnchorMemory	Unsupported	library NatArith is outside the first release
+ EvidenceMemory	FullMemory	Unsupported	library NatArith is outside the first release
+-AnchorMigration	(CheckAbstractionMap NaiveMigration)	Unsupported	CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From
+-AnchorMigration	(CheckAbstractionMap CellMigration)	Unsupported	CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From
++AnchorMigration	(CheckAbstractionMap NaiveMigration)	Refuted	
++AnchorMigration	(CheckAbstractionMap CellMigration)	Checked	
+ TaskResume	(CheckNow NoReadSets)	Checked	
+ TaskResume	(CheckUpdates NoReadSets)	Refuted	
+ TaskResume	(CheckBehavioral NoReadSets)	Refuted	

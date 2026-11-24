@@ -41,8 +41,8 @@ EvidenceMemory	EffMemory	Unsupported	library NatArith is outside the first relea
 EvidenceMemory	RegenMemory	Unsupported	library NatArith is outside the first release
 EvidenceMemory	AnchorMemory	Unsupported	library NatArith is outside the first release
 EvidenceMemory	FullMemory	Unsupported	library NatArith is outside the first release
-AnchorMigration	(CheckAbstractionMap NaiveMigration)	Unsupported	CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From
-AnchorMigration	(CheckAbstractionMap CellMigration)	Unsupported	CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From
+AnchorMigration	(CheckAbstractionMap NaiveMigration)	Refuted	
+AnchorMigration	(CheckAbstractionMap CellMigration)	Checked	
 TaskResume	(CheckNow NoReadSets)	Checked	
 TaskResume	(CheckUpdates NoReadSets)	Refuted	
 TaskResume	(CheckBehavioral NoReadSets)	Refuted	

@@ -1,0 +1,50 @@
+base: 61eb9ba binary sha256 82473fff8700aef95c9201cdea3963d27728e394cff8a77ced3f703161186806; new: this branch binary sha256 9b596cc5df764aff6102170ddca3746ac302c7ae742db036c577d59c70ae0dbc
+command: python3 tests/dcalc/m0_like/metta_bytediff.py run DIR (DCALC=base, then new); ... compare bd_base bd_new
+CHANGED docs__e0__docs__04_omega_memory_goals_part1__validation_bundle__memory_goals.metta.beyond
+CHANGED docs__e0__docs__04_omega_memory_goals_part1__validation_bundle__memory_goals.metta.release
+CHANGED docs__e0__docs__05_live_memory_part2__validation_bundle__memory_goals.metta.beyond
+CHANGED docs__e0__docs__05_live_memory_part2__validation_bundle__memory_goals.metta.release
+CHANGED docs__e0__docs__06_wmtm_worked_example__validation_bundle__memory_goals.metta.beyond
+CHANGED docs__e0__docs__06_wmtm_worked_example__validation_bundle__memory_goals.metta.release
+CHANGED tests__dcalc__examples_e2e__repro__m0_blocker_g_bool_typeform_from.metta.beyond
+CHANGED tests__dcalc__examples_e2e__repro__m0_blocker_g_bool_typeform_from.metta.release
+compared 534 outputs: 8 changed, 0 only before, 0 only after
+
+
+== changed lines, per output (module + request + status only; full lines in bytediff_lines.diff)
+-- docs__e0__docs__04_omega_memory_goals_part1__validation_bundle__memory_goals.metta.beyond
+< AnchorMigration (CheckAbstractionMap NaiveMigration) => Unsupported
+< AnchorMigration (CheckAbstractionMap CellMigration) => Unsupported
+> AnchorMigration (CheckAbstractionMap NaiveMigration) => Refuted
+> AnchorMigration (CheckAbstractionMap CellMigration) => Checked
+-- docs__e0__docs__04_omega_memory_goals_part1__validation_bundle__memory_goals.metta.release
+< AnchorMigration (CheckAbstractionMap NaiveMigration) => Unsupported
+< AnchorMigration (CheckAbstractionMap CellMigration) => Unsupported
+> AnchorMigration (CheckAbstractionMap NaiveMigration) => Refuted
+> AnchorMigration (CheckAbstractionMap CellMigration) => Checked
+-- docs__e0__docs__05_live_memory_part2__validation_bundle__memory_goals.metta.beyond
+< AnchorMigration (CheckAbstractionMap NaiveMigration) => Unsupported
+< AnchorMigration (CheckAbstractionMap CellMigration) => Unsupported
+> AnchorMigration (CheckAbstractionMap NaiveMigration) => Refuted
+> AnchorMigration (CheckAbstractionMap CellMigration) => Checked
+-- docs__e0__docs__05_live_memory_part2__validation_bundle__memory_goals.metta.release
+< AnchorMigration (CheckAbstractionMap NaiveMigration) => Unsupported
+< AnchorMigration (CheckAbstractionMap CellMigration) => Unsupported
+> AnchorMigration (CheckAbstractionMap NaiveMigration) => Refuted
+> AnchorMigration (CheckAbstractionMap CellMigration) => Checked
+-- docs__e0__docs__06_wmtm_worked_example__validation_bundle__memory_goals.metta.beyond
+< AnchorMigration (CheckAbstractionMap NaiveMigration) => Unsupported
+< AnchorMigration (CheckAbstractionMap CellMigration) => Unsupported
+> AnchorMigration (CheckAbstractionMap NaiveMigration) => Refuted
+> AnchorMigration (CheckAbstractionMap CellMigration) => Checked
+-- docs__e0__docs__06_wmtm_worked_example__validation_bundle__memory_goals.metta.release
+< AnchorMigration (CheckAbstractionMap NaiveMigration) => Unsupported
+< AnchorMigration (CheckAbstractionMap CellMigration) => Unsupported
+> AnchorMigration (CheckAbstractionMap NaiveMigration) => Refuted
+> AnchorMigration (CheckAbstractionMap CellMigration) => Checked
+-- tests__dcalc__examples_e2e__repro__m0_blocker_g_bool_typeform_from.metta.beyond
+< G1 (CheckNow R) => Unsupported
+> G1 (CheckNow R) => Checked
+-- tests__dcalc__examples_e2e__repro__m0_blocker_g_bool_typeform_from.metta.release
+< G1 (CheckNow R) => Unsupported
+> G1 (CheckNow R) => Checked

@@ -46,8 +46,8 @@ Columns: the document's answer (with its source), our answer in release and in -
 | mg | 40 | EvidenceMemory | `RegenMemory` | value: 5 classes (no status word) | doc04 s6.3 l.1350 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
 | mg | 41 | EvidenceMemory | `AnchorMemory` | value: 5 classes (no status word) | doc04 s6.3 l.1351 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
 | mg | 42 | EvidenceMemory | `FullMemory` | value: 25 classes (no status word) | doc04 s6.3 l.1351 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GATED: PROPOSED library NatArith admitted by no milestone | library NatArith is outside the first release |
-| mg | 43 | AnchorMigration | `(CheckAbstractionMap NaiveMigration)` | Refuted | doc04 s6.4 l.1422 | Unsupported | Unsupported | GAP: M0 lowering rejects (g) a (To Bool) Observe map declared with a type-form From (repro/m0_blocker_g); Bool Observe maps (a), type-form From/To maps (b), If/Eq/And/Or/Not in Cases (c), Machine Like (d), Body maps in Crisp (f) and Subset/Reach carriers are lowered | GAP: M0 lowering rejects (g) a (To Bool) Observe map declared with a type-form From (repro/m0_blocker_g); Bool Observe maps (a), type-form From/To maps (b), If/Eq/And/Or/Not in Cases (c), Machine Like (d), Body maps in Crisp (f) and Subset/Reach carriers are lowered | CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From |
-| mg | 44 | AnchorMigration | `(CheckAbstractionMap CellMigration)` | Checked | doc04 s6.4 l.1425 | Unsupported | Unsupported | GAP: M0 lowering rejects (g) a (To Bool) Observe map declared with a type-form From (repro/m0_blocker_g); Bool Observe maps (a), type-form From/To maps (b), If/Eq/And/Or/Not in Cases (c), Machine Like (d), Body maps in Crisp (f) and Subset/Reach carriers are lowered | GAP: M0 lowering rejects (g) a (To Bool) Observe map declared with a type-form From (repro/m0_blocker_g); Bool Observe maps (a), type-form From/To maps (b), If/Eq/And/Or/Not in Cases (c), Machine Like (d), Body maps in Crisp (f) and Subset/Reach carriers are lowered | CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From |
+| mg | 43 | AnchorMigration | `(CheckAbstractionMap NaiveMigration)` | Refuted | doc04 s6.4 l.1422 | Refuted | Refuted | match | match |  |
+| mg | 44 | AnchorMigration | `(CheckAbstractionMap CellMigration)` | Checked | doc04 s6.4 l.1425 | Checked | Checked | match | match |  |
 | mg | 45 | TaskResume | `(CheckNow NoReadSets)` | Checked | doc04 s7.3 l.1518 | Checked | Checked | match | match |  |
 | mg | 46 | TaskResume | `(CheckUpdates NoReadSets)` | Refuted | doc04 s7.3 l.1520 | Refuted | Refuted | match | match |  |
 | mg | 47 | TaskResume | `(CheckBehavioral NoReadSets)` | Refuted | doc04 s7.3 l.1522 | Refuted | Refuted | match | match |  |
@@ -99,11 +99,9 @@ Columns: the document's answer (with its source), our answer in release and in -
 
 ## Class totals (mode, class): count
 
-- beyond GAP: 2
 - beyond GATED: 85
 - beyond VALUE: 1
-- beyond match: 4
-- release GAP: 2
+- beyond match: 6
 - release GATED: 85
 - release VALUE: 1
-- release match: 4
+- release match: 6
