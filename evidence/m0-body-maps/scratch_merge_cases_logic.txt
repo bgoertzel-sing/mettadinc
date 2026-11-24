@@ -1,0 +1,18 @@
+# Scratch merge (not committed, not pushed): this branch's working tree (d2177e3 + Body maps) merged with hive/t-2026-11-23-mettadinc-m0-cases-logic 933f4c5;
+# model.c conflicts resolved by resolve_scratch_merge.py (cases-logic's logic_on/logic_off and ok==4 handling also around Body evaluation). Report only.
+## doc04 memory_goals.metta, AnchorMigration and TaskResume rows (release)
+AnchorMigration (CheckAbstractionMap NaiveMigration)	Unsupported	CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From
+AnchorMigration (CheckAbstractionMap CellMigration)	Unsupported	CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From
+TaskResume (CheckNow NoReadSets)	Checked	
+TaskResume (CheckUpdates NoReadSets)	Refuted	
+TaskResume (CheckBehavioral NoReadSets)	Refuted	
+TaskResume (CheckBehavioral ReadSets)	Checked	
+TaskResume ResumeMemory	Checked	
+## same, with cases-logic alone (933f4c5, base fc6bffe: no Like lowering)
+AnchorMigration (CheckAbstractionMap NaiveMigration)	Unsupported	CheckAbstractionMap: AbstractionMap NaiveMigration is outside the M0 fragment: Observe live: Map live-new: field From
+AnchorMigration (CheckAbstractionMap CellMigration)	Unsupported	CheckAbstractionMap: AbstractionMap CellMigration is outside the M0 fragment: Observe live: Map live-new: field From
+TaskResume (CheckNow NoReadSets)	Unsupported	CheckNow: Representation NoReadSets is outside the M0 fragment
+TaskResume (CheckUpdates NoReadSets)	Unsupported	CheckUpdates: Representation NoReadSets is outside the M0 fragment
+TaskResume (CheckBehavioral NoReadSets)	Unsupported	CheckBehavioral: Representation NoReadSets is outside the M2 fragment
+TaskResume (CheckBehavioral ReadSets)	Unsupported	CheckBehavioral: Representation ReadSets is outside the M2 fragment
+TaskResume ResumeMemory	Unsupported	MinimizeForQueries: Machine Resume is outside the M2 fragment

@@ -53,12 +53,17 @@ NEG = {
 UNS = {
     'UA (CheckNow R)': 'Map law: field To: type (Law Bit) is outside the M0 fragment',
     'UB (CheckNow R)': 'Map pick: Cases row 0 of a type-form map uses an operator outside the M0 fragment',
-    'UC (CheckNow R)': 'Map id: a Body body on a type-form map is outside the M0 fragment',
     'UD (CheckNow R)': 'Map id: field From: type (Tuple A A) is outside the M0 fragment',
     'UE (CheckAbstractionMap H)': 'Map pick: Cases row 0 of a type-form map uses an operator outside the M0 fragment',
 }
+# UC (a type-form Body map) was Unsupported here; t-2026-11-24-mettadinc-m0-body-maps lowers Body maps, so the identity
+# on AA = {p,q}^2 is injective and CheckNow R is Checked with four singleton blocks (gated in tests/dcalc/m0_body_maps).
+UC_BLOCKS = '(Blocks (Block (Tuple p p)) (Block (Tuple p q)) (Block (Tuple q p)) (Block (Tuple q q)))'
 for mode in ([], ['--beyond-release']):
     tag = ' [%s]' % (mode[0] if mode else 'release')
+    g = rows(os.path.join(FXD, 'typeform_unsupported.metta'), mode).get('UC (CheckNow R)')
+    report('UC (Body type-form identity map) -> Checked, four singleton blocks (Body maps lowered by t-2026-11-24-mettadinc-m0-body-maps)' + tag,
+           g is not None and g[0] == 'Checked' and UC_BLOCKS in g[2], g)
     r = rows(PROBE, mode)
     b, c = r.get('B1 (CheckNow R)'), r.get('B1C (CheckNow R)')
     report('probe P2: B1 (From/To (Tuple Symbol Symbol)) -> Checked' + tag, b is not None and b[0] == 'Checked', b)

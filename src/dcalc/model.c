@@ -457,6 +457,56 @@ static int body_in_fragment(const DcModule *m, const Sx *b) {
     for (size_t i = 0; i < b->n; i++) if (!body_in_fragment(m, b->items[i])) return 0;
     return 1;
 }
+/* ---- M0: (Body ($v) e) maps in a Crisp module (t-2026-11-24-mettadinc-m0-body-maps) ----
+ * Spec 5.1 grammar (txt l.1721): map-body ::= (Cases (pattern expr)+) | (Body ($v) expr) | (Table ...) | ...
+ * Spec 5.4 (l.1856): "Body binds its single argument lexically": the map sends x to the value of expr
+ * with $v bound to x, and to nothing else.  That is the one-case map (Cases ($v expr)), whose variable
+ * pattern every input matches exactly once; Ben's reference evaluator reads it the same way
+ * (docs/e0 .../04_omega_memory_goals_part1/validation_bundle/mg_eval.py, World.call: ev(expr, {$v: arg})).
+ * Lowering (Crisp profile only): expr is evaluated by eval_body, the evaluator of Cases bodies, with $v
+ * bound to each element of the carrier the map is tabulated on (its From carrier; for a type-form map the
+ * carrier where it is used, as for Cases), and the map becomes a table.  Spec 5.3 admission obligations
+ * (l.1784-1786), by enumeration: totality (an element on which expr has no value, e.g. Add on a symbol, is
+ * InvalidInput) and outputs stay in To (InvalidInput).  Spec 5.4: a variable other than $v is unbound
+ * (InvalidInput, binding failure, s2.8); a malformed (Body ...) is InvalidInput.  An operator outside the
+ * Cases-body fragment (body_in_fragment) is Unsupported, the reason naming the operator. */
+static const char *body_var(const Sx *body) {   /* $v of a well-formed (Body ($v) expr), else NULL */
+    if (!sx_head_is(body, "Body") || body->n != 3) return NULL;
+    const Sx *b = body->items[1];
+    if (b->kind != SX_LIST || b->n != 1 || b->items[0]->kind != SX_SYM || b->items[0]->text[0] != '$' || !b->items[0]->text[1]) return NULL;
+    return b->items[0]->text;
+}
+static const char *body_free_var(const Sx *x, const char *var) {   /* a $-variable of x other than var */
+    if (x->kind == SX_SYM) return x->text[0] == '$' && strcmp(x->text, var) ? x->text : NULL;
+    if (x->kind != SX_LIST) return NULL;
+    for (size_t i = 0; i < x->n; i++) { const char *r = body_free_var(x->items[i], var); if (r) return r; }
+    return NULL;
+}
+/* the outermost operator of b that body_in_fragment rejects (tested with its arguments replaced by in-fragment atoms) */
+static const char *body_foreign(const DcModule *m, const Sx *b) {
+    if (b->kind != SX_LIST || body_in_fragment(m, b)) return NULL;
+    if (b->n && b->items[0]->kind == SX_SYM) {
+        Sx *s = sx_list(); sx_push(s, sx_copy(b->items[0]));
+        for (size_t i = 1; i < b->n; i++) sx_push(s, sx_sym("0"));
+        int head_ok = body_in_fragment(m, s); sx_free(s);
+        if (!head_ok) return b->items[0]->text;
+    }
+    for (size_t i = 0; i < b->n; i++) { const char *r = body_foreign(m, b->items[i]); if (r) return r; }
+    return "a form";
+}
+/* shape, binding and fragment checks of a Body map: 0 fine; -1 with err set ("[M0]" and pending_why when Unsupported) */
+static int body_check(const DcModule *m, const char *nm, const Sx *body, char *err, size_t es) {
+    const char *var = body_var(body);
+    if (!var) return fail(err, es, "Map %s: a Body must be (Body ($v) expr), one variable binding the argument", nm);
+    const char *fv = body_free_var(body->items[2], var);
+    if (fv) return fail(err, es, "Map %s: Body uses %s, which it does not bind (it binds %s)", nm, fv, var);
+    const char *op = body_foreign(m, body->items[2]);
+    if (op) {
+        fail(err, es, "[M0] Map %s: Body uses %s, an operator outside the M0 fragment, which admits Tuple, Add and Mul in map bodies", nm, op);
+        snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1;
+    }
+    return 0;
+}
 /* the declared element type of carrier c: (Of T) of its declaration, or an image carrier's type */
 static const Sx *carrier_type(const DcModule *m, int c) {
     if (m->car[c].type) return m->car[c].type;
@@ -525,9 +575,12 @@ static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err
     if (m->nmap >= sizeof m->map / sizeof m->map[0]) return fail(err, es, "Map %s: too many maps", nm);
     DcCarrier *T = &m->car[tc];
     int *tab = malloc((D->n ? D->n : 1) * sizeof(int)), cases = sx_head_is(body, "Cases");
+    const char *bvar = body_var(body);   /* a Body map (shape checked by admit_typed_map): one case, $v bound to the input */
+    char lab[32];   /* where a value comes from, for the reasons: "row N" or "Body" */
     for (size_t i = 0; i < D->n; i++) {
         size_t hit = 0; const Sx *out = NULL; Env e = {0};
-        for (size_t j = 1; j < body->n; j++) {
+        if (bvar) { hit = 1; out = body->items[2]; e.var[0] = bvar; e.val[0] = D->elems[i]; e.n = 1; }
+        for (size_t j = 1; !bvar && j < body->n; j++) {
             const Sx *row = body->items[j]; Env e1 = {0};
             if (!(cases ? match(row->items[0], D->elems[i], &e1) : sx_equal(row->items[0], D->elems[i]))) continue;
             if (hit) {
@@ -538,13 +591,15 @@ static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err
             hit = j; out = row->items[1]; e = e1;
         }
         if (!hit) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: not total on carrier %s; no value for %s", nm, D->name, xs); free(xs); free(tab); return -1; }
-        int ok = 1; allow_xor = m->neural; Sx *v = cases ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0;
-        if (ok == 2) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, hit - 1); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
-        if (ok == 3) { sx_free(v); free(tab); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, hit - 1); }
+        if (bvar) snprintf(lab, sizeof lab, "Body"); else snprintf(lab, sizeof lab, "row %zu", hit - 1);
+        int ok = 1; allow_xor = m->neural; Sx *v = cases || bvar ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0;
+        if (ok == 2) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: %s%s uses an operator outside the M0 fragment", nm, bvar ? "" : "Cases ", lab); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
+        if (ok == 3) { sx_free(v); free(tab); return fail(err, es, "Map %s: %s%s: integer overflow or out-of-range literal in Add/Mul", nm, bvar ? "" : "Cases ", lab); }
         if (ok != 1 || (totype && !has_type(v, totype))) {
             char *xs = sx_print(D->elems[i]), *vs = sx_print(v), *ts = totype ? sx_print(totype) : NULL;
-            if (ok != 1) fail(err, es, "Map %s: row %zu gives no value on %s", nm, hit - 1, xs);
-            else fail(err, es, "Map %s: row %zu gives %s on %s, which is not of the To type %s", nm, hit - 1, vs, xs, ts);
+            if (ok != 1 && bvar) fail(err, es, "Map %s: Body has no value on %s, so the map is not total on carrier %s", nm, xs, D->name);
+            else if (ok != 1) fail(err, es, "Map %s: %s gives no value on %s", nm, lab, xs);
+            else fail(err, es, "Map %s: %s gives %s on %s, which is not of the To type %s", nm, lab, vs, xs, ts);
             free(xs); free(vs); free(ts); sx_free(v); free(tab); return -1;
         }
         int b = T->image ? image_add(T, v) : dc_carrier_index(T, v);
@@ -574,11 +629,13 @@ static int admit_typed_map(DcModule *m, const Sx *d, const char *nm, char *err, 
         if (t <= 0) return -1;
     }
     int cases = sx_head_is(body, "Cases");
-    if (!cases && !sx_head_is(body, "Table")) {
-        fail(err, es, "[M0] Map %s: a %s body on a type-form map is outside the M0 fragment, which admits Table and Cases", nm, body->kind == SX_LIST && body->n && body->items[0]->kind == SX_SYM ? body->items[0]->text : "non-form");
+    if (sx_head_is(body, "Body")) {   /* t-2026-11-24-mettadinc-m0-body-maps: checks here, tabulation in typed_map_on */
+        if (body_check(m, nm, body, err, es)) return -1;
+    } else if (!cases && !sx_head_is(body, "Table")) {
+        fail(err, es, "[M0] Map %s: a %s body on a type-form map is outside the M0 fragment, which admits Table, Cases and Body", nm, body->kind == SX_LIST && body->n && body->items[0]->kind == SX_SYM ? body->items[0]->text : "non-form");
         snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1;
     }
-    for (size_t j = 1; j < body->n; j++) {
+    for (size_t j = 1; !sx_head_is(body, "Body") && j < body->n; j++) {
         const Sx *row = body->items[j];
         if (row->kind != SX_LIST || row->n != 2) return fail(err, es, "Map %s: %s row %zu is not a pair", nm, cases ? "Cases" : "Table", j - 1);
         if (cases && !body_in_fragment(m, row->items[1])) {
@@ -663,6 +720,22 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 }
                 mp->table[i] = b; break;
             }
+        }
+    } else if (sx_head_is(body, "Body") && !strcmp(m->profile, "Crisp")) {   /* t-2026-11-24-mettadinc-m0-body-maps */
+        if (body_check(m, nm, body, err, es)) { free(mp->table); return -1; }
+        Env e = {0}; e.var[0] = body_var(body); e.n = 1;
+        for (size_t i = 0; i < F->n; i++) {
+            int ok = 1; e.val[0] = F->elems[i];
+            allow_xor = m->neural; Sx *v = eval_body(body->items[2], &e, &ok); allow_xor = 0;
+            char *xs = sx_print(F->elems[i]);
+            if (ok == 2) { fail(err, es, "[M0] Map %s: Body uses an operator outside the M0 fragment on %s", nm, xs); snprintf(pending_why, sizeof pending_why, "%s", err + 5); }
+            else if (ok == 3) fail(err, es, "Map %s: Body on %s: integer overflow or out-of-range literal in Add/Mul", nm, xs);
+            else if (ok != 1) fail(err, es, "Map %s: Body has no value on %s, so the map is not total on carrier %s", nm, xs, F->name);
+            int b = ok == 1 ? dc_carrier_index(T, v) : -1;
+            if (ok == 1 && b < 0) { char *vs = sx_print(v); fail(err, es, "Map %s: Body sends %s to %s, which is not in carrier %s", nm, xs, vs, T->name); free(vs); }
+            free(xs); sx_free(v);
+            if (b < 0) { free(mp->table); return -1; }
+            mp->table[i] = b;
         }
     } else if (sx_head_is(body, "Body") && body->n == 3 && !strcmp(m->profile, "Graded") && uses_lib(m, "FiniteSets") && !(m->contracts && T->value)
                && body->items[1]->kind == SX_LIST && body->items[1]->n == 1 && body->items[1]->items[0]->kind == SX_SYM
