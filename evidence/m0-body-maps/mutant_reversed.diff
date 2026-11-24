@@ -1,0 +1,11 @@
+--- src/dcalc/model.c	2026-11-24 05:11:46.836103879 -0700
++++ src/dcalc/model.c	2026-11-24 05:15:57.542381662 -0700
+@@ -579,7 +579,7 @@
+     char lab[32];   /* where a value comes from, for the reasons: "row N" or "Body" */
+     for (size_t i = 0; i < D->n; i++) {
+         size_t hit = 0; const Sx *out = NULL; Env e = {0};
+-        if (bvar) { hit = 1; out = body->items[2]; e.var[0] = bvar; e.val[0] = D->elems[i]; e.n = 1; }
++        if (bvar) { hit = 1; out = body->items[2]; e.var[0] = bvar; e.val[0] = D->elems[D->n - 1 - i]; e.n = 1; }
+         for (size_t j = 1; !bvar && j < body->n; j++) {
+             const Sx *row = body->items[j]; Env e1 = {0};
+             if (!(cases ? match(row->items[0], D->elems[i], &e1) : sx_equal(row->items[0], D->elems[i]))) continue;

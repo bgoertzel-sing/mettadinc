@@ -1,0 +1,11 @@
+--- src/dcalc/model.c	2026-11-24 05:11:46.836103879 -0700
++++ src/dcalc/model.c	2026-11-24 05:15:57.538743628 -0700
+@@ -725,7 +725,7 @@
+         if (body_check(m, nm, body, err, es)) { free(mp->table); return -1; }
+         Env e = {0}; e.var[0] = body_var(body); e.n = 1;
+         for (size_t i = 0; i < F->n; i++) {
+-            int ok = 1; e.val[0] = F->elems[i];
++            int ok = 1; e.val[0] = F->elems[0];
+             allow_xor = m->neural; Sx *v = eval_body(body->items[2], &e, &ok); allow_xor = 0;
+             char *xs = sx_print(F->elems[i]);
+             if (ok == 2) { fail(err, es, "[M0] Map %s: Body uses an operator outside the M0 fragment on %s", nm, xs); snprintf(pending_why, sizeof pending_why, "%s", err + 5); }
