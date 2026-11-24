@@ -1,0 +1,22 @@
+# reviewer repro (review 1 F1) as fixture UF alone; Ben's reference evaluator (docs/e0 mg_eval + dclib via tests/dcalc/m0_typeform_maps/reference_answers.py)
+UF (CheckNow R)	Refuted	(Pair a b) (Observe ob)
+
+# UF/UG/UH and LG7/LG7C, status per binary (fc6bffe base, 0eebb9d result 1, 933f4c5 result 2)
+## fc6bffe
+UF (CheckNow R) => Unsupported: CheckNow: Representation R is outside the M0 fragment
+UG (CheckNow R) => Unsupported: CheckNow: Representation R is outside the M0 fragment
+UH (CheckNow R) => Unsupported: CheckNow: Representation R is outside the M0 fragment
+LG7 (CheckNow R) => Unsupported
+LG7C (CheckNow R) => Refuted
+## 0eebb9d
+UF (CheckNow R) => Checked
+UG (CheckNow R) => Checked
+UH (CheckNow R) => InvalidInput: Map ob: Cases row 0 gives a value outside carrier O
+LG7 (CheckNow R) => Checked
+LG7C (CheckNow R) => Refuted
+## 933f4c5
+UF (CheckNow R) => Unsupported: CheckNow: Representation R is outside the M0 fragment: Machine M: Map ob: Cases row 0: (Eq ...) reads the Const ka, which the M0 lowering of Eq does not resolve
+UG (CheckNow R) => Unsupported: CheckNow: Representation R is outside the M0 fragment: Machine M: Carrier T: Subset predicate keep: (Eq ...) reads the Const kp, which the M0 lowering of Eq does not resolve
+UH (CheckNow R) => Unsupported: CheckNow: Representation R is outside the M0 fragment: Machine M: Map ob: Cases row 0: (Eq ...) reads the Const kn, which the M0 lowering of Eq does not resolve
+LG7 (CheckNow R) => Refuted
+LG7C (CheckNow R) => Refuted

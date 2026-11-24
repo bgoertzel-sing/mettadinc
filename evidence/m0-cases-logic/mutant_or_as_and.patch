@@ -1,0 +1,4 @@
+122c122
+<         if (!strcmp(h, "Not")) acc = !t; else if (!strcmp(h, "And")) acc = acc && t; else acc = acc || t;
+---
+>         if (!strcmp(h, "Not")) acc = !t; else if (!strcmp(h, "And")) acc = acc && t; else acc = acc && t;

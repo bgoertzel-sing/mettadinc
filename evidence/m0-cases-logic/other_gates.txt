@@ -1,0 +1,6 @@
+== m0_typeform_maps
+m0_typeform_maps: PASS (0 failing)
+== m0_bool_observe
+m0_bool_observe: PASS (0 failing)
+== m0_subset_reach
+m0_subset_reach: PASS (0 failing)

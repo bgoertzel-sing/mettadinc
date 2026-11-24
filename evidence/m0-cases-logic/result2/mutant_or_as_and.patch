@@ -1,0 +1,11 @@
+--- src/dcalc/model.c	2026-11-24 05:15:06.000000000 -0700
++++ src/dcalc/model.c	2026-11-24 05:15:27.071437444 -0700
+@@ -143,7 +143,7 @@
+         int t = bool_of(v);
+         if (t < 0) { char *s = sx_print(v); logic_bad(ok, 4, "operand %zu of (%s ...) gives %s, which is not True or False", i, h, s); free(s); sx_free(v); return sx_sym("?"); }
+         sx_free(v);
+-        if (!strcmp(h, "Not")) acc = !t; else if (!strcmp(h, "And")) acc = acc && t; else acc = acc || t;
++        if (!strcmp(h, "Not")) acc = !t; else if (!strcmp(h, "And")) acc = acc && t; else acc = acc && t;
+     }
+     return sx_sym(acc ? "True" : "False");
+ }

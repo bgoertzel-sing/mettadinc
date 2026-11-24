@@ -9,13 +9,14 @@
   (Machine M (States A) (Observe law law) (Action id id))
   (Representation R (Of M) (Encode id)))
 !(dc.run UA (CheckNow R))
-;; UB: a type-form map with an operator outside the M0 Cases fragment (If/Eq: blocker c)
+;; UB: a type-form map with an operator outside the M0 Cases fragment (Xor outside a Neural module; this used
+;; If/Eq until t-2026-11-23-mettadinc-m0-cases-logic lowered them: that module is now m0_cases_logic LG6)
 (DC.Module UB
   (Profile Crisp)
   (Carrier A (Of Symbol) (Enum p q))
   (Carrier AA (Of (Tuple Symbol Symbol)) (Product A A))
   (Map id (From (Tuple Symbol Symbol)) (To (Tuple Symbol Symbol)) (Cases ((Tuple $a $b) (Tuple $a $b))))
-  (Map pick (From (Tuple Symbol Symbol)) (To (Tuple Symbol Symbol)) (Cases ((Tuple $a $b) (If (Eq $a p) (Tuple $a $b) (Tuple $b $a)))))
+  (Map pick (From (Tuple Symbol Symbol)) (To (Tuple Symbol Symbol)) (Cases ((Tuple $a $b) (Tuple (Xor $a $b) $b))))
   (Machine M (States AA) (Observe id id) (Action pick pick))
   (Representation R (Of M) (Encode id)))
 !(dc.run UB (CheckNow R))
@@ -37,13 +38,14 @@
   (Machine M (States AA) (Observe id id) (Action id id))
   (Representation R (Of M) (Encode id)))
 !(dc.run UD (CheckNow R))
-;; UE: a type-form AbstractionMap whose Source machine is outside the fragment (it observes through a UB-style If map)
+;; UE: a type-form AbstractionMap whose Source machine is outside the fragment (it observes through a UB-style Xor map;
+;; the If/Eq version is m0_cases_logic LG4 since t-2026-11-23-mettadinc-m0-cases-logic)
 (DC.Module UE
   (Profile Crisp)
   (Carrier A (Of Symbol) (Enum p q))
   (Carrier AA (Of (Tuple Symbol Symbol)) (Product A A))
   (Map id (From (Tuple Symbol Symbol)) (To (Tuple Symbol Symbol)) (Cases ((Tuple $a $b) (Tuple $a $b))))
-  (Map pick (From (Tuple Symbol Symbol)) (To (Tuple Symbol Symbol)) (Cases ((Tuple $a $b) (If (Eq $a p) (Tuple $a $b) (Tuple $b $a)))))
+  (Map pick (From (Tuple Symbol Symbol)) (To (Tuple Symbol Symbol)) (Cases ((Tuple $a $b) (Tuple (Xor $a $b) $b))))
   (Machine S (States AA) (Observe id pick) (Action id id))
   (Machine T (States AA) (Observe id id) (Action id id))
   (AbstractionMap H (Source S) (Target T) (Map id)))

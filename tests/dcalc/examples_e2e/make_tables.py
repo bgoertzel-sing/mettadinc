@@ -50,6 +50,8 @@ def classify(rid, mode, st, reason, doc):
     dw = re.match(ST + '|Estimated', doc)
     dw = dw.group(0) if dw else ''
     if st == dw: return 'match' + (' (negative fixture)' if st == 'InvalidInput' else '')
+    if doc.startswith('value:') and st in ('Checked', 'Refuted'):
+        return 'VALUE: the document gives a value, not a status word; dcalc answers %s, the value itself is not compared' % st
     if mode == 'release' and st == 'Unsupported' and rid in MS:
         return 'match: doc03 s2.6 says %s is a %s target, Unsupported in the first release' % (rid, MS[rid])
     if st == 'Unsupported' and 'backend fragment' in reason:
@@ -67,7 +69,7 @@ def classify(rid, mode, st, reason, doc):
     m = re.search(r'Profile ([\\w ]+?) is outside the first release', reason)
     if m: return 'GATED: Profile %s outside the first release (release gate, stoch profile is post-M0)' % m.group(1)
     if re.search(r'outside the M[0-9] fragment', reason):
-        return 'GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_c); Bool Observe maps (a), type-form From/To maps (b), Machine Like (d), Body maps in Crisp (f) and Subset/Reach carriers are lowered'
+        return 'GAP: M0 lowering rejects (g) a (To Bool) Observe map declared with a type-form From (repro/m0_blocker_g); Bool Observe maps (a), type-form From/To maps (b), If/Eq/And/Or/Not in Cases (c), Machine Like (d), Body maps in Crisp (f) and Subset/Reach carriers are lowered'
     return 'UNCLASSIFIED'
 def main():
     per = collections.defaultdict(list); D = load_doc()
