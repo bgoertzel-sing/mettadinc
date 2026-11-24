@@ -1,0 +1,14 @@
+ex1_release  rc=0 requests=61 {'Unsupported': 61}
+ex1_beyond   rc=0 requests=61 {'Unsupported': 61}
+ex2_release  rc=0 requests=15 {'Unsupported': 15}
+ex2_beyond   rc=0 requests=15 {'Unsupported': 15}
+ex3_release  rc=0 requests=32 {'Unsupported': 32}
+ex3_beyond   rc=0 requests=32 {'Unsupported': 32}
+ex4_release  rc=0 requests=36 {'Unsupported': 36}
+ex4_beyond   rc=0 requests=36 {'Unsupported': 36}
+mg_release   rc=0 requests=92 {'Unsupported': 92}
+mg_beyond    rc=0 requests=92 {'Unsupported': 92}
+ls_release   rc=0 requests=37 {'InvalidInput': 2, 'Unsupported': 35}
+ls_beyond    rc=0 requests=37 {'InvalidInput': 2, 'Unsupported': 35}
+wx_release   rc=0 requests=33 {'Unsupported': 33}
+wx_beyond    rc=0 requests=33 {'Unsupported': 33}

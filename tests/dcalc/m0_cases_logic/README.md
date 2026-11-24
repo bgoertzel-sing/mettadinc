@@ -90,7 +90,7 @@ and (To Bool) Observe maps (through `admit_map`).
    inside Not/Eq in a Subset predicate (UG; result 1 kept all four states where the spec meaning keeps three), and in an
    Add inside Eq (UH). Each answers Unsupported, the reason naming the form and the Const.
 
-The gate (result 1 numbers; result 2 in evidence/m0-cases-logic/README.md) fails on the fc6bffe binary (118 failures) and on two wrong-meaning mutants that still answer Checked/Refuted:
+The gate (result 1 numbers; result 2 in evidence/m0-cases-logic/result2/README.md: 128, 40 and 26, and 10 on the result-1 binary) fails on the fc6bffe binary (118 failures) and on two wrong-meaning mutants that still answer Checked/Refuted:
 If with its branches swapped (38 failures) and Or computed as And (26 failures). See evidence/m0-cases-logic/.
 
 ## Limits

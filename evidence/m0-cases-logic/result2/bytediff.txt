@@ -1,0 +1,47 @@
+# every tracked .metta outside cetta/ at 933f4c5 (260 files), each alone from its own directory, release and --beyond-release
+# binaries built clean from git archive of each commit's src/; same tree (evidence/m0-typeform-maps/run_all_metta.sh); all 520 outputs per binary end exit=0
+
+## 0eebb9d vs 933f4c5: outputs that differ
+tests_dcalc_m0_cases_logic_fixtures_logic_gates.metta.beyond.out
+tests_dcalc_m0_cases_logic_fixtures_logic_gates.metta.release.out
+tests_dcalc_m0_cases_logic_fixtures_logic_unsupported.metta.beyond.out
+tests_dcalc_m0_cases_logic_fixtures_logic_unsupported.metta.release.out
+
+## fc6bffe vs 933f4c5: outputs that differ
+docs_e0_docs_04_omega_memory_goals_part1_validation_bundle_memory_goals.metta.beyond.out
+docs_e0_docs_04_omega_memory_goals_part1_validation_bundle_memory_goals.metta.release.out
+docs_e0_docs_05_live_memory_part2_validation_bundle_memory_goals.metta.beyond.out
+docs_e0_docs_05_live_memory_part2_validation_bundle_memory_goals.metta.release.out
+docs_e0_docs_06_wmtm_worked_example_validation_bundle_memory_goals.metta.beyond.out
+docs_e0_docs_06_wmtm_worked_example_validation_bundle_memory_goals.metta.release.out
+tests_dcalc_examples_e2e_repro_m0_blocker_c_if_eq_cases.metta.beyond.out
+tests_dcalc_examples_e2e_repro_m0_blocker_c_if_eq_cases.metta.release.out
+tests_dcalc_m0_cases_logic_fixtures_doc04_logic.metta.beyond.out
+tests_dcalc_m0_cases_logic_fixtures_doc04_logic.metta.release.out
+tests_dcalc_m0_cases_logic_fixtures_logic_gates.metta.beyond.out
+tests_dcalc_m0_cases_logic_fixtures_logic_gates.metta.release.out
+tests_dcalc_m0_cases_logic_fixtures_logic_negative.metta.beyond.out
+tests_dcalc_m0_cases_logic_fixtures_logic_negative.metta.release.out
+tests_dcalc_m0_cases_logic_fixtures_logic_unsupported.metta.beyond.out
+tests_dcalc_m0_cases_logic_fixtures_logic_unsupported.metta.release.out
+tests_dcalc_m0_typeform_maps_fixtures_typeform_unsupported.metta.beyond.out
+tests_dcalc_m0_typeform_maps_fixtures_typeform_unsupported.metta.release.out
+
+## 0eebb9d vs 933f4c5, the differences
+### tests_dcalc_m0_cases_logic_fixtures_logic_gates.metta.release.out
+33c33
+< LG7 (CheckNow R) => (Result (Status Checked) (Claim (CheckNow R) (Equality Literal)) (Binding (Module LG7) (Digest "93f70cb34259953fa61da0eb9d560877ababe482444481db39e9b9bba9dcfb43") (Subject (Representation R) (Machine M)) (Source M) (Target K) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Horizon Unbounded) (Discount 1) (PolicyClass None)) (Value (DefectCheck (Defect (Interval 0 0)) (Bound 0) (Equality Literal))) (Evidence (Certificate (Kind Prefixpoint) (Codes Literal) (Checks Current) (Blocks (Block 0 1) (Block 2)))) (Assumptions) (Assurance (Policy M0-ExactReplay) (Replayed True) (Ground Replayed)))
+---
+> LG7 (CheckNow R) => (Result (Status Refuted) (Claim (CheckNow R) (Equality Literal)) (Binding (Module LG7) (Digest "93f70cb34259953fa61da0eb9d560877ababe482444481db39e9b9bba9dcfb43") (Subject (Representation R) (Machine M)) (Source M) (Target K) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Horizon Unbounded) (Discount 1) (PolicyClass None)) (Value (DefectCheck (Defect (Interval 1 1)) (Bound 0) (Equality Literal))) (Evidence (Witness (CurrentWitness (Pair 0 1) (Observe ob) (Codes k1 k1) (Left no) (Right yes)))) (Assumptions) (Assurance (Policy M0-ExactReplay) (Replayed True) (Ground Witness)))
+### tests_dcalc_m0_cases_logic_fixtures_logic_unsupported.metta.release.out
+6,8c6,8
+< UF (CheckNow R) => (Result (Status Checked) (Claim (CheckNow R) (Equality Literal)) (Binding (Module UF) (Digest "2cbebf4d7be409b9cdd28648d901d3b7faf3d23b988e759a13e0c6f84f0d3048") (Subject (Representation R) (Machine M)) (Source M) (Target O) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Horizon Unbounded) (Discount 1) (PolicyClass None)) (Value (DefectCheck (Defect (Interval 0 0)) (Bound 0) (Equality Literal))) (Evidence (Certificate (Kind Prefixpoint) (Codes Literal) (Checks Current) (Blocks (Block a b)))) (Assumptions) (Assurance (Policy M0-ExactReplay) (Replayed True) (Ground Replayed)))
+< UG (CheckNow R) => (Result (Status Checked) (Claim (CheckNow R) (Equality Literal)) (Binding (Module UG) (Digest "38b63016e376c3784e6844b11ec8cc46eca3a8eecb70a176168420fb9122c9a8") (Subject (Representation R) (Machine M)) (Source M) (Target T) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Horizon Unbounded) (Discount 1) (PolicyClass None)) (Value (DefectCheck (Defect (Interval 0 0)) (Bound 0) (Equality Literal))) (Evidence (Certificate (Kind Prefixpoint) (Codes Literal) (Checks Current) (Blocks (Block p) (Block q) (Block r) (Block s)))) (Assumptions) (Assurance (Policy M0-ExactReplay) (Replayed True) (Ground Replayed)))
+< UH (CheckNow R) => (Result (Status InvalidInput) (Binding (Module UH)) (Reason "Map ob: Cases row 0 gives a value outside carrier O"))
+---
+> UF (CheckNow R) => (Result (Status Unsupported) (Claim) (Binding (Module UF) (Digest "2cbebf4d7be409b9cdd28648d901d3b7faf3d23b988e759a13e0c6f84f0d3048") (Subject) (Source None) (Target None) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Horizon Unbounded) (Discount 1) (PolicyClass None)) (Value) (Evidence) (Assumptions) (Assurance (Policy M0-ExactReplay) (Replayed False) (Ground None)) (Reason "CheckNow: Representation R is outside the M0 fragment: Machine M: Map ob: Cases row 0: (Eq ...) reads the Const ka, which the M0 lowering of Eq does not resolve"))
+> UG (CheckNow R) => (Result (Status Unsupported) (Claim) (Binding (Module UG) (Digest "38b63016e376c3784e6844b11ec8cc46eca3a8eecb70a176168420fb9122c9a8") (Subject) (Source None) (Target None) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Horizon Unbounded) (Discount 1) (PolicyClass None)) (Value) (Evidence) (Assumptions) (Assurance (Policy M0-ExactReplay) (Replayed False) (Ground None)) (Reason "CheckNow: Representation R is outside the M0 fragment: Machine M: Carrier T: Subset predicate keep: (Eq ...) reads the Const kp, which the M0 lowering of Eq does not resolve"))
+> UH (CheckNow R) => (Result (Status Unsupported) (Claim) (Binding (Module UH) (Digest "37c30ff94a8ea4ef5859c835393278182367674a6f4e0c02286c8d0edfb90082") (Subject) (Source None) (Target None) (Interface (Tolerance Exact))) (Scope (Profile Crisp) (Fragment M0-EnumeratedDeterministic) (InitialStates AllDeclared) (ReachableStates AllDeclared) (Horizon Unbounded) (Discount 1) (PolicyClass None)) (Value) (Evidence) (Assumptions) (Assurance (Policy M0-ExactReplay) (Replayed False) (Ground None)) (Reason "CheckNow: Representation R is outside the M0 fragment: Machine M: Map ob: Cases row 0: (Eq ...) reads the Const kn, which the M0 lowering of Eq does not resolve"))
+
+## fc6bffe vs 933f4c5 on the 7 non-fixture files: identical to fc6bffe vs 0eebb9d (result 1 bytediff.txt)?
+(no DIFFERS line: the 933f4c5 output equals the 0eebb9d output on every file outside the two changed fixtures)
