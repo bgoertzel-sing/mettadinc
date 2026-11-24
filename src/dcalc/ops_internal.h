@@ -41,6 +41,9 @@ Sx *dc_envelope_scoped(const DcModule *m, DcVerdict v, int replays, Sx *claim, S
                 Sx *value, Sx *evidence, const char *reason, const DcScope *sc);
 Sx *dc_invalid(const DcModule *m, const char *fmt, ...);
 Sx *dc_unsupported(const DcModule *m, const char *fmt, ...);
+int dc_name_known_elsewhere(const Sx *src, const char *n);   /* lowering-unsupported */
+const char *dc_module_uses(const Sx *src, char *buf, size_t n);
+int dc_name_imported(const Sx *src, const char *n);
 /* Boundary 2: union a premise's assumptions into a derived result (ops_core.c). */
 void dc_result_add_premise(Sx *res, const Sx *premise, const char *premise_name);
 /* Boundary 1: fill (Source ..) (Target ..) of a result binding (ops_core.c). */

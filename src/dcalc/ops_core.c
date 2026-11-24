@@ -153,6 +153,50 @@ Sx *dc_invalid(const DcModule *m, const char *fmt, ...) {
     char buf[512]; va_list ap; va_start(ap, fmt); vsnprintf(buf, sizeof buf, fmt, ap); va_end(ap);
     return dc_envelope(m, VERDICT_INVALID, 0, NULL, NULL, NULL, NULL, buf);
 }
+/* t-2026-11-23-mettadinc-lowering-unsupported: a backend reader (sym_read,
+ * st_read) meets a name it cannot resolve.  When the name is a builtin type,
+ * a Carrier declared in the module source, or the module has an Import, the
+ * form is well-formed (M1 admission resolved it) and only outside the reader's
+ * fragment: Unsupported.  Otherwise it is a genuine undeclared name: InvalidInput. */
+int dc_name_known_elsewhere(const Sx *src, const char *n) {
+    static const char *const builtin[] = { "Nat", "Int", "Rational", "Rational01", "Real", "Symbol", "String", "Bool", "PBit", "Dist", NULL };
+    if (!n || !src) return 0;
+    for (int i = 0; builtin[i]; i++) if (!strcmp(n, builtin[i])) return 1;
+    int imp = 0;
+    for (size_t i = 2; i < src->n; i++) {
+        const Sx *d = src->items[i];
+        if (d->kind != SX_LIST || d->n < 2) continue;
+        if (sx_head_is(d, "Import")) { imp = 1; continue; }
+        if (d->items[1]->kind == SX_SYM && !strcmp(d->items[1]->text, n)) {
+            /* review 2 finding 1: a name declared locally by a non-Carrier declaration (a Map, Machine,
+             * TransitionKernel, ...) is resolved by admission; naming it where a carrier is expected is a
+             * wrong-kind spec violation (InvalidInput), not a fragment limit, Import or not. */
+            return sx_head_is(d, "Carrier") ? 1 : 0;
+        }
+    }
+    return imp;
+}
+/* lowering-unsupported: n is listed in an (Import M (Only .. n ..)); the M6 import inliner copies only
+ * Carrier/Map/Tolerance, so an imported Derive/MethodSystem/Transfer is a fragment limit, not an undeclared name. */
+int dc_name_imported(const Sx *src, const char *n) {
+    for (size_t i = 2; n && src && i < src->n; i++) {
+        const Sx *d = src->items[i];
+        if (!sx_head_is(d, "Import") || d->n < 3) continue;
+        for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Only"))
+            for (size_t j = 1; j < d->items[k]->n; j++) if (sx_is_sym(d->items[k]->items[j], n)) return 1;
+    }
+    return 0;
+}
+/* The libraries a module names in (Use ...), space-separated ("none" if none). */
+const char *dc_module_uses(const Sx *src, char *buf, size_t n) {
+    size_t k = 0; buf[0] = 0;
+    for (size_t i = 2; src && i < src->n; i++) if (sx_head_is(src->items[i], "Use"))
+        for (size_t j = 1; j < src->items[i]->n; j++) if (src->items[i]->items[j]->kind == SX_SYM && k + 1 < n)
+            k += (size_t)snprintf(buf + k, n - k, "%s%s", k ? " " : "", src->items[i]->items[j]->text);
+    if (k >= n) buf[n - 1] = 0;
+    if (!buf[0]) snprintf(buf, n, "none");
+    return buf;
+}
 Sx *dc_unsupported(const DcModule *m, const char *fmt, ...) {
     char buf[512]; va_list ap; va_start(ap, fmt); vsnprintf(buf, sizeof buf, fmt, ap); va_end(ap);
     return dc_envelope(m, VERDICT_UNSUPPORTED, 0, NULL, NULL, NULL, NULL, buf);

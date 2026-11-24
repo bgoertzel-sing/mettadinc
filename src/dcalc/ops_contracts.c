@@ -79,7 +79,23 @@ static int ct_load(const DcModule *m, const char *name, CtImpl *c, char *why, si
           c->fork = ov; c->fork_mach = of; c->fork_label = lab; c->rid_unmeasured = !strcmp(sh, "Unmeasured");
       } }
     c->name = name; c->ideal = dc_find_map(m, ia); c->actual = dc_find_map(m, aa); c->audit = dc_find_carrier(m, au); c->tin = dc_find_tol(m, di); c->tout = dc_find_tol(m, dout);
-    if (c->ideal < 0 || c->actual < 0) { snprintf(why, wn, "Implementation %s: Ideal/Actual names no declared Map", name); return -1; }
+    if (c->ideal < 0 || c->actual < 0) {   /* lowering-unsupported: a Map declared in the source (or imported) that the table engine skipped is a fragment limit */
+        int frag = 1; const char *nn[2] = { c->ideal < 0 ? ia : NULL, c->actual < 0 ? aa : NULL };
+        for (int q = 0; q < 2; q++) if (nn[q] || (q == 0 ? c->ideal < 0 : c->actual < 0)) {
+            int known = 0;
+            for (size_t i = 2; nn[q] && m->source && i < m->source->n; i++) {
+                const Sx *x = m->source->items[i];
+                if (sx_head_is(x, "Import") || (sx_head_is(x, "Map") && x->n >= 2 && sx_is_sym(x->items[1], nn[q]))) { known = 1; break; }
+            }
+            if (!known) frag = 0;
+        }
+        if (frag) {   /* review 1 finding 3: name the form and the module's libraries */
+            char ub[160]; const char *mn = c->ideal < 0 ? ia : aa;
+            snprintf(why, wn, "Implementation %s: Ideal/Actual Map %s is declared or imported but outside the contract table engine fragment (libraries: %s)", name, mn ? mn : "?", dc_module_uses(m->source, ub, sizeof ub));
+            return -2;
+        }
+        snprintf(why, wn, "Implementation %s: Ideal/Actual names no declared Map", name); return -1;
+    }
     if (c->audit < 0) { snprintf(why, wn, "Implementation %s: Audit names no declared Carrier", name); return -1; }
     if (c->tin < 0 || c->tout < 0) { snprintf(why, wn, "Implementation %s: a distance names no declared Tolerance", name); return -1; }
     if (!ct_tol_ok(m->tol[c->tin].kind) || !ct_tol_ok(m->tol[c->tout].kind)) { snprintf(why, wn, "Implementation %s: only OneMinusAbsoluteDifference, Discrete and Trivial distances are evaluated", name); return -2; }

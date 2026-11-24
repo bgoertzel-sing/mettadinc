@@ -38,6 +38,14 @@ static int st_el(const StCar *c, const Sx *x) { if (!x || x->kind != SX_SYM) ret
 
 /* ---- reader: carriers, maps, kernels, machines, representations, linear arrows ---- */
 static int st_rat(const Sx *v, DcRat *o) { return dc_sx_rat(v, o); }
+/* lowering-unsupported: -2 = well-formed form outside the stochastic fragment (Unsupported). */
+static int st_frag(char *err, size_t es, const char *what, const char *nm) { st_err(err, es, what, nm); return -2; }
+/* A (From|To|States C) field whose name the reader could not resolve: a fragment limit
+ * when M1 knows the name (builtin type, a non-enumerated Carrier, or an Import). */
+static int st_known(const Sx *src, const Sx *f) {
+    return f && f->kind == SX_LIST && f->n == 2 && f->items[1]->kind == SX_SYM && dc_name_known_elsewhere(src, f->items[1]->text);
+}
+
 static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
     memset(s, 0, sizeof *s);
     for (size_t i = 2; i < src->n; i++) {
@@ -49,7 +57,7 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
         if (!strcmp(h, "Carrier")) {
             if (s->ncar == ST_MAXD) return st_err(err, es, "too many carriers at", nm);
             const Sx *en = st_field(d, "Enum"); StCar *c = &s->car[s->ncar];
-            if (!en) return st_err(err, es, "carrier is not an enumeration:", nm);
+            if (!en) return st_frag(err, es, "carrier is not an enumeration:", nm);
             snprintf(c->name, ST_NM, "%s", nm);
             for (size_t k = 1; k < en->n; k++) {
                 if (en->items[k]->kind != SX_SYM || strlen(en->items[k]->text) >= ST_NM) return st_err(err, es, "bad element in carrier", nm);
@@ -82,7 +90,11 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                 mp->to = s->ncar++; s->nmap++; continue;
             }
             const Sx *cs = st_field(d, "Cases");
-            if (mp->from < 0 || mp->to < 0 || !cs) return st_err(err, es, "map needs (From C) (To C) (Cases ...):", nm);
+            if (mp->from < 0 || mp->to < 0 || !cs) {
+                int frag = (mp->from < 0 && st_known(src, ff)) || (mp->to < 0 && st_known(src, tf)) || (!cs && ff && tf && (st_field(d, "Body") || st_field(d, "Parameters") || st_field(d, "Table") || st_field(d, "Choice")));
+                if (frag && !(mp->from < 0 && !st_known(src, ff)) && !(mp->to < 0 && !st_known(src, tf))) return st_frag(err, es, "map needs (From C) (To C) (Cases ...):", nm);
+                return st_err(err, es, "map needs (From C) (To C) (Cases ...):", nm);
+            }
             for (int k = 0; k < ST_MAXE; k++) mp->tab[k] = -1;
             for (size_t k = 1; k < cs->n; k++) {
                 const Sx *cc = cs->items[k];
@@ -97,7 +109,11 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
             if (s->nker == ST_MAXD) return st_err(err, es, "too many kernels at", nm);
             StKer *K = &s->ker[s->nker]; snprintf(K->name, ST_NM, "%s", nm);
             K->from = st_car(s, st_name(st_field(d, "From"), 1)); K->to = st_car(s, st_name(st_field(d, "To"), 1));
-            if (K->from < 0 || K->to < 0) return st_err(err, es, "kernel needs (From C) (To C):", nm);
+            if (K->from < 0 || K->to < 0) {
+                const Sx *kf = st_field(d, "From"), *kt = st_field(d, "To");
+                if ((K->from >= 0 || st_known(src, kf)) && (K->to >= 0 || st_known(src, kt))) return st_frag(err, es, "kernel needs (From C) (To C):", nm);
+                return st_err(err, es, "kernel needs (From C) (To C):", nm);
+            }
             int seen[ST_MAXE] = {0}, ovf = 0;
             for (int a = 0; a < ST_MAXE; a++) for (int b = 0; b < ST_MAXE; b++) K->p[a][b] = dc_rat(0, 1, &ovf);
             for (size_t k = 2; k < d->n; k++) {
@@ -123,7 +139,7 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
             if (s->nmach == ST_MAXD) return st_err(err, es, "too many machines at", nm);
             StMach *M = &s->mach[s->nmach]; snprintf(M->name, ST_NM, "%s", nm);
             M->states = st_car(s, st_name(st_field(d, "States"), 1));
-            if (M->states < 0) return st_err(err, es, "machine needs (States C):", nm);
+            if (M->states < 0) return st_known(src, st_field(d, "States")) ? st_frag(err, es, "machine needs (States C):", nm) : st_err(err, es, "machine needs (States C):", nm);
             for (size_t k = 2; k < d->n; k++) {
                 const Sx *f = d->items[k]; const char *l = st_name(f, 1), *t = st_name(f, 2);
                 if (sx_head_is(f, "Observe")) {
@@ -1132,7 +1148,9 @@ static Sx *st_env(DcModule *m, DcVerdict v, const Sx *q, const char *subjk, cons
 }
 Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
     DcModule *m = r->m; char err[256]; static StMod S; int ovf = 0; (void)slot;
-    if (st_read(m->source, &S, err, sizeof err)) return dc_invalid(m, "stochastic module: %s", err);
+    int rrc = st_read(m->source, &S, err, sizeof err);
+    if (rrc == -2) { char ub[160]; return dc_unsupported(m, "stochastic module: form outside the stochastic backend fragment (libraries: %s): %s", dc_module_uses(m->source, ub, sizeof ub), err); }
+    if (rrc) return dc_invalid(m, "stochastic module: %s", err);
     const char *a1 = st_name(q, 1);
     if (!strcmp(head, "MinimizeForQueries") || !strcmp(head, "TracePartition") || !strcmp(head, "MinimalLinear")) {
         int mi = st_machi(&S, a1); if (mi < 0) return dc_invalid(m, "%s: %s names no machine", head, a1 ? a1 : "?");

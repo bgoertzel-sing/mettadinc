@@ -12,6 +12,7 @@ static int fail(char *err, size_t n, const char *fmt, ...) {
 }
 static int name_ok(const Sx *x) { return x && x->kind == SX_SYM && strlen(x->text) < DC_MAX_NAME; }
 
+static int name_frag(const DcModule *m, const char *nm);   /* lowering-unsupported */
 /* The implicit Bool carrier is never found by name: only a (To Bool) Observe map reaches it (bool_carrier). */
 int dc_find_carrier(const DcModule *m, const char *s) { for (size_t i = 0; i < m->ncar; i++) if (!m->car[i].builtin_bool && !strcmp(m->car[i].name, s)) return (int)i; return -1; }
 int dc_find_map(const DcModule *m, const char *s) { for (size_t i = 0; i < m->nmap; i++) if (!strcmp(m->map[i].name, s)) return (int)i; return -1; }
@@ -254,7 +255,11 @@ static int product_carrier(DcModule *m, const Sx *prod, char *err, size_t es) {
     if (at >= 0) { free(nm); return at; }
     int a = prod->n == 3 && name_ok(prod->items[1]) ? dc_find_carrier(m, prod->items[1]->text) : -1;
     int b = prod->n == 3 && name_ok(prod->items[2]) ? dc_find_carrier(m, prod->items[2]->text) : -1;
-    if (strlen(nm) >= DC_MAX_NAME || a < 0 || b < 0) { fail(err, es, "Map: inline carrier %s must be a binary Product of declared carriers", nm); free(nm); return -1; }
+    if (strlen(nm) >= DC_MAX_NAME || a < 0 || b < 0) {
+        /* lowering-unsupported: factors that are declared but not table carriers (e.g. a BitVector carrier) are a fragment limit */
+        int frag = strlen(nm) < DC_MAX_NAME && prod->n == 3 && name_ok(prod->items[1]) && name_ok(prod->items[2])
+                   && (a >= 0 || name_frag(m, prod->items[1]->text)) && (b >= 0 || name_frag(m, prod->items[2]->text));
+        fail(err, es, "%sMap: inline carrier %s must be a binary Product of declared carriers", frag ? "[M0] " : "", nm); free(nm); return -1; }
     size_t na = m->car[a].n, nb = m->car[b].n, total = na * nb;
     if (total > 4096 || m->ncar >= sizeof m->car / sizeof m->car[0]) { fail(err, es, "[M0] inline carrier %s: too large for the table engine", nm); free(nm); return -1; }
     DcCarrier *c = &m->car[m->ncar]; memset(c, 0, sizeof *c); snprintf(c->name, sizeof c->name, "%s", nm); free(nm);
@@ -706,7 +711,10 @@ static int admit_tol(DcModule *m, const Sx *d, char *err, size_t es) {
         c = dc_find_carrier(m, on->items[1]->text);
         if (c < 0 && kind == DC_TOL_ONE_MINUS_ABS) c = dc_value_carrier(m, on->items[1]->text);
     }
-    if (c < 0) return fail(err, es, "Tolerance %s: field On names no declared carrier", nm);
+    if (c < 0) {   /* lowering-unsupported: On names a carrier this engine skipped/cannot table -> fragment limit */
+        int frag = sx_head_is(on, "On") && on->n == 2 && name_ok(on->items[1]) && name_frag(m, on->items[1]->text);
+        return fail(err, es, "%sTolerance %s: field On names no declared carrier", frag ? "[M0] " : "", nm);
+    }
     if (kind == DC_TOL_ONE_MINUS_ABS && !m->car[c].value) return fail(err, es, "Tolerance %s: OneMinusAbsoluteDifference needs a rational carrier", nm);
     DcRat *tab = NULL;
     if (kind == DC_TOL_SYM_TABLE) {
@@ -744,9 +752,27 @@ static int refers_to_skipped(const DcModule *m, const char *err) {
     const char *o = strrchr(err, '('), *c = o ? strchr(o, ')') : NULL;
     if (!o || !c || c - o - 1 >= DC_MAX_NAME) return 0;
     char nm[DC_MAX_NAME]; memcpy(nm, o + 1, (size_t)(c - o - 1)); nm[c - o - 1] = 0;
+    return name_frag(m, nm);
+}
+/* lowering-unsupported: a name the table engine cannot resolve is a fragment limit
+ * (Unsupported) when it is a builtin type, a declaration this engine skipped, or the
+ * module has an (Import ..) whose transitive declarations the engine does not inline
+ * (M1 admission has already resolved every name before the engine runs). */
+static int name_frag(const DcModule *m, const char *nm) {
     static const char *const builtin[] = { "Nat", "Int", "Rational", "Rational01", "Real", "Symbol", "String", "Bool", "PBit", "Dist", NULL };
+    if (!nm) return 0;
     for (int i = 0; builtin[i]; i++) if (!strcmp(builtin[i], nm)) return 1;
-    return dc_is_skipped(m, nm);
+    if (dc_is_skipped(m, nm)) return 1;
+    const Sx *src = m->source; int imp = 0;
+    for (size_t i = 2; src && i < src->n; i++) {
+        const Sx *d = src->items[i];
+        if (sx_head_is(d, "Import")) imp = 1;
+        /* review 1 finding 4: a name declared locally (Carrier, or another kind such as a Map named where a
+         * carrier is expected) is resolved by admission; an unresolved reference to it is a wrong-kind spec
+         * violation (InvalidInput), not an import fragment limit. */
+        if (!sx_head_is(d, "Import") && d->n >= 2 && d->items[1]->kind == SX_SYM && !strcmp(d->items[1]->text, nm)) return 0;
+    }
+    return imp;
 }
 
 int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
