@@ -21,6 +21,12 @@
 # 12da03b4 test-he-compat-catalog-guards (which hid the targets depending on it); at 4c285a97 test-test-target-scope
 # ("Argument list too long", upstream issue 6 in docs/CETTA-LATEST.md), which hides no other target.
 #
+# Drift guard (runs first, before anything is built): the pinned commit is the gitlink in the superproject's HEAD
+# (git ls-tree HEAD cetta) and the checkout is git -C cetta rev-parse HEAD.  If they differ, or cetta/ is not a
+# checked-out submodule of its own (an empty cetta/ would make rev-parse answer for the superproject), the script
+# refuses with exit 2 and names both commits.  tools/cetta-baseline.sh --check-pin runs only the guard (exit 0 at
+# the pin).  Test: tests/tools/test_cetta_baseline_drift.sh.
+#
 # Environment (all optional):
 #   MDINC_GMP_PREFIX  a prefix holding GMP headers and libgmp.so when the system has no libgmp-dev, laid out as
 #                     an extracted Debian/Ubuntu package (<prefix>/include, <prefix>/include/x86_64-linux-gnu,
