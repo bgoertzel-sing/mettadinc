@@ -547,19 +547,20 @@ static int pattern_fits(const Sx *pat, const Sx *t) {
     return 1;
 }
 /* operators of a Cases body that eval_body evaluates (anything else is outside the M0 fragment) */
-static int body_in_fragment(const DcModule *m, const Sx *b) {
+static int frag_ok(const DcModule *m, const Sx *b, int logic) {   /* logic: admit If/Eq/And/Or/Not (Cases bodies); 0 for Body maps, which main lowers with Tuple/Add/Mul only */
     if (b->kind != SX_LIST) return 1;
     if (b->n && b->items[0]->kind == SX_SYM) {
         const char *h = b->items[0]->text;
         /* If/Eq/And/Or/Not at any arity: a malformed arity is InvalidInput, a short And/Or Unsupported, when tabulated (eval_logic) */
         if (!(!strcmp(h, "Tuple") || ((!strcmp(h, "Add") || !strcmp(h, "Mul")) && b->n == 3) || (m->neural && !strcmp(h, "Xor") && b->n == 3)
-              || (!strcmp(m->profile, "Crisp") && logic_head(b)))) return 0;
-        for (size_t i = 1; i < b->n; i++) if (!body_in_fragment(m, b->items[i])) return 0;
+              || (logic && !strcmp(m->profile, "Crisp") && logic_head(b)))) return 0;
+        for (size_t i = 1; i < b->n; i++) if (!frag_ok(m, b->items[i], logic)) return 0;
         return 1;
     }
-    for (size_t i = 0; i < b->n; i++) if (!body_in_fragment(m, b->items[i])) return 0;
+    for (size_t i = 0; i < b->n; i++) if (!frag_ok(m, b->items[i], logic)) return 0;
     return 1;
 }
+static int body_in_fragment(const DcModule *m, const Sx *b) { return frag_ok(m, b, 1); }
 /* ---- M0: (Body ($v) e) maps in a Crisp module (t-2026-11-24-mettadinc-m0-body-maps) ----
  * Spec 5.1 grammar (txt l.1721): map-body ::= (Cases (pattern expr)+) | (Body ($v) expr) | (Table ...) | ...
  * Spec 5.4 (l.1856): "Body binds its single argument lexically": the map sends x to the value of expr
@@ -587,11 +588,11 @@ static const char *body_free_var(const Sx *x, const char *var) {   /* a $-variab
 }
 /* the outermost operator of b that body_in_fragment rejects (tested with its arguments replaced by in-fragment atoms) */
 static const char *body_foreign(const DcModule *m, const Sx *b) {
-    if (b->kind != SX_LIST || body_in_fragment(m, b)) return NULL;
+    if (b->kind != SX_LIST || frag_ok(m, b, 0)) return NULL;
     if (b->n && b->items[0]->kind == SX_SYM) {
         Sx *s = sx_list(); sx_push(s, sx_copy(b->items[0]));
         for (size_t i = 1; i < b->n; i++) sx_push(s, sx_sym("0"));
-        int head_ok = body_in_fragment(m, s); sx_free(s);
+        int head_ok = frag_ok(m, s, 0); sx_free(s);
         if (!head_ok) return b->items[0]->text;
     }
     for (size_t i = 0; i < b->n; i++) { const char *r = body_foreign(m, b->items[i]); if (r) return r; }
@@ -695,7 +696,7 @@ static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err
         }
         if (!hit) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: not total on carrier %s; no value for %s", nm, D->name, xs); free(xs); free(tab); return -1; }
         if (bvar) snprintf(lab, sizeof lab, "Body"); else snprintf(lab, sizeof lab, "row %zu", hit - 1);
-        int ok = 1; allow_xor = m->neural; if (cases) logic_on(m); else logic_why[0] = 0; Sx *v = cases || bvar ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0; logic_off();
+        int ok = 1; allow_xor = m->neural; logic_on(m); Sx *v = cases || bvar ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0; logic_off();
         if (ok == 4) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: %s%s on %s: %s", nm, bvar ? "" : "Cases ", lab, xs, logic_why); free(xs); sx_free(v); free(tab); return -1; }
         if (ok == 2 && logic_why[0]) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: %s%s: %s", nm, bvar ? "" : "Cases ", lab, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
         if (ok == 2) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: %s%s uses an operator outside the M0 fragment", nm, bvar ? "" : "Cases ", lab); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
