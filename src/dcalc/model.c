@@ -50,6 +50,79 @@ static int allow_rat;   /* M2: set by admit_map only for a Graded map into a val
 static int allow_xor;   /* M7: set by admit_map only on a (Use Neural) module in beyond-release: (Xor a b) on bits */
 static int allow_bool;  /* set only by admit_bool_observe_map: (To Bool) resolves to the implicit Bool carrier */
 static char pending_why[256];   /* a form-specific reason for the declaration being admitted when it returns -2 (Bool Observe maps, type-form maps and what uses them), "" if none */
+/* ---- If/Eq/And/Or/Not in Cases bodies (t-2026-11-23-mettadinc-m0-cases-logic) ----
+ * Spec 5.1 grammar (l.1721): map-body ::= (Cases (pattern expr)+); spec 5.4 (l.1858): admitted
+ * expressions include "registered pure primitives, each total on its declared input type".  The
+ * registry lists Eq, If, Not, And and Or among the Core primitives (libraries.Core.primitives) and
+ * Bool among Core's builtin types.  Meaning, as in Ben's reference evaluators (docs/e0 mg_eval.py
+ * World.ev, ls_eval.py, metta_eval.py):
+ *   (Eq a b)        True iff a and b are the same value (literal equality; integer literals by value)
+ *   (If c a b)      a if c is True, b if c is False; only the chosen branch is evaluated
+ *   (Not c)         the Boolean complement
+ *   (And c1 c2 ...) True iff every ci is True;  (Or c1 c2 ...) True iff some ci is True (two or more operands)
+ * Lowered only in the Crisp profile (allow_logic, set where a Crisp module's Cases body is tabulated).
+ * Malformed uses (If/Eq/Not with the wrong number of arguments; an If condition or a Not/And/Or
+ * operand that is not True or False) set *ok = 4, the reason in logic_why: InvalidInput.
+ * And/Or with fewer than two operands, a Const name read inside one of these forms, and these forms
+ * in a non-Crisp module, stay outside the fragment (*ok = 2), the form named in logic_why: Unsupported. */
+static int allow_logic;
+static const DcModule *logic_mod;   /* with allow_logic: the module (its Const declarations) */
+static char logic_why[200];         /* the reason when eval_body sets *ok to 4, or to 2 on a logic form; "" otherwise */
+static void logic_bad(int *ok, int code, const char *fmt, ...) {
+    if (*ok != 1) return;
+    va_list ap; va_start(ap, fmt); vsnprintf(logic_why, sizeof logic_why, fmt, ap); va_end(ap); *ok = code;
+}
+static int logic_head(const Sx *b) {
+    if (b->kind != SX_LIST || !b->n || b->items[0]->kind != SX_SYM) return 0;
+    const char *h = b->items[0]->text;
+    return !strcmp(h, "If") || !strcmp(h, "Eq") || !strcmp(h, "Not") || !strcmp(h, "And") || !strcmp(h, "Or");
+}
+static const Sx *find_decl(const DcModule *m, const char *head, const char *name);
+static Sx *eval_body(const Sx *b, const Env *e, int *ok);
+/* an operand of a logic form; a Const name is not resolved by this lowering (outside the fragment) */
+static Sx *logic_arg(const char *h, const Sx *a, const Env *e, int *ok) {
+    if (a->kind == SX_SYM && a->text[0] != '$' && logic_mod && find_decl(logic_mod, "Const", a->text)) {
+        logic_bad(ok, 2, "(%s ...) reads the Const %s, which the M0 lowering of %s does not resolve", h, a->text, h);
+        return sx_sym("?");
+    }
+    return eval_body(a, e, ok);
+}
+static void logic_on(const DcModule *m) { allow_logic = !strcmp(m->profile, "Crisp"); logic_mod = m; logic_why[0] = 0; }   /* around eval_body only */
+static void logic_off(void) { allow_logic = 0; logic_mod = NULL; }
+static int bool_of(const Sx *v) { return sx_is_sym(v, "True") ? 1 : sx_is_sym(v, "False") ? 0 : -1; }
+static int parse_int(const Sx *x, long *out);
+static Sx *eval_logic(const Sx *b, const Env *e, int *ok) {
+    const char *h = b->items[0]->text; size_t na = b->n - 1;
+    if (!strcmp(h, "Eq")) {
+        if (na != 2) { logic_bad(ok, 4, "(Eq ...) takes 2 arguments, not %zu", na); return sx_sym("?"); }
+        Sx *x = logic_arg(h, b->items[1], e, ok), *y = logic_arg(h, b->items[2], e, ok);
+        if (*ok != 1) { sx_free(x); sx_free(y); return sx_sym("?"); }
+        long a, c; int pa = parse_int(x, &a), pc = parse_int(y, &c);
+        int eq = pa == 1 && pc == 1 ? a == c : sx_equal(x, y);
+        sx_free(x); sx_free(y); return sx_sym(eq ? "True" : "False");
+    }
+    if (!strcmp(h, "If")) {
+        if (na != 3) { logic_bad(ok, 4, "(If ...) takes 3 arguments (condition, then, else), not %zu", na); return sx_sym("?"); }
+        Sx *c = logic_arg(h, b->items[1], e, ok);
+        if (*ok != 1) { sx_free(c); return sx_sym("?"); }
+        int t = bool_of(c);
+        if (t < 0) { char *s = sx_print(c); logic_bad(ok, 4, "the condition of (If ...) gives %s, which is not True or False", s); free(s); sx_free(c); return sx_sym("?"); }
+        sx_free(c);
+        return logic_arg(h, b->items[t ? 2 : 3], e, ok);
+    }
+    if (!strcmp(h, "Not") && na != 1) { logic_bad(ok, 4, "(Not ...) takes 1 argument, not %zu", na); return sx_sym("?"); }
+    if (strcmp(h, "Not") && na < 2) { logic_bad(ok, 2, "(%s ...) with %zu operand%s is outside the M0 fragment, which admits %s with two or more", h, na, na == 1 ? "" : "s", h); return sx_sym("?"); }
+    int acc = !strcmp(h, "Or") ? 0 : 1;
+    for (size_t i = 1; i < b->n; i++) {
+        Sx *v = logic_arg(h, b->items[i], e, ok);
+        if (*ok != 1) { sx_free(v); return sx_sym("?"); }
+        int t = bool_of(v);
+        if (t < 0) { char *s = sx_print(v); logic_bad(ok, 4, "operand %zu of (%s ...) gives %s, which is not True or False", i, h, s); free(s); sx_free(v); return sx_sym("?"); }
+        sx_free(v);
+        if (!strcmp(h, "Not")) acc = !t; else if (!strcmp(h, "And")) acc = acc && t; else acc = acc || t;
+    }
+    return sx_sym(acc ? "True" : "False");
+}
 static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
     if (b->kind == SX_SYM && b->text[0] == '$') {
         for (int i = 0; i < e->n; i++) if (!strcmp(e->var[i], b->text)) return sx_copy(e->val[i]);
@@ -78,6 +151,8 @@ static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
         return sx_sym(a != c ? "1" : "0");
     }
     if (allow_rat && sx_head_is(b, "Rat") && b->n == 3) return sx_copy(b);
+    if (allow_logic && logic_head(b)) return eval_logic(b, e, ok);
+    if (logic_mod && logic_head(b)) { logic_bad(ok, 2, "(%s ...) in a Cases body is lowered only in a Crisp module, not in profile %s", b->items[0]->text, logic_mod->profile); return sx_sym("?"); }
     if (b->n && b->items[0]->kind == SX_SYM && strcmp(b->items[0]->text, "Tuple")) { if (*ok == 1) *ok = 2; return sx_sym("?"); }
     Sx *l = sx_list();
     for (size_t i = 0; i < b->n; i++) sx_push(l, eval_body(b->items[i], e, ok));
@@ -157,7 +232,9 @@ static int admit_subset(DcModule *m, DcCarrier *c, const char *nm, const Sx *bod
             if (row->kind != SX_LIST || row->n != 2) { free(in); return fail(err, es, "Carrier %s: Subset predicate %s: Cases row %zu is not a pair", nm, pn, j - 1); }
             if (!match(row->items[0], P->elems[i], &e)) continue;
             if (hit) { char *x = sx_print(P->elems[i]); fail(err, es, "Carrier %s: Subset predicate %s: input %s matches more than one case", nm, pn, x); free(x); free(in); return -1; }
-            hit = 1; Sx *v = eval_body(row->items[1], &e, &ok);
+            hit = 1; logic_on(m); Sx *v = eval_body(row->items[1], &e, &ok); logic_off();
+            if (ok == 4) { char *x = sx_print(P->elems[i]); fail(err, es, "Carrier %s: Subset predicate %s on %s: %s", nm, pn, x, logic_why); free(x); sx_free(v); free(in); return -1; }
+            if (ok == 2 && logic_why[0]) { sx_free(v); free(in); fail(err, es, "[M0] Carrier %s: Subset predicate %s: %s", nm, pn, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
             if (ok == 2 || ok == 3) { sx_free(v); free(in); return fail(err, es, "[M0] Carrier %s: Subset predicate %s uses an operator outside the M0 fragment", nm, pn); }
             int b = ok == 1 && sx_is_sym(v, "True") ? 1 : ok == 1 && sx_is_sym(v, "False") ? 0 : -1; sx_free(v);
             if (b < 0) { char *x = sx_print(P->elems[i]); fail(err, es, "Carrier %s: Subset predicate %s gives no Bool on %s", nm, pn, x); free(x); free(in); return -1; }
@@ -450,7 +527,9 @@ static int body_in_fragment(const DcModule *m, const Sx *b) {
     if (b->kind != SX_LIST) return 1;
     if (b->n && b->items[0]->kind == SX_SYM) {
         const char *h = b->items[0]->text;
-        if (!(!strcmp(h, "Tuple") || ((!strcmp(h, "Add") || !strcmp(h, "Mul")) && b->n == 3) || (m->neural && !strcmp(h, "Xor") && b->n == 3))) return 0;
+        /* If/Eq/And/Or/Not at any arity: a malformed arity is InvalidInput, a short And/Or Unsupported, when tabulated (eval_logic) */
+        if (!(!strcmp(h, "Tuple") || ((!strcmp(h, "Add") || !strcmp(h, "Mul")) && b->n == 3) || (m->neural && !strcmp(h, "Xor") && b->n == 3)
+              || (!strcmp(m->profile, "Crisp") && logic_head(b)))) return 0;
         for (size_t i = 1; i < b->n; i++) if (!body_in_fragment(m, b->items[i])) return 0;
         return 1;
     }
@@ -538,7 +617,9 @@ static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err
             hit = j; out = row->items[1]; e = e1;
         }
         if (!hit) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: not total on carrier %s; no value for %s", nm, D->name, xs); free(xs); free(tab); return -1; }
-        int ok = 1; allow_xor = m->neural; Sx *v = cases ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0;
+        int ok = 1; allow_xor = m->neural; logic_on(m); Sx *v = cases ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0; logic_off();
+        if (ok == 4) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: Cases row %zu on %s: %s", nm, hit - 1, xs, logic_why); free(xs); sx_free(v); free(tab); return -1; }
+        if (ok == 2 && logic_why[0]) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: Cases row %zu: %s", nm, hit - 1, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
         if (ok == 2) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, hit - 1); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
         if (ok == 3) { sx_free(v); free(tab); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, hit - 1); }
         if (ok != 1 || (totype && !has_type(v, totype))) {
@@ -583,7 +664,7 @@ static int admit_typed_map(DcModule *m, const Sx *d, const char *nm, char *err, 
         if (row->kind != SX_LIST || row->n != 2) return fail(err, es, "Map %s: %s row %zu is not a pair", nm, cases ? "Cases" : "Table", j - 1);
         if (cases && !body_in_fragment(m, row->items[1])) {
             fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1);
-            snprintf(pending_why, sizeof pending_why, "Map %s: Cases row %zu of a type-form map uses an operator outside the M0 fragment, which admits Tuple, Add and Mul", nm, j - 1); return -1;
+            snprintf(pending_why, sizeof pending_why, "Map %s: Cases row %zu of a type-form map uses an operator outside the M0 fragment, which admits Tuple, Add, Mul, If, Eq, And, Or and Not", nm, j - 1); return -1;
         }
         if (fr->kind == SX_LIST && !(cases ? pattern_fits(row->items[0], fr) : has_type(row->items[0], fr))) {
             char *ps = sx_print(row->items[0]), *ts = sx_print(fr);
@@ -645,7 +726,9 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 const Sx *row = body->items[j]; Env e = {0}; int ok = 1;
                 if (row->kind != SX_LIST || row->n != 2) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu is not a pair", nm, j - 1); }
                 if (!match(row->items[0], F->elems[i], &e)) continue;
-                allow_rat = T->value; allow_xor = m->neural; Sx *v = eval_body(row->items[1], &e, &ok); allow_rat = 0; allow_xor = 0;
+                allow_rat = T->value; allow_xor = m->neural; logic_on(m); Sx *v = eval_body(row->items[1], &e, &ok); allow_rat = 0; allow_xor = 0; logic_off();
+                if (ok == 4) { char *xs = sx_print(F->elems[i]); fail(err, es, "Map %s: Cases row %zu on %s: %s", nm, j - 1, xs, logic_why); free(xs); sx_free(v); free(mp->table); return -1; }
+                if (ok == 2 && logic_why[0]) { sx_free(v); free(mp->table); fail(err, es, "[M0] Map %s: Cases row %zu: %s", nm, j - 1, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
                 if (ok == 2) { sx_free(v); free(mp->table); return fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1); }
                 if (ok == 3) { sx_free(v); free(mp->table); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, j - 1); }
                 int b = ok ? (T->value ? dc_value_add(T, v) : dc_carrier_index(T, v)) : -1; sx_free(v);

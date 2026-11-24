@@ -68,7 +68,7 @@ carrier; ND a malformed `(Tuple)`; NE a pattern no value of the From type can ma
 carrier; NG an Action's To type is not the states' type; NH overlapping Cases rows.
 
 Unsupported cases (`fixtures/typeform_unsupported.metta`). The reason names the form: UA `(To (Law Bit))`;
-UB If/Eq in a type-form Cases (blocker c); UC a Body type-form map; UD `(Tuple A A)` over carrier names; UE an
+UB an operator outside the Cases fragment in a type-form Cases (Xor; If/Eq until t-2026-11-23-mettadinc-m0-cases-logic lowered them, now m0_cases_logic LG6); UC a Body type-form map; UD `(Tuple A A)` over carrier names; UE an
 AbstractionMap whose Source machine is outside the fragment, with the reason passed down from the map.
 
 ## Limits
