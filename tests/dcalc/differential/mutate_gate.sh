@@ -25,4 +25,7 @@ mutant d4_con_unclipped ops_contracts.c 's/\*d = dc_rat_min((DcRat){1, 1}, dc_ra
 # M5 (D5, t-2026-11-19-mettadinc-d5-behavioral-classpairs): defect restricted to pairs where one state is the
 # other's representative (the old max_x d(x, rep(x))); the D5 canary must catch it
 mutant d5_rep_only stoch.c 's/if (E->tab\[x\] == E->tab\[y\] && dc_rat_cmp(d\[x\]\[y\], def) > 0)/if ((E->tab[x] == y || E->tab[y] == x) \&\& dc_rat_cmp(d[x][y], def) > 0)/'
+# M6 (D6, t-2026-11-24-mettadinc-d6-trace-fix-v2): horizon trace defect restricted to (E(x), x) pairs again (the old
+# representative-only rule); the D6 gate must catch it
+mutant d6_rep_only stoch.c 's/for (int x = 0; x < n; x++) for (int j = -1; j < n; j++) {/for (int x = 0; x < n; x++) for (int j = -1; j < 0; j++) {/'
 [ $rc = 0 ] && echo "MUTATION CHECK PASS" || echo "MUTATION CHECK FAIL"; exit $rc

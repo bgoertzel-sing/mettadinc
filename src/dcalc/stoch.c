@@ -1187,14 +1187,21 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
             else snprintf(g_olab[c], ST_NM, "c%d", c); }
         long nw = 1;
         for (int i = 0; i < h && !pol; i++) { nw *= M->nact; if (nw > 100000) return dc_unsupported(m, "%s: more than 100000 words of length %d", head, h); }
-        StTv best; best.v = best.pe = best.qe = dc_rat(0, 1, &ovf); int bx = -1, bw[16] = {0}; Sx *btree = NULL; unsigned long long bmask = 0;
-        for (int x = 0; x < n; x++) {
-            int y = E->tab[x]; if (y == x) continue;
+        StTv best; best.v = best.pe = best.qe = dc_rat(0, 1, &ovf); int bx = -1, by = -1, bw[16] = {0}; Sx *btree = NULL; unsigned long long bmask = 0;
+        /* D6 (spec Def 4.4(4), l.1044-1059): the horizon trace defect is the max over ALL pairs of states with the
+         * same code (E(x) == E(y), as D5's st_defect), not only x vs its representative E(x). Each unordered pair is
+         * visited once, as (left y, right x): left is the representative state when the pair contains it, else the
+         * earlier state. Pairs are visited by right state x, and for each x the pair with E(x) first, so the old
+         * (E(x), x) pairs keep their order; the witness is the first pair attaining the max. */
+        for (int x = 0; x < n; x++) for (int j = -1; j < n; j++) {
+            int y = j < 0 ? E->tab[x] : j;
+            if ((j >= 0 && y == E->tab[x]) || y == x || E->tab[y] != E->tab[x]) continue;   /* D6: same-code pairs only */
+            if (E->tab[x] == x || (E->tab[y] != y && y > x)) continue;   /* x must be the right state of the pair */
             DcRat mu[ST_MAXE], nu[ST_MAXE];
-            for (int z = 0; z < n; z++) { mu[z] = dc_rat(z == y, 1, &ovf); nu[z] = dc_rat(z == x, 1, &ovf); }   /* left = encoded image */
+            for (int z = 0; z < n; z++) { mu[z] = dc_rat(z == y, 1, &ovf); nu[z] = dc_rat(z == x, 1, &ovf); }   /* left = representative (or earlier state) */
             if (oc[x] != oc[y]) {   /* separated by the initial report */
                 if (bx < 0 || dc_rat_cmp(dc_rat(1, 1, &ovf), best.v) > 0) { best.v = best.pe = dc_rat(1, 1, &ovf); best.qe = dc_rat(0, 1, &ovf);
-                    bx = x; memset(bw, 0, sizeof bw); if (btree) sx_free(btree); btree = NULL; bmask = 1ULL << oc[y]; }
+                    bx = x; by = y; memset(bw, 0, sizeof bw); if (btree) sx_free(btree); btree = NULL; bmask = 1ULL << oc[y]; }
                 continue;
             }
             int w[16] = {0};
@@ -1203,7 +1210,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
                 Sx *tr = NULL; g_tvlast = 0; g_tvnodes = 0;
                 StTv r = st_tvrec(&S, M, oc, noc, mu, nu, h, pol ? NULL : w, 0, oc[x], pol ? &tr : NULL, &ovf);
                 if (ovf) { if (tr) sx_free(tr); if (btree) sx_free(btree); return dc_unsupported(m, "%s: rational overflow (int64) or search limit", head); }
-                if (bx < 0 || dc_rat_cmp(r.v, best.v) > 0) { best = r; bx = x; memcpy(bw, w, sizeof bw); if (btree) sx_free(btree); btree = tr; bmask = g_tvlast; }
+                if (bx < 0 || dc_rat_cmp(r.v, best.v) > 0) { best = r; bx = x; by = y; memcpy(bw, w, sizeof bw); if (btree) sx_free(btree); btree = tr; bmask = g_tvlast; }
                 else if (tr) sx_free(tr);
             }
         }
@@ -1216,7 +1223,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         if (bx >= 0 && !dc_rat_is_zero(best.v)) {
             Sx *lr = dc_form("LastReport", NULL);
             for (int c = 0; c < noc && c < 64; c++) if (bmask >> c & 1) sx_push(lr, dc_sym(g_olab[c]));
-            Sx *pair = dc_form("Pair", dc_sym(C->el[E->tab[bx]]), dc_sym(C->el[bx]), NULL), *wit;
+            Sx *pair = dc_form("Pair", dc_sym(C->el[by]), dc_sym(C->el[bx]), NULL), *wit;
             Sx *probs = dc_form("Probabilities", st_rsx(best.pe), st_rsx(best.qe), NULL), *evt = dc_form("Event", lr, NULL);
             if (pol) { wit = dc_form("PolicyTreeWitness", pair, btree ? btree : dc_form("Stop", NULL), evt, probs, NULL); btree = NULL; }
             else { Sx *wd = dc_form("Word", NULL); for (int i = 0; i < h; i++) sx_push(wd, dc_sym(M->al[bw[i]]));

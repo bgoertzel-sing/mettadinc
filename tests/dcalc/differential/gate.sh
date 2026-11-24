@@ -26,6 +26,12 @@ if [ "$(printf '%s\n' "$o" | grep -cE 'Status Checked.*Value \(BehavioralDefect 
 # t-2026-11-19 D2 fixed: regression gates with the spec answer (Def 3.8: S_y = Pi_y L - L Pi'_y is graded into rho).
 canary D2_obs_residual        $H/disagreements/D2_obs_residual_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho \(Rat 1 2\)\)\)'
 canary D2_linear_arrow_obs    $H/disagreements/D2_linear_arrow_obs_refuted.metta 'Status Checked.*LinearArrow Positive \(Valid True\) \(Grade \(Lambda 1\) \(Rho 1\)\)'
+# D6 fixed (t-2026-11-24-mettadinc-d6-trace-fix-v2): spec Def 4.4(4) l.1044-1059 takes the max over ALL same-code
+# pairs, so the horizon trace defect is 1 (pair a c) on the 3 MeasureTrace requests (h1, h3, h1 ObservationBased) and
+# CheckTrace Horizon 1 Within 3/4 answers WithinBound False. The old answer 1/2 must not appear. Normal gate now.
+o=$(timeout 60 "$DC" --beyond-release $H/disagreements/D6_trace_classpairs.metta 2>&1)
+if [ "$(printf '%s\n' "$o" | grep -cE 'Status Checked.*Value \(TraceDefect 1\).*Pair a c')" = 3 ] && [ "$(printf '%s\n' "$o" | grep -cE 'Status Refuted.*Value \(WithinBound False\) \(TraceDefect 1\).*Pair a c')" = 1 ] && ! printf '%s\n' "$o" | grep -qE 'TraceDefect \(Rat'; then
+  echo "CANARY ok   D6_trace_classpairs"; else echo "CANARY FAIL D6_trace_classpairs"; fail=1; fi
 [ $fail = 0 ] || { echo "GATE FAIL (canary)"; exit 1; }
 echo "GATE canaries passed"
 # 2. Pilots (small, fixed seeds). Every disagreement must be a listed D-id, else the gate fails.
