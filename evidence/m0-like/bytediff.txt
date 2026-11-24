@@ -1,0 +1,11 @@
+CHANGED tests__dcalc__examples_e2e__repro__m0_blocker_d_like.metta.beyond
+CHANGED tests__dcalc__examples_e2e__repro__m0_blocker_d_like.metta.release
+ONLY-AFTER tests__dcalc__m0_like__fixtures__like_gates.metta.beyond
+ONLY-AFTER tests__dcalc__m0_like__fixtures__like_gates.metta.release
+ONLY-AFTER tests__dcalc__m0_like__fixtures__like_invalid.metta.beyond
+ONLY-AFTER tests__dcalc__m0_like__fixtures__like_invalid.metta.release
+ONLY-AFTER tests__dcalc__m0_like__fixtures__like_unsupported.metta.beyond
+ONLY-AFTER tests__dcalc__m0_like__fixtures__like_unsupported.metta.release
+ONLY-AFTER tests__dcalc__m0_like__fixtures__taskresume_like.metta.beyond
+ONLY-AFTER tests__dcalc__m0_like__fixtures__taskresume_like.metta.release
+compared 448 outputs: 2 changed, 0 only before, 8 only after

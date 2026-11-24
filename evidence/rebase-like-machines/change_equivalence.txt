@@ -1,0 +1,93 @@
+# sorted +/- lines: PR (8ae0fa7..e10b23a) vs rebase (fc6bffe..c40b618), src/ tools/ tests/
+# only in PR diff:
+PR  +                                                                          : dc_unsupported(m, "InduceExact: Representation %s is outside the M0 fragment", nm);
+PR  +                      : dc_unsupported(m, "%s: Representation %s is outside the M0 fragment", req, nm);
+PR  +                snprintf(m->skipwhy[m->nskipwhy].name, DC_MAX_NAME, "%.63s", d->items[1]->text);
+PR  +                snprintf(m->skipwhy[m->nskipwhy].why, sizeof m->skipwhy[0].why, "%s", pending_why); m->nskipwhy++;
+PR  +            if (pending_why[0] && d->n > 1 && d->items[1]->kind == SX_SYM && m->nskipwhy < sizeof m->skipwhy / sizeof m->skipwhy[0]) {
+PR  +            }
+PR  +        && declared_in_source(m, "Machine", of->items[1]->text)) {   /* machine outside M0 */
+PR  +        *out = why[0] ? dc_unsupported(m, "%s: Representation %s is outside the M0 fragment: %s", req, nm, why)
+PR  +        const Sx *d = form->items[i]; int rc = 0; pending_why[0] = 0;
+PR  +        const char *why = dc_skip_why(m, nm);
+PR  +        const char *why = dc_skip_why(m, of->items[1]->text);
+PR  +        if (dc_declared_unsupported(m, nm)) return dc_skip_why(m, nm)[0] ? dc_unsupported(m, "InduceExact: Representation %s is outside the M0 fragment: %s", nm, dc_skip_why(m, nm))
+PR  +        if (why[0]) snprintf(pending_why, sizeof pending_why, "Machine %s: %s", of->items[1]->text, why);
+PR  +        return 'GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_a..c); Subset/Reach carriers and (d) Machine Like are lowered'
+PR  +        return -2;
+PR  +    /* a reason naming the form for a skipped declaration (only set where a form-specific reason exists) */
+PR  +    for (size_t i = 0; i < m->nskipwhy; i++) if (!strcmp(m->skipwhy[i].name, name)) return m->skipwhy[i].why;
+PR  +    if (dc_declared_unsupported(m, nm)) {
+PR  +    return "";
+PR  +    struct { char name[DC_MAX_NAME]; char why[192]; } skipwhy[8]; size_t nskipwhy;
+PR  +    }
+PR  +    }
+PR  +  checkpoint-with-reads block row 48 (CheckBehavioral ReadSets) only.
+PR  +  or (a) (To Bool) Observe maps block all five TaskResume rows; (b) a type-form To or the Body map on
+PR  +- `GAP`: the M0 lowering rejects one of these forms: (a) a Bool Observe map, (b) a map declared with a type form in From/To, (c) If/Eq/And/Or/Not in Cases bodies (repro/m0_blocker_a..c). Subset and Reach carriers and (d) Machine Like (repro/m0_blocker_d) are lowered.
+PR  +- `ablate_taskresume.py`: report only. Puts back one original doc04 form at a time into TRL: (c) If/And/Eq in derive1
+PR  +/* The form-specific reason a skipped declaration is outside the fragment, or "" when none was recorded. */
+PR  +5. **Seven library-free doc04 requests are not lowered.** AnchorMigration (memory_goals.metta:341, Subset carriers) and TaskResume (:390, Reach carrier) use no library. All 7 of their requests answer "outside the M0/M2 fragment". The M0 lowering now lowers Subset carriers (filter by an admitted pre
+PR  +Merge entries (the registry text names only observe and action entries). The reason text reaches the request through a
+PR  +const char *dc_skip_why(const DcModule *m, const char *name) {
+PR  +const char *dc_skip_why(const DcModule *m, const char *name);
+PR  +per-declaration reason table (`dc_skip_why`), set only for these Like cases, so no other reason changes.
+PR  +static char pending_why[192];   /* a form-specific reason for the declaration being admitted when it returns -2 */
+PR  +| mg | 43 | AnchorMigration | `(CheckAbstractionMap NaiveMigration)` | Refuted | doc04 s6.4 l.1422 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_a..c); Subset/Reach carriers and (d) Machine L
+PR  +| mg | 44 | AnchorMigration | `(CheckAbstractionMap CellMigration)` | Checked | doc04 s6.4 l.1425 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_a..c); Subset/Reach carriers and (d) Machine Li
+PR  +| mg | 45 | TaskResume | `(CheckNow NoReadSets)` | Checked | doc04 s7.3 l.1518 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_a..c); Subset/Reach carriers and (d) Machine Like are lowered | GA
+PR  +| mg | 46 | TaskResume | `(CheckUpdates NoReadSets)` | Refuted | doc04 s7.3 l.1520 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_a..c); Subset/Reach carriers and (d) Machine Like are lowered 
+PR  +| mg | 47 | TaskResume | `(CheckBehavioral NoReadSets)` | Refuted | doc04 s7.3 l.1522 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_a..c); Subset/Reach carriers and (d) Machine Like are lower
+PR  +| mg | 48 | TaskResume | `(CheckBehavioral ReadSets)` | Checked | doc04 s7.3 l.1524 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_a..c); Subset/Reach carriers and (d) Machine Like are lowered
+PR  +| mg | 49 | TaskResume | `ResumeMemory` | value: 11 classes on 12 states (no status word) | doc04 s7.3 l.1524 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases (repro/m0_blocker_a..c); Subset/Reach carriers and (d
+PR  +}
+PR  -        && declared_in_source(m, "Machine", of->items[1]->text)) return -2;   /* machine outside M0 */
+PR  -        const Sx *d = form->items[i]; int rc = 0;
+PR  -        if (dc_declared_unsupported(m, nm)) return dc_unsupported(m, "InduceExact: Representation %s is outside the M0 fragment", nm);
+PR  -        return 'GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Reach carriers are lowered'
+PR  -    if (dc_declared_unsupported(m, nm)) *out = dc_unsupported(m, "%s: Representation %s is outside the M0 fragment", req, nm);
+PR  -- `GAP`: the M0 lowering rejects one of four forms: (a) a Bool Observe map, (b) a map declared with a type form in From/To, (c) If/Eq/And/Or/Not in Cases bodies, (d) Machine Like (repro/m0_blocker_a..d). Subset and Reach carriers are lowered.
+PR  -5. **Seven library-free doc04 requests are not lowered.** AnchorMigration (memory_goals.metta:341, Subset carriers) and TaskResume (:390, Reach carrier) use no library. All 7 of their requests answer "outside the M0/M2 fragment". The M0 lowering now lowers Subset carriers (filter by an admitted pre
+PR  -| mg | 43 | AnchorMigration | `(CheckAbstractionMap NaiveMigration)` | Refuted | doc04 s6.4 l.1422 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Reach carriers
+PR  -| mg | 44 | AnchorMigration | `(CheckAbstractionMap CellMigration)` | Checked | doc04 s6.4 l.1425 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Reach carriers 
+PR  -| mg | 45 | TaskResume | `(CheckNow NoReadSets)` | Checked | doc04 s7.3 l.1518 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Reach carriers are lowered | GAP: 
+PR  -| mg | 46 | TaskResume | `(CheckUpdates NoReadSets)` | Refuted | doc04 s7.3 l.1520 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Reach carriers are lowered | G
+PR  -| mg | 47 | TaskResume | `(CheckBehavioral NoReadSets)` | Refuted | doc04 s7.3 l.1522 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Reach carriers are lowered 
+PR  -| mg | 48 | TaskResume | `(CheckBehavioral ReadSets)` | Checked | doc04 s7.3 l.1524 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Reach carriers are lowered | 
+PR  -| mg | 49 | TaskResume | `ResumeMemory` | value: 11 classes on 12 states (no status word) | doc04 s7.3 l.1524 | Unsupported | Unsupported | GAP: M0 lowering rejects (a) Bool Observe maps, (b) type-form From/To maps, (c) If/Eq/And/Or/Not in Cases, (d) Machine Like (repro/m0_blocker_a..d); Subset/Rea
+# only in rebase diff:
+RB  +        /* a form-naming reason (Bool Observe maps, type-form maps, Like machines and what uses them) is kept for the requests */
+RB  +        return 'GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (f) Body maps in Crisp (repro/m0_blocker_c, f); Bool Observe maps (a), type-form From/To maps (b), Machine Like (d) and Subset/Reach carriers are lowered'
+RB  +     * Bool Observe maps, type-form maps, Like machines and what uses them) */
+RB  +   *Update (t-2026-11-23-mettadinc-m0-like-machines):* (d) is lowered: (Machine M (States S) (Like N)) in a Crisp module takes N's Observe and Action entries, admitted on S by restriction (registry field Machine.Like, spec 5.1; scope by 5.3/Table 7; tests/dcalc/m0_like). repro/m0_blocker_d_like.met
+RB  +  (a) (To Bool) Observe maps and (b) a type-form To change no answer. On the original base 8ae0fa7, (a) also blocked all
+RB  +  blocks all five TaskResume rows; the Body map on checkpoint-with-reads blocks row 48 (CheckBehavioral ReadSets) only;
+RB  +  bool-observe and typeform-maps lowerings (t-2026-11-24-mettadinc-rebase-like-machines): (c) If/And/Eq in derive1
+RB  +  five rows and (b) row 48.
+RB  + * (Bool Observe maps, type-form maps, Like machines and the declarations that are skipped because they use one). */
+RB  +- `GAP`: the M0 lowering rejects one of these forms: (c) If/Eq/And/Or/Not in Cases bodies, (f) a Body map in a Crisp module (repro/m0_blocker_c, f). Subset and Reach carriers are lowered, and so are (a) a (To Bool) map used as an Observe port (t-2026-11-23-mettadinc-m0-bool-observe, repro/m0_blocke
+RB  +- `ablate_taskresume.py`: report only. Puts back one original doc04 form at a time into TRL. On main with the
+RB  +Merge entries (the registry text names only observe and action entries). The reason text reaches the request through the
+RB  +per-declaration reason table (`dc_skip_why`) that the Bool Observe and type-form lowerings also use (one shared table;
+RB  +static char pending_why[256];   /* a form-specific reason for the declaration being admitted when it returns -2 (Bool Observe maps, type-form maps, Like machines and what uses them), "" if none */
+RB  +the Like cases add entries only for these Like reasons).
+RB  +| mg | 43 | AnchorMigration | `(CheckAbstractionMap NaiveMigration)` | Refuted | doc04 s6.4 l.1422 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (f) Body maps in Crisp (repro/m0_blocker_c, f); Bool Observe maps (a), type-form From/To maps (b), Machine Like (d
+RB  +| mg | 44 | AnchorMigration | `(CheckAbstractionMap CellMigration)` | Checked | doc04 s6.4 l.1425 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (f) Body maps in Crisp (repro/m0_blocker_c, f); Bool Observe maps (a), type-form From/To maps (b), Machine Like (d)
+RB  +| mg | 45 | TaskResume | `(CheckNow NoReadSets)` | Checked | doc04 s7.3 l.1518 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (f) Body maps in Crisp (repro/m0_blocker_c, f); Bool Observe maps (a), type-form From/To maps (b), Machine Like (d) and Subset/Reach c
+RB  +| mg | 46 | TaskResume | `(CheckUpdates NoReadSets)` | Refuted | doc04 s7.3 l.1520 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (f) Body maps in Crisp (repro/m0_blocker_c, f); Bool Observe maps (a), type-form From/To maps (b), Machine Like (d) and Subset/Rea
+RB  +| mg | 47 | TaskResume | `(CheckBehavioral NoReadSets)` | Refuted | doc04 s7.3 l.1522 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (f) Body maps in Crisp (repro/m0_blocker_c, f); Bool Observe maps (a), type-form From/To maps (b), Machine Like (d) and Subset/
+RB  +| mg | 48 | TaskResume | `(CheckBehavioral ReadSets)` | Checked | doc04 s7.3 l.1524 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (f) Body maps in Crisp (repro/m0_blocker_c, f); Bool Observe maps (a), type-form From/To maps (b), Machine Like (d) and Subset/Re
+RB  +| mg | 49 | TaskResume | `ResumeMemory` | value: 11 classes on 12 states (no status word) | doc04 s7.3 l.1524 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (f) Body maps in Crisp (repro/m0_blocker_c, f); Bool Observe maps (a), type-form From/To maps (b), Mach
+RB  -        /* a form-naming reason (Bool Observe maps, type-form maps and what uses them) is kept for the requests */
+RB  -        return 'GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_c, d, f); Bool Observe maps (a), type-form From/To maps (b) and Subset/Reach carriers are lowered'
+RB  -     * Bool Observe maps, type-form maps and what uses them) */
+RB  - * (Bool Observe maps, type-form maps and the declarations that are skipped because they use one). */
+RB  -- `GAP`: the M0 lowering rejects one of these forms: (c) If/Eq/And/Or/Not in Cases bodies, (d) Machine Like, (f) a Body map in a Crisp module (repro/m0_blocker_c, d, f). Subset and Reach carriers are lowered, and so are (a) a (To Bool) map used as an Observe port (t-2026-11-23-mettadinc-m0-bool-obs
+RB  -static char pending_why[256];   /* a form-specific reason for the declaration being admitted when it returns -2 (Bool Observe maps, type-form maps and what uses them), "" if none */
+RB  -| mg | 43 | AnchorMigration | `(CheckAbstractionMap NaiveMigration)` | Refuted | doc04 s6.4 l.1422 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_c, d, f); Bool Observe maps (a), type-form From/To maps
+RB  -| mg | 44 | AnchorMigration | `(CheckAbstractionMap CellMigration)` | Checked | doc04 s6.4 l.1425 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_c, d, f); Bool Observe maps (a), type-form From/To maps 
+RB  -| mg | 45 | TaskResume | `(CheckNow NoReadSets)` | Checked | doc04 s7.3 l.1518 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_c, d, f); Bool Observe maps (a), type-form From/To maps (b) and Subset/Reac
+RB  -| mg | 46 | TaskResume | `(CheckUpdates NoReadSets)` | Refuted | doc04 s7.3 l.1520 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_c, d, f); Bool Observe maps (a), type-form From/To maps (b) and Subset/
+RB  -| mg | 47 | TaskResume | `(CheckBehavioral NoReadSets)` | Refuted | doc04 s7.3 l.1522 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_c, d, f); Bool Observe maps (a), type-form From/To maps (b) and Subs
+RB  -| mg | 48 | TaskResume | `(CheckBehavioral ReadSets)` | Checked | doc04 s7.3 l.1524 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_c, d, f); Bool Observe maps (a), type-form From/To maps (b) and Subset
+RB  -| mg | 49 | TaskResume | `ResumeMemory` | value: 11 classes on 12 states (no status word) | doc04 s7.3 l.1524 | Unsupported | Unsupported | GAP: M0 lowering rejects (c) If/Eq/And/Or/Not in Cases, (d) Machine Like, (f) Body maps in Crisp (repro/m0_blocker_c, d, f); Bool Observe maps (a), type-form F

@@ -1,0 +1,30 @@
+none (TRL as is)
+    (CheckNow NoReadSets)          Checked      
+    (CheckUpdates NoReadSets)      Refuted      
+    (CheckBehavioral NoReadSets)   Refuted      
+    (CheckBehavioral ReadSets)     Checked      
+    ResumeMemory                   Checked      
+c: derive1 with If/And/Eq
+    (CheckNow NoReadSets)          Unsupported  CheckNow: Representation NoReadSets is outside the M0 fragment
+    (CheckUpdates NoReadSets)      Unsupported  CheckUpdates: Representation NoReadSets is outside the M0 fragment
+    (CheckBehavioral NoReadSets)   Unsupported  CheckBehavioral: Representation NoReadSets is outside the M2 fragment
+    (CheckBehavioral ReadSets)     Unsupported  CheckBehavioral: Representation ReadSets is outside the M2 fragment
+    ResumeMemory                   Unsupported  MinimizeForQueries: Machine Resume is outside the M2 fragment
+a: Observe maps (To Bool)
+    (CheckNow NoReadSets)          Checked      
+    (CheckUpdates NoReadSets)      Refuted      
+    (CheckBehavioral NoReadSets)   Refuted      
+    (CheckBehavioral ReadSets)     Checked      
+    ResumeMemory                   Checked      
+b: checkpoint-with-reads (To (Tuple ...))
+    (CheckNow NoReadSets)          Checked      
+    (CheckUpdates NoReadSets)      Refuted      
+    (CheckBehavioral NoReadSets)   Refuted      
+    (CheckBehavioral ReadSets)     Checked      
+    ResumeMemory                   Checked      
+f: checkpoint-with-reads (Body ($x) $x)
+    (CheckNow NoReadSets)          Checked      
+    (CheckUpdates NoReadSets)      Refuted      
+    (CheckBehavioral NoReadSets)   Refuted      
+    (CheckBehavioral ReadSets)     Unsupported  CheckBehavioral: Representation ReadSets is outside the M2 fragment
+    ResumeMemory                   Checked      

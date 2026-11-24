@@ -49,7 +49,7 @@ static int parse_int(const Sx *x, long *out) {
 static int allow_rat;   /* M2: set by admit_map only for a Graded map into a value carrier */
 static int allow_xor;   /* M7: set by admit_map only on a (Use Neural) module in beyond-release: (Xor a b) on bits */
 static int allow_bool;  /* set only by admit_bool_observe_map: (To Bool) resolves to the implicit Bool carrier */
-static char pending_why[256];   /* a form-specific reason for the declaration being admitted when it returns -2 (Bool Observe maps, type-form maps and what uses them), "" if none */
+static char pending_why[256];   /* a form-specific reason for the declaration being admitted when it returns -2 (Bool Observe maps, type-form maps, Like machines and what uses them), "" if none */
 static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
     if (b->kind == SX_SYM && b->text[0] == '$') {
         for (int i = 0; i < e->n; i++) if (!strcmp(e->var[i], b->text)) return sx_copy(e->val[i]);
@@ -763,6 +763,68 @@ static int admit_merge(DcModule *m, DcMachine *mc, const Sx *d, char *err, size_
     return 0;
 }
 
+/* ---- (Machine M (States S) (Like N)) (t-2026-11-23-mettadinc-m0-like-machines) ----
+ * Like is a keyed field of Machine in the registry, which spec 5.1 (txt l.1659-1662) makes the normative
+ * definition of every declaration field; the field comes from the ex2 bundle patch adopted in
+ * registry/mettadinc_registry.json, doc "the observe and action entries of another machine; States may
+ * differ (a scope)" (doc04 Table 14, l.3805: TaskResume uses Like only).  The reference evaluator
+ * (docs/e0/docs/04_omega_memory_goals_part1/validation_bundle/mg_eval.py, entry_exprs l.350-357) takes N's
+ * Observe and Action entries for M.  Lowering: M gets exactly N's (Observe label map) and (Action label map)
+ * entries, in N's declaration order, admitted on M's own States as if written there.  When S is a Subset or
+ * Reach scope of N's state carrier the maps are used on S by restriction (spec 5.3 "Reachability scopes",
+ * l.1810-1818, and Table 7 "Restrict to a forward-closed subset"); an action that leaves S is InvalidInput
+ * (5.3 admission obligations: outputs stay in the carrier), as for the written-out machine.
+ * Malformed (InvalidInput): a Like field that is not (Like Name), a repeated Like field (5.1 l.1752-1753:
+ * duplicate keyed fields; admit.c refuses it first), N undeclared, N = M, a copied entry that fails on S.  Outside this lowering (Unsupported, the reason names
+ * Like): a non-Crisp module, N outside the fragment, N declared after M, Like together with M's own
+ * Observe/Action/Merge or other fields, N with Merge entries. */
+static int admit_ports(DcModule *m, DcMachine *mc, const Sx *d, int is_obs, char *err, size_t es);
+static int admit_like(DcModule *m, DcMachine *mc, const Sx *d, char *err, size_t es) {
+    const char *nm = mc->name; const Sx *lk = NULL; size_t nlk = 0;
+    for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], "Like")) { lk = d->items[i]; nlk++; }
+    if (nlk > 1) return fail(err, es, "Machine %s: field Like repeated", nm);
+    if (lk->n != 2 || !name_ok(lk->items[1])) return fail(err, es, "Machine %s: field Like expects (Like Machine)", nm);
+    const char *tn = lk->items[1]->text;
+    if (!strcmp(tn, nm)) return fail(err, es, "Machine %s: field Like names the machine itself", nm);
+    int ti = dc_find_machine(m, tn);
+    if (ti < 0 && !dc_is_skipped(m, tn) && !find_decl(m, "Machine", tn))
+        return fail(err, es, "Machine %s: field Like names no declared machine (%s)", nm, tn);
+#define LIKE_OUT(...) do { snprintf(pending_why, sizeof pending_why, __VA_ARGS__); return -2; } while (0)
+    if (strcmp(m->profile, "Crisp")) LIKE_OUT("field Like is lowered only in a Crisp module");
+    for (size_t i = 2; i < d->n; i++) {
+        const Sx *f = d->items[i];
+        if (sx_head_is(f, "States") || sx_head_is(f, "Like")) continue;
+        LIKE_OUT("field Like together with the machine's own %s field is outside the M0 lowering",
+                 f->kind == SX_LIST && f->n && f->items[0]->kind == SX_SYM ? f->items[0]->text : "?");
+    }
+    if (ti < 0 && dc_is_skipped(m, tn)) LIKE_OUT("field Like names machine %s, which is outside the M0 fragment", tn);
+    if (ti < 0) LIKE_OUT("field Like names machine %s, declared after it; the M0 lowering reads Like in declaration order", tn);
+    /* N was admitted, so its declaration is in the source; a Like on N leads to the declaration with the entries */
+    const Sx *td = find_decl(m, "Machine", tn);
+    for (int hop = 0; td; hop++) {
+        const Sx *l2 = NULL;
+        for (size_t i = 2; i < td->n; i++) if (sx_head_is(td->items[i], "Like")) l2 = td->items[i];
+        if (!l2) break;
+        if (hop > 16 || l2->n != 2 || !name_ok(l2->items[1])) { td = NULL; break; }
+        td = find_decl(m, "Machine", l2->items[1]->text);
+    }
+    if (!td) return fail(err, es, "Machine %s: field Like: the entries of %s cannot be resolved", nm, tn);
+    for (size_t i = 2; i < td->n; i++)
+        if (sx_head_is(td->items[i], "Merge")) LIKE_OUT("field Like of machine %s, which has Merge entries, is outside the M0 lowering", tn);
+#undef LIKE_OUT
+    for (size_t i = 2; i < td->n; i++) {
+        const Sx *f = td->items[i]; int prc = 0;
+        if (sx_head_is(f, "Observe")) prc = admit_ports(m, mc, f, 1, err, es);
+        else if (sx_head_is(f, "Action")) prc = admit_ports(m, mc, f, 0, err, es);
+        if (prc == -1 && !strstr(err, "[M0]")) {   /* say where the failing entry came from */
+            size_t k = strlen(err);
+            if (k < es) snprintf(err + k, es - k, "; the entry is taken from machine %s by field Like", tn);
+        }
+        if (prc) return prc;
+    }
+    return 0;
+}
+
 static int admit_machine(DcModule *m, const Sx *d, char *err, size_t es) {
     if (d->n < 3 || !name_ok(d->items[1])) return fail(err, es, "Machine: expected (Machine Name (States C) ...)");
     const char *nm = d->items[1]->text;
@@ -773,6 +835,10 @@ static int admit_machine(DcModule *m, const Sx *d, char *err, size_t es) {
     const Sx *st = sx_find(d, "States", 2);
     if (!st || st->n != 2 || !name_ok(st->items[1]) || (mc->states = dc_find_carrier(m, st->items[1]->text)) < 0)
         return fail(err, es, "Machine %s: field States names no declared carrier (%s)", nm, st && st->n == 2 && st->items[1]->kind == SX_SYM ? st->items[1]->text : "?");
+    for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], "Like")) {
+        int lrc = admit_like(m, mc, d, err, es); if (lrc) return lrc;
+        m->nmach++; return 0;
+    }
     for (size_t i = 2; i < d->n; i++) {
         const Sx *f = d->items[i];
         if (sx_head_is(f, "States")) continue;
@@ -1092,7 +1158,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
             if (!pending_why[0] && !strstr(err, "[M0]")) snprintf(pending_why, sizeof pending_why, "%s", referenced_why(m, err));
         }
         else if (rc == -1) pending_why[0] = 0;
-        /* a form-naming reason (Bool Observe maps, type-form maps and what uses them) is kept for the requests */
+        /* a form-naming reason (Bool Observe maps, type-form maps, Like machines and what uses them) is kept for the requests */
         if (rc == -2 && pending_why[0] && d->n > 1 && d->items[1]->kind == SX_SYM && m->nskipwhy < sizeof m->skipwhy / sizeof m->skipwhy[0]) {
             snprintf(m->skipwhy[m->nskipwhy].name, DC_MAX_NAME, "%.63s", d->items[1]->text);
             snprintf(m->skipwhy[m->nskipwhy].why, sizeof m->skipwhy[0].why, "%s", pending_why); m->nskipwhy++;
