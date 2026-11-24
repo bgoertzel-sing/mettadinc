@@ -53,6 +53,14 @@ add/sub/mul/div/cmp on values from small up to about 600 bits exactly against Py
 `fractions`. It runs in the normal mode and in a forced-bignum mode (`dc_q_force_big`), so
 the big path is exercised even on small values.
 
+## Build integration
+`qrat.c` is compiled as part of `rat.c`: the last line of rat.c is `#include "qrat.c"`, so they form one
+translation unit. This is deliberate. The CeTTa build (the `cetta` submodule Makefile, `DCALC_CORE_SRC`)
+compiles an explicit list of dcalc sources that contains rat.c, and this task does not touch the
+submodule. Every build that compiles rat.c therefore also gets DcQ: src/dcalc/Makefile, the CeTTa smoke
+build and the sanitized build. src/dcalc/Makefile has `$(BUILD)/rat.o: qrat.c`, so a change to qrat.c
+rebuilds rat.o. The unit test builds qrat.c on its own (tests/dcalc/qrat/qrat_driver.c).
+
 ## What stays int64 (overflow still answers Unsupported)
 These modules keep `DcRat` and answer Unsupported naming "rational overflow (int64)" when
 it fires. They are outside D1 (not stochastic distances or fixed points). These are exactly the files
