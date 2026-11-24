@@ -52,6 +52,8 @@ def classify(rid, mode, st, reason, doc):
     if st == dw: return 'match' + (' (negative fixture)' if st == 'InvalidInput' else '')
     if mode == 'release' and st == 'Unsupported' and rid in MS:
         return 'match: doc03 s2.6 says %s is a %s target, Unsupported in the first release' % (rid, MS[rid])
+    if st == 'Unsupported' and 'backend fragment' in reason:
+        return 'GAP: valid by the spec (l.1719 Reach carrier) but outside the stochastic backend fragment; Unsupported since t-2026-11-23-mettadinc-lowering-unsupported, Reach support in the stochastic reader is a later task'
     if 'map-call cycle' in reason: return 'BUG: false map-call cycle, Map named like an Enum element (admit.c:776)'
     if 'Reach' in reason or 'carrier' in reason.lower(): return 'BUG: stochastic reader rejects Reach carrier (stoch.c:52)'
     if 'Import of unknown module' in reason: return 'CLI: release mode ignores LIBS (main.c:129)'

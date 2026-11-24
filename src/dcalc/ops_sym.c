@@ -334,7 +334,7 @@ static int sym_read(const Sx *src, SymMod *s, char *err, size_t es) {
             if (sname(fr, 1, &t) || (mp->from = sfind_car(s, t)) < 0) return sterr_name(err, es, "Map: From names no carrier", d, src, fr);
             if (sname(to, 1, &t) || (mp->to = sfind_car(s, t)) < 0) return sterr_name(err, es, "Map: To names no carrier", d, src, to);
             if (!b || b->n != 3 || b->items[1]->kind != SX_LIST || b->items[1]->n != 1 || b->items[1]->items[0]->kind != SX_SYM)
-                return sfield(d, "Cases") || sfield(d, "Parameters") ? sterr_frag(err, es, "Map: expected (Body ($x) term)", d) : sterr(err, es, "Map: expected (Body ($x) term)", d);
+                return sfield(d, "Cases") || sfield(d, "Parameters") || sfield(d, "Table") || sfield(d, "Choice") ? sterr_frag(err, es, "Map: expected (Body ($x) term)", d) : sterr(err, es, "Map: expected (Body ($x) term)", d);
             mp->var = b->items[1]->items[0]; mp->body = b->items[2]; s->nmap++;
         } else if (!strcmp(h, "Machine")) {
             if (s->nmach == 8) return sterr(err, es, "too many machines", d);

@@ -162,13 +162,19 @@ int dc_name_known_elsewhere(const Sx *src, const char *n) {
     static const char *const builtin[] = { "Nat", "Int", "Rational", "Rational01", "Real", "Symbol", "String", "Bool", "PBit", "Dist", NULL };
     if (!n || !src) return 0;
     for (int i = 0; builtin[i]; i++) if (!strcmp(n, builtin[i])) return 1;
+    int imp = 0;
     for (size_t i = 2; i < src->n; i++) {
         const Sx *d = src->items[i];
         if (d->kind != SX_LIST || d->n < 2) continue;
-        if (sx_head_is(d, "Import")) return 1;
-        if (sx_head_is(d, "Carrier") && d->items[1]->kind == SX_SYM && !strcmp(d->items[1]->text, n)) return 1;
+        if (sx_head_is(d, "Import")) { imp = 1; continue; }
+        if (d->items[1]->kind == SX_SYM && !strcmp(d->items[1]->text, n)) {
+            /* review 2 finding 1: a name declared locally by a non-Carrier declaration (a Map, Machine,
+             * TransitionKernel, ...) is resolved by admission; naming it where a carrier is expected is a
+             * wrong-kind spec violation (InvalidInput), not a fragment limit, Import or not. */
+            return sx_head_is(d, "Carrier") ? 1 : 0;
+        }
     }
-    return 0;
+    return imp;
 }
 /* lowering-unsupported: n is listed in an (Import M (Only .. n ..)); the M6 import inliner copies only
  * Carrier/Map/Tolerance, so an imported Derive/MethodSystem/Transfer is a fragment limit, not an undeclared name. */
