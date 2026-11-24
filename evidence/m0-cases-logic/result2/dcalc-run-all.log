@@ -1,0 +1,225 @@
+== build
+resource build: exit 0, wall 0.0 s, user 0.0 s, sys 0.0 s, max RSS 10144 KiB
+== test_boundaries
+boundaries: 76/76 passed
+resource test_boundaries: exit 0, wall 0.2 s, user 0.2 s, sys 0.0 s, max RSS 28864 KiB
+== check_claims
+extra H06 Staged (CheckBehavioral Merge01 (Horizon (Steps 1))) Checked (matches manifest)
+extra H07 Staged (CheckBehavioral Merge01 (Horizon (Steps 2))) Refuted (matches manifest)
+AC5: 21 fixtures, 125 requests, 0 crashes, statuses {"Checked": 29, "Refuted": 16, "Unsupported": 80}
+check_claims: PASS
+resource check_claims: exit 0, wall 1.0 s, user 0.8 s, sys 0.2 s, max RSS 56380 KiB
+== negative_suite
+ 1 PASS Keyed index with a statistic of the wrong machine              1 requests {"InvalidInput": 1}
+ 2 PASS CheckSafety via a simulation of another machine                1 requests {"InvalidInput": 1}
+ 3 PASS receipt stream that does not match its declared digest         1 requests {"InvalidInput": 1}
+ 4 PASS access policy approver rule reads the auditor session          3 requests {"Unsupported": 3}
+ 5 PASS anti-nag passes CheckNow but fails interpretation              2 requests {"Unsupported": 2}
+ 6 PASS E2 does not transport to a policy withholding first proposals  33 requests {"Unsupported": 33}
+ 7 PASS Consumer accepting only some Conditional backends              3 requests {"Unsupported": 3}
+ 8 PASS literal congruence under an indiscrete code tolerance          3 requests {"Checked": 2, "Refuted": 1}
+ 9 PASS adaptive probe certificate limits                              4 requests {"Unsupported": 4}
+10 PASS unattained supremum                                            4 requests {"Unsupported": 4}
+negative suite: PASS (10/10)
+resource negative_suite: exit 0, wall 1.5 s, user 1.4 s, sys 0.0 s, max RSS 12360 KiB
+== refuted_abs
+PASS dcalc: Refuted with replayed CommutationWitness
+PASS replay.py accepts the real witness
+PASS replay.py rejects forged witness 1
+PASS replay.py rejects forged witness 2
+refuted_abs: PASS
+resource refuted_abs: exit 0, wall 0.1 s, user 0.1 s, sys 0.0 s, max RSS 16976 KiB
+== envelope
+PASS real (CheckNow Full (Within 0)) replays
+PASS real (CheckNow Kept (Within 0)) replays
+envelope: 3740 forgeries checked (3416 combinations, 72 transplants), PASS
+resource envelope: exit 0, wall 0.4 s, user 0.4 s, sys 0.0 s, max RSS 15304 KiB
+== limits
+PASS bounds (rc=0, 8 rows)
+PASS composite (rc=0, 4 rows)
+PASS exactly_full (rc=0, 2 rows)
+PASS interfaces (rc=0, 6 rows)
+PASS overflow_add (rc=0, 1 rows)
+PASS overflow_literal (rc=0, 1 rows)
+PASS overflow_mul (rc=0, 1 rows)
+PASS too_many (rc=0, 1 rows)
+PASS zero_reprs (rc=0, 1 rows)
+limits: PASS
+resource limits: exit 0, wall 0.0 s, user 0.0 s, sys 0.0 s, max RSS 14776 KiB
+== limits_sanitized
+PASS bounds (rc=0, 8 rows)
+PASS composite (rc=0, 4 rows)
+PASS exactly_full (rc=0, 2 rows)
+PASS interfaces (rc=0, 6 rows)
+PASS overflow_add (rc=0, 1 rows)
+PASS overflow_literal (rc=0, 1 rows)
+PASS overflow_mul (rc=0, 1 rows)
+PASS too_many (rc=0, 1 rows)
+PASS zero_reprs (rc=0, 1 rows)
+limits: PASS
+resource limits_sanitized: exit 0, wall 0.2 s, user 0.1 s, sys 0.1 s, max RSS 19696 KiB
+== mutation
+mutation: 58 mutants, 48 killed (83%), 0 broke replay or crashed
+resource mutation: exit 0, wall 2.7 s, user 2.3 s, sys 0.4 s, max RSS 17516 KiB
+== held
+PASS SideEffect InvalidInput (unknown head println!)
+PASS HostEquation InvalidInput (unknown head evil)
+PASS ForgedDecl InvalidInput (unknown declaration head Result)
+PASS Clean InvalidInput (unregistered request Result)
+PASS Clean InvalidInput (which is not a derivation)
+PASS Clean Checked
+held: PASS
+resource held: exit 0, wall 0.0 s, user 0.0 s, sys 0.0 s, max RSS 10664 KiB
+== registry_gen
+gen_registry: up to date
+resource registry_gen: exit 0, wall 0.0 s, user 0.0 s, sys 0.0 s, max RSS 14756 KiB
+== package
+admission: 32 modules {'Unsupported': 22, 'Admitted': 10}
+serialization: 21 files, two runs, 0 differ
+claims: 123, (release1, dcalc status) counts [(('Supported', 'Checked'), 29), (('Supported', 'Refuted'), 16), (('Unsupported', 'Unsupported'), 78)], 0 without a run line
+package: PASS
+resource package: exit 0, wall 0.5 s, user 0.4 s, sys 0.2 s, max RSS 56376 KiB
+== admission_mutations
+mutations: 19 rows, PASS
+resource admission_mutations: exit 0, wall 1.3 s, user 1.1 s, sys 0.2 s, max RSS 14948 KiB
+== m2_claims
+check_claims_m2: 36/36 rows pass; PASS
+resource m2_claims: exit 0, wall 0.2 s, user 0.2 s, sys 0.0 s, max RSS 17520 KiB
+== m2_gates
+run_m2_gates: PASS (0 failing)
+resource m2_gates: exit 0, wall 1.1 s, user 0.9 s, sys 0.2 s, max RSS 17308 KiB
+== m2_differential
+differential_m2: seed 20261110, 5000 random machines with 2..7 states and 1..3 actions; 5000 compared, 0 outside the 64-bit range (both engines report it); reference vs pair-graph: 0 disagreements; crisp refine vs zero set: 128 compared, 0 disagreements; clock-rate screen (update defect <= 2 max sup rate): 5000 checked, 0 violations
+resource m2_differential: exit 0, wall 0.2 s, user 0.1 s, sys 0.0 s, max RSS 25696 KiB
+== m2_screen
+behavioral classes: 8
+PASS zero machine has the 8 behavioral classes (x0, x1, tail==0)
+PASS exact rate of x0 and x1 is 1
+PASS exact rate of every tail bit is 2/2^k
+small sample (40, seed 20261110): kept 2; hits 40 40 0 0 0 0 0 0 0 0 0 0
+PASS small sample proposes the candidate encoding (x0, x1)
+PASS candidate (x0, x1) is refuted with behavioral defect 1
+PASS same seed gives the same screen
+large sample (200000): kept 12
+PASS large sample keeps every coordinate
+PASS candidate of all coordinates has behavioral defect 0
+PASS estimates within 5 sigma of exact rates
+PASS out-of-range flip is invalid input
+PASS zero samples is invalid input
+screen_m2: PASS
+resource m2_screen: exit 0, wall 0.1 s, user 0.1 s, sys 0.0 s, max RSS 27732 KiB
+== m2_claimless
+claimless: 22/22 PASS
+resource m2_claimless: exit 0, wall 0.0 s, user 0.0 s, sys 0.0 s, max RSS 10280 KiB
+== m3_incremental
+m3_incremental: PASS
+resource m3_incremental: exit 0, wall 0.0 s, user 0.0 s, sys 0.0 s, max RSS 10080 KiB
+== m3_gates
+run_m3_gates: PASS
+resource m3_gates: exit 0, wall 1.1 s, user 0.9 s, sys 0.2 s, max RSS 56380 KiB
+== m3_tv
+tv_check: PASS (73 CNFs: 14 SAT, 59 UNSAT; every sub-kind has both, the minimize fixed point is UNSAT)
+tv_mut: PASS
+src_mutants: PASS
+resource m3_tv: exit 0, wall 20.4 s, user 19.5 s, sys 0.9 s, max RSS 57284 KiB
+== m4_gates
+m4_gates: PASS
+resource m4_gates: exit 0, wall 0.2 s, user 0.2 s, sys 0.0 s, max RSS 18232 KiB
+== m4_estimates
+estimates: 55/55 passed
+resource m4_estimates: exit 0, wall 0.2 s, user 0.2 s, sys 0.0 s, max RSS 31196 KiB
+== m4_coverage
+coverage: 16/16 passed
+resource m4_coverage: exit 0, wall 5.2 s, user 5.2 s, sys 0.0 s, max RSS 27860 KiB
+== m4_coverage_01
+coverage: 16/16 passed
+resource m4_coverage_01: exit 0, wall 4.1 s, user 4.1 s, sys 0.0 s, max RSS 10072 KiB
+== cetta_smoke
+cetta build cache: MISS (no cached build): rebuilding, key 47e3b34301595c837a8bc919959ab235e7ec56fcaba1e506ea7674cddf466745
+PASS tests/dcalc/cetta/graded.metta
+PASS tests/dcalc/cetta/held.metta
+PASS tests/dcalc/cetta/smoke.metta
+PASS tests/dcalc/cetta/surface.metta
+resource cetta_smoke: exit 0, wall 544.8 s, user 510.7 s, sys 21.0 s, max RSS 443488 KiB
+== m5_weakbarbed
+weakbarbed_record: 15 rows recorded (0 errors); depth recorded as ScriptCostBudget, never a horizon
+resource m5_weakbarbed: exit 0, wall 1.0 s, user 0.8 s, sys 0.2 s, max RSS 13068 KiB
+== m5_gates
+m5_gates: PASS
+resource m5_gates: exit 0, wall 4.4 s, user 3.8 s, sys 0.7 s, max RSS 44884 KiB
+== m6_gates
+m6_gates: PASS
+resource m6_gates: exit 0, wall 2.1 s, user 1.8 s, sys 0.3 s, max RSS 13480 KiB
+== m6rest_gates
+m6rest_gates: PASS
+resource m6rest_gates: exit 0, wall 0.2 s, user 0.2 s, sys 0.0 s, max RSS 11944 KiB
+== m6graded_gates
+m6graded_gates: PASS
+resource m6graded_gates: exit 0, wall 77.0 s, user 76.8 s, sys 0.2 s, max RSS 59924 KiB
+== m7_gates
+run_m7_gates: PASS
+resource m7_gates: exit 0, wall 0.3 s, user 0.2 s, sys 0.1 s, max RSS 56312 KiB
+== m7_replay
+m7_replay: PASS
+resource m7_replay: exit 0, wall 0.5 s, user 0.4 s, sys 0.1 s, max RSS 56376 KiB
+== review_fixes
+review_fixes: PASS (0 failing)
+resource review_fixes: exit 0, wall 0.7 s, user 0.5 s, sys 0.2 s, max RSS 56376 KiB
+== m0_subset_reach
+m0_subset_reach: PASS (0 failing)
+resource m0_subset_reach: exit 0, wall 0.0 s, user 0.0 s, sys 0.0 s, max RSS 10532 KiB
+== m0_bool_observe
+m0_bool_observe: PASS (0 failing)
+resource m0_bool_observe: exit 0, wall 0.1 s, user 0.1 s, sys 0.0 s, max RSS 11084 KiB
+== m0_typeform_maps
+m0_typeform_maps: PASS (0 failing)
+resource m0_typeform_maps: exit 0, wall 0.1 s, user 0.1 s, sys 0.0 s, max RSS 14692 KiB
+== m0_cases_logic
+PASS: 0 failed
+resource m0_cases_logic: exit 0, wall 0.2 s, user 0.2 s, sys 0.0 s, max RSS 14632 KiB
+== differential
+GATE PASS
+resource differential: exit 0, wall 8.5 s, user 8.0 s, sys 0.6 s, max RSS 13320 KiB
+== resources
+step	exit	wall_s	user_s	sys_s	max_rss_kib
+build	0	0.0	0.0	0.0	10144
+test_boundaries	0	0.2	0.2	0.0	28864
+check_claims	0	1.0	0.8	0.2	56380
+negative_suite	0	1.5	1.4	0.0	12360
+refuted_abs	0	0.1	0.1	0.0	16976
+envelope	0	0.4	0.4	0.0	15304
+limits	0	0.0	0.0	0.0	14776
+limits_sanitized	0	0.2	0.1	0.1	19696
+mutation	0	2.7	2.3	0.4	17516
+held	0	0.0	0.0	0.0	10664
+registry_gen	0	0.0	0.0	0.0	14756
+package	0	0.5	0.4	0.2	56376
+admission_mutations	0	1.3	1.1	0.2	14948
+m2_claims	0	0.2	0.2	0.0	17520
+m2_gates	0	1.1	0.9	0.2	17308
+m2_differential	0	0.2	0.1	0.0	25696
+m2_screen	0	0.1	0.1	0.0	27732
+m2_claimless	0	0.0	0.0	0.0	10280
+m3_incremental	0	0.0	0.0	0.0	10080
+m3_gates	0	1.1	0.9	0.2	56380
+m3_tv	0	20.4	19.5	0.9	57284
+m4_gates	0	0.2	0.2	0.0	18232
+m4_estimates	0	0.2	0.2	0.0	31196
+m4_coverage	0	5.2	5.2	0.0	27860
+m4_coverage_01	0	4.1	4.1	0.0	10072
+cetta_smoke	0	544.8	510.7	21.0	443488
+m5_weakbarbed	0	1.0	0.8	0.2	13068
+m5_gates	0	4.4	3.8	0.7	44884
+m6_gates	0	2.1	1.8	0.3	13480
+m6rest_gates	0	0.2	0.2	0.0	11944
+m6graded_gates	0	77.0	76.8	0.2	59924
+m7_gates	0	0.3	0.2	0.1	56312
+m7_replay	0	0.5	0.4	0.1	56376
+review_fixes	0	0.7	0.5	0.2	56376
+m0_subset_reach	0	0.0	0.0	0.0	10532
+m0_bool_observe	0	0.1	0.1	0.0	11084
+m0_typeform_maps	0	0.1	0.1	0.0	14692
+m0_cases_logic	0	0.2	0.2	0.0	14632
+differential	0	8.5	8.0	0.6	13320
+dcalc-run-all: PASS
+RUNALL_RC=0

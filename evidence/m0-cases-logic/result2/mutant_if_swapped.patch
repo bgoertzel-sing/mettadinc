@@ -1,0 +1,11 @@
+--- src/dcalc/model.c	2026-11-24 05:15:06.000000000 -0700
++++ src/dcalc/model.c	2026-11-24 05:15:27.070344169 -0700
+@@ -132,7 +132,7 @@
+         int t = bool_of(c);
+         if (t < 0) { char *s = sx_print(c); logic_bad(ok, 4, "the condition of (If ...) gives %s, which is not True or False", s); free(s); sx_free(c); return sx_sym("?"); }
+         sx_free(c);
+-        return logic_arg(h, b->items[t ? 2 : 3], e, ok);
++        return logic_arg(h, b->items[t ? 3 : 2], e, ok);
+     }
+     if (!strcmp(h, "Not") && na != 1) { logic_bad(ok, 4, "(Not ...) takes 1 argument, not %zu", na); return sx_sym("?"); }
+     if (strcmp(h, "Not") && na < 2) { logic_bad(ok, 2, "(%s ...) with %zu operand%s is outside the M0 fragment, which admits %s with two or more", h, na, na == 1 ? "" : "s", h); return sx_sym("?"); }
