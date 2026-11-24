@@ -75,7 +75,7 @@ for mode in ([], ['--beyond-release']):
     status(r, 'BW (CheckNow R1)', 'InvalidInput', 'BW: overlapping cases -> InvalidInput' + tag, 'overlapping cases are rejected')
     status(r, 'BZ (CheckNow R)', 'InvalidInput', 'BZ: Bool map from another carrier -> InvalidInput' + tag, 'field Observe map live does not start at the state carrier')
     status(r, 'BU1 (CheckNow RB)', 'Unsupported', 'BU1: Encode into Bool -> Unsupported naming the form' + tag, 'a (To Bool) map is lowered only as an Observe port')
-    status(r, 'BU2 (CheckNow R1)', 'Unsupported', 'BU2: Eq in a Bool Observe case -> Unsupported naming the form' + tag, 'Observe live: Map live: Cases row 0 uses an operator outside the M0 fragment')
+    status(r, 'BU2 (CheckNow R1)', 'Unsupported', 'BU2: an operator outside the Cases fragment (Xor) in a Bool Observe case -> Unsupported naming the form' + tag, 'Observe live: Map live: Cases row 0 uses an operator outside the M0 fragment')
     status(r, 'BU3 (CheckNow R1)', 'Unsupported', 'BU3: Bool Observe in a Graded module -> Unsupported naming the form' + tag, 'lowered only in a Crisp module')
     d = rows(DSG, mode)
     for key, st in DOC04: status(d, key, st, 'doc04 desugared %s -> %s (doc04)%s' % (key, st, tag))

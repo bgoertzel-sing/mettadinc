@@ -23,7 +23,9 @@
 ;;  BY live has no case for q -> InvalidInput (not total).   BW overlapping cases -> InvalidInput.
 ;;  BZ the Bool map starts at another carrier -> InvalidInput (does not start at the state carrier).
 ;;  BU1 a Representation encoding into Bool -> Unsupported, reason names the form (only Observe is lowered).
-;;  BU2 a Bool Observe map whose case body uses Eq -> Unsupported (blocker c, If/Eq/And/Or/Not in Cases).
+;;  BU2 a Bool Observe map whose case body uses an operator outside the M0 Cases fragment (Xor outside a Neural
+;;      module) -> Unsupported.  (It used Eq until t-2026-11-23-mettadinc-m0-cases-logic lowered If/Eq/And/Or/Not;
+;;      the Eq version is m0_cases_logic LG5, Refuted.)
 ;;  BU3 the same Bool Observe map in a Graded module -> Unsupported (only Crisp is lowered here).
 (DC.Module BO
   (Profile Crisp)
@@ -163,7 +165,7 @@
   (Carrier A (Of Symbol) (Enum p q r s t))
   (Carrier K (Of Symbol) (Enum k1 k2 k3))
   (Carrier O (Of Symbol) (Enum yes no))
-  (Map live (From A) (To Bool) (Cases ($a (Eq $a q))))
+  (Map live (From A) (To Bool) (Cases ($a (Xor $a q))))
   (Map step (From A) (To A) (Cases (p q) (q p) (r s) (s r) (t t)))
   (Map e1 (From A) (To K) (Cases (p k1) (q k2) (r k1) (s k2) (t k3)))
   (Map e2 (From A) (To K) (Cases (p k1) (q k1) (r k2) (s k2) (t k3)))
