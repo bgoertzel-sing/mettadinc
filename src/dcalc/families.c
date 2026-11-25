@@ -1,15 +1,21 @@
 /* Families elaborator (library Families, release 1; t-2026-11-24-mettadinc-families).
  * Source to source, before admission: a module that uses Families is rewritten into one without Families
- * forms, which the existing engines decide.  Forms (registry library Families; spec citations in the report):
+ * forms, which the existing engines decide.  Source of every form: not doc01 but the PROPOSED registry patch
+ * docs/e0/docs/03_four_worked_examples/validation_bundles/ex2_access_policy/ex2_registry_patch.json (2026-11-04):
+ *   [L] libraries.Families.doc (Parameters, For, Switch total+exclusive, Exists/ForAll, Any in Successor)
+ *   [P] declaration_fields.Map.Parameters   [A] declaration_fields.Machine.ActionsOf / Like
+ *   [I] declaration_fields.BlockPartition.Invariant   [U] budget_units Unrollings (notes.Unrollings)
+ * Forms (tag = citation above):
  *   (Carrier C (Of Symbol) (Enum a b ..))   symbol enumeration: a parameter domain only, dropped after use
  *   (Map f (From C) (To T) (Table (a v) ..)) on a symbol carrier: a lookup, folded at elaboration
- *   (Map f (Parameters ($p C) ..) (From X) (To Y) (Body ($x) e)): a family of maps, (f p1 .. x) inlined
- *   (Switch k (a e) .. (Any e)) on a known symbol: the matching arm, else the Any arm
- *   (Exists $v C e), (ForAll $v C e) over a symbol carrier: the Or / And of the instances
- *   (For $v C) on an Observe or Action entry: one entry per element, named name.elem..
- *   (Const n T v): its value;  Import (Only ..), ActionsOf, Like: expanded into explicit declarations/entries
- * Folded only where sound on words too: Eq of two enumeration symbols, Add of literals, Not and If on 0/1,
- * And with a 0 operand, Or dropping 0 operands; True/False are 1/0.  Anything else the elaborator cannot
+ *   [L][P] (Map f (Parameters ($p C) ..) (From X) (To Y) (Body ($x) e)): a family of maps, (f p1 .. x) inlined
+ *   [L] (Switch k (a e) .. (Any e)) on a known symbol: the matching arm, else the Any arm; total and exclusive
+ *   [L] (Exists $v C e), (ForAll $v C e) over a symbol carrier: the Or / And of the instances
+ *   [L] (For $v C) on an Observe or Action entry: one entry per element, named name.elem.., enumeration order
+ *   (Const n T v): its value;  Import (Only ..), [A] ActionsOf, Like: expanded into explicit declarations/entries
+ * Folded only where sound on words too: Eq of two enumeration symbols (to 1/0 in a Symbolic module, to True/False
+ * otherwise; review 1 finding 1), Add of literals, Not and If on 0/1 (Symbolic modules only),
+ * And with a 0 operand, Or dropping 0 operands; True/False are 1/0 in Symbolic modules.  Anything else the elaborator cannot
  * rewrite makes the request Unsupported with the reason, never InvalidInput. */
 #include "families.h"
 #include "ops_internal.h"
@@ -101,6 +107,9 @@ static Sx *term_list(Fe *f, const Sx *t, const Env *e) {
         for (size_t i = 2; i < n; i++) {
             const Sx *a = t->items[i];
             if (a->kind != SX_LIST || a->n != 2 || a->items[0]->kind != SX_SYM) return fe_fail(f, "Families: a Switch arm must be (symbol expr)");
+            for (size_t j = 2; j < i; j++)   /* ex2_registry_patch.json: Switch must be total and exclusive */
+                if (!strcmp(t->items[j]->items[0]->text, a->items[0]->text))
+                    return fe_fail(f, "Families: Switch is not exclusive: two arms for %s", a->items[0]->text);
             if (!arm && !strcmp(a->items[0]->text, kb)) arm = a;
             if (!any && !strcmp(a->items[0]->text, "Any")) any = a;
         }
@@ -151,10 +160,10 @@ static Sx *term_list(Fe *f, const Sx *t, const Env *e) {
     if (!strcmp(h, "Add") && alllit) {
         unsigned long long s = 0; for (size_t i = 1; i < n; i++) s += strtoull(a[i]->text, NULL, 10);
         char b[32]; snprintf(b, sizeof b, "%llu", s); r = sx_sym(b);
-    } else if (!strcmp(h, "Eq") && n == 3 && is_elem(f, a[1]) && is_elem(f, a[2])) r = sx_sym(strcmp(a[1]->text, a[2]->text) ? "0" : "1");
-    else if (!strcmp(h, "Not") && n == 2 && is_bit(a[1])) r = sx_sym(sx_is_sym(a[1], "0") ? "1" : "0");
+    } else if (!strcmp(h, "Eq") && n == 3 && is_elem(f, a[1]) && is_elem(f, a[2])) r = sx_sym(strcmp(a[1]->text, a[2]->text) ? (f->sym ? "0" : "False") : (f->sym ? "1" : "True"));
+    else if (!strcmp(h, "Not") && n == 2 && f->sym && is_bit(a[1])) r = sx_sym(sx_is_sym(a[1], "0") ? "1" : "0");
     else if ((!strcmp(h, "And") || !strcmp(h, "Or")) && n >= 2) { r = fold(h, a + 1, (int)n - 1); free(a); return r; }
-    else if (!strcmp(h, "If") && n == 4 && is_bit(a[1])) { int pk = sx_is_sym(a[1], "1") ? 2 : 3; r = a[pk]; a[pk] = NULL; }
+    else if (!strcmp(h, "If") && n == 4 && f->sym && is_bit(a[1])) { int pk = sx_is_sym(a[1], "1") ? 2 : 3; r = a[pk]; a[pk] = NULL; }
     if (r) { for (size_t i = 1; i < n; i++) if (a[i]) sx_free(a[i]); free(a); return r; }
     Sx *l = sx_list(); sx_push(l, sx_sym(h));
     for (size_t i = 1; i < n; i++) sx_push(l, a[i]);

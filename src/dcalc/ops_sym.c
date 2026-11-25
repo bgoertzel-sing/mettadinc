@@ -16,7 +16,7 @@
 
 #define SYM_MAXW 64
 /* Obligation generator version (spec 15.3: recorded in every certificate it contributes to). */
-#define SYM_GEN_VERSION "m3.1"
+#define SYM_GEN_VERSION "m3.2"
 /* Resources of the current symbolic request (spec 6.2: concrete words touched; no enumeration). */
 static long sym_res_words = -1; static size_t sym_res_nodes;
 static long sym_res_xcheck;   /* sample words evaluated by internal cross-checks (not part of any answer) */

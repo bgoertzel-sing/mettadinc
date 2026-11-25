@@ -7,7 +7,7 @@ independent checker. The pipeline is pinned:
 |---|---|---|
 | CaDiCaL (solver, LRAT) | tag rel-3.0.1 | 0a8ea563b5a25f5aa064634814edab45cc0e45111ea0f5d412a565f806fd7e11 |
 | cake_lpr (checker) | commit 033aad53d1733bd4b8ca41cf6f1b5fb5d84f8de2 | cde6b4359c57648bf92be86bbbd89891bff0e145eefbffb7140f9e4d4d094391 |
-| obligation generator | dcalc-symgen m3.1 (in src/dcalc/ops_sym.c) | - |
+| obligation generator | dcalc-symgen m3.2 (in src/dcalc/ops_sym.c) | - |
 
 ## Environment
 
