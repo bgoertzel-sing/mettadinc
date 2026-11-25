@@ -14,7 +14,8 @@ OUT = os.path.join(ROOT, 'build/dcalc/srcmut'); M = os.path.join(ROOT, 'tests/dc
 CC = os.environ.get('CC', 'gcc')
 OBL = ['partition:ZeroTailOnly:ZeroMachine', 'partition:ZeroTailReach:ZeroReach', 'partition:Gappy:ZeroMachine',
        'partition:ByX0:ZeroMachine', 'minimize:ZeroMachine', 'minimize:ParityMachine', 'minimize:ZeroMachine:1',
-       'minimize:ParityMachine:2', 'minimize:ZeroMachine:3', 'now:KeepX0', 'now:KeepX1']
+       'minimize:ParityMachine:2', 'minimize:ZeroMachine:3', 'now:KeepX0', 'now:KeepX1',
+       'induct:IfTail:IfReach', 'induct:IfLoose:IfReach']
 # (id, function anchor, old text (first occurrence after the anchor), new text)
 MUTANTS = [
     ('identity',            None, None, None),
@@ -27,6 +28,11 @@ MUTANTS = [
     ('part-constancy-flip', 'static int sym_cnf_partition(', '((t >> k) & 1) ? -ob.b[k] : ob.b[k]', '((t >> k) & 1) ? ob.b[k] : -ob.b[k]'),
     ('part-stability-sign', 'static int sym_cnf_partition(', 'OBL("Stability", cnf_and(c, Bl[i], -by));', 'OBL("Stability", cnf_and(c, Bl[i], by));'),
     ('part-goal-drop-C',    'static int sym_cnf_partition(', '*goal = cnf_and(c, C, viol);', '*goal = viol;'),
+    # review 1 finding 4 (t-2026-11-24-mettadinc-families): the If multiplexer and the induction scope
+    ('if-mux-swap',         'static int cnf_term(', 'cnf_or(c, cnf_and(c, cv.b[0], a.b[k]), cnf_and(c, -cv.b[0], b.b[k]))', 'cnf_or(c, cnf_and(c, -cv.b[0], a.b[k]), cnf_and(c, cv.b[0], b.b[k]))'),
+    ('scope-drop-invariant','static int cnf_scope(', 'const Sx *iv = sfield(bp, "Invariant");', 'const Sx *iv = NULL;'),
+    ('scope-neg-invariant', 'static int cnf_scope(', '*out = ob.b[0]; return 0;', '*out = -ob.b[0]; return 0;'),
+    ('consecution-sign',    'static int sym_cnf_partition(', 'OBL("Consecution", -iy);', 'OBL("Consecution", iy);'),
 ]
 def main():
     base = open(os.path.join(SRC, 'ops_sym.c'), encoding='utf-8').read()

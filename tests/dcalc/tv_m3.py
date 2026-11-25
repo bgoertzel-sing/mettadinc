@@ -79,6 +79,36 @@ def ref_partition(sm, P, M, sel):
     name = 'All' if sel < 0 else obl[sel][0]
     return W, len(obl), name, lambda x: int((scope is None or x in scope) and any(f(x) for _, f in chosen))
 
+def ref_induct(sm, P, M, sel):
+    """Induction scope of a BlockPartition on a reach carrier (review 1, finding 4): the scope I is the
+    (Invariant map) when given, else the union of the blocks; obligations are those of ref_partition followed by
+    Consecution (x in I, action a of the carrier's reach machine, a(x) not in I), all restricted to x in I."""
+    d = sm.decl[P]; car = find(d, 'On')[1]; W = sm.car[car]['w']; mach = sm.mach[M]
+    blocks = [b for b in d[2:] if isinstance(b, list) and b[0] == 'Block']
+    byname = {b[1]: b for b in blocks}
+    inb = lambda b, x: sm.block_has(b, x, W)
+    iv = [q for q in d[2:] if isinstance(q, list) and q[0] == 'Invariant']
+    if iv: inI = lambda x: sm.apply(iv[0][1], x) == 1
+    else: inI = lambda x: any(inb(b, x) for b in blocks)
+    obl = [('Coverage', lambda x: not any(inb(b, x) for b in blocks))]
+    for i in range(len(blocks)):
+        for j in range(i + 1, len(blocks)):
+            obl.append(('Disjointness', lambda x, bi=blocks[i], bj=blocks[j]: inb(bi, x) and inb(bj, x)))
+    for _, mp in mach['obs']:
+        for b in blocks:
+            obl.append(('Constancy', lambda x, b=b, mp=mp: inb(b, x) and sm.apply(mp, x) != sm.apply(mp, int(b[3]))))
+    acts = [l for l, _ in mach['act']]
+    for lab, mp in mach['act']:
+        for sc in d[2:]:
+            if isinstance(sc, list) and sc[0] == 'Successor' and len(sc) == 4 and (sc[1] == lab or (sc[1] == 'Any' and not any(isinstance(q, list) and q[0] == 'Successor' and q[1] == lab for q in d[2:]))):
+                obl.append(('Stability', lambda x, bi=byname[sc[2]], bj=byname[sc[3]], mp=mp: inb(bi, x) and not inb(bj, sm.apply(mp, x))))
+    rm = sm.car[car]['reach'][0]
+    for _, mp in sm.mach[rm]['act']:
+        obl.append(('Consecution', lambda x, mp=mp: not inI(sm.apply(mp, x))))
+    chosen = obl if sel < 0 else [obl[sel]]
+    name = 'All' if sel < 0 else obl[sel][0]
+    return W, len(obl), name, lambda x: int(inI(x) and any(f(x) for _, f in chosen))
+
 def ref_minimize(sm, M, tests):
     W = sm.W(M); obsmap = dict(sm.mach[M]['obs']); acts = [l for l, _ in sm.mach[M]['act']]
     tb = lambda t, x, pre: (sm.apply(obsmap[t[0]], sm.run(M, x, pre + t[2])) >> t[1]) & 1
@@ -120,6 +150,9 @@ def check_tv(sm, path):
     t = read_tv(path); k = t['kind']
     if k[0] == 'partition':
         W, nob, name, ref = ref_partition(sm, k[1], k[2], int(k[3])); np = W
+        if int(k[3]) >= 0 and name != k[4]: return False, 'obligation %s is %s in the reference' % (k[3], name), 0
+    elif k[0] == 'induct':
+        W, nob, name, ref = ref_induct(sm, k[1], k[2], int(k[3])); np = W
         if int(k[3]) >= 0 and name != k[4]: return False, 'obligation %s is %s in the reference' % (k[3], name), 0
     elif k[0] == 'minimize': np, ref = ref_minimize(sm, k[1], t['tests'])
     elif k[0] == 'now':

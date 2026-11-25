@@ -15,7 +15,7 @@ Called from replay.py for modules whose Profile has (Carriers Symbolic)."""
 import re, os, hashlib, subprocess
 from replay import find, show, Fail, need
 
-GEN_PIN = 'm3.1'   # obligation generator version this replay accepts (spec 15.3)
+GEN_PIN = 'm3.2'   # obligation generator version this replay accepts (spec 15.3)
 
 def is_symbolic(form):
     pf = find(form, 'Profile')
@@ -71,6 +71,9 @@ class SymM:
             (p, wp), (q, wq) = a(1), a(2); w = wp if wp is not None else wq
             r = p & q if h == 'And' else p | q if h == 'Or' else p ^ q; return r & ((1 << w) - 1), w
         if h == 'Eq': (p, _), (q, _) = a(1), a(2); return int(p == q), 1
+        if h == 'If':   # Core If on words: a bitwise multiplexer (Families elaboration emits it)
+            c, _ = a(1); need(c in (0, 1), 'If condition is not a bit'); (p, wp), (q, wq) = a(2), a(3)
+            return (p if c else q), (wp if wp is not None else wq)
         raise Fail('Body operator %s outside the BitVectors fragment' % h)
 
     def apply(self, mname, x):
