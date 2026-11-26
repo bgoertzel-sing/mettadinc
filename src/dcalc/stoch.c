@@ -16,7 +16,7 @@
 #define ST_MAXD 16
 typedef struct { char name[ST_NM]; int n; char el[ST_MAXE][ST_NM]; int parent; /* (Reach ...): parent carrier + 1, 0 = none */ int sub[ST_MAXE]; /* index in the parent */ } StCar;
 typedef struct { char name[ST_NM]; int from, to; int tab[ST_MAXE]; int rsrc, rcar, rrole; } StMap;   /* rrole 0: declared; 1 Observe / 2 Action restriction of map rsrc to carrier rcar */
-typedef struct { char name[ST_NM]; int from, to; DcQ p[ST_MAXE][ST_MAXE]; int rsrc, rcar, rrole; } StKer;   /* rrole 0: declared; 1 restriction of kernel rsrc to carrier rcar */
+typedef struct { char name[ST_NM]; int from, to; DcQ p[ST_MAXE][ST_MAXE]; int rsrc, rcar, rrole; } StKer;   /* rrole 0: declared; 1 restriction of kernel rsrc to carrier rcar; 2 V03 0/1 kernel of map rsrc on carrier rcar */
 typedef struct { char name[ST_NM]; int states, nobs, nact; char ol[4][ST_NM]; int om[4]; char al[4][ST_NM]; int ak[4]; } StMach;
 typedef struct { char name[ST_NM]; int mach, enc; } StRepr;
 typedef struct { char name[ST_NM]; int src, tgt; char kind[ST_NM]; DcQ a[ST_MAXE][ST_MAXE]; } StLin;
@@ -30,8 +30,9 @@ static const Sx *st_field(const Sx *d, const char *h) { for (size_t i = 2; i < d
 static const char *st_name(const Sx *f, size_t k) { return f && f->kind == SX_LIST && f->n > k && f->items[k]->kind == SX_SYM ? f->items[k]->text : NULL; }
 #define ST_FIND(arr, cnt) for (int i = 0; i < cnt; i++) if (!strcmp(arr[i].name, nm)) return i; return -1;
 static int st_car(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->car, s->ncar) }
-static int st_mapi(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->map, s->nmap) }
-static int st_keri(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->ker, s->nker) }
+/* review 2: names resolve to declared maps/kernels only (rrole 0); derived entries are found by (source, carrier, role) */
+static int st_mapi(const StMod *s, const char *nm) { if (!nm) return -1; for (int i = 0; i < s->nmap; i++) if (!s->map[i].rrole && !strcmp(s->map[i].name, nm)) return i; return -1; }
+static int st_keri(const StMod *s, const char *nm) { if (!nm) return -1; for (int i = 0; i < s->nker; i++) if (!s->ker[i].rrole && !strcmp(s->ker[i].name, nm)) return i; return -1; }
 static int st_machi(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->mach, s->nmach) }
 static int st_repi(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->rep, s->nrep) }
 static int st_lini(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->lin, s->nlin) }
@@ -256,13 +257,19 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                         if (mpi == -2) return st_frag(err, es, "too many maps restricting to a Reach carrier at", nm);
                         if (mpi == -3) return st_err(err, es, "an action's image leaves the Reach carrier in machine", nm);
                     }
-                    if (ki < 0 && mpi >= 0 && s->map[mpi].from == M->states && s->map[mpi].to == M->states && s->nker < ST_MAXD) {
-                        /* V03: a deterministic Map used as an action is the 0/1 kernel of that map */
-                        StKer *K = &s->ker[s->nker]; memset(K, 0, sizeof *K); snprintf(K->name, ST_NM, "%s", t);
-                        K->from = K->to = M->states; int ovf0 = 0;
-                        for (int x = 0; x < s->car[M->states].n; x++) for (int y = 0; y < s->car[M->states].n; y++)
-                            K->p[x][y] = dc_q(y == s->map[mpi].tab[x] ? 1 : 0, 1, &ovf0);
-                        ki = s->nker++;
+                    if (ki < 0 && mpi >= 0 && s->map[mpi].from == M->states && s->map[mpi].to == M->states) {
+                        /* V03: a deterministic Map used as an action is the 0/1 kernel of that map.
+                         * review 2: cached by (map, carrier), never registered under the bare map name */
+                        for (int r = 0; r < s->nker; r++) if (s->ker[r].rrole == 2 && s->ker[r].rsrc == mpi && s->ker[r].rcar == M->states) { ki = r; break; }
+                        if (ki < 0 && s->nker < ST_MAXD) {
+                            StKer *K = &s->ker[s->nker]; memset(K, 0, sizeof *K);
+                            char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, t, 30, s->car[M->states].name); snprintf(K->name, ST_NM, "%s", rn);   /* display only; via rn as in st_restrict_ker (-Werror=restrict in the cetta build) */
+                            K->rsrc = mpi; K->rcar = M->states; K->rrole = 2;
+                            K->from = K->to = M->states; int ovf0 = 0;
+                            for (int x = 0; x < s->car[M->states].n; x++) for (int y = 0; y < s->car[M->states].n; y++)
+                                K->p[x][y] = dc_q(y == s->map[mpi].tab[x] ? 1 : 0, 1, &ovf0);
+                            ki = s->nker++;
+                        }
                     }
                     if (!l || ki < 0 || M->nact == 4 || s->ker[ki].from != M->states || s->ker[ki].to != M->states) return st_err(err, es, "bad Action (kernel on the states) in machine", nm);
                     snprintf(M->al[M->nact], ST_NM, "%s", l); M->ak[M->nact++] = ki;
