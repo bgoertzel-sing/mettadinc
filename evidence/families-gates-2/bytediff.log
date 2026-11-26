@@ -1,0 +1,5 @@
+NEW tests/dcalc/families/fixtures/for_small.metta release
+NEW tests/dcalc/families/fixtures/for_small.metta beyond
+NEW tests/dcalc/families/fixtures/forall_exists.metta release
+NEW tests/dcalc/families/fixtures/forall_exists.metta beyond
+bytediff: 286 tracked .metta, 572 outputs: 568 identical, 0 differ, 4 new-only
