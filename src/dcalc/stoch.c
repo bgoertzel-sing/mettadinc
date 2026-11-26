@@ -15,8 +15,8 @@
 #define ST_MAXE 64
 #define ST_MAXD 16
 typedef struct { char name[ST_NM]; int n; char el[ST_MAXE][ST_NM]; int parent; /* (Reach ...): parent carrier + 1, 0 = none */ int sub[ST_MAXE]; /* index in the parent */ } StCar;
-typedef struct { char name[ST_NM]; int from, to; int tab[ST_MAXE]; } StMap;
-typedef struct { char name[ST_NM]; int from, to; DcQ p[ST_MAXE][ST_MAXE]; } StKer;
+typedef struct { char name[ST_NM]; int from, to; int tab[ST_MAXE]; int rsrc, rcar, rrole; } StMap;   /* rrole 0: declared; 1 Observe / 2 Action restriction of map rsrc to carrier rcar */
+typedef struct { char name[ST_NM]; int from, to; DcQ p[ST_MAXE][ST_MAXE]; int rsrc, rcar, rrole; } StKer;   /* rrole 0: declared; 1 restriction of kernel rsrc to carrier rcar */
 typedef struct { char name[ST_NM]; int states, nobs, nact; char ol[4][ST_NM]; int om[4]; char al[4][ST_NM]; int ak[4]; } StMach;
 typedef struct { char name[ST_NM]; int mach, enc; } StRepr;
 typedef struct { char name[ST_NM]; int src, tgt; char kind[ST_NM]; DcQ a[ST_MAXE][ST_MAXE]; } StLin;
@@ -83,10 +83,14 @@ static int st_reach(const Sx *src, StMod *s, StCar *c, const char *nm, const Sx 
 /* restriction of a map on the parent of Reach carrier ci; endo: the image is also taken in ci.
  * -2 no free slot, -3 an image leaves ci */
 static int st_restrict_map(StMod *s, int mi, int ci, int endo) {
-    char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, s->map[mi].name, 30, s->car[ci].name);
-    int r = st_mapi(s, rn); if (r >= 0) return r;
+    /* review 1 F1/F2: cached by (source map, carrier, role), never by a (truncated) name; an Observe restriction
+     * (image in the parent) and an Action restriction (image in ci) of the same map are different entries */
+    int role = endo ? 2 : 1;
+    for (int r = 0; r < s->nmap; r++) if (s->map[r].rrole == role && s->map[r].rsrc == mi && s->map[r].rcar == ci) return r;
     if (s->nmap == ST_MAXD) return -2;
+    char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, s->map[mi].name, 30, s->car[ci].name);   /* display only */
     const StCar *C = &s->car[ci]; StMap *R = &s->map[s->nmap]; memset(R, 0, sizeof *R); snprintf(R->name, ST_NM, "%s", rn);
+    R->rsrc = mi; R->rcar = ci; R->rrole = role;
     R->from = ci; R->to = endo ? ci : s->map[mi].to;
     for (int k = 0; k < ST_MAXE; k++) R->tab[k] = -1;
     for (int i = 0; i < C->n; i++) {
@@ -98,10 +102,11 @@ static int st_restrict_map(StMod *s, int mi, int ci, int endo) {
 }
 /* restriction of a kernel on the parent of Reach carrier ci to ci; -2 no free slot, -3 mass leaves ci */
 static int st_restrict_ker(StMod *s, int ki, int ci) {
-    char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, s->ker[ki].name, 30, s->car[ci].name);
-    int r = st_keri(s, rn); if (r >= 0) return r;
+    for (int r = 0; r < s->nker; r++) if (s->ker[r].rrole == 1 && s->ker[r].rsrc == ki && s->ker[r].rcar == ci) return r;   /* review 1 F1 */
     if (s->nker == ST_MAXD) return -2;
+    char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, s->ker[ki].name, 30, s->car[ci].name);   /* display only */
     const StCar *C = &s->car[ci]; StKer *R = &s->ker[s->nker]; memset(R, 0, sizeof *R); snprintf(R->name, ST_NM, "%s", rn);
+    R->rsrc = ki; R->rcar = ci; R->rrole = 1;
     R->from = R->to = ci; int ovf = 0; DcQ one = dc_q(1, 1, &ovf);
     for (int a = 0; a < ST_MAXE; a++) for (int b = 0; b < ST_MAXE; b++) R->p[a][b] = dc_q(0, 1, &ovf);
     for (int i = 0; i < C->n; i++) {
