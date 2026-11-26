@@ -48,8 +48,12 @@ for mode in ([], ['--beyond-release']):
     report('release LIBS (%s): main_ok.metta lib_ok.metta resolves the import and equals the single-file answer' % tag,
            bool(cross) and cross == single and not any('Import of unknown module' in l for l in cross), cross)
     r = rows(os.path.join(RL, 'lib_gated.metta'), mode + [os.path.join(RL, 'main_gated.metta')])   # dcalc [mode] main_gated lib_gated
-    report('release LIBS (%s): import of a NatArith module stays Unsupported "library NatArith is outside the first release"' % tag,
-           bool(r) and all(st == 'Unsupported' and 'library NatArith is outside the first release' in why for st, why in r.values()), r)
+    if not mode:
+        report('release LIBS (%s): import of a NatArith module stays Unsupported "library NatArith is outside the first release"' % tag,
+               bool(r) and all(st == 'Unsupported' and 'library NatArith is outside the first release' in why for st, why in r.values()), r)
+    else:   # t-2026-11-26-mettadinc-natarith-v2: NatArith is admitted beyond release (admit.c M4_LIBS), so the library gate lifts
+        report('release LIBS (%s): import of a NatArith module passes the library gate (NatArith admitted beyond release)' % tag,
+               bool(r) and all('library NatArith is outside the first release' not in why for st, why in r.values()), r)
 r = rows(os.path.join(RL, 'main_ok.metta'))
 report('release LIBS: main_ok.metta alone still answers "Import of unknown module LibCar"',
        bool(r) and all(st == 'Unsupported' and 'Import of unknown module LibCar' in why for st, why in r.values()), r)

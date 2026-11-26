@@ -65,6 +65,17 @@ static int to_bool(SymCtx *c, SymVal *v, const Sx *t) {
     return 0;
 }
 
+static int sym_nat;   /* NatArith heads in symbolic Body terms (doc03 s3.13): set from r->m->natarith in dc_req_sym */
+static int nat_symhead(const char *h) { return !strcmp(h, "Le") || !strcmp(h, "Lt") || !strcmp(h, "Min") || !strcmp(h, "Max") || !strcmp(h, "Quot") || !strcmp(h, "Rem"); }
+static int lit_bits(uint64_t k) { int n = 0; while (k) { n++; k >>= 1; } return n; }
+static int kbit(uint64_t k, int i) { return i < 64 ? (int)((k >> i) & 1) : 0; }
+/* unsigned a < b on w bits, bit 0 first: after bit k, lt = (a[0..k] < b[0..k]) */
+static DcBdd bdd_ult(DcBddMgr *bm, const DcBdd *a, const DcBdd *b, int w) {
+    DcBdd lt = 0;
+    for (int k = 0; k < w; k++)
+        lt = dc_bdd_or(bm, dc_bdd_and(bm, dc_bdd_not(bm, a[k]), b[k]), dc_bdd_and(bm, dc_bdd_not(bm, dc_bdd_xor(bm, a[k], b[k])), lt));
+    return lt;
+}
 static int sym_term(SymCtx *c, const Sx *t, SymVal *o) {
     DcBddMgr *bm = c->bm;
     memset(o, 0, sizeof *o);
@@ -147,6 +158,52 @@ static int sym_term(SymCtx *c, const Sx *t, SymVal *o) {
         for (int k = 0; k < w; k++) e = dc_bdd_and(bm, e, dc_bdd_not(bm, dc_bdd_xor(bm, a.b[k], b.b[k])));
         o->w = 1; o->b[0] = e; return 0;
     }
+    if (sym_nat && nat_symhead(h) && n == 3) {   /* NatArith (doc03 s3.13 l.1170-1172) on unsigned words */
+        if (sym_term(c, t->items[1], &a) || sym_term(c, t->items[2], &b)) return -1;
+        int quot = !strcmp(h, "Quot"), rem = !strcmp(h, "Rem");
+        if (quot || rem) {   /* doc03 B.1 l.4395-4396: a positive divisor; restoring division by a constant */
+            if (b.w >= 0) return sterr_frag(c->err, c->es, "Quot/Rem: the symbolic backend needs a constant divisor", t);
+            if (b.k == 0) return sterr_frag(c->err, c->es, "Quot/Rem by zero: the tagged failure value is not a word", t);
+            if (a.w < 0) { o->w = -1; o->k = quot ? a.k / b.k : a.k % b.k; return 0; }
+            int w = a.w, dw = lit_bits(b.k);
+            if (dw > w) { if (quot) { o->w = w; for (int k = 0; k < w; k++) o->b[k] = 0; } else *o = a; return 0; }
+            DcBdd r[SYM_MAXW + 1], q[SYM_MAXW];
+            for (int k = 0; k <= dw; k++) r[k] = 0;
+            for (int i = w - 1; i >= 0; i--) {
+                for (int k = dw; k > 0; k--) r[k] = r[k - 1];
+                r[0] = a.b[i];
+                DcBdd lt = 0;
+                for (int k = 0; k <= dw; k++) { DcBdd dk = kbit(b.k, k);
+                    lt = dc_bdd_or(bm, dc_bdd_and(bm, dc_bdd_not(bm, r[k]), dk), dc_bdd_and(bm, dc_bdd_not(bm, dc_bdd_xor(bm, r[k], dk)), lt)); }
+                DcBdd ge = dc_bdd_not(bm, lt), br = 0;
+                q[i] = ge;
+                for (int k = 0; k <= dw; k++) { DcBdd dk = kbit(b.k, k), nr = dc_bdd_not(bm, r[k]);
+                    DcBdd sb = dc_bdd_xor(bm, dc_bdd_xor(bm, r[k], dk), br);
+                    DcBdd bo = dc_bdd_or(bm, dc_bdd_or(bm, dc_bdd_and(bm, nr, dk), dc_bdd_and(bm, nr, br)), dc_bdd_and(bm, dk, br));
+                    r[k] = dc_bdd_ite(bm, ge, sb, r[k]); br = bo; }
+            }
+            o->w = w;
+            for (int k = 0; k < w; k++) o->b[k] = quot ? q[k] : (k < dw ? r[k] : 0);
+            return 0;
+        }
+        int lth = h[0] == 'L', le = lth && h[1] == 'e', mn = !lth && h[1] == 'i';
+        if (a.w < 0 && b.w < 0) { o->w = -1; o->k = lth ? (le ? a.k <= b.k : a.k < b.k) : mn ? (a.k < b.k ? a.k : b.k) : (a.k < b.k ? b.k : a.k); return 0; }
+        int w = a.w >= 0 ? a.w : b.w;
+        SymVal *cv = a.w < 0 ? &a : b.w < 0 ? &b : NULL;
+        if (cv && w < 64 && (cv->k >> w)) {   /* the constant exceeds every word of width w */
+            int bigb = cv == &b;
+            if (lth) { o->w = 1; o->b[0] = bigb ? 1 : 0; return 0; }
+            if (mn) { *o = bigb ? a : b; return 0; }
+            return sterr_frag(c->err, c->es, "Max: constant wider than the word", t);
+        }
+        widen(&a, w); widen(&b, w);
+        if (a.w != b.w) return sterr(c->err, c->es, "width mismatch", t);
+        if (lth) { o->w = 1; o->b[0] = le ? dc_bdd_not(bm, bdd_ult(bm, b.b, a.b, w)) : bdd_ult(bm, a.b, b.b, w); return 0; }
+        DcBdd lt = bdd_ult(bm, a.b, b.b, w);
+        o->w = w;
+        for (int k = 0; k < w; k++) o->b[k] = mn ? dc_bdd_ite(bm, lt, a.b[k], b.b[k]) : dc_bdd_ite(bm, lt, b.b[k], a.b[k]);
+        return 0;
+    }
     return sterr(c->err, c->es, "Body operator outside the BitVectors fragment", t);
 }
 
@@ -187,6 +244,16 @@ static int sym_ceval(const Sx *t, const char *var, uint64_t x, int W, uint64_t *
         int ww = wa >= 0 ? wa : wb; if (wa >= 0 && wb >= 0 && wa != wb) return -1;
         *v = (h[0] == 'A' ? (a & b) : h[0] == 'O' ? (a | b) : (a ^ b)) & cmask(ww); *w = ww; return 0; }
     if (!strcmp(h, "Eq") && n == 3) { EV(1, a, wa); EV(2, b, wb); if (wa >= 0 && wb >= 0 && wa != wb) return -1; *v = a == b; *w = (wa < 0 && wb < 0) ? -1 : 1; return 0; }
+    if (sym_nat && nat_symhead(h) && n == 3) {   /* NatArith concrete replay (doc03 s3.13) */
+        EV(1, a, wa); EV(2, b, wb); if (wa >= 0 && wb >= 0 && wa != wb) return -1;
+        int ww = wa >= 0 ? wa : wb;
+        if (h[0] == 'L') { *v = h[1] == 'e' ? a <= b : a < b; *w = ww < 0 ? -1 : 1; return 0; }
+        if (!strcmp(h, "Min") || !strcmp(h, "Max")) { *v = (h[1] == 'i') ? (a < b ? a : b) : (a < b ? b : a);
+            if (ww >= 0 && (*v & ~cmask(ww))) return -1;
+            *w = ww; return 0;
+        }
+        if (wb >= 0 || b == 0) return -1;
+        *v = !strcmp(h, "Quot") ? a / b : a % b; *w = wa; return 0; }
 #undef EV
     return -1;
 }
@@ -239,6 +306,13 @@ static int cbool(CCtx *x, CVal *v) {
     if (v->w < 0) { if (v->k > 1) return -1; cwiden(x, v, 1); }
     return v->w == 1 ? 0 : -1;
 }
+/* NatArith (doc03 s3.13): unsigned a < b on w CNF literals, bit 0 first (independent of bdd_ult) */
+static int cnf_ult(Cnf *c, const int *a, const int *b, int w) {
+    int lt = -c->tru;
+    for (int k = 0; k < w; k++) lt = cnf_or(c, cnf_and(c, -a[k], b[k]), cnf_and(c, -cnf_xor(c, a[k], b[k]), lt));
+    return lt;
+}
+static int cnf_ite(Cnf *c, int f, int g, int h) { return cnf_or(c, cnf_and(c, f, g), cnf_and(c, -f, h)); }
 static int cnf_term(CCtx *x, const Sx *t, CVal *o) {
     Cnf *c = x->c; uint64_t i, j; CVal a, b;
     if (t->kind == SX_SYM) {
@@ -284,6 +358,47 @@ static int cnf_term(CCtx *x, const Sx *t, CVal *o) {
         cwiden(x, &a, w); cwiden(x, &b, w); if (a.w != b.w) return -1;
         int e = c->tru; for (int k = 0; k < w; k++) e = cnf_and(c, e, -cnf_xor(c, a.b[k], b.b[k]));
         o->b[0] = e; return 0;
+    }
+    if (sym_nat && nat_symhead(h) && n == 3) {   /* NatArith (doc03 s3.13 l.1170-1172), Tseitin twin of the sym_term block */
+        CT(1, a); CT(2, b);
+        int quot = !strcmp(h, "Quot"), rem = !strcmp(h, "Rem");
+        if (quot || rem) {   /* doc03 B.1 l.4395-4396: positive constant divisor only */
+            if (b.w >= 0 || b.k == 0) return -1;
+            if (a.w < 0) { o->w = -1; o->k = quot ? a.k / b.k : a.k % b.k; return 0; }
+            int w = a.w, dw = lit_bits(b.k), F = -c->tru;
+            if (dw > w) { if (quot) { o->w = w; for (int k = 0; k < w; k++) o->b[k] = F; } else *o = a; return 0; }
+            int r[SYM_MAXW + 1], q[SYM_MAXW], d[SYM_MAXW + 1];
+            for (int k = 0; k <= dw; k++) { r[k] = F; d[k] = kbit(b.k, k) ? c->tru : F; }
+            for (int i2 = w - 1; i2 >= 0; i2--) {
+                for (int k = dw; k > 0; k--) r[k] = r[k - 1];
+                r[0] = a.b[i2];
+                int ge = -cnf_ult(c, r, d, dw + 1), br = F;
+                q[i2] = ge;
+                for (int k = 0; k <= dw; k++) {
+                    int sb = cnf_xor(c, cnf_xor(c, r[k], d[k]), br);
+                    int bo = cnf_or(c, cnf_or(c, cnf_and(c, -r[k], d[k]), cnf_and(c, -r[k], br)), cnf_and(c, d[k], br));
+                    r[k] = cnf_ite(c, ge, sb, r[k]); br = bo;
+                }
+            }
+            o->w = w;
+            for (int k = 0; k < w; k++) o->b[k] = quot ? q[k] : (k < dw ? r[k] : F);
+            return 0;
+        }
+        int lth = h[0] == 'L', le = lth && h[1] == 'e', mn = !lth && h[1] == 'i';
+        if (a.w < 0 && b.w < 0) { o->w = -1; o->k = lth ? (le ? a.k <= b.k : a.k < b.k) : mn ? (a.k < b.k ? a.k : b.k) : (a.k < b.k ? b.k : a.k); return 0; }
+        int w = a.w >= 0 ? a.w : b.w; CVal *cv = a.w < 0 ? &a : b.w < 0 ? &b : NULL;
+        if (cv && w < 64 && (cv->k >> w)) {
+            int bigb = cv == &b;
+            if (lth) { o->w = 1; o->b[0] = bigb ? c->tru : -c->tru; return 0; }
+            if (mn) { *o = bigb ? a : b; return 0; }
+            return -1;
+        }
+        cwiden(x, &a, w); cwiden(x, &b, w); if (a.w != b.w) return -1;
+        if (lth) { o->w = 1; o->b[0] = le ? -cnf_ult(c, b.b, a.b, w) : cnf_ult(c, a.b, b.b, w); return 0; }
+        int lt = cnf_ult(c, a.b, b.b, w);
+        o->w = w;
+        for (int k = 0; k < w; k++) o->b[k] = mn ? cnf_ite(c, lt, a.b[k], b.b[k]) : cnf_ite(c, lt, b.b[k], a.b[k]);
+        return 0;
     }
 #undef CT
 #undef IX
@@ -1246,6 +1361,11 @@ static int sup_term(const Sx *t, const char *var, int W, MVal *o) {
         o->w = w; for (int q = 0; q < w; q++) o->m[q] = (a.w >= 0 ? a.m[q] : 0) | (b.w >= 0 ? b.m[q] : 0); return 0; }
     if (!strcmp(h, "Eq") && n == 3) { ST(1, a); ST(2, b);
         o->w = 1; for (int q = 0; q < a.w; q++) o->m[0] |= a.m[q]; for (int q = 0; q < b.w; q++) o->m[0] |= b.m[q]; return 0; }
+    if (sym_nat && nat_symhead(h) && n == 3) {   /* NatArith (doc03 s3.13): conservative cone, every output bit reads every input bit of both operands */
+        ST(1, a); ST(2, b);
+        int w = (h[0] == 'L') ? 1 : (a.w >= 0 ? a.w : b.w); if (w < 0) { o->w = -1; return 0; }
+        uint64_t all = 0; for (int q = 0; q < a.w; q++) all |= a.m[q]; for (int q = 0; q < b.w; q++) all |= b.m[q];
+        o->w = w; for (int q = 0; q < w; q++) o->m[q] = all; return 0; }
 #undef ST
 #undef SX_
     return -1;
@@ -1592,6 +1712,7 @@ static Sx *sym_policy(Sx *res) {
 Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     char err[256]; SymMod S;
     sym_res_words = -1; sym_res_nodes = 0; sym_res_xcheck = 0;
+    sym_nat = r->m->natarith;
     int rrc = sym_read(r->m->source, &S, err, sizeof err);
     if (rrc == -2) { char ub[160]; return dc_unsupported(r->m, "symbolic module: form outside the symbolic backend fragment (libraries: %s): %s", dc_module_uses(r->m->source, ub, sizeof ub), err); }
     if (rrc) return dc_invalid(r->m, "symbolic module: %s", err);
