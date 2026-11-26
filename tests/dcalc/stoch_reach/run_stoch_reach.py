@@ -48,5 +48,15 @@ report('F1: long kernel names sharing 30 chars -> same answer as short names (Ch
 r = rows(os.path.join(FXD, 'e3b_obs_action_same_map.metta'), B)
 g, h = r.get('E3B (TracePartition MS)'), r.get('E3B (TracePartition MS2)')
 report('F2: map used as Observe and Action -> Checked, 1 class, in either order', g is not None and h is not None and g[0] == h[0] == 'Checked' and cl(g) == cl(h) == '1', (g and g[:2], cl(g), h and h[:2], cl(h)))
+# review 2: the V03 0/1 kernel of a Map used as an Action is keyed by (map, carrier), not by the bare map name.
+#   f: a->b b->a c->c, observed by f. Seen = Reach M From a = {a,b}: f separates a,b -> 2 classes; on S: 3 classes;
+#   Seen2 = Reach M From c = {c}: 1 class. Declaration order must not change any answer.
+r1 = rows(os.path.join(FXD, 'rv2_f1_reach_first.metta'), B); r2 = rows(os.path.join(FXD, 'rv2_f2_parent_first.metta'), B)
+a1, b1, a2, b2 = r1.get('RV2F1 (TracePartition MS)'), r1.get('RV2F1 (TracePartition MC)'), r2.get('RV2F2 (TracePartition MS)'), r2.get('RV2F2 (TracePartition MC)')
+ok = all(v is not None and v[0] == 'Checked' for v in (a1, b1, a2, b2)) and cl(a1) == cl(a2) == '2' and cl(b1) == cl(b2) == '3'
+report('R2a: map as Action on a Reach carrier and on its parent -> Checked 2 / 3 classes in either declaration order', ok, [v and (v[0], cl(v)) for v in (a1, b1, a2, b2)])
+r = rows(os.path.join(FXD, 'rv2_f3_two_reach.metta'), B)
+g, h = r.get('RV2F3 (TracePartition MS1)'), r.get('RV2F3 (TracePartition MS2)')
+report('R2b: one map as Action on two Reach carriers of one parent -> Checked, 2 and 1 classes', g is not None and h is not None and g[0] == h[0] == 'Checked' and cl(g) == '2' and cl(h) == '1', (g and (g[0], cl(g)), h and (h[0], cl(h))))
 print('run_stoch_reach: ' + ('PASS' if fails == 0 else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
