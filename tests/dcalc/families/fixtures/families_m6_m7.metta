@@ -1,0 +1,56 @@
+;; t-2026-11-26-mettadinc-families-followups-v2 step 3: Families combined with a real M6 (Contracts: same-file Import
+;; inlined) or M7 (Hyperseed) expansion.  Before the fix, api.c ran the Families elaborator only when no M6/M7 rewrite
+;; happened, so FB6/FB7 reached the symbolic backend unelaborated (beyond mode: Unsupported "Enum must be 0..n-1" on
+;; the symbol carrier Idx, the For port never expanded).  Now Families also elaborates the rewritten module, and FB6/FB7
+;; answer exactly like the Families-only control FB0: MR reaches 0 -> 2 (act sets bit 1), the block B0 (bit 1 = 0)
+;; is not closed under act, so CheckBlockPartition is Refuted with witness word 2.
+;; Release mode is unchanged: FB0 Refuted (witness 2); FB6/FB7 Unsupported, library outside the first release.
+(DC.Module BLib
+  (Profile (Dynamics Deterministic) (Values Crisp) (Carriers Symbolic))
+  (Use BitVectors)
+  (Carrier Bit (Of Nat) (Enum 0 1))
+  (Carrier Word (Of (BitVector 3)) (All))
+  (Carrier Idx (Of Symbol) (Enum i0 i1))
+  (Map slot (From Idx) (To Nat) (Table (i0 0) (i1 1))))
+(DC.Module FB0
+  (Profile (Dynamics Deterministic) (Values Crisp) (Carriers Symbolic))
+  (Use BitVectors Families)
+  (Carrier Bit (Of Nat) (Enum 0 1))
+  (Carrier Word (Of (BitVector 3)) (All))
+  (Carrier Idx (Of Symbol) (Enum i0 i1))
+  (Map slot (From Idx) (To Nat) (Table (i0 0) (i1 1)))
+  (Map rd (Parameters ($i Idx)) (From Word) (To Bit) (Body ($x) (BitAt $x (slot $i))))
+  (Map set1 (From Word) (To Word) (Body ($x) (SetBit $x 1 1)))
+  (Machine M (States Word) (Observe (b $i) (rd $i) (For $i Idx)) (Action act set1))
+  (Carrier FromZero (Of (BitVector 3)) (Reach M (From 0)))
+  (Machine MR (States FromZero) (Observe (b $i) (rd $i) (For $i Idx)) (Action act set1))
+  (BlockPartition Low (On FromZero)
+    (Block B0 (Body ($x) (Eq (BitAt $x 1) 0)) 0)
+    (Successor act B0 B0)))
+!(dc.run FB0 (CheckBlockPartition Low (Of MR)))
+(DC.Module FB6
+  (Profile (Dynamics Deterministic) (Values Crisp) (Carriers Symbolic))
+  (Use BitVectors Families Contracts)
+  (Import BLib (Only Bit Word Idx slot))
+  (Map rd (Parameters ($i Idx)) (From Word) (To Bit) (Body ($x) (BitAt $x (slot $i))))
+  (Map set1 (From Word) (To Word) (Body ($x) (SetBit $x 1 1)))
+  (Machine M (States Word) (Observe (b $i) (rd $i) (For $i Idx)) (Action act set1))
+  (Carrier FromZero (Of (BitVector 3)) (Reach M (From 0)))
+  (Machine MR (States FromZero) (Observe (b $i) (rd $i) (For $i Idx)) (Action act set1))
+  (BlockPartition Low (On FromZero)
+    (Block B0 (Body ($x) (Eq (BitAt $x 1) 0)) 0)
+    (Successor act B0 B0)))
+!(dc.run FB6 (CheckBlockPartition Low (Of MR)))
+(DC.Module FB7
+  (Profile (Dynamics Deterministic) (Values Crisp) (Carriers Symbolic))
+  (Use BitVectors Families Hyperseed)
+  (Import BLib (Only Bit Word Idx slot))
+  (Map rd (Parameters ($i Idx)) (From Word) (To Bit) (Body ($x) (BitAt $x (slot $i))))
+  (Map set1 (From Word) (To Word) (Body ($x) (SetBit $x 1 1)))
+  (Machine M (States Word) (Observe (b $i) (rd $i) (For $i Idx)) (Action act set1))
+  (Carrier FromZero (Of (BitVector 3)) (Reach M (From 0)))
+  (Machine MR (States FromZero) (Observe (b $i) (rd $i) (For $i Idx)) (Action act set1))
+  (BlockPartition Low (On FromZero)
+    (Block B0 (Body ($x) (Eq (BitAt $x 1) 0)) 0)
+    (Successor act B0 B0)))
+!(dc.run FB7 (CheckBlockPartition Low (Of MR)))

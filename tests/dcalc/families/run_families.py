@@ -49,5 +49,59 @@ for mode in ([], ['--beyond-release']):
     lb = [l for l in o.splitlines() if l.startswith('SwB (CheckBlockPartition Bit1Low (Of MR)) => ')]
     report('Switch (%s): key without an arm takes the Any arm -> Refuted, witness word 2' % tag,
            len(lb) == 1 and '(Status Refuted)' in lb[0] and '(Witness (Word 2)' in lb[0], lb)
+# t-2026-11-26-mettadinc-families-followups-v2 step 2: exact verdicts for the Eq / And / Or folds (crisp_fold.metta).
+# R merges all states into one code (Refuted iff the folded observation is not constant); RH splits mid off (Checked).
+FOLD_EXP = {('FE', 'R'): 'Refuted', ('FE', 'RH'): 'Checked', ('FA', 'R'): 'Refuted', ('FA', 'RH'): 'Checked',
+            ('FO', 'R'): 'Refuted', ('FO', 'RH'): 'Checked'}
+for mode in ([], ['--beyond-release']):
+    tag = mode[0] if mode else 'release'
+    o = subprocess.run([DC] + mode + [os.path.join(FXD, 'crisp_fold.metta')], capture_output=True, text=True, timeout=120).stdout
+    for (mn, rep), st in sorted(FOLD_EXP.items()):
+        ln = [l for l in o.splitlines() if l.startswith('%s (CheckNow %s) => ' % (mn, rep))]
+        dfc = '(Defect (Interval 1 1))' if st == 'Refuted' else '(Defect (Interval 0 0))'
+        report('Fold (%s): %s CheckNow %s -> %s %s' % (tag, mn, rep, st, dfc),
+               len(ln) == 1 and ('(Status %s)' % st) in ln[0] and dfc in ln[0], ln)
+
+# t-2026-11-26-mettadinc-families-followups-v2 step 1: For expansion checked automatically.  ex2 (access policy) is
+# built with For fields; replay.py re-elaborates it independently (replay_families.elaborate) and replays every
+# Checked/Refuted answer.  Required: replay exit 0 with the exact summary, and the exact per-request status list.
+EX2 = os.path.join(ROOT, 'docs', 'e0', 'docs', '03_four_worked_examples', 'validation_bundles', 'ex2_access_policy',
+                   'access_policy.metta')
+# Rows 4 and 6 are decision-diagram answers: Conditional without a proof backend, Checked once DCALC_CADICAL and
+# DCALC_CAKE_LPR are configured (as dcalc-run-all does with the backend exports); the expectation is exact either way.
+EX2_BK = bool(os.environ.get('DCALC_CADICAL')) and bool(os.environ.get('DCALC_CAKE_LPR'))
+EX2_DD = 'Checked' if EX2_BK else 'Conditional'
+EX2_ST = ['Refuted', 'Refuted', 'Refuted', EX2_DD, 'Unknown', EX2_DD] + ['Unsupported'] * 9
+EX2_SUM = ('replay: 5 replayed, 10 not Checked/Refuted, 0 failed' if EX2_BK
+           else 'replay: 3 replayed, 12 not Checked/Refuted, 0 failed')
+for mode in ([], ['--beyond-release']):
+    tag = mode[0] if mode else 'release'
+    o = subprocess.run([DC] + mode + [EX2], capture_output=True, text=True, timeout=300).stdout
+    st = [re.sub(r'^.* => \(Result \(Status ([A-Za-z]+)\).*$', r'\1', l) for l in o.splitlines() if ' => ' in l]
+    report('For/ex2 (%s, proof backend %s): 15 answers with the expected status list' % (tag, 'on' if EX2_BK else 'off'), st == EX2_ST, st)
+    tf = os.path.join(ROOT, 'build', 'families_ex2_%s.out' % tag.strip('-'))
+    with open(tf, 'w') as fh: fh.write(o)
+    rp = subprocess.run([sys.executable, os.path.join(ROOT, 'tests', 'dcalc', 'replay.py'), EX2, tf],
+                        capture_output=True, text=True, timeout=300)
+    last = (rp.stdout.strip().splitlines() or [''])[-1]
+    report('For/ex2 (%s): replay.py re-elaborates and replays, "%s"' % (tag, EX2_SUM),
+           rp.returncode == 0 and last == EX2_SUM, [rp.returncode, last])
+
+# t-2026-11-26-mettadinc-families-followups-v2 step 3: Families + M6/M7 expansion is elaborated, never silently skipped.
+M67_EXP = {('release', 'FB0'): ('Refuted', '(Witness (Word 2)'),
+           ('release', 'FB6'): ('Unsupported', '(Reason "library Contracts is outside the first release")'),
+           ('release', 'FB7'): ('Unsupported', '(Reason "library Hyperseed is outside the first release")'),
+           ('--beyond-release', 'FB0'): ('Refuted', '(Witness (Word 2)'),
+           ('--beyond-release', 'FB6'): ('Refuted', '(Witness (Word 2)'),
+           ('--beyond-release', 'FB7'): ('Refuted', '(Witness (Word 2)')}
+for mode in ([], ['--beyond-release']):
+    tag = mode[0] if mode else 'release'
+    o = subprocess.run([DC] + mode + [os.path.join(FXD, 'families_m6_m7.metta')], capture_output=True, text=True, timeout=120).stdout
+    for mn in ('FB0', 'FB6', 'FB7'):
+        st, frag = M67_EXP[(tag, mn)]
+        ln = [l for l in o.splitlines() if l.startswith('%s (CheckBlockPartition Low (Of MR)) => ' % mn)]
+        report('Families+M6/M7 (%s): %s -> %s %s' % (tag, mn, st, frag),
+               len(ln) == 1 and ('(Status %s)' % st) in ln[0] and frag in ln[0], ln)
+
 print('run_families: ' + ('PASS' if fails == 0 else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
