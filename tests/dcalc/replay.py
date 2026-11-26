@@ -393,7 +393,9 @@ def main(fixture, output):
     import replay_graded as G   # M2: graded results replay through the independent graded checker
     mods = {f[1]: (Module(f), derives(None, f)) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module'}
     import replay_sym as SY   # M3: symbolic modules replay through the independent symbolic checker
-    smods = {f[1]: SY.SymM(f) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module' and SY.is_symbolic(f)}
+    import replay_families as RF   # Families modules: elaborated by the replay-side elaborator, not by families.c
+    smods = {f[1]: SY.SymM(RF.elaborate(forms, f[1]) if RF.uses_families(f) else f)
+             for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module' and SY.is_symbolic(f)}
     gmods = {f[1]: G.GModule(f) for f in forms if isinstance(f, list) and f and f[0] == 'DC.Module' and f[1] not in smods}
     n_ok = n_skip = n_bad = 0
     for line in open(output):

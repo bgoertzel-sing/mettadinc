@@ -3,9 +3,11 @@
 #include "ops.h"
 #include "binding.h"
 #include "admit.h"
+#include "families.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+void dc_sha256_hex(const char *data, size_t n, char out[65]);
 
 static Sx *bare(const char *status, const char *mod, const char *reason) {
     Sx *l = sx_list(); sx_push(l, sx_sym("Result"));
@@ -187,11 +189,17 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
         DcModule *m = calloc(1, sizeof *m); char err[512];
         Sx *inl = g_beyond ? m6_inline_imports(all, raw) : NULL;   /* M6 opt-in */
         if (!inl && g_beyond) inl = m7_expand(all, raw);   /* M7 opt-in */
-        if (dc_admit(inl ? inl : raw, m, err, sizeof err) != 0) {
+        char fw[512] = ""; int frc = 0;
+        int fam = 0;   /* review 1 F3: set when the Families elaborator produced inl */
+        if (!inl) { frc = dc_families_expand(all, raw, &inl, fw, sizeof fw); fam = inl != NULL; }   /* Families (release 1): source-level elaboration */
+        if (frc == -2) res = bare("Unsupported", mn, fw);
+        else if (dc_admit(inl ? inl : raw, m, err, sizeof err) != 0) {
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
             dc_module_free(m);   /* review 2 F6: release partially admitted carrier tables */
         }
         else { if (basedir) snprintf(m->basedir, sizeof m->basedir, "%s", basedir);
+               if (fam) {   /* review 1 F3: a Families module binds to its source text, not to the elaborated form */
+                   char *canon = sx_print(raw); dc_sha256_hex(canon, strlen(canon), m->digest); free(canon); }
                DcRun *run = dc_run_new(m); res = dc_run(run, req); dc_run_free(run); dc_module_free(m); }
         free(m); if (inl) sx_free(inl);
     }

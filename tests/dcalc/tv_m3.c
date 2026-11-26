@@ -5,7 +5,7 @@
  * variables (word bits).  tests/dcalc/tv_m3.py then checks every CNF against an
  * independent Python semantics over all assignments of the primaries; this program
  * does no checking of its own.
- * usage: tv_m3 MODULE.metta OUTDIR spec...   spec = partition:P:M | minimize:M[:k] | now:R */
+ * usage: tv_m3 MODULE.metta OUTDIR spec...   spec = partition:P:M | induct:P:M | minimize:M[:k] | now:R */
 #include "ops_sym.c"
 #include <stdio.h>
 static int dump(const char *dir, const char *tag, const Cnf *c, int goal, int np, const char *extra) {
@@ -36,19 +36,32 @@ int main(int argc, char **argv) {
             if (S.car[ci].reach) {
                 const Sx *rf = S.car[ci].reach; int ri = sfind_mach(&S, rf->items[1]->text); uint64_t st; static SymVal rav[8];
                 SymEnv E; if (ri < 0 || !lit_of(rf->items[2]->items[1], &st) || senv_init(&E, S.car[ci].width)) { puts("bad reach"); return 2; }
-                if (mach_acts(&E, &S, &S.mach[ri], rav, err, sizeof err) || sym_reach(&E, rav, S.mach[ri].nact, st, &nd, &nn, err, sizeof err)) { printf("reach: %s\n", err); return 2; }
+                if (mach_acts(&E, &S, &S.mach[ri], rav, err, sizeof err) || sym_reach(&E, rav, S.mach[ri].nact, st, -1, 0, &nd, &nn, err, sizeof err)) { printf("reach: %s\n", err); return 2; }
                 dc_bdd_free(E.bm);
             }
             int nob = 1;
             for (int ob = -1; ob < nob; ob++) {
                 const char *on = "All"; memset(&cn, 0, sizeof cn);
-                if (sym_cnf_partition(&cn, &S, M, bp, nd, nn, ob, &nob, &on, &goal)) { printf("partition %s: CNF generation failed\n", x1); return 2; }
+                if (sym_cnf_partition(&cn, &S, M, bp, nd, nn, ob, &nob, &on, &goal, NULL)) { printf("partition %s: CNF generation failed\n", x1); return 2; }
                 if (ob < 0) snprintf(tag, sizeof tag, "partition-%s-all", x1); else snprintf(tag, sizeof tag, "partition-%s-%d", x1, ob);
                 snprintf(ex, sizeof ex, "c kind partition %s %s %d %s\n", x1, x2, ob, on);
                 if (dump(argv[2], tag, &cn, goal, S.car[M->states].width, ex)) return 2;
                 cnf_free(&cn);
             }
             free(nd);
+        } else if (k && x1 && x2 && !strcmp(k, "induct")) {   /* induction scope (review 1, finding 4): nd == NULL, R = the carrier's reach machine */
+            const Sx *bp = sfind_decl(&S, x1); int mi = sfind_mach(&S, x2), ci, ri; const char *cn_;
+            if (!bp || mi < 0 || sname(sfield(bp, "On"), 1, &cn_) || (ci = sfind_car(&S, cn_)) < 0 || !S.car[ci].reach
+                || (ri = sfind_mach(&S, S.car[ci].reach->items[1]->text)) < 0) { printf("bad spec %s\n", argv[a]); return 2; }
+            const SMach *M = &S.mach[mi]; int nob = 1;
+            for (int ob = -1; ob < nob; ob++) {
+                const char *on = "All"; memset(&cn, 0, sizeof cn);
+                if (sym_cnf_partition(&cn, &S, M, bp, NULL, 0, ob, &nob, &on, &goal, &S.mach[ri])) { printf("induct %s: CNF generation failed\n", x1); return 2; }
+                if (ob < 0) snprintf(tag, sizeof tag, "induct-%s-all", x1); else snprintf(tag, sizeof tag, "induct-%s-%d", x1, ob);
+                snprintf(ex, sizeof ex, "c kind induct %s %s %d %s\n", x1, x2, ob, on);
+                if (dump(argv[2], tag, &cn, goal, S.car[M->states].width, ex)) return 2;
+                cnf_free(&cn);
+            }
         } else if (k && x1 && !strcmp(k, "minimize")) {
             int mi = sfind_mach(&S, x1); if (mi < 0) { printf("bad spec %s\n", argv[a]); return 2; }
             const SMach *M = &S.mach[mi]; int W = S.car[M->states].width;

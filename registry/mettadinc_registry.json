@@ -5021,7 +5021,8 @@
    "Core",
    "GradedKernels",
    "BitVectors",
-   "FiniteSets"
+   "FiniteSets",
+   "Families"
   ],
   "must_answer_unsupported": [
    "every request on a Stochastic or Nondeterministic module, including the seven-state chain",

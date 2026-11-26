@@ -63,6 +63,11 @@ LOCAL_PATCHES = [("m4est", "registry/patches/m4est_registry_patch.json"), ("m5re
                  ("m6", "registry/patches/m6_registry_patch.json"), ("m6rest", "registry/patches/m6rest_registry_patch.json"),
                  ("m6graded", "registry/patches/m6graded_registry_patch.json"),
                  ("m7", "registry/patches/m7_registry_patch.json")]   # M7 review-1 F2: M7 invented shapes   # m6-graded invented shapes   # review-2 F3: M6 invented result shapes
+# Release admissions (review 1 finding 1 of t-2026-11-24-mettadinc-families).  Libraries admitted into the first
+# release by a decision recorded here, so the registries stay generated: each entry is appended to
+# first_release.libraries of both the release and the beyond-release registry, after every patch is applied.
+ADMISSIONS = [("Families", "andy, hive task t-2026-11-24-mettadinc-families (doc03 ex2: admit Families in release 1 "
+               "with its elaborator and symbol-enum support)")]
 BOUT = os.path.join(REPO, "registry", "beyond", "mettadinc_registry_beyond.json")
 BDIGEST = os.path.join(REPO, "registry", "beyond", "DIGEST")
 WHOLE = [("libraries", "libraries"), ("declarations", "declarations"), ("requests", "requests"),
@@ -188,6 +193,12 @@ def build(supersede, local=()):
              "patch": pt.get("patch"), "date": pt.get("date")})
     if notes_out:
         reg["notes"] = notes_out
+    libs = reg.setdefault("first_release", {}).setdefault("libraries", [])
+    for lib, _why in ADMISSIONS:
+        if lib not in reg.get("libraries", {}):
+            conflicts.append(f"admission of {lib}: no adopted input defines that library")
+        elif lib not in libs:
+            libs.append(lib)
     reg["registry"] = base["registry"] + ", with the bundle patches ex1, ex2, ex3, ex4, mg, ls and wx adopted"
     if local:
         reg["registry"] += ", and the local patches " + ", ".join(n for n, _ in local) + " (beyond release only)"
@@ -270,6 +281,12 @@ def sources_md(base_sha, reg_sha, cps, revisions, resolved, local=(), b_sha=None
     for n, p in PATCHES:
         L.append(f"| {n} patch (applied {names.index(n) + 1} of {len(PATCHES)}) | docs/e0/docs/{p} | "
                  f"{code(sha(os.path.join(DOCS, p)))} |")
+    L += ["", "## Release admissions", "",
+          "Libraries added to " + code("first_release.libraries") + " of both registries after all patches, from "
+          + code("ADMISSIONS") + " in " + code("tools/adopt_registry.py") + ".", "",
+          "| Library | Decision |", "|---|---|"]
+    for lib, why in ADMISSIONS:
+        L.append(f"| {lib} | {why} |")
     L += ["", "## Coordinated change (MILESTONES.md, entry checklist item 3)", "",
           "| Input | Fixtures | Manifest | Checker |", "|---|---|---|---|"]
     for row in COORDINATED:
