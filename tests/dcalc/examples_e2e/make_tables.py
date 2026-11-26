@@ -72,6 +72,8 @@ def classify(rid, mode, st, reason, doc):
         return 'GATED: stochastic profile outside the first release (doc03 s2.6: first release covers deterministic dynamics)'
     m = re.search(r'Profile ([\\w ]+?) is outside the first release', reason)
     if m: return 'GATED: Profile %s outside the first release (release gate, stoch profile is post-M0)' % m.group(1)
+    if 'request CheckBlockPartition is outside the M0 fragment' in reason:   # t-2026-11-26-mettadinc-families-followups-v2 step 4
+        return 'GAP: CheckBlockPartition is outside the M0 fragment on a Crisp module (the M0 lowering has no block-partition request); Unsupported, not InvalidInput'
     if re.search(r'outside the M[0-9] fragment', reason):
         return 'GAP: M0 lowering rejects (g) a (To Bool) Observe map declared with a type-form From (repro/m0_blocker_g); Bool Observe maps (a), type-form From/To maps (b), If/Eq/And/Or/Not in Cases (c), Machine Like (d), Body maps in Crisp (f) and Subset/Reach carriers are lowered'
     return 'UNCLASSIFIED'

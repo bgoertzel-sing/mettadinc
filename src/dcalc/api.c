@@ -192,6 +192,12 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
         char fw[512] = ""; int frc = 0;
         int fam = 0;   /* review 1 F3: set when the Families elaborator produced inl */
         if (!inl) { frc = dc_families_expand(all, raw, &inl, fw, sizeof fw); fam = inl != NULL; }   /* Families (release 1): source-level elaboration */
+        else {   /* t-2026-11-26-mettadinc-families-followups-v2 step 3: an M6/M7 rewrite must not skip Families; elaborate
+                  the rewritten module too (beyond mode only: inl is NULL in release) */
+            Sx *g = sx_list(), *e2 = NULL;   /* the rewrite already inlined the Imports; drop them so Families does not copy twice */
+            for (size_t i = 0; i < inl->n; i++) if (i < 2 || !sx_head_is(inl->items[i], "Import")) sx_push(g, sx_copy(inl->items[i]));
+            frc = dc_families_expand(all, g, &e2, fw, sizeof fw); sx_free(g);
+            if (e2) { sx_free(inl); inl = e2; fam = 1; } }
         if (frc == -2) res = bare("Unsupported", mn, fw);
         else if (dc_admit(inl ? inl : raw, m, err, sizeof err) != 0) {
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
