@@ -37,5 +37,17 @@ for mode in ([], ['--beyond-release']):
     report('Init (%s): start outside the Invariant -> Refuted, Coverage at word 1 (no induction certificate)' % tag, ok, ln)
     ln2 = [l for l in o.splitlines() if 'Low (Of OneReach)) => ' in l]
     report('Init (%s): unbudgeted row Refuted' % tag, len(ln2) == 1 and '(Status Refuted)' in ln2[0], ln2)
+# Review 1 finding 4: Switch with an Any arm.  SwA's key has its own arm (sets bit 0): Refuted at word 1; an
+# elaborator that always prefers Any reaches only word 2 and is not Refuted.  SwB's key has no arm and takes Any
+# (sets bit 1): Refuted at word 2; a first-arm mutant reaches word 1, an Any-ignoring one answers Unsupported.
+for mode in ([], ['--beyond-release']):
+    tag = mode[0] if mode else 'release'
+    o = subprocess.run([DC] + mode + [os.path.join(FXD, 'switch_any.metta')], capture_output=True, text=True, timeout=120).stdout
+    la = [l for l in o.splitlines() if l.startswith('SwA (CheckBlockPartition Bit0Low (Of MR)) => ')]
+    report('Switch (%s): key with its own arm takes it, not Any -> Refuted, witness word 1' % tag,
+           len(la) == 1 and '(Status Refuted)' in la[0] and '(Witness (Word 1)' in la[0], la)
+    lb = [l for l in o.splitlines() if l.startswith('SwB (CheckBlockPartition Bit1Low (Of MR)) => ')]
+    report('Switch (%s): key without an arm takes the Any arm -> Refuted, witness word 2' % tag,
+           len(lb) == 1 and '(Status Refuted)' in lb[0] and '(Witness (Word 2)' in lb[0], lb)
 print('run_families: ' + ('PASS' if fails == 0 else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
