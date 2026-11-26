@@ -58,5 +58,14 @@ report('R2a: map as Action on a Reach carrier and on its parent -> Checked 2 / 3
 r = rows(os.path.join(FXD, 'rv2_f3_two_reach.metta'), B)
 g, h = r.get('RV2F3 (TracePartition MS1)'), r.get('RV2F3 (TracePartition MS2)')
 report('R2b: one map as Action on two Reach carriers of one parent -> Checked, 2 and 1 classes', g is not None and h is not None and g[0] == h[0] == 'Checked' and cl(g) == '2' and cl(h) == '1', (g and (g[0], cl(g)), h and (h[0], cl(h))))
+# t-2026-11-26-mettadinc-stoch-reach-followups case 1: a structured Map f has a synthetic value carrier (shown as f#);
+#   a user Carrier f# must be the only carrier found under that name: NC answers as NCR (user carrier renamed h).
+r = rows(os.path.join(FXD, 'nm_collision.metta'), B)
+g, h = r.get('NC (TracePartition M)'), r.get('NCR (TracePartition M)')
+report('followups 1: user Carrier f# is not shadowed by the synthetic carrier of Map f -> Checked, 3 classes, as NCR', g is not None and h is not None and g[0] == h[0] == 'Checked' and cl(g) == cl(h) == '3', (g and g[:2], cl(g), h and h[:2], cl(h)))
+# case 2: 16 declared kernels (ST_MAXD) leave no slot for the V03 0/1 kernel of a Map used as an Action: engine limit
+r = rows(os.path.join(FXD, 'full_kernel_table.metta'), B)
+g, h = r.get('FK (TracePartition M)'), r.get('FK15 (TracePartition M)')
+report('followups 2: full kernel table + Map as Action -> Unsupported naming the form (not InvalidInput); 15 kernels -> Checked, 3 classes', g is not None and h is not None and g[0] == 'Unsupported' and 'no free slot for the 0/1 kernel of a Map used as an Action' in g[1] and h[0] == 'Checked' and cl(h) == '3', (g and g[:2], h and h[:2], cl(h)))
 print('run_stoch_reach: ' + ('PASS' if fails == 0 else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)

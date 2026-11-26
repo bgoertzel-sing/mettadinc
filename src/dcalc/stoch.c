@@ -14,7 +14,8 @@
 #define ST_NM 64
 #define ST_MAXE 64
 #define ST_MAXD 16
-typedef struct { char name[ST_NM]; int n; char el[ST_MAXE][ST_NM]; int parent; /* (Reach ...): parent carrier + 1, 0 = none */ int sub[ST_MAXE]; /* index in the parent */ } StCar;
+typedef struct { char name[ST_NM]; int n; char el[ST_MAXE][ST_NM]; int parent; /* (Reach ...): parent carrier + 1, 0 = none */ int sub[ST_MAXE]; /* index in the parent */
+    int syn; /* t-2026-11-26-mettadinc-stoch-reach-followups: 1 = synthetic (a structured map's value carrier); never found by name */ } StCar;
 typedef struct { char name[ST_NM]; int from, to; int tab[ST_MAXE]; int rsrc, rcar, rrole; } StMap;   /* rrole 0: declared; 1 Observe / 2 Action restriction of map rsrc to carrier rcar */
 typedef struct { char name[ST_NM]; int from, to; DcQ p[ST_MAXE][ST_MAXE]; int rsrc, rcar, rrole; } StKer;   /* rrole 0: declared; 1 restriction of kernel rsrc to carrier rcar; 2 V03 0/1 kernel of map rsrc on carrier rcar */
 typedef struct { char name[ST_NM]; int states, nobs, nact; char ol[4][ST_NM]; int om[4]; char al[4][ST_NM]; int ak[4]; } StMach;
@@ -29,7 +30,8 @@ static int st_err(char *err, size_t es, const char *what, const char *nm) { snpr
 static const Sx *st_field(const Sx *d, const char *h) { for (size_t i = 2; i < d->n; i++) if (sx_head_is(d->items[i], h)) return d->items[i]; return NULL; }
 static const char *st_name(const Sx *f, size_t k) { return f && f->kind == SX_LIST && f->n > k && f->items[k]->kind == SX_SYM ? f->items[k]->text : NULL; }
 #define ST_FIND(arr, cnt) for (int i = 0; i < cnt; i++) if (!strcmp(arr[i].name, nm)) return i; return -1;
-static int st_car(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->car, s->ncar) }
+/* declared carriers only: a synthetic carrier lives in its own namespace, so a user carrier of the same name is never shadowed */
+static int st_car(const StMod *s, const char *nm) { if (!nm) return -1; for (int i = 0; i < s->ncar; i++) if (!s->car[i].syn && !strcmp(s->car[i].name, nm)) return i; return -1; }
 /* review 2: names resolve to declared maps/kernels only (rrole 0); derived entries are found by (source, carrier, role) */
 static int st_mapi(const StMod *s, const char *nm) { if (!nm) return -1; for (int i = 0; i < s->nmap; i++) if (!s->map[i].rrole && !strcmp(s->map[i].name, nm)) return i; return -1; }
 static int st_keri(const StMod *s, const char *nm) { if (!nm) return -1; for (int i = 0; i < s->nker; i++) if (!s->ker[i].rrole && !strcmp(s->ker[i].name, nm)) return i; return -1; }
@@ -149,7 +151,7 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                 /* structured image (R: rewards-new): a synthetic carrier of the distinct case values */
                 const Sx *cs = st_field(d, "Cases"), *vals[ST_MAXE];
                 if (!cs || s->ncar == ST_MAXD) return st_err(err, es, "structured map needs (Cases ...) and a free carrier slot:", nm);
-                StCar *c = &s->car[s->ncar]; memset(c, 0, sizeof *c); snprintf(c->name, ST_NM, "%.*s#", (int)ST_NM - 2, nm);
+                StCar *c = &s->car[s->ncar]; memset(c, 0, sizeof *c); snprintf(c->name, ST_NM, "%.*s#", (int)ST_NM - 2, nm); c->syn = 1;   /* display name only, see st_car */
                 for (int k = 0; k < ST_MAXE; k++) mp->tab[k] = -1;
                 for (size_t k = 1; k < cs->n; k++) {
                     const Sx *cc = cs->items[k];
@@ -270,6 +272,8 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                                 K->p[x][y] = dc_q(y == s->map[mpi].tab[x] ? 1 : 0, 1, &ovf0);
                             ki = s->nker++;
                         }
+                        /* t-2026-11-26-mettadinc-stoch-reach-followups: no free kernel slot for the 0/1 kernel is an engine limit */
+                        if (ki < 0) return st_frag(err, es, "too many kernels: no free slot for the 0/1 kernel of a Map used as an Action in machine", nm);
                     }
                     if (!l || ki < 0 || M->nact == 4 || s->ker[ki].from != M->states || s->ker[ki].to != M->states) return st_err(err, es, "bad Action (kernel on the states) in machine", nm);
                     snprintf(M->al[M->nact], ST_NM, "%s", l); M->ak[M->nact++] = ki;
