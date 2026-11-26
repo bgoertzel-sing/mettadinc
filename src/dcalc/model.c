@@ -468,19 +468,31 @@ static int bool_carrier(DcModule *m) {
 }
 static int admit_map(DcModule *m, const Sx *d, char *err, size_t es);
 static const Sx *find_decl(const DcModule *m, const char *head, const char *name);
+static int is_tmap(const DcModule *m, const char *s);
+static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err, size_t es);
 /* The map named by an Observe port was skipped at its declaration because its target (To Bool) named no
  * carrier.  Admit it now, on the implicit Bool carrier.  Returns the map index, -2 when this is not that form
- * (the caller keeps its old behaviour), -1 with err set when admission fails. */
-static int admit_bool_observe_map(DcModule *m, const char *name, char *err, size_t es) {
+ * (the caller keeps its old behaviour), -1 with err set when admission fails.
+ * t-2026-11-24-mettadinc-m0-gap-g (repro g): when the map's From is a type form, e.g. (From (Tuple Symbol Symbol)),
+ * admit_map takes the type-form path (admit_typed_map: shape, pattern and fragment checks) and the map is
+ * tabulated here on dom, the machine's state carrier, by typed_map_on, as for any type-form map used as an
+ * Observe port; its values must be True or False (elements of the implicit Bool carrier), otherwise InvalidInput.
+ * The meaning is the one of the two lowerings it combines: o_j = f restricted to the states, Y_j = Bool. */
+static int admit_bool_observe_map(DcModule *m, const char *name, int dom, char *err, size_t es) {
     if (strcmp(m->profile, "Crisp") || !dc_is_skipped(m, name) || dc_find_carrier(m, "Bool") >= 0) return -2;
     const Sx *d = find_decl(m, "Map", name);
     if (!d || d->n != 5 || !sx_head_is(d->items[3], "To") || d->items[3]->n != 2 || !sx_is_sym(d->items[3]->items[1], "Bool")) return -2;
     allow_bool = 1; int rc = admit_map(m, d, err, es); allow_bool = 0;
     if (rc) return -1;
+    int at = (int)m->nmap - 1;
+    if (is_tmap(m, name)) {   /* type-form From: tabulated on the states where it is used */
+        bool_carrier(m);
+        if ((at = typed_map_on(m, name, dom, -1, err, es)) < 0) { m->ntmap--; return -1; }   /* not admitted: stays skipped */
+    }
     for (size_t i = 0; i < m->nskip; i++) if (!strcmp(m->skipped[i], name)) {   /* admitted now: no longer skipped */
         memmove(m->skipped[i], m->skipped[i + 1], (m->nskip - i - 1) * sizeof m->skipped[0]); m->nskip--; break; }
     if (m->unsupported_decls > 0) m->unsupported_decls--;
-    return (int)m->nmap - 1;
+    return at;
 }
 const char *dc_skip_why(const DcModule *m, const char *name) {
     for (size_t i = 0; i < m->nskipwhy; i++) if (!strcmp(m->skipwhy[i].name, name)) return m->skipwhy[i].why;
@@ -674,6 +686,8 @@ static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err
         tc = tgt;
     } else if (totype) { if ((tc = image_carrier(m, totype, err, es)) < 0) return -1; }
     else tc = dc_find_carrier(m, to->text);
+    /* (To Bool) with no declared Bool carrier: only admit_bool_observe_map admits such a type-form map (allow_bool) */
+    if (tc < 0 && sx_is_sym(to, "Bool")) tc = bool_carrier(m);
     if (tc < 0) return fail(err, es, "Map %s: field To names no declared carrier", nm);
     for (size_t i = 0; i < m->nmap; i++) if (!strcmp(m->map[i].name, nm) && m->map[i].from == dom && m->map[i].to == tc) return (int)i;
     if (m->nmap >= sizeof m->map / sizeof m->map[0]) return fail(err, es, "Map %s: too many maps", nm);
@@ -775,7 +789,8 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
     if (!strcmp(m->profile, "Crisp") && sx_head_is(fr, "From") && fr->n == 2 && sx_head_is(to, "To") && to->n == 2
         && (fr->items[1]->kind == SX_LIST || to->items[1]->kind == SX_LIST)
         && (fr->items[1]->kind == SX_LIST || (name_ok(fr->items[1]) && dc_find_carrier(m, fr->items[1]->text) >= 0))
-        && (to->items[1]->kind == SX_LIST || (name_ok(to->items[1]) && dc_find_carrier(m, to->items[1]->text) >= 0)))
+        && (to->items[1]->kind == SX_LIST || (name_ok(to->items[1]) && dc_find_carrier(m, to->items[1]->text) >= 0)
+            || (allow_bool && fr->items[1]->kind == SX_LIST && sx_is_sym(to->items[1], "Bool"))))   /* gap g: a (To Bool) Observe map with a type-form From */
         return admit_typed_map(m, d, nm, err, es);
     int fprod = -1;
     if (sx_head_is(fr, "From") && fr->n == 2 && sx_head_is(fr->items[1], "Product") && !strcmp(m->profile, "Graded")) {
@@ -905,7 +920,7 @@ static int admit_ports(DcModule *m, DcMachine *mc, const Sx *d, int is_obs, char
     } else {
         mp = dc_find_map(m, d->items[2]->text);
         if (mp < 0 && is_obs && ptol < 0) {
-            mp = admit_bool_observe_map(m, d->items[2]->text, err, es);
+            mp = admit_bool_observe_map(m, d->items[2]->text, mc->states, err, es);
             if (mp == -1) {   /* still outside the fragment: keep the reason, naming the form, for the requests */
                 if (strstr(err, "[M0]")) snprintf(pending_why, sizeof pending_why, "Observe %s: %s", d->items[1]->text, strstr(err, "[M0] ") ? strstr(err, "[M0] ") + 5 : err);
                 return -1;

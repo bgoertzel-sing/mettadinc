@@ -1,7 +1,8 @@
 ;; Remaining M0 blocker (g), found by t-2026-11-23-mettadinc-m0-cases-logic: a (To Bool) map used as an Observe port
 ;; and declared with a type-form From (doc04 AnchorMigration live-old/live-new).  Neither the Bool Observe lowering (a,
 ;; From must name a carrier) nor the type-form lowering (b, To must be a carrier or a type form, not the builtin Bool)
-;; takes it.  G1 -> Unsupported ("Observe live: Map live: field From"); G1C control (From AA) -> Checked.
+;; takes it.  G1 was Unsupported ("Observe live: Map live: field From"); since t-2026-11-24-mettadinc-m0-gap-g G1 -> Checked,
+;; byte-for-byte as its control G1C (From AA), which is unchanged (gate: tests/dcalc/m0_gap_g).
 (DC.Module G1
   (Profile Crisp)
   (Carrier A (Of Symbol) (Enum p q))
