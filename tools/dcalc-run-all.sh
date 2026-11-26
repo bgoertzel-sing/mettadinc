@@ -66,6 +66,7 @@ step m0_bool_observe;  $R m0_bool_observe "python3 tests/dcalc/m0_bool_observe/r
 step m0_typeform_maps; $R m0_typeform_maps "python3 tests/dcalc/m0_typeform_maps/run_m0_typeform_maps.py > build/m0_typeform_maps.out; r=\$?; tail -1 build/m0_typeform_maps.out; exit \$r" || rc=1   # type-form From/To maps in Crisp M0 (t-2026-11-23-mettadinc-m0-typeform-maps)
 step m0_like;          $R m0_like "python3 tests/dcalc/m0_like/run_m0_like.py > build/m0_like.out; r=\$?; tail -1 build/m0_like.out; exit \$r" || rc=1   # Machine Like in Crisp M0 (t-2026-11-23-mettadinc-m0-like-machines)
 step m0_body_maps;     $R m0_body_maps "python3 tests/dcalc/m0_body_maps/run_m0_body_maps.py > build/m0_body_maps.out; r=\$?; tail -1 build/m0_body_maps.out; exit \$r" || rc=1   # (Body ($v) e) maps in Crisp M0 (t-2026-11-24-mettadinc-m0-body-maps)
+step stoch_reach;      $R stoch_reach "python3 tests/dcalc/stoch_reach/run_stoch_reach.py > build/stoch_reach.out; r=\$?; tail -1 build/stoch_reach.out; exit \$r" || rc=1   # stochastic Reach reader (t-2026-11-24-mettadinc-stoch-reach-reader, review-1 F3)
 step differential;     if [ "${DCALC_SKIP_DIFFERENTIAL:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_DIFFERENTIAL=1)"; else $R differential "sh tests/dcalc/differential/gate.sh build/dcalc/dcalc > build/differential_gate.out; r=\$?; tail -1 build/differential_gate.out; exit \$r" || rc=1; fi   # optional differential gate (t-2026-11-18-mettadinc-m4m6-differential)
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"

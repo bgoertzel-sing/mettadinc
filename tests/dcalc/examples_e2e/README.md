@@ -21,7 +21,7 @@ Literal per-module commands (R = repository root; drop `--beyond-release` and th
 
 Repros, run from R, in both modes:
 
-    build/dcalc/dcalc --beyond-release tests/dcalc/examples_e2e/repro/stoch_reach_carrier.metta          # Unsupported (finding 3; was InvalidInput)
+    build/dcalc/dcalc --beyond-release tests/dcalc/examples_e2e/repro/stoch_reach_carrier.metta          # Checked (LM, LS) since t-2026-11-24-mettadinc-stoch-reach-reader (finding 3; was InvalidInput, then Unsupported); release mode: Unsupported (profile)
     build/dcalc/dcalc --beyond-release tests/dcalc/examples_e2e/repro/stoch_reach_carrier_control.metta  # Checked
     build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_element_clash.metta          # Unsupported, same as its control (finding 4, fixed; was InvalidInput "map-call cycle deadline -> deadline")
     build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_element_clash_control.metta  # passes admission
@@ -50,9 +50,9 @@ Class legend:
 | mode | match | GATED | GAP | BUG | CLI |
 |---|---|---|---|---|---|
 | release | 70 (ex3 32 + ex4 36 by s2.6; 2 ls fixtures) | 229 | 7 | 0 | 0 |
-| beyond | 2 (ls fixtures) | 289 | 15 (7 M0 + 8 ex4 NewsLeak Reach carrier) | 0 | 0 |
+| beyond | 10 (8 ex4 NewsLeak on the stochastic Reach carrier; 2 ls fixtures) | 289 | 7 (M0) | 0 | 0 |
 
-No Checked, Refuted, Conditional or Estimated answer in the documents is reproduced, because no request reaches a decision procedure.
+In beyond mode the 8 ex4 NewsLeak requests on the stochastic Reach carrier reach the stochastic reader and reproduce the documents (5 Checked, 3 Refuted) since t-2026-11-24-mettadinc-stoch-reach-reader. No other Checked, Refuted, Conditional or Estimated answer in the documents is reproduced.
 
 ## Scope notes
 
