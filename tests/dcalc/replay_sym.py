@@ -143,12 +143,59 @@ def failing(S, mach, bp, x, W, insc):
         if S.obs(mach, x) != S.obs(mach, r): out.append('Constancy')
         sm = succ_of(bp)
         for l, mp in S.mach[mach]['act']:
-            tgt = [c for c in bl if c[1] == sm.get((l, b[1]))]
+            tgt = [c for c in bl if c[1] == sm.get((l, b[1]), sm.get(('Any', b[1])))]   # (Successor Any B T): every action not named
             if not tgt or not S.block_has(tgt[0], S.apply(mp, x), W): out.append('Stability')
     return out
 
+def live_inductive(env):
+    """True when the envelope's ReachScope is (ReachScope Live (Inductive ..)), searched anywhere in the envelope."""
+    stack = [env]
+    while stack:
+        t = stack.pop()
+        if not isinstance(t, list): continue
+        if t and t[0] == 'ReachScope':
+            return len(t) >= 3 and t[1] == 'Live' and isinstance(t[2], list) and t[2][:1] == ['Inductive']
+        stack.extend(t)
+    return False
+
+def live_spot_check(S, mach, bp, W):
+    """Review 1 F3 (t-2026-11-24-mettadinc-families): a Checked partition over an inductively certified live scope.
+    Independent part: Initiation (the Reach start word lies in a block) and a seeded random walk from the start
+    along the machine's actions on which every obligation must hold at every visited word.  The universal claims
+    (Consecution and Stability over all 2^W words) rest on the LRAT proofs checked by proofs_ok (cake_lpr re-check
+    when DCALC_PROOF_STORE is set); a walk is a spot check, not a proof."""
+    import random
+    on = S.car[find(bp, 'On')[1]]['reach']; x = on[1]
+    need(any(S.block_has(b, x, W) for b in blocks_of(bp)), 'Initiation: the start word %d is in no block' % x)
+    rng = random.Random(20261126); acts = S.mach[mach]['act']
+    for _ in range(int(os.environ.get('DCALC_REPLAY_WALK', '200'))):
+        f = failing(S, mach, bp, x, W, True); need(not f, '%s fails at reachable word %d (random walk)' % (f, x))
+        x = S.apply(rng.choice(acts)[1], x)
+
+def path_words(S, bp, env):
+    """Review 1 F3 (t-2026-11-24-mettadinc-families): words of the reach scope that the envelope itself proves
+    reachable, (Word x) next to (Path l1 .. ln), each replayed from the Reach start.  Used for a refutation when
+    the reach set is too large to enumerate: the witness only has to be shown reachable, not the whole set."""
+    c = S.car[find(bp, 'On')[1]]
+    if not c['reach']: return None
+    out, stack = set(), [env]
+    while stack:
+        t = stack.pop()
+        if not isinstance(t, list): continue
+        wd = [x for x in t if isinstance(x, list) and len(x) == 2 and x[0] == 'Word' and lit(x[1]) is not None]
+        ph = [x for x in t if isinstance(x, list) and x and x[0] == 'Path']
+        if wd and ph:
+            x = int(wd[0][1])
+            need(S.run(c['reach'][0], c['reach'][1], ph[0][1:]) == x, 'witness path does not reach word %d' % x)
+            out.add(x)
+        stack.extend(t)
+    return out
+
 def replay_partition(S, req, env, st):
-    bp = S.decl[req[1]]; mach = find(req, 'Of')[1]; W = S.W(mach); sc = scope_of(S, bp)
+    bp = S.decl[req[1]]; mach = find(req, 'Of')[1]; W = S.W(mach)
+    pw = path_words(S, bp, env) if st == 'Refuted' else None
+    live = st == 'Checked' and live_inductive(env)
+    sc = pw if pw else (None if live else scope_of(S, bp))
     insc = (lambda x: x in sc) if sc is not None else (lambda x: x < (1 << W))
     if st == 'Refuted':
         r = find(find(env, 'Value'), 'Refuted'); ob = find(r, 'Obligation')[1]; x = int(find(r, 'Witness')[1])
@@ -162,9 +209,12 @@ def replay_partition(S, req, env, st):
     nb = len(blocks_of(bp)); na = len(S.mach[mach]['act'])
     obl = [tuple(find(q, 'Obligation')[1:]) for q in (find(find(cert, 'Proof'), 'Proofs') or ['Proofs'])[1:]]
     want = {'Coverage': 1, 'Disjointness': nb * (nb - 1) // 2, 'Constancy': nb, 'Stability': nb * na}
+    if live: want['Consecution'] = na; want = {k: v for k, v in want.items() if v}
     got = {}
     for o in obl: got[o[0]] = got.get(o[0], 0) + 1
     need(len(obl) == len(set(obl)) and got == want, 'need one proof per obligation %s, got %s' % (want, got))
+    if live:   # review 1 F3: (ReachScope Live (Inductive ..)) has no word list; see live_spot_check
+        live_spot_check(S, mach, bp, W); return 'ok'
     if sc is not None:
         rs = find(find(env, 'Value'), 'ReachScope'); need(rs is not None, 'Checked reach-scoped partition without ReachScope')
         on = S.car[find(bp, 'On')[1]]['reach']

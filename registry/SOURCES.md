@@ -19,6 +19,14 @@ which is not modified.
 | ls patch (applied 6 of 7) | docs/e0/docs/05_live_memory_part2/validation_bundle/ls_registry_patch.json | `ef4eb8ff1bb20964f371c36288e4902f6b50a886c518830c6a04e7f05d5893e8` |
 | wx patch (applied 7 of 7) | docs/e0/docs/06_wmtm_worked_example/validation_bundle/wx_registry_patch.json | `35d940acf974062e171a12173f550387e0759eb765feac04423f547167211cc4` |
 
+## Release admissions
+
+Libraries added to `first_release.libraries` of both registries after all patches, from `ADMISSIONS` in `tools/adopt_registry.py`.
+
+| Library | Decision |
+|---|---|
+| Families | andy, hive task t-2026-11-24-mettadinc-families (doc03 ex2: admit Families in release 1 with its elaborator and symbol-enum support) |
+
 ## Coordinated change (MILESTONES.md, entry checklist item 3)
 
 | Input | Fixtures | Manifest | Checker |

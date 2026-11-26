@@ -52,6 +52,10 @@ def classify(rid, mode, st, reason, doc):
     if st == dw: return 'match' + (' (negative fixture)' if st == 'InvalidInput' else '')
     if doc.startswith('value:') and st in ('Checked', 'Refuted'):
         return 'VALUE: the document gives a value, not a status word; dcalc answers %s, the value itself is not compared' % st
+    if st == 'Unknown' and doc.startswith('Unknown'): return 'match'
+    if st == 'Unsupported' and rid == 'ex2' and ('outside this step of M3' in reason or 'limit' in reason
+                                                 or 'not implemented by the symbolic engine' in reason):
+        return 'GAP: symbolic-engine limit for Families modules (t-2026-11-24-mettadinc-families follow-ups); Unsupported, not InvalidInput'
     if mode == 'release' and st == 'Unsupported' and rid in MS:
         return 'match: doc03 s2.6 says %s is a %s target, Unsupported in the first release' % (rid, MS[rid])
     if st == 'Unsupported' and 'backend fragment' in reason:
