@@ -193,6 +193,28 @@ static void car_drop(DcCarrier *c) {
 /* ---- M2: forward-closed subsets (Carrier C (Of T) (Reach M (From e ...))) ----
  * The states of M reachable from the listed elements under every action of M,
  * in parent order.  Maps on the parent are used on C by restriction. */
+/* spec 5.3 l.1810-1812 "Reachability scopes": (Reach M (From s...)) is the forward closure of the
+ * initial set under the actions of M.  One closure for both backends: the M0 lowering (admit_reach,
+ * successors = the images of the action maps) and the stochastic reader (stoch.c, successors = the
+ * support of the action kernels, mass > 0).  in[0..n) marks the starts on entry and the closure on
+ * return; succ writes the successors of x into out (at most maxs) and returns their count.
+ * Returns the closure size, or (size_t)-1 if memory runs out. */
+size_t dc_forward_closure(size_t n, int *in, size_t maxs, size_t (*succ)(void *ctx, int x, int *out), void *ctx) {
+    int *qu = malloc((n ? n : 1) * sizeof(int)), *out = malloc((maxs ? maxs : 1) * sizeof(int)); size_t h = 0, t = 0;
+    if (!qu || !out) { free(qu); free(out); return (size_t)-1; }
+    for (size_t i = 0; i < n; i++) if (in[i]) qu[t++] = (int)i;
+    while (h < t) {
+        int x = qu[h++]; size_t k = succ(ctx, x, out);
+        for (size_t j = 0; j < k && j < maxs; j++) { int y = out[j]; if (y >= 0 && (size_t)y < n && !in[y]) { in[y] = 1; qu[t++] = y; } }
+    }
+    free(qu); free(out); return t;
+}
+typedef struct { const DcModule *m; const DcMachine *mc; } ReachDet;
+static size_t reach_det_succ(void *ctx, int x, int *out) {
+    const ReachDet *r = ctx;
+    for (size_t a = 0; a < r->mc->nact; a++) out[a] = r->m->map[r->mc->act[a].map].table[x];
+    return r->mc->nact;
+}
 static const Sx *find_decl(const DcModule *m, const char *head, const char *name);
 static int admit_reach(DcModule *m, DcCarrier *c, const char *nm, const Sx *body, char *err, size_t es) {
     /* spec 5.3 "Reachability scopes": (Reach M (From s...)) denotes the forward closure of the
@@ -204,20 +226,21 @@ static int admit_reach(DcModule *m, DcCarrier *c, const char *nm, const Sx *body
     if (mi < 0 && body->n == 3 && name_ok(body->items[1]) && dc_is_skipped(m, body->items[1]->text)) { snprintf(pending_why, sizeof pending_why, "%s", dc_skip_why(m, body->items[1]->text)); return -2; }
     if (mi < 0 || !sx_head_is(fr, "From") || fr->n < 2) return fail(err, es, "Carrier %s: expected (Reach Machine (From e ...)) after the machine is declared", nm);
     const DcMachine *mc = &m->mach[mi]; const DcCarrier *P = &m->car[mc->states]; size_t n = P->n;
-    int *in = calloc(n ? n : 1, sizeof(int)), *qu = malloc((n ? n : 1) * sizeof(int)); size_t h = 0, t = 0;
+    int *in = calloc(n ? n : 1, sizeof(int));
     for (size_t k = 1; k < fr->n; k++) {
         int i = dc_carrier_index(P, fr->items[k]);
         if (i < 0 && name_ok(fr->items[k])) {   /* a start may name a declared (Const name Carrier value) */
             const Sx *cd = find_decl(m, "Const", fr->items[k]->text);
             if (cd && cd->n == 4) i = dc_carrier_index(P, cd->items[3]);
         }
-        if (i < 0) { char *x = sx_print(fr->items[k]); fail(err, es, "Carrier %s: Reach start %s is not a state of %s", nm, x, mc->name); free(x); free(in); free(qu); return -1; }
-        if (!in[i]) { in[i] = 1; qu[t++] = i; }
+        if (i < 0) { char *x = sx_print(fr->items[k]); fail(err, es, "Carrier %s: Reach start %s is not a state of %s", nm, x, mc->name); free(x); free(in); return -1; }
+        in[i] = 1;
     }
-    while (h < t) { int x = qu[h++]; for (size_t a = 0; a < mc->nact; a++) { int y = m->map[mc->act[a].map].table[x]; if (!in[y]) { in[y] = 1; qu[t++] = y; } } }
+    ReachDet rd = { m, mc }; size_t t = dc_forward_closure(n, in, mc->nact, reach_det_succ, &rd);
+    if (t == (size_t)-1) { free(in); return fail(err, es, "Carrier %s: out of memory computing the Reach scope", nm); }
     c->n = t; c->elems = calloc(t ? t : 1, sizeof(Sx *)); c->sub_idx = malloc((t ? t : 1) * sizeof(int));
     size_t k = 0; for (size_t i = 0; i < n; i++) if (in[i]) { c->elems[k] = sx_copy(P->elems[i]); c->sub_idx[k++] = (int)i; }
-    c->reach_parent = mc->states + 1; free(in); free(qu);
+    c->reach_parent = mc->states + 1; free(in);
     m->ncar++; return 0;
 }
 /* ---- (Carrier C (Of T) (Subset P p)) ----

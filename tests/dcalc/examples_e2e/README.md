@@ -21,7 +21,7 @@ Literal per-module commands (R = repository root; drop `--beyond-release` and th
 
 Repros, run from R, in both modes:
 
-    build/dcalc/dcalc --beyond-release tests/dcalc/examples_e2e/repro/stoch_reach_carrier.metta          # Unsupported (finding 3; was InvalidInput)
+    build/dcalc/dcalc --beyond-release tests/dcalc/examples_e2e/repro/stoch_reach_carrier.metta          # Checked (LM, LS) since t-2026-11-24-mettadinc-stoch-reach-reader (finding 3; was InvalidInput, then Unsupported); release mode: Unsupported (profile)
     build/dcalc/dcalc --beyond-release tests/dcalc/examples_e2e/repro/stoch_reach_carrier_control.metta  # Checked
     build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_element_clash.metta          # Unsupported, same as its control (finding 4, fixed; was InvalidInput "map-call cycle deadline -> deadline")
     build/dcalc/dcalc tests/dcalc/examples_e2e/repro/map_name_element_clash_control.metta  # passes admission
@@ -52,9 +52,9 @@ Class legend:
 | mode | match | GATED | GAP | VALUE | BUG | CLI |
 |---|---|---|---|---|---|---|
 | release | 76 (ex3 32 + ex4 36 by s2.6; 2 ls fixtures; mg 43-44 AnchorMigration; mg 45-48 TaskResume) | 229 | 0 | 1 (mg 49) | 0 | 0 |
-| beyond | 8 (2 ls fixtures; mg 43-44 AnchorMigration; mg 45-48 TaskResume) | 289 | 8 (ex4 NewsLeak Reach carrier) | 1 (mg 49) | 0 | 0 |
+| beyond | 16 (8 ex4 NewsLeak on the stochastic Reach carrier; 2 ls fixtures; mg 43-44 AnchorMigration; mg 45-48 TaskResume) | 289 | 0 | 1 (mg 49) | 0 | 0 |
 
-Six Checked/Refuted answers in the documents are reproduced, in both modes: doc04 AnchorMigration rows mg 43-44 (Refuted, Checked) since t-2026-11-24-mettadinc-m0-gap-g lowered (g), and TaskResume rows mg 45-48 (Checked, Refuted, Refuted, Checked) since the rebase of t-2026-11-23-mettadinc-m0-cases-logic onto main with Like machines (d) and Body maps (f): with (c) lowered as well, nothing blocks TaskResume. Row mg 49 (ResumeMemory) answers Checked where the document gives a value (11 classes on 12 states), class VALUE. No other request reaches a decision procedure.
+Six Checked/Refuted answers in the documents are reproduced, in both modes: doc04 AnchorMigration rows mg 43-44 (Refuted, Checked) since t-2026-11-24-mettadinc-m0-gap-g lowered (g), and TaskResume rows mg 45-48 (Checked, Refuted, Refuted, Checked) since the rebase of t-2026-11-23-mettadinc-m0-cases-logic onto main with Like machines (d) and Body maps (f): with (c) lowered as well, nothing blocks TaskResume. Row mg 49 (ResumeMemory) answers Checked where the document gives a value (11 classes on 12 states), class VALUE. In beyond mode the 8 ex4 NewsLeak requests on the stochastic Reach carrier reach the stochastic reader and reproduce the documents (5 Checked, 3 Refuted) since t-2026-11-24-mettadinc-stoch-reach-reader. No other request reaches a decision procedure.
 
 ## Scope notes
 

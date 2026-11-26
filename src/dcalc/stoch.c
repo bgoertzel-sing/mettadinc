@@ -14,9 +14,9 @@
 #define ST_NM 64
 #define ST_MAXE 64
 #define ST_MAXD 16
-typedef struct { char name[ST_NM]; int n; char el[ST_MAXE][ST_NM]; } StCar;
-typedef struct { char name[ST_NM]; int from, to; int tab[ST_MAXE]; } StMap;
-typedef struct { char name[ST_NM]; int from, to; DcQ p[ST_MAXE][ST_MAXE]; } StKer;
+typedef struct { char name[ST_NM]; int n; char el[ST_MAXE][ST_NM]; int parent; /* (Reach ...): parent carrier + 1, 0 = none */ int sub[ST_MAXE]; /* index in the parent */ } StCar;
+typedef struct { char name[ST_NM]; int from, to; int tab[ST_MAXE]; int rsrc, rcar, rrole; } StMap;   /* rrole 0: declared; 1 Observe / 2 Action restriction of map rsrc to carrier rcar */
+typedef struct { char name[ST_NM]; int from, to; DcQ p[ST_MAXE][ST_MAXE]; int rsrc, rcar, rrole; } StKer;   /* rrole 0: declared; 1 restriction of kernel rsrc to carrier rcar; 2 V03 0/1 kernel of map rsrc on carrier rcar */
 typedef struct { char name[ST_NM]; int states, nobs, nact; char ol[4][ST_NM]; int om[4]; char al[4][ST_NM]; int ak[4]; } StMach;
 typedef struct { char name[ST_NM]; int mach, enc; } StRepr;
 typedef struct { char name[ST_NM]; int src, tgt; char kind[ST_NM]; DcQ a[ST_MAXE][ST_MAXE]; } StLin;
@@ -30,8 +30,9 @@ static const Sx *st_field(const Sx *d, const char *h) { for (size_t i = 2; i < d
 static const char *st_name(const Sx *f, size_t k) { return f && f->kind == SX_LIST && f->n > k && f->items[k]->kind == SX_SYM ? f->items[k]->text : NULL; }
 #define ST_FIND(arr, cnt) for (int i = 0; i < cnt; i++) if (!strcmp(arr[i].name, nm)) return i; return -1;
 static int st_car(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->car, s->ncar) }
-static int st_mapi(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->map, s->nmap) }
-static int st_keri(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->ker, s->nker) }
+/* review 2: names resolve to declared maps/kernels only (rrole 0); derived entries are found by (source, carrier, role) */
+static int st_mapi(const StMod *s, const char *nm) { if (!nm) return -1; for (int i = 0; i < s->nmap; i++) if (!s->map[i].rrole && !strcmp(s->map[i].name, nm)) return i; return -1; }
+static int st_keri(const StMod *s, const char *nm) { if (!nm) return -1; for (int i = 0; i < s->nker; i++) if (!s->ker[i].rrole && !strcmp(s->ker[i].name, nm)) return i; return -1; }
 static int st_machi(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->mach, s->nmach) }
 static int st_repi(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->rep, s->nrep) }
 static int st_lini(const StMod *s, const char *nm) { if (!nm) return -1; ST_FIND(s->lin, s->nlin) }
@@ -47,6 +48,76 @@ static int st_known(const Sx *src, const Sx *f) {
     return f && f->kind == SX_LIST && f->n == 2 && f->items[1]->kind == SX_SYM && dc_name_known_elsewhere(src, f->items[1]->text);
 }
 
+/* ---- (Carrier C (Of T) (Reach M (From s ...))) ----
+ * spec 5.3 l.1810-1812 "Reachability scopes": the forward closure of the starts under the actions of M.
+ * A stochastic action moves x to every y it gives mass > 0 (the kernel's support), so the closure is
+ * taken over the support of M's action kernels, with the same closure code as the M0 lowering
+ * (dc_forward_closure, model.c admit_reach).  Elements in parent order; bounded by the parent (Enum, <= 64).
+ * Maps and kernels on the parent are used on C by restriction (st_restrict_map / st_restrict_ker). */
+typedef struct { const StMod *s; const StMach *M; } StReachCtx;
+static size_t st_reach_succ(void *ctx, int x, int *out) {
+    const StReachCtx *r = ctx; const StCar *P = &r->s->car[r->M->states]; size_t k = 0; int ovf = 0; DcQ z = dc_q(0, 1, &ovf);
+    for (int a = 0; a < r->M->nact; a++) { const StKer *K = &r->s->ker[r->M->ak[a]];
+        for (int y = 0; y < P->n; y++) if (dc_q_cmp(K->p[x][y], z) > 0) out[k++] = y; }
+    return k;
+}
+static int st_reach(const Sx *src, StMod *s, StCar *c, const char *nm, const Sx *rc, char *err, size_t es) {
+    const Sx *fr = rc->n == 3 ? rc->items[2] : NULL;
+    int mi = rc->n == 3 ? st_machi(s, st_name(rc, 1)) : -1;
+    if (mi < 0 || !sx_head_is(fr, "From") || fr->n < 2) return st_err(err, es, "carrier expects (Reach Machine (From e ...)) after the machine is declared:", nm);
+    const StMach *M = &s->mach[mi]; const StCar *P = &s->car[M->states]; int in[ST_MAXE] = {0};
+    for (size_t k = 1; k < fr->n; k++) {
+        int i = st_el(P, fr->items[k]);
+        for (size_t j = 2; i < 0 && fr->items[k]->kind == SX_SYM && j < src->n; j++) {   /* a start may name a (Const name Carrier value) */
+            const Sx *cd = src->items[j];
+            if (sx_head_is(cd, "Const") && cd->n == 4 && sx_is_sym(cd->items[1], fr->items[k]->text)) i = st_el(P, cd->items[3]);
+        }
+        if (i < 0) { char *x = sx_print(fr->items[k]); snprintf(err, es, "Carrier %s: Reach start %s is not a state of %s", nm, x ? x : "?", M->name); free(x); return -1; }
+        in[i] = 1;
+    }
+    StReachCtx rx = { s, M };
+    if (dc_forward_closure((size_t)P->n, in, (size_t)(4 * ST_MAXE), st_reach_succ, &rx) == (size_t)-1) return st_err(err, es, "out of memory computing the Reach scope of", nm);
+    memset(c, 0, sizeof *c); snprintf(c->name, ST_NM, "%s", nm); c->parent = M->states + 1;
+    for (int i = 0; i < P->n; i++) if (in[i]) { snprintf(c->el[c->n], ST_NM, "%s", P->el[i]); c->sub[c->n++] = i; }
+    return 0;
+}
+/* restriction of a map on the parent of Reach carrier ci; endo: the image is also taken in ci.
+ * -2 no free slot, -3 an image leaves ci */
+static int st_restrict_map(StMod *s, int mi, int ci, int endo) {
+    /* review 1 F1/F2: cached by (source map, carrier, role), never by a (truncated) name; an Observe restriction
+     * (image in the parent) and an Action restriction (image in ci) of the same map are different entries */
+    int role = endo ? 2 : 1;
+    for (int r = 0; r < s->nmap; r++) if (s->map[r].rrole == role && s->map[r].rsrc == mi && s->map[r].rcar == ci) return r;
+    if (s->nmap == ST_MAXD) return -2;
+    char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, s->map[mi].name, 30, s->car[ci].name);   /* display only */
+    const StCar *C = &s->car[ci]; StMap *R = &s->map[s->nmap]; memset(R, 0, sizeof *R); snprintf(R->name, ST_NM, "%s", rn);
+    R->rsrc = mi; R->rcar = ci; R->rrole = role;
+    R->from = ci; R->to = endo ? ci : s->map[mi].to;
+    for (int k = 0; k < ST_MAXE; k++) R->tab[k] = -1;
+    for (int i = 0; i < C->n; i++) {
+        int y = s->map[mi].tab[C->sub[i]];
+        if (endo) { int j = 0; while (j < C->n && C->sub[j] != y) j++; if (j == C->n) return -3; y = j; }
+        R->tab[i] = y;
+    }
+    return s->nmap++;
+}
+/* restriction of a kernel on the parent of Reach carrier ci to ci; -2 no free slot, -3 mass leaves ci */
+static int st_restrict_ker(StMod *s, int ki, int ci) {
+    for (int r = 0; r < s->nker; r++) if (s->ker[r].rrole == 1 && s->ker[r].rsrc == ki && s->ker[r].rcar == ci) return r;   /* review 1 F1 */
+    if (s->nker == ST_MAXD) return -2;
+    char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, s->ker[ki].name, 30, s->car[ci].name);   /* display only */
+    const StCar *C = &s->car[ci]; StKer *R = &s->ker[s->nker]; memset(R, 0, sizeof *R); snprintf(R->name, ST_NM, "%s", rn);
+    R->rsrc = ki; R->rcar = ci; R->rrole = 1;
+    R->from = R->to = ci; int ovf = 0; DcQ one = dc_q(1, 1, &ovf);
+    for (int a = 0; a < ST_MAXE; a++) for (int b = 0; b < ST_MAXE; b++) R->p[a][b] = dc_q(0, 1, &ovf);
+    for (int i = 0; i < C->n; i++) {
+        DcQ sum = dc_q(0, 1, &ovf);
+        for (int j = 0; j < C->n; j++) { R->p[i][j] = s->ker[ki].p[C->sub[i]][C->sub[j]]; sum = dc_q_add(sum, R->p[i][j], &ovf); }
+        if (ovf || dc_q_cmp(sum, one)) return -3;   /* the row's mass must stay in the Reach carrier */
+    }
+    return s->nker++;
+}
+
 static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
     memset(s, 0, sizeof *s);
     for (size_t i = 2; i < src->n; i++) {
@@ -57,7 +128,8 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
         if (!nm || strlen(nm) >= ST_NM) return st_err(err, es, "declaration without a usable name:", h);
         if (!strcmp(h, "Carrier")) {
             if (s->ncar == ST_MAXD) return st_err(err, es, "too many carriers at", nm);
-            const Sx *en = st_field(d, "Enum"); StCar *c = &s->car[s->ncar];
+            const Sx *en = st_field(d, "Enum"), *rc = en ? NULL : st_field(d, "Reach"); StCar *c = &s->car[s->ncar];
+            if (rc) { int rrc = st_reach(src, s, c, nm, rc, err, es); if (rrc) return rrc; s->ncar++; continue; }
             if (!en) return st_frag(err, es, "carrier is not an enumeration:", nm);
             snprintf(c->name, ST_NM, "%s", nm);
             for (size_t k = 1; k < en->n; k++) {
@@ -141,21 +213,63 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
             StMach *M = &s->mach[s->nmach]; snprintf(M->name, ST_NM, "%s", nm);
             M->states = st_car(s, st_name(st_field(d, "States"), 1));
             if (M->states < 0) return st_known(src, st_field(d, "States")) ? st_frag(err, es, "machine needs (States C):", nm) : st_err(err, es, "machine needs (States C):", nm);
+            const Sx *lk = st_field(d, "Like");
+            if (lk) {   /* (Like N): N's Observe/Action entries, on these states (restricted when they are N's Reach scope) */
+                int nl = 0; for (size_t k = 2; k < d->n; k++) if (sx_head_is(d->items[k], "Like")) nl++;
+                if (nl > 1) return st_err(err, es, "field Like repeated in machine", nm);
+                int ni = lk->n == 2 ? st_machi(s, st_name(lk, 1)) : -1;
+                if (lk->n != 2 || !st_name(lk, 1)) return st_err(err, es, "field Like expects (Like Machine) in machine", nm);
+                if (!strcmp(st_name(lk, 1), nm)) return st_err(err, es, "field Like names the machine itself:", nm);
+                if (ni < 0) return st_err(err, es, "field Like names no machine declared before", nm);
+                for (size_t k = 2; k < d->n; k++) if (!sx_head_is(d->items[k], "States") && !sx_head_is(d->items[k], "Like"))
+                    return st_frag(err, es, "field Like together with the machine's own fields is outside the stochastic reader:", nm);
+                const StMach *N = &s->mach[ni]; int ci = M->states, sub = s->car[ci].parent && s->car[ci].parent - 1 == N->states;
+                if (!sub && N->states != ci) return st_err(err, es, "field Like: the states are neither those of the named machine nor its Reach scope, in machine", nm);
+                for (int o = 0; o < N->nobs; o++) {
+                    int r = sub ? st_restrict_map(s, N->om[o], ci, 0) : N->om[o];
+                    if (r == -2) return st_frag(err, es, "too many maps restricting to a Reach carrier at", nm);
+                    snprintf(M->ol[M->nobs], ST_NM, "%s", N->ol[o]); M->om[M->nobs++] = r;
+                }
+                for (int a = 0; a < N->nact; a++) {
+                    int r = sub ? st_restrict_ker(s, N->ak[a], ci) : N->ak[a];
+                    if (r == -2) return st_frag(err, es, "too many kernels restricting to a Reach carrier at", nm);
+                    if (r == -3) return st_err(err, es, "an action's mass leaves the Reach carrier in machine", nm);
+                    snprintf(M->al[M->nact], ST_NM, "%s", N->al[a]); M->ak[M->nact++] = r;
+                }
+                s->nmach++; continue;
+            }
             for (size_t k = 2; k < d->n; k++) {
                 const Sx *f = d->items[k]; const char *l = st_name(f, 1), *t = st_name(f, 2);
                 if (sx_head_is(f, "Observe")) {
-                    int mi = st_mapi(s, t);
+                    int mi = st_mapi(s, t), pc = s->car[M->states].parent - 1;
+                    if (mi >= 0 && pc >= 0 && s->map[mi].from == pc) { mi = st_restrict_map(s, mi, M->states, 0); if (mi == -2) return st_frag(err, es, "too many maps restricting to a Reach carrier at", nm); }
                     if (!l || mi < 0 || M->nobs == 4 || s->map[mi].from != M->states) return st_err(err, es, "bad Observe in machine", nm);
                     snprintf(M->ol[M->nobs], ST_NM, "%s", l); M->om[M->nobs++] = mi;
                 } else if (sx_head_is(f, "Action")) {
-                    int ki = st_keri(s, t), mpi = ki < 0 ? st_mapi(s, t) : -1;
-                    if (ki < 0 && mpi >= 0 && s->map[mpi].from == M->states && s->map[mpi].to == M->states && s->nker < ST_MAXD) {
-                        /* V03: a deterministic Map used as an action is the 0/1 kernel of that map */
-                        StKer *K = &s->ker[s->nker]; memset(K, 0, sizeof *K); snprintf(K->name, ST_NM, "%s", t);
-                        K->from = K->to = M->states; int ovf0 = 0;
-                        for (int x = 0; x < s->car[M->states].n; x++) for (int y = 0; y < s->car[M->states].n; y++)
-                            K->p[x][y] = dc_q(y == s->map[mpi].tab[x] ? 1 : 0, 1, &ovf0);
-                        ki = s->nker++;
+                    int ki = st_keri(s, t), mpi = ki < 0 ? st_mapi(s, t) : -1, pc = s->car[M->states].parent - 1;
+                    if (pc >= 0 && ki >= 0 && s->ker[ki].from == pc && s->ker[ki].to == pc) {
+                        ki = st_restrict_ker(s, ki, M->states);
+                        if (ki == -2) return st_frag(err, es, "too many kernels restricting to a Reach carrier at", nm);
+                        if (ki == -3) return st_err(err, es, "an action's mass leaves the Reach carrier in machine", nm);
+                    }
+                    if (pc >= 0 && mpi >= 0 && s->map[mpi].from == pc && s->map[mpi].to == pc) {
+                        mpi = st_restrict_map(s, mpi, M->states, 1);
+                        if (mpi == -2) return st_frag(err, es, "too many maps restricting to a Reach carrier at", nm);
+                        if (mpi == -3) return st_err(err, es, "an action's image leaves the Reach carrier in machine", nm);
+                    }
+                    if (ki < 0 && mpi >= 0 && s->map[mpi].from == M->states && s->map[mpi].to == M->states) {
+                        /* V03: a deterministic Map used as an action is the 0/1 kernel of that map.
+                         * review 2: cached by (map, carrier), never registered under the bare map name */
+                        for (int r = 0; r < s->nker; r++) if (s->ker[r].rrole == 2 && s->ker[r].rsrc == mpi && s->ker[r].rcar == M->states) { ki = r; break; }
+                        if (ki < 0 && s->nker < ST_MAXD) {
+                            StKer *K = &s->ker[s->nker]; memset(K, 0, sizeof *K);
+                            char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, t, 30, s->car[M->states].name); snprintf(K->name, ST_NM, "%s", rn);   /* display only; via rn as in st_restrict_ker (-Werror=restrict in the cetta build) */
+                            K->rsrc = mpi; K->rcar = M->states; K->rrole = 2;
+                            K->from = K->to = M->states; int ovf0 = 0;
+                            for (int x = 0; x < s->car[M->states].n; x++) for (int y = 0; y < s->car[M->states].n; y++)
+                                K->p[x][y] = dc_q(y == s->map[mpi].tab[x] ? 1 : 0, 1, &ovf0);
+                            ki = s->nker++;
+                        }
                     }
                     if (!l || ki < 0 || M->nact == 4 || s->ker[ki].from != M->states || s->ker[ki].to != M->states) return st_err(err, es, "bad Action (kernel on the states) in machine", nm);
                     snprintf(M->al[M->nact], ST_NM, "%s", l); M->ak[M->nact++] = ki;

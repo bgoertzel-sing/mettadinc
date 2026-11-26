@@ -119,6 +119,8 @@ int dc_find_derive(const DcModule *m, const char *name);
 int dc_find_tol(const DcModule *m, const char *name);
 int dc_find_meas(const DcModule *m, const char *name);
 int dc_carrier_index(const DcCarrier *c, const Sx *v);  /* -1 if absent */
+/* spec 5.3 l.1810-1812: forward closure of the marked starts in[] under succ (model.c). */
+size_t dc_forward_closure(size_t n, int *in, size_t maxs, size_t (*succ)(void *ctx, int x, int *out), void *ctx);
 /* M2 value carriers and rational literals. */
 int dc_value_carrier(DcModule *m, const char *name);    /* -1 if not a value type */
 int dc_value_add(DcCarrier *c, const Sx *v);            /* index, -1 on error */
