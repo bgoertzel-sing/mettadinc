@@ -78,6 +78,7 @@ step laws;             $R laws "python3 tests/dcalc/laws/run_laws.py > build/law
 step laws_mutants;     $R laws_mutants "python3 tests/dcalc/laws/run_laws_mutants.py > build/laws_mutants.out; r=\$?; tail -1 build/laws_mutants.out; exit \$r" || rc=1   # one source mutant per Laws primitive (laws.c) must fail run_laws
 step maprules;         $R maprules "python3 tests/dcalc/maprules/run_maprules.py > build/maprules.out; r=\$?; tail -1 build/maprules.out; exit \$r" || rc=1   # shared map rules (maprules.h): one map per rule per loader/profile gives InvalidInput, controls decided, both modes (t-2026-11-26-mettadinc-shared-loader)
 step maprules_mutants; $R maprules_mutants "python3 tests/dcalc/maprules/run_maprules_mutants.py > build/maprules_mutants.out; r=\$?; tail -1 build/maprules_mutants.out; exit \$r" || rc=1   # one build per rule x loader with the shared call removed must fail run_maprules on that rule's row (t-2026-11-26-mettadinc-shared-loader)
+step engine_limits;    $R engine_limits "python3 tests/dcalc/engine_limits/run_engine_limits.py > build/engine_limits.out; r=\$?; tail -1 build/engine_limits.out; exit \$r" || rc=1   # engine limits answer Unsupported (>8 symbolic machines, NatArith failure value), real module errors stay InvalidInput (t-2026-11-27-mettadinc-engine-limits-unsupported)
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc

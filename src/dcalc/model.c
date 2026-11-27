@@ -921,7 +921,11 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
             else if (ok == 3) fail(err, es, "Map %s: Body on %s: integer overflow or out-of-range literal in Add/Mul", nm, xs);
             else if (ok != 1) fail(err, es, "Map %s: Body has no value on %s, so the map is not total on carrier %s", nm, xs, F->name);
             int b = ok == 1 ? dc_carrier_index(T, v) : -1;
-            if (ok == 1 && b < 0) { char *vs = sx_print(v); fail(err, es, "Map %s: Body sends %s to %s, which is not in carrier %s", nm, xs, vs, T->name); free(vs); }
+            if (ok == 1 && b < 0 && nat_failed(v)) {   /* t-2026-11-27-mettadinc-engine-limits-unsupported: spec l.1858-1860 + doc03 B.1 define the tagged failure value; no carrier can hold it yet, an engine limit */
+                char *vs = sx_print(v); fail(err, es, "[M0] Map %s: Body on %s gives the tagged failure value %s, which the engine cannot yet hold in carrier %s", nm, xs, vs, T->name); free(vs);
+                snprintf(pending_why, sizeof pending_why, "%s", err + 5);
+            }
+            else if (ok == 1 && b < 0) { char *vs = sx_print(v); fail(err, es, "Map %s: Body sends %s to %s, which is not in carrier %s", nm, xs, vs, T->name); free(vs); }
             free(xs); sx_free(v);
             if (b < 0) { free(mp->table); return -1; }
             (void)dc_mr_put(&mr, (int)i, b);
