@@ -8,7 +8,7 @@ LiveOpenItems	(CheckStatistic EventIndex (Method Lift))	Unsupported	library Rati
 LiveOpenItems	(CheckStatistic JointIndex (Method Lift))	Unsupported	library RationalArith is outside the first release
 LiveOpenItems	(CheckStatistic EngineIndex (Method Lift))	Unsupported	library RationalArith is outside the first release
 LiveOpenItems	(CheckStatistic EngineAsItems (Method Lift))	InvalidInput	Keyed EngineAsItems: field Item: statistic EngineStat is of EngineTime, not of ItemTime (the Store's item machine); declare (View ...)
-LiveEvidence	(CheckStatistic FirstOrMore (Method Symbolic))	Unsupported	library NatArith is outside the first release
+LiveEvidence	(CheckStatistic FirstOrMore (Method Symbolic))	Unsupported	library BoundedSets is outside the first release
 LiveGoals	(CheckNow DaysLeft)	Unsupported	library RationalArith is outside the first release
 LiveGoals	(CheckNow NagForDays)	Unsupported	library RationalArith is outside the first release
 LiveGoals	(CheckNow BenFirst)	Unsupported	library RationalArith is outside the first release

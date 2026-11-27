@@ -1,62 +1,62 @@
 module	request	status	reason
-BeliefMemory	DecisionQuotient	Unsupported	library NatArith is outside the first release
-BeliefMemory	StatusRepair	Unsupported	library NatArith is outside the first release
-BeliefMemory	(CheckUpdates StatusOnly)	Unsupported	library NatArith is outside the first release
-BeliefMemory	(CheckBehavioral StatusOnly (Horizon (Steps 0)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(CheckBehavioral StatusOnly (Horizon (Steps 1)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	Staged2	Unsupported	library NatArith is outside the first release
-BeliefMemory	Staged2Machine	Unsupported	library NatArith is outside the first release
-BeliefMemory	(Defects RoundedTV20)	Unsupported	library NatArith is outside the first release
-BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 1)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 2)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 3)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 6)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(MeasureBehavioral RoundedTV20 (Discount (Rat 9 10)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 2)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)) (Horizon (Steps 1)))	Unsupported	library NatArith is outside the first release
-BeliefMemory	(Defects RoundedTV10)	Unsupported	library NatArith is outside the first release
-BeliefMemory	(Defects Buckets7)	Unsupported	library NatArith is outside the first release
-BeliefMemory	(Defects Capped7)	Unsupported	library NatArith is outside the first release
-BeliefMemory	FewestAtFifth	Unsupported	library NatArith is outside the first release
-BeliefMemory	FewestAtHalf	Unsupported	library NatArith is outside the first release
-GentleMemory	DecisionQuotient	Unsupported	library NatArith is outside the first release
-GentleMemory	(Defects RoundedTV20)	Unsupported	library NatArith is outside the first release
-GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 1)))	Unsupported	library NatArith is outside the first release
-GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 4)))	Unsupported	library NatArith is outside the first release
-GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 5)))	Unsupported	library NatArith is outside the first release
-GentleMemory	(MeasureBehavioral RoundedTV20 (Discount (Rat 9 10)))	Unsupported	library NatArith is outside the first release
-GentleMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
-GentleMemory	(CheckBehavioral RoundedTV20 (Within (Rat 3 20)))	Unsupported	library NatArith is outside the first release
-GentleMemory	(CheckBehavioral Grid10x7 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
-GentleMemory	(Defects RoundedTV10)	Unsupported	library NatArith is outside the first release
-GentleMemory	(Defects Buckets7)	Unsupported	library NatArith is outside the first release
-GentleMemory	(Defects Capped7)	Unsupported	library NatArith is outside the first release
-GentleMemory	BestBuckets	Unsupported	library NatArith is outside the first release
-GentleMemory	BestGrid	Unsupported	library NatArith is outside the first release
-GentleMemory	Fewest	Unsupported	library NatArith is outside the first release
-GentleMemory	WeakestGreedy	Unsupported	library NatArith is outside the first release
-GentleMemory	FewestDiscounted	Unsupported	library NatArith is outside the first release
-GentleMemory	ColdStore	Unsupported	library NatArith is outside the first release
-GentleMemory	ColdStoreGrid	Unsupported	library NatArith is outside the first release
-GentleMemory	(InduceApprox RoundedTV20 (Horizon (Steps 4)))	Unsupported	library NatArith is outside the first release
-GentleMemory	ColdStoreBest	Unsupported	library NatArith is outside the first release
-GentleMemory	FewestCenters	Unsupported	library NatArith is outside the first release
-GentleMemory	ColdStoreCenters	Unsupported	library NatArith is outside the first release
-AgentMemory	(CheckBehavioral Grid6 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
-AgentMemory	(CheckBehavioral Fewest6 (Within (Rat 1 5)))	Unsupported	library NatArith is outside the first release
-AgentMemory	(MeasureBehavioral Grid6 (Discount (Rat 9 10)))	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckNow Counts)	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckUpdates Counts)	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(MeasureBehavioral Counts)	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckImplementation AddMerge (Grade 1 (Rat 6 35)))	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckImplementation AddMerge (Grade 1 (Rat 1 6)))	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckImplementation MaxMerge (Grade 1 (Rat 1 6)))	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckImplementation ThreeWay (Grade 1 0))	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckImplementation ThreeWayClean (Grade 1 0))	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckUpdates Compacted)	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckBehavioral Compacted (Within (Rat 1 10)))	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckUpdates CompactedSettled)	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(MeasureBehavioral CompactedSettled)	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckImplementation CompactMerge (Grade 1 0))	Unsupported	library NatArith is outside the first release
-ReceiptLedger	(CheckImplementation CompactMergeSettled (Grade 1 0))	Unsupported	library NatArith is outside the first release
+BeliefMemory	DecisionQuotient	Unsupported	MinimizeForQueries: Machine Decide is outside the M2 fragment
+BeliefMemory	StatusRepair	Unsupported	Refine: Representation StatusOnly is outside the M2 fragment
+BeliefMemory	(CheckUpdates StatusOnly)	Unsupported	CheckUpdates: Representation StatusOnly is outside the M0 fragment: Machine Decide: Map status: Cases row 0: (And ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(CheckBehavioral StatusOnly (Horizon (Steps 0)))	Unsupported	CheckBehavioral: Representation StatusOnly is outside the M2 fragment: Machine Decide: Map status: Cases row 0: (And ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(CheckBehavioral StatusOnly (Horizon (Steps 1)))	Unsupported	CheckBehavioral: Representation StatusOnly is outside the M2 fragment: Machine Decide: Map status: Cases row 0: (And ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	Staged2	Unsupported	Refine: Representation StatusOnly is outside the M2 fragment
+BeliefMemory	Staged2Machine	Unsupported	InduceExact: the (Output D Representation) form is evaluated only on a (Use Hyperseed) module (M7); libraries: Core
+BeliefMemory	(Defects RoundedTV20)	Unsupported	Defects: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 1)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 2)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 3)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 6)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(MeasureBehavioral RoundedTV20 (Discount (Rat 9 10)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)))	Unsupported	CheckBehavioral: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 2)))	Unsupported	CheckBehavioral: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)) (Horizon (Steps 1)))	Unsupported	CheckBehavioral: Representation RoundedTV20 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(Defects RoundedTV10)	Unsupported	Defects: Representation RoundedTV10 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(Defects Buckets7)	Unsupported	Defects: Representation Buckets7 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	(Defects Capped7)	Unsupported	Defects: Representation Capped7 is outside the M2 fragment: Machine Report: Map strength: Cases row 0: (Eq ...) in a Cases body is lowered only in a Crisp module, not in profile Graded
+BeliefMemory	FewestAtFifth	Unsupported	WeakestWithin: Machine Report is outside the M2 fragment
+BeliefMemory	FewestAtHalf	Unsupported	WeakestWithin: Machine Report is outside the M2 fragment
+GentleMemory	DecisionQuotient	Unsupported	MinimizeForQueries: Machine Decide is outside the M2 fragment
+GentleMemory	(Defects RoundedTV20)	Unsupported	Defects: Representation RoundedTV20 is outside the M2 fragment
+GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 1)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment
+GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 4)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment
+GentleMemory	(MeasureBehavioral RoundedTV20 (Horizon (Steps 5)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment
+GentleMemory	(MeasureBehavioral RoundedTV20 (Discount (Rat 9 10)))	Unsupported	MeasureBehavioral: Representation RoundedTV20 is outside the M2 fragment
+GentleMemory	(CheckBehavioral RoundedTV20 (Within (Rat 1 5)))	Unsupported	CheckBehavioral: Representation RoundedTV20 is outside the M2 fragment
+GentleMemory	(CheckBehavioral RoundedTV20 (Within (Rat 3 20)))	Unsupported	CheckBehavioral: Representation RoundedTV20 is outside the M2 fragment
+GentleMemory	(CheckBehavioral Grid10x7 (Within (Rat 1 5)))	Unsupported	CheckBehavioral: Representation Grid10x7 is outside the M2 fragment
+GentleMemory	(Defects RoundedTV10)	Unsupported	Defects: Representation RoundedTV10 is outside the M2 fragment
+GentleMemory	(Defects Buckets7)	Unsupported	Defects: Representation Buckets7 is outside the M2 fragment
+GentleMemory	(Defects Capped7)	Unsupported	Defects: Representation Capped7 is outside the M2 fragment
+GentleMemory	BestBuckets	Unsupported	WeakestWithin: Machine Report is outside the M2 fragment
+GentleMemory	BestGrid	Unsupported	WeakestWithin: Machine Report is outside the M2 fragment
+GentleMemory	Fewest	Unsupported	WeakestWithin: Machine Report is outside the M2 fragment
+GentleMemory	WeakestGreedy	Unsupported	WeakestWithin: Machine Report is outside the M2 fragment
+GentleMemory	FewestDiscounted	Unsupported	WeakestWithin: Machine Report is outside the M2 fragment
+GentleMemory	ColdStore	Unsupported	InduceApprox: a bare Representation name (RoundedTV20) is not evaluated; only (Output D Representation) is (library Core/M2)
+GentleMemory	ColdStoreGrid	Unsupported	InduceApprox: a bare Representation name (Grid10x7) is not evaluated; only (Output D Representation) is (library Core/M2)
+GentleMemory	(InduceApprox RoundedTV20 (Horizon (Steps 4)))	Unsupported	InduceApprox: a bare Representation name (RoundedTV20) is not evaluated; only (Output D Representation) is (library Core/M2)
+GentleMemory	ColdStoreBest	Unsupported	InduceApprox: premise Derive Fewest is outside the M2 fragment
+GentleMemory	FewestCenters	Unsupported	WeakestWithin: Machine Report is outside the M2 fragment
+GentleMemory	ColdStoreCenters	Unsupported	InduceApprox: premise Derive FewestCenters is outside the M2 fragment
+AgentMemory	(CheckBehavioral Grid6 (Within (Rat 1 5)))	Unsupported	library Parallel is outside the first release
+AgentMemory	(CheckBehavioral Fewest6 (Within (Rat 1 5)))	Unsupported	library Parallel is outside the first release
+AgentMemory	(MeasureBehavioral Grid6 (Discount (Rat 9 10)))	Unsupported	library Parallel is outside the first release
+ReceiptLedger	(CheckNow Counts)	Unsupported	CheckNow: Representation Counts is outside the M0 fragment
+ReceiptLedger	(CheckUpdates Counts)	Unsupported	CheckUpdates: Representation Counts is outside the M0 fragment
+ReceiptLedger	(MeasureBehavioral Counts)	Unsupported	MeasureBehavioral: Representation Counts is outside the M2 fragment
+ReceiptLedger	(CheckImplementation AddMerge (Grade 1 (Rat 6 35)))	Unsupported	CheckImplementation: Implementation AddMerge: Ideal/Actual Map merged-tally is declared or imported but outside the contract table engine fragment (libraries: BitVectors Contracts NatArith)
+ReceiptLedger	(CheckImplementation AddMerge (Grade 1 (Rat 1 6)))	Unsupported	CheckImplementation: Implementation AddMerge: Ideal/Actual Map merged-tally is declared or imported but outside the contract table engine fragment (libraries: BitVectors Contracts NatArith)
+ReceiptLedger	(CheckImplementation MaxMerge (Grade 1 (Rat 1 6)))	Unsupported	CheckImplementation: Implementation MaxMerge: Ideal/Actual Map merged-tally is declared or imported but outside the contract table engine fragment (libraries: BitVectors Contracts NatArith)
+ReceiptLedger	(CheckImplementation ThreeWay (Grade 1 0))	Unsupported	CheckImplementation: Implementation ThreeWay: Ideal/Actual Map fork-union is declared or imported but outside the contract table engine fragment (libraries: BitVectors Contracts NatArith)
+ReceiptLedger	(CheckImplementation ThreeWayClean (Grade 1 0))	Unsupported	CheckImplementation: Implementation ThreeWayClean: Ideal/Actual Map fork-union is declared or imported but outside the contract table engine fragment (libraries: BitVectors Contracts NatArith)
+ReceiptLedger	(CheckUpdates Compacted)	Unsupported	CheckUpdates: Representation Compacted is outside the M0 fragment
+ReceiptLedger	(CheckBehavioral Compacted (Within (Rat 1 10)))	Unsupported	CheckBehavioral: Representation Compacted is outside the M2 fragment
+ReceiptLedger	(CheckUpdates CompactedSettled)	Unsupported	CheckUpdates: Representation CompactedSettled is outside the M0 fragment
+ReceiptLedger	(MeasureBehavioral CompactedSettled)	Unsupported	MeasureBehavioral: Representation CompactedSettled is outside the M2 fragment
+ReceiptLedger	(CheckImplementation CompactMerge (Grade 1 0))	Unsupported	CheckImplementation: Implementation CompactMerge: Ideal/Actual Map merged-tally is declared or imported but outside the contract table engine fragment (libraries: BitVectors Contracts NatArith)
+ReceiptLedger	(CheckImplementation CompactMergeSettled (Grade 1 0))	Unsupported	CheckImplementation: Implementation CompactMergeSettled: Ideal/Actual Map merged-tally is declared or imported but outside the contract table engine fragment (libraries: BitVectors Contracts NatArith)

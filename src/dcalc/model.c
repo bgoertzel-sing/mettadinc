@@ -48,6 +48,13 @@ static int parse_int(const Sx *x, long *out) {
 }
 static int allow_rat;   /* M2: set by admit_map only for a Graded map into a value carrier */
 static int allow_xor;   /* M7: set by admit_map only on a (Use Neural) module in beyond-release: (Xor a b) on bits */
+static int allow_nat;   /* NatArith (beyond-release opt-in): set with allow_xor around eval_body on a (Use NatArith) module */
+static int nat_head(const Sx *b) {
+    if (b->kind != SX_LIST || !b->n || b->items[0]->kind != SX_SYM) return 0;
+    const char *h = b->items[0]->text;
+    return !strcmp(h, "Le") || !strcmp(h, "Lt") || !strcmp(h, "Min") || !strcmp(h, "Max") || !strcmp(h, "Quot") || !strcmp(h, "Rem");
+}
+static int nat_failed(const Sx *v) { return v && v->kind == SX_LIST && v->n == 2 && v->items[0]->kind == SX_SYM && !strcmp(v->items[0]->text, "Failed"); }
 static int allow_bool;  /* set only by admit_bool_observe_map: (To Bool) resolves to the implicit Bool carrier */
 static char pending_why[256];   /* a form-specific reason for the declaration being admitted when it returns -2 (Bool Observe maps, type-form maps, Like machines and what uses them), "" if none */
 /* ---- If/Eq/And/Or/Not in Cases bodies (t-2026-11-23-mettadinc-m0-cases-logic) ----
@@ -167,6 +174,38 @@ static Sx *eval_body(const Sx *b, const Env *e, int *ok) {
         }
         snprintf(buf, sizeof buf, "%ld", r);
         sx_free(x); sx_free(y); return sx_sym(buf);
+    }
+    if (allow_nat && nat_head(b) && b->n == 3) {   /* NatArith: doc03 s3.13 l.1170-1172 and B.1 l.4395-4398 */
+        const char *h = b->items[0]->text;
+        Sx *x = eval_body(b->items[1], e, ok), *y = eval_body(b->items[2], e, ok);
+        if (*ok == 1 && nat_failed(x)) { sx_free(y); return x; }   /* a tagged failure propagates */
+        if (*ok == 1 && nat_failed(y)) { sx_free(x); return y; }
+        long a, c; char buf[32];
+        int pa = *ok == 1 ? parse_int(x, &a) : 0, pc = *ok == 1 ? parse_int(y, &c) : 0;
+        sx_free(x); sx_free(y);
+        if (pa < 0 || pc < 0) { *ok = 3; return sx_sym("?"); }   /* out-of-range literal */
+        if (*ok != 1 || !pa || !pc) { if (*ok == 1) *ok = 0; return sx_sym("?"); }
+        if (!strcmp(h, "Le")) return sx_sym(a <= c ? "True" : "False");
+        if (!strcmp(h, "Lt")) return sx_sym(a < c ? "True" : "False");
+        long r;
+        if (!strcmp(h, "Min")) r = a < c ? a : c;
+        else if (!strcmp(h, "Max")) r = a > c ? a : c;
+        else {
+            /* doc03 B.1 l.4395-4396: "Quot and Rem need a positive divisor and return a tagged failure value
+             * otherwise"; tag shape from spec s12.7 l.3368-3369 (Failed Reason) */
+            if (c <= 0) { Sx *f = sx_list(); sx_push(f, sx_sym("Failed")); sx_push(f, sx_sym("NonPositiveDivisor")); return f; }
+            long q = a / c; if (a % c != 0 && a < 0) q--;   /* doc03 l.1166: Quot is floor division (c > 0) */
+            r = !strcmp(h, "Quot") ? q : a - q * c;
+        }
+        snprintf(buf, sizeof buf, "%ld", r); return sx_sym(buf);
+    }
+    if (allow_nat && !allow_logic && sx_head_is(b, "If") && b->n == 4) {   /* doc03 s3.13 l.1172: If evaluates only one branch */
+        Sx *cnd = eval_body(b->items[1], e, ok);
+        if (*ok == 1 && nat_failed(cnd)) return cnd;
+        int t = *ok == 1 ? bool_of(cnd) : -1; sx_free(cnd);
+        if (*ok != 1) return sx_sym("?");
+        if (t < 0) { *ok = 4; return sx_sym("?"); }
+        return eval_body(b->items[t ? 2 : 3], e, ok);
     }
     if (allow_xor && sx_head_is(b, "Xor") && b->n == 3) {   /* M7 opt-in: bitwise xor of two 0/1 literals */
         Sx *x = eval_body(b->items[1], e, ok), *y = eval_body(b->items[2], e, ok); long a = -1, c = -1;
@@ -588,6 +627,7 @@ static int frag_ok(const DcModule *m, const Sx *b, int logic) {   /* logic: admi
         const char *h = b->items[0]->text;
         /* If/Eq/And/Or/Not at any arity: a malformed arity is InvalidInput, a short And/Or Unsupported, when tabulated (eval_logic) */
         if (!(!strcmp(h, "Tuple") || ((!strcmp(h, "Add") || !strcmp(h, "Mul")) && b->n == 3) || (m->neural && !strcmp(h, "Xor") && b->n == 3)
+              || (m->natarith && nat_head(b) && b->n == 3) || (m->natarith && !strcmp(h, "If") && b->n == 4)
               || (logic && !strcmp(m->profile, "Crisp") && logic_head(b)))) return 0;
         for (size_t i = 1; i < b->n; i++) if (!frag_ok(m, b->items[i], logic)) return 0;
         return 1;
@@ -733,7 +773,7 @@ static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err
         }
         if (!hit) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: not total on carrier %s; no value for %s", nm, D->name, xs); free(xs); free(tab); return -1; }
         if (bvar) snprintf(lab, sizeof lab, "Body"); else snprintf(lab, sizeof lab, "row %zu", hit - 1);
-        int ok = 1; allow_xor = m->neural; logic_on(m); Sx *v = cases || bvar ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0; logic_off();
+        int ok = 1; allow_xor = m->neural; allow_nat = m->natarith; logic_on(m); Sx *v = cases || bvar ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0; allow_nat = 0; logic_off();
         if (ok == 4) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: %s%s on %s: %s", nm, bvar ? "" : "Cases ", lab, xs, logic_why); free(xs); sx_free(v); free(tab); return -1; }
         if (ok == 2 && logic_why[0]) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: %s%s: %s", nm, bvar ? "" : "Cases ", lab, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
         if (ok == 2) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: %s%s uses an operator outside the M0 fragment", nm, bvar ? "" : "Cases ", lab); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
@@ -846,7 +886,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 const Sx *row = body->items[j]; Env e = {0}; int ok = 1;
                 if (row->kind != SX_LIST || row->n != 2) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu is not a pair", nm, j - 1); }
                 if (!match(row->items[0], F->elems[i], &e)) continue;
-                allow_rat = T->value; allow_xor = m->neural; logic_on(m); Sx *v = eval_body(row->items[1], &e, &ok); allow_rat = 0; allow_xor = 0; logic_off();
+                allow_rat = T->value; allow_xor = m->neural; allow_nat = m->natarith; logic_on(m); Sx *v = eval_body(row->items[1], &e, &ok); allow_rat = 0; allow_xor = 0; allow_nat = 0; logic_off();
                 if (ok == 4) { char *xs = sx_print(F->elems[i]); fail(err, es, "Map %s: Cases row %zu on %s: %s", nm, j - 1, xs, logic_why); free(xs); sx_free(v); free(mp->table); return -1; }
                 if (ok == 2 && logic_why[0]) { sx_free(v); free(mp->table); fail(err, es, "[M0] Map %s: Cases row %zu: %s", nm, j - 1, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
                 if (ok == 2) { sx_free(v); free(mp->table); return fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1); }
@@ -872,7 +912,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
         Env e = {0}; e.var[0] = body_var(body); e.n = 1;
         for (size_t i = 0; i < F->n; i++) {
             int ok = 1; e.val[0] = F->elems[i];
-            allow_xor = m->neural; Sx *v = eval_body(body->items[2], &e, &ok); allow_xor = 0;
+            allow_xor = m->neural; allow_nat = m->natarith; Sx *v = eval_body(body->items[2], &e, &ok); allow_xor = 0; allow_nat = 0;
             char *xs = sx_print(F->elems[i]);
             if (ok == 2) { fail(err, es, "[M0] Map %s: Body uses an operator outside the M0 fragment on %s", nm, xs); snprintf(pending_why, sizeof pending_why, "%s", err + 5); }
             else if (ok == 3) fail(err, es, "Map %s: Body on %s: integer overflow or out-of-range literal in Add/Mul", nm, xs);
@@ -1318,6 +1358,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
     m->transfers = uses_lib(m, "Transfers") && dc_eval_beyond_release();   /* M6 opt-in */
     m->hyperseed = uses_lib(m, "Hyperseed") && dc_eval_beyond_release();   /* M7 opt-in */
     m->neural = uses_lib(m, "Neural") && dc_eval_beyond_release();   /* M7 opt-in */
+    m->natarith = uses_lib(m, "NatArith") && dc_eval_beyond_release();   /* NatArith opt-in (not in the release-1 manifest) */
     m->discovery = uses_lib(m, "Discovery") && dc_eval_beyond_release();   /* M7 opt-in */
     m->bitvectors = uses_lib(m, "BitVectors") && dc_eval_beyond_release();   /* M7 opt-in */
     m->finitesets = uses_lib(m, "FiniteSets") && dc_eval_beyond_release();   /* M7 opt-in */

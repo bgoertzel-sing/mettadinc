@@ -60,6 +60,26 @@ def classify(rid, mode, st, reason, doc):
         return 'match: doc03 s2.6 says %s is a %s target, Unsupported in the first release' % (rid, MS[rid])
     if st == 'Unsupported' and 'backend fragment' in reason:
         return 'GAP: valid by the spec (l.1719 Reach carrier) but outside the stochastic backend fragment; Unsupported since t-2026-11-23-mettadinc-lowering-unsupported, Reach support in the stochastic reader is a later task'
+    # t-2026-11-26-mettadinc-natarith-v2 review 1 finding 1: rows that NatArith admission moves past the library gate
+    # land on engine limits; name them before the generic 'carrier' rule below (which is for the stochastic reader).
+    if st == 'Unsupported' and 'outside the transfer table engine fragment' in reason:
+        return 'GAP: transfer-engine limit (MethodSystem States/Methods carrier outside the transfer table engine fragment); Unsupported, not InvalidInput'
+    if st == 'Unsupported' and 'outside the contract table engine fragment' in reason:
+        return 'GAP: contract-engine limit (Ideal/Actual Map outside the contract table engine fragment); Unsupported, not InvalidInput'
+    if st == 'Unsupported' and 'tolerance option is not implemented' in reason:
+        return 'GAP: (Within d) tolerance option not implemented in the transfer engine; Unsupported, not InvalidInput'
+    if st == 'Unsupported' and reason.startswith('Families:') and 'not a declared map with a Body' in reason:
+        return 'GAP: Families port map is not a declared Body map (lowering limit); Unsupported, not InvalidInput'
+    if st == 'Unsupported' and 'the import inliner copies only' in reason:
+        return 'GAP: the import inliner copies only Carrier/Map/Tolerance, so an imported MethodSystem or Derive is not visible; Unsupported, not InvalidInput'
+    if st == 'Unsupported' and re.search(r'premise Derive \S+ is Unsupported', reason):
+        return 'GAP: a ComposeTransfers premise is itself Unsupported (engine limit upstream); Unsupported, not InvalidInput'
+    if st == 'Unsupported' and 'a bare Representation name' in reason:
+        return 'GAP: a bare Representation name is not evaluated, only (Output D Representation); Unsupported, not InvalidInput'
+    if st == 'Unsupported' and 'is evaluated only on a (Use Hyperseed) module' in reason:
+        return 'GAP: (Output D Representation) is evaluated only on a Hyperseed module (M7); Unsupported, not InvalidInput'
+    if st == 'Unsupported' and re.search(r'premise Derive \S+ is outside the M[0-9] fragment', reason):
+        return 'GAP: an InduceApprox premise is outside the M2 fragment; Unsupported, not InvalidInput'
     if 'map-call cycle' in reason: return 'BUG: false map-call cycle, Map named like an Enum element (admit.c:776)'
     if 'Reach' in reason or 'carrier' in reason.lower(): return 'BUG: stochastic reader rejects Reach carrier (stoch.c:52)'
     if 'Import of unknown module' in reason: return 'CLI: release mode ignores LIBS (main.c:129)'
@@ -74,8 +94,21 @@ def classify(rid, mode, st, reason, doc):
     if m: return 'GATED: Profile %s outside the first release (release gate, stoch profile is post-M0)' % m.group(1)
     if 'request CheckBlockPartition is outside the M0 fragment' in reason:   # t-2026-11-26-mettadinc-families-followups-v2 step 4
         return 'GAP: CheckBlockPartition is outside the M0 fragment on a Crisp module (the M0 lowering has no block-partition request); Unsupported, not InvalidInput'
+    # review 1 finding 1: the generic rule below used to label every 'outside the M[0-9] fragment' row as the (g)
+    # blocker, which is lowered; name the actual cause first.
+    m = re.search(r'\((Eq|And|Or|Not|If) \.\.\.\) in a Cases body is lowered only in a Crisp module', reason)
+    if st == 'Unsupported' and m:
+        return 'GAP: (%s ...) in a Cases body is lowered only in a Crisp module, not in a Graded profile; Unsupported, not InvalidInput' % m.group(1)
+    m = re.search(r'request (\w+) is outside the M0 fragment', reason)
+    if st == 'Unsupported' and m:
+        return 'GAP: request %s has no M0 lowering; Unsupported, not InvalidInput' % m.group(1)
+    m = re.search(r'(Machine|Representation|Map) \S+ is outside the (M[0-9]) fragment', reason)
+    if st == 'Unsupported' and m:
+        return 'GAP: a %s is outside the %s fragment (lowering limit, see the reason); Unsupported, not InvalidInput' % (m.group(1), m.group(2))
     if re.search(r'outside the M[0-9] fragment', reason):
-        return 'GAP: M0 lowering rejects (g) a (To Bool) Observe map declared with a type-form From (repro/m0_blocker_g); Bool Observe maps (a), type-form From/To maps (b), If/Eq/And/Or/Not in Cases (c), Machine Like (d), Body maps in Crisp (f) and Subset/Reach carriers are lowered'
+        # t-2026-11-26-mettadinc-natarith-v2 review 1 finding 1: the old label named blocker (g), which is lowered;
+        # with NatArith admitted these rows reach the M0/M2 fragment check itself, so say that.
+        return 'GAP: the request, Machine or Representation is outside the M0/M2 fragment the checker decides (engine limit, not a lowering blocker); Unsupported, not InvalidInput'
     return 'UNCLASSIFIED'
 def main():
     per = collections.defaultdict(list); D = load_doc()
