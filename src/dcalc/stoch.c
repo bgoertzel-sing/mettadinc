@@ -819,10 +819,12 @@ static int st_lawx(const Sx *e, const StCar *T, DcQ *out, int *ovf) {
     if (sx_head_is(e, "Coin") && e->n == 2) {
         DcQ p; int j0 = -1, j1 = -1;
         for (int j = 0; j < T->n; j++) { if (!strcmp(T->el[j], "0")) j0 = j; if (!strcmp(T->el[j], "1")) j1 = j; }
-        if (j0 < 0 || j1 < 0) return -1;
+        if (dc_mr_value(j0) || dc_mr_value(j1)) return -1;   /* R3 (maprules.h): 0 and 1 lie in the target carrier */
         if (!st_rat(e->items[1], &p)) {   /* literal probability; a computed one goes through laws.c below */
-            if (p.n < 0 || dc_q_cmp(p, dc_q(1, 1, ovf)) > 0) return -1;
-            out[j1] = p; out[j0] = dc_q_sub(dc_q(1, 1, ovf), p, ovf); return 0;
+            if (dc_mr_mass_entry(p)) return -1;   /* R4 (maprules.h): p >= 0 */
+            DcQ q = dc_q_sub(dc_q(1, 1, ovf), p, ovf);
+            if (dc_mr_mass_entry(q)) return -1;   /* R4 (maprules.h): 1 - p >= 0, i.e. p <= 1 */
+            out[j1] = p; out[j0] = q; return 0;
         }
     }
     if (dc_law_head(e) || st_has_mapcall(e) || (e->kind == SX_SYM && st_law_src && st_decl(st_law_src, "Measure", e->text))) {   /* library Laws: Indep / Image / LawOf / a measure name over a finite carrier (laws.c); a bare map call reaches the leaf and is flagged */

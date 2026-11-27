@@ -73,3 +73,9 @@ fm_rules|--beyond-release|FmTableDup|InvalidInput|Map idx: Table key at row 3 re
 fm_rules|--beyond-release|FmTableTotal|InvalidInput|Map idx: not total; no value for i2
 fm_rules|--beyond-release|FmTableCodomain|InvalidInput|Map tag: Table row 2 value outside carrier K
 fm_rules|--beyond-release|FmControl|Refuted|
+law_rules|rel|StLawCoinLit|Unsupported|Profile Dynamics Stochastic is outside the first release
+law_rules|rel|StLawCoinNegLit|Unsupported|Profile Dynamics Stochastic is outside the first release
+law_rules|rel|StLawCoinControl|Unsupported|Profile Dynamics Stochastic is outside the first release
+law_rules|--beyond-release|StLawCoinLit|InvalidInput|AverageModel: bad or duplicate case in the reward law of M
+law_rules|--beyond-release|StLawCoinNegLit|InvalidInput|AverageModel: bad or duplicate case in the reward law of M
+law_rules|--beyond-release|StLawCoinControl|Checked|

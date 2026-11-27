@@ -40,6 +40,9 @@ MUTANTS = [
     ('fm_dup', 'families.c', 'if (rc == DC_MR_DUP) { fe_invalid(f, "Map %s: Table key at row %zu repeated"', 'if (0) { fe_invalid(f, "Map %s: Table key at row %zu repeated"', ['FAIL  fm_rules --beyond-release FmTableDup:']),
     ('fm_codomain', 'families.c', 'if (rc == DC_MR_CODOMAIN) { fe_invalid(f,', 'if (0) { fe_invalid(f,', ['FAIL  fm_rules --beyond-release FmTableCodomain:']),
     ('fm_total', 'families.c', 'if (dc_mr_total(&mr, &miss)) { char *s = sx_print(en->items[miss + 1]); fe_invalid', 'if (0) { char *s = sx_print(en->items[miss + 1]); fe_invalid', ['FAIL  fm_rules --beyond-release FmTableTotal:']),
+    # rebase review 1 F1: the literal Coin branch of st_lawx decides R4 through the shared module; remove each call
+    ('st_law_coin_lit_neg', 'stoch.c', 'if (dc_mr_mass_entry(p)) return -1;   /* R4 (maprules.h): p >= 0 */', 'if (0) return -1;   /* R4 (maprules.h): p >= 0 */', ['FAIL  law_rules --beyond-release StLawCoinNegLit:']),
+    ('st_law_coin_lit_gt1', 'stoch.c', 'if (dc_mr_mass_entry(q)) return -1;   /* R4 (maprules.h): 1 - p >= 0, i.e. p <= 1 */', 'if (0) return -1;   /* R4 (maprules.h): 1 - p >= 0, i.e. p <= 1 */', ['FAIL  law_rules --beyond-release StLawCoinLit:']),
 ]
 fails = 0
 def report(name, ok, det=''):
