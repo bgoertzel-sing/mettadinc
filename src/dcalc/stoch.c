@@ -7,6 +7,7 @@
 #include "model.h"
 #include "rat.h"
 #include "qrat.h"
+#include "laws.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -753,14 +754,33 @@ static int st_elval(const StCar *T, int j, DcQ *v, int *ovf) {
     if (!T->el[j][0] || *e) return -1;
     *v = dc_q(k, 1, ovf); return 0;
 }
+/* leaf values inside a law term: closed exact arithmetic (dc_law_arith: numerals, Rat, Tuple/GetTuple,
+ * If/Eq/Lt/Le/And/Or/Not, Add/Sub/Mul/Div/Min/Max); no map calls or free variables here */
+static Sx *st_lawleaf(const Sx *e, void *ctx, int *ok) {
+    int ovf = 0; (void)ctx;
+    Sx *v = dc_law_arith(e, ok, &ovf);
+    if (ovf) *ok = 0;
+    return v;
+}
+static char st_law_why[160];   /* why the last st_lawx failed inside laws.c; "" otherwise */
 static int st_lawx(const Sx *e, const StCar *T, DcQ *out, int *ovf) {
+    st_law_why[0] = 0;
     for (int j = 0; j < T->n; j++) out[j] = dc_q(0, 1, ovf);
     if (sx_head_is(e, "Point") && e->n == 2) { int j = st_el(T, e->items[1]); if (j < 0) return -1; out[j] = dc_q(1, 1, ovf); return 0; }
     if (sx_head_is(e, "Coin") && e->n == 2) {
         DcQ p; int j0 = -1, j1 = -1;
         for (int j = 0; j < T->n; j++) { if (!strcmp(T->el[j], "0")) j0 = j; if (!strcmp(T->el[j], "1")) j1 = j; }
-        if (j0 < 0 || j1 < 0 || st_rat(e->items[1], &p) || p.n < 0 || dc_q_cmp(p, dc_q(1, 1, ovf)) > 0) return -1;
-        out[j1] = p; out[j0] = dc_q_sub(dc_q(1, 1, ovf), p, ovf); return 0;
+        if (j0 < 0 || j1 < 0) return -1;
+        if (!st_rat(e->items[1], &p)) {   /* literal probability; a computed one goes through laws.c below */
+            if (p.n < 0 || dc_q_cmp(p, dc_q(1, 1, ovf)) > 0) return -1;
+            out[j1] = p; out[j0] = dc_q_sub(dc_q(1, 1, ovf), p, ovf); return 0;
+        }
+    }
+    if (dc_law_head(e)) {   /* library Laws: Indep / Image / LawOf over a finite carrier (laws.c) */
+        DcLaw L; dc_law_init(&L); char why[160];
+        if (dc_law_eval(e, st_lawleaf, NULL, &L, ovf, why, sizeof why)) { snprintf(st_law_why, sizeof st_law_why, "%s", why); dc_law_free(&L); return -1; }
+        for (size_t i = 0; i < L.n; i++) { int j = st_el(T, L.val[i]); if (j < 0) { snprintf(st_law_why, sizeof st_law_why, "a law value is outside the target carrier"); dc_law_free(&L); return -1; } out[j] = L.m[i]; }
+        dc_law_free(&L); return 0;
     }
     return -1;
 }
@@ -794,7 +814,7 @@ static int st_dm(StMod *s, const Sx *src, const char *nm, StDM *D, char *why, si
     for (size_t k = 1; cs && k < cs->n; k++) { const Sx *c = cs->items[k];
         const Sx *t = c->kind == SX_LIST && c->n == 2 ? c->items[0] : NULL;
         int x = sx_head_is(t, "Tuple") && t->n == 3 ? st_el(SC, t->items[1]) : -1, a = x >= 0 ? st_el(AC, t->items[2]) : -1;
-        if (a < 0 || seen[x][a] || st_lawx(c->items[1], TC, D->law[x][a], ovf)) { snprintf(why, ws, "bad or duplicate case in the reward law of %s", nm); return -1; }
+        if (a < 0 || seen[x][a] || st_lawx(c->items[1], TC, D->law[x][a], ovf)) { snprintf(why, ws, "bad or duplicate case in the reward law of %.40s%s%.100s", nm, a >= 0 && !seen[x][a] && st_law_why[0] ? ": " : "", a >= 0 && !seen[x][a] ? st_law_why : ""); return -1; }
         seen[x][a] = 1; }
     for (int x = 0; x < SC->n; x++) for (int a = 0; a < AC->n; a++) {
         if (!seen[x][a]) { snprintf(why, ws, "reward law of %s is not total", nm); return -1; }

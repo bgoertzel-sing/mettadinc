@@ -1,0 +1,22 @@
+;; Laws negative gates (t-2026-11-27-mettadinc-laws): bad Coin probabilities (>1, <0, division by zero) and an Image
+;; value outside the target carrier must be InvalidInput naming the reason, never a law.
+(DC.Module LawsNeg
+  (Profile Stochastic)
+  (Use Decisions)
+  (Use Laws)
+  (Carrier S (Of Symbol) (Enum A))
+  (Carrier Act (Of Symbol) (Enum K))
+  (Carrier Bit (Of Nat) (Enum 0 1))
+  (Map rp (From (Product S Act)) (To (Law Bit)) (Cases ((Tuple A K) (Coin (Add (Rat 1 2) 1)))))
+  (Map rz (From (Product S Act)) (To (Law Bit)) (Cases ((Tuple A K) (Coin (Div 1 0)))))
+  (Map rn (From (Product S Act)) (To (Law Bit)) (Cases ((Tuple A K) (Coin (Sub 0 (Rat 1 3))))))
+  (Map ro (From (Product S Act)) (To (Law Bit)) (Cases ((Tuple A K) (Image $b (Add $b 1) (Coin (Rat 1 2))))))
+  (Measure P (On S) (Masses (A 1)))
+  (DecisionModel Mp (States S) (Actions Act) (RewardLaw rp) (Prior P))
+  (DecisionModel Mz (States S) (Actions Act) (RewardLaw rz) (Prior P))
+  (DecisionModel Mn (States S) (Actions Act) (RewardLaw rn) (Prior P))
+  (DecisionModel Mo (States S) (Actions Act) (RewardLaw ro) (Prior P)))
+!(dc.run LawsNeg (AverageModel Mp (Under P)))
+!(dc.run LawsNeg (AverageModel Mz (Under P)))
+!(dc.run LawsNeg (AverageModel Mn (Under P)))
+!(dc.run LawsNeg (AverageModel Mo (Under P)))
