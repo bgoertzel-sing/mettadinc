@@ -1363,6 +1363,7 @@ int dc_admit(const Sx *form, DcModule *m, char *err, size_t es) {
     m->hyperseed = uses_lib(m, "Hyperseed") && dc_eval_beyond_release();   /* M7 opt-in */
     m->neural = uses_lib(m, "Neural") && dc_eval_beyond_release();   /* M7 opt-in */
     m->natarith = uses_lib(m, "NatArith") && dc_eval_beyond_release();   /* NatArith opt-in (not in the release-1 manifest) */
+    m->monitors = uses_lib(m, "Monitors") && dc_eval_beyond_release();   /* Monitors opt-in (doc03 s6.11 PROPOSED; not in the release-1 manifest) */
     m->discovery = uses_lib(m, "Discovery") && dc_eval_beyond_release();   /* M7 opt-in */
     m->bitvectors = uses_lib(m, "BitVectors") && dc_eval_beyond_release();   /* M7 opt-in */
     m->finitesets = uses_lib(m, "FiniteSets") && dc_eval_beyond_release();   /* M7 opt-in */
@@ -1453,5 +1454,6 @@ void dc_module_free(DcModule *m) {
     for (size_t i = 0; i < m->nabs; i++) sx_free(m->abs[i].source);
     for (size_t i = 0; i < m->nder; i++) sx_free(m->der[i].request);
     sx_free(m->source);
+    if (m->raw_source) sx_free(m->raw_source);
     memset(m, 0, sizeof *m);
 }
