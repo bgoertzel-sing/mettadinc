@@ -206,7 +206,8 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
         }
         else { if (basedir) snprintf(m->basedir, sizeof m->basedir, "%s", basedir);
                if (fam) {   /* review 1 F3: a Families module binds to its source text, not to the elaborated form */
-                   char *canon = sx_print(raw); dc_sha256_hex(canon, strlen(canon), m->digest); free(canon); }
+                   char *canon = sx_print(raw); dc_sha256_hex(canon, strlen(canon), m->digest); free(canon);
+                   if (m->monitors) m->raw_source = sx_copy(raw); }   /* Monitors: ops_mon.c reads the Parameters/Table maps Families elaborates away */
                DcRun *run = dc_run_new(m); res = dc_run(run, req); dc_run_free(run); dc_module_free(m); }
         free(m); if (inl) sx_free(inl);
     }

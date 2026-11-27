@@ -18,17 +18,17 @@ WMTMRelease	(CheckStatistic RebuildFromRecords (Method Symbolic))	Unsupported	li
 WMTMRelease	(CheckStatistic RebuildEngineIndex (Method Symbolic))	Unsupported	library RationalArith is outside the first release
 WMTMRelease	(CheckStatistic EngineIndexS (Method Lift))	Unsupported	library RationalArith is outside the first release
 WMTMRelease	(CheckStatistic NagIndexS (Method Lift))	Unsupported	library RationalArith is outside the first release
-WMTMReceipts	(CheckMonitor MissTenth)	Unsupported	library Monitors is outside the first release
-WMTMReceipts	(CheckMonitor MissFifth)	Unsupported	library Monitors is outside the first release
-WMTMReceipts	(CheckMonitor MissTwoFifths)	Unsupported	library Monitors is outside the first release
-WMTMReceipts	(Detect MissTenth MissFifth MissTwoFifths (On Replies) (Level (Rat 1 100)) (Combine Mixture))	Unsupported	library Monitors is outside the first release
-WMTMReceipts	(Detect MissTenth MissFifth MissTwoFifths (On Replies) (Combine Mixture) (Scheme ShiryaevRoberts) (MeanTimeToFalseAlarm 100000))	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(EstimateRate (On RepliesBefore) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(EstimateRate (On AuditAfterAlarm) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(EstimateRate (On AuditV2) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(EstimateRate (On RepliesGate) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(EstimateRate (On KeysGate) (Column ""duplicate"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(EstimateRate (On ClosuresGate) (Column ""spurious"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(CompareRates (On LivesGate) (First ""window_bad"") (Second ""event_bad"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(EstimateRate (On AuditRepliesGate) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
-WMTMReceipts	"(EstimateRate (On AuditOpenGate) (Column ""false_close"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
+WMTMReceipts	(CheckMonitor MissTenth)	Checked	
+WMTMReceipts	(CheckMonitor MissFifth)	Checked	
+WMTMReceipts	(CheckMonitor MissTwoFifths)	Checked	
+WMTMReceipts	(Detect MissTenth MissFifth MissTwoFifths (On Replies) (Level (Rat 1 100)) (Combine Mixture))	Estimated	
+WMTMReceipts	(Detect MissTenth MissFifth MissTwoFifths (On Replies) (Combine Mixture) (Scheme ShiryaevRoberts) (MeanTimeToFalseAlarm 100000))	Unsupported	Detect: Scheme ShiryaevRoberts is outside the executed Monitors fragment (doc03 s6.11 Detect: Ville's inequality, e-processes from the first observation)
+WMTMReceipts	"(EstimateRate (On RepliesBefore) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Estimated	
+WMTMReceipts	"(EstimateRate (On AuditAfterAlarm) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Estimated	
+WMTMReceipts	"(EstimateRate (On AuditV2) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Estimated	
+WMTMReceipts	"(EstimateRate (On RepliesGate) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Estimated	
+WMTMReceipts	"(EstimateRate (On KeysGate) (Column ""duplicate"") (Equals 1) (Level (Rat 1 100)))"	Estimated	
+WMTMReceipts	"(EstimateRate (On ClosuresGate) (Column ""spurious"") (Equals 1) (Level (Rat 1 100)))"	Estimated	
+WMTMReceipts	"(CompareRates (On LivesGate) (First ""window_bad"") (Second ""event_bad"") (Equals 1) (Level (Rat 1 100)))"	Estimated	
+WMTMReceipts	"(EstimateRate (On AuditRepliesGate) (Column ""missed"") (Equals 1) (Level (Rat 1 100)))"	Estimated	
+WMTMReceipts	"(EstimateRate (On AuditOpenGate) (Column ""false_close"") (Equals 1) (Level (Rat 1 100)))"	Estimated	

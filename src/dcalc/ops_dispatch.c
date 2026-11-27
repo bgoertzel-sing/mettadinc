@@ -32,6 +32,7 @@ static Sx *dispatch(DcRun *r, const Sx *q, int slot) {
     const char *h = q->items[0]->text;
     if ((!strcmp(h, "EstimateRate") || !strcmp(h, "CompareRates") || !strcmp(h, "EstimateDupRate")) && !m->profile_unsupported[0]) return dc_req_estimates(r, q, h);   /* M4-estimates opt-in */
     if (!strcmp(h, "RatesSeparated") && !m->profile_unsupported[0]) return dc_req_separated(r, q);   /* review 1 F3 */
+    if ((!strcmp(h, "CheckMonitor") || !strcmp(h, "Detect")) && m->monitors && !m->profile_unsupported[0]) return dc_req_monitors(r, q, h);   /* library Monitors opt-in */
     if (m->snapshot && !m->profile_unsupported[0]) return dc_req_m7_snapshot(r, q, h);   /* M7 Z01 opt-in */
     if ((m->hyperseed || m->neural) && !m->profile_unsupported[0]) { Sx *x7 = dc_req_m7(r, q, h); if (x7) return x7; }   /* M7 opt-in */
     if (m->discovery && !m->profile_unsupported[0]) { Sx *xa = dc_req_m7_arith(r, q, h); if (xa) return xa; }   /* M7 Discovery opt-in (X01-X04) */
