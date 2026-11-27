@@ -332,6 +332,7 @@ int dc_families_expand(const Sx *all, const Sx *raw, Sx **out, char *why, size_t
     for (int i = 0; i < f->nd && !f->bad; i++) {
         const Sx *d = f->d[i];
         if (sx_head_is(d, "Profile") || sx_head_is(d, "Use") || sx_head_is(d, "Const")) continue;
+        if (sx_head_is(d, "Monitor")) { sx_push(o, sx_copy(d)); continue; }   /* Monitors: Null/Alternative are resolved by ops_mon.c, not elaborated */
         if (sx_head_is(d, "Carrier") && d->n >= 2 && d->items[1]->kind == SX_SYM && sym_enum(f, d->items[1]->text)) {
             if (!f->sym) sx_push(o, sx_copy(d));   /* an M0 module reads symbol carriers itself: keep it */
             continue;

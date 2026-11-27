@@ -76,6 +76,8 @@ step natarith;         $R natarith "python3 tests/dcalc/natarith/run_natarith.py
 step natarith_mutants; $R natarith_mutants "python3 tests/dcalc/natarith/run_natarith_mutants.py > build/natarith_mutants.out; r=\$?; tail -1 build/natarith_mutants.out; exit \$r" || rc=1   # one source mutant per NatArith primitive (model.c + ops_sym.c) must fail run_natarith
 step laws;             $R laws "python3 tests/dcalc/laws/run_laws.py > build/laws.out; r=\$?; tail -1 build/laws.out; exit \$r" || rc=1   # Laws exact law/mean values (Point/Coin/Indep/Image/LawOf/Expect, computed bodies) vs hand rationals + docs/e0 metta_eval.py reference (t-2026-11-27-mettadinc-laws)
 step laws_mutants;     $R laws_mutants "python3 tests/dcalc/laws/run_laws_mutants.py > build/laws_mutants.out; r=\$?; tail -1 build/laws_mutants.out; exit \$r" || rc=1   # one source mutant per Laws primitive (laws.c) must fail run_laws
+step monitors;         $R monitors "python3 tests/dcalc/monitors/run_monitors.py > build/monitors.out; r=\$?; tail -1 build/monitors.out; exit \$r" || rc=1   # Monitors exact CheckMonitor/Detect answers (fixtures + doc04/05/06 claims on pinned streams) (t-2026-11-27-mettadinc-monitors)
+step monitors_mutants; $R monitors_mutants "python3 tests/dcalc/monitors/run_monitors_mutants.py > build/monitors_mutants.out; r=\$?; tail -1 build/monitors_mutants.out; exit \$r" || rc=1   # one source mutant per Monitors form and wiring site (ops_mon.c, api.c, families.c, ops_dispatch.c, admit.c) must fail run_monitors
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc

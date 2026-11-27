@@ -85,6 +85,13 @@ def classify(rid, mode, st, reason, doc):
     if st == 'Unsupported' and re.search(r'premise Derive \S+ is outside the M[0-9] fragment', reason):
         return 'GAP: an InduceApprox premise is outside the M2 fragment; Unsupported, not InvalidInput'
     if 'map-call cycle' in reason: return 'BUG: false map-call cycle, Map named like an Enum element (admit.c:776)'
+    # t-2026-11-27-mettadinc-monitors: name the Monitors fragment limits before the generic carrier rule below
+    if st == 'Unsupported' and 'Scheme ShiryaevRoberts is outside the executed Monitors fragment' in reason:
+        return 'GAP: Scheme ShiryaevRoberts is PROPOSED (wx patch), outside doc03 s6.11 Ville detection; Unsupported, not InvalidInput'
+    if st == 'Unsupported' and re.search(r'Monitor \w+: the context carrier \w+ (is imported|is not an enumerated carrier)', reason):
+        return 'GAP: Monitors fragment needs a declared Enum context carrier (imported or derived context carrier); Unsupported, not InvalidInput'
+    if st == 'Unsupported' and 'inside a monitor law' in reason:
+        return 'GAP: a non-table map call inside a monitor law is outside the Laws closed arithmetic; Unsupported, not InvalidInput'
     if 'Reach' in reason or 'carrier' in reason.lower(): return 'BUG: stochastic reader rejects Reach carrier (stoch.c:52)'
     if 'Import of unknown module' in reason: return 'CLI: release mode ignores LIBS (main.c:129)'
     m = re.search(r'library (\w+) is outside', reason)

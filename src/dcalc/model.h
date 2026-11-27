@@ -79,6 +79,7 @@ typedef struct {
     char profile[DC_MAX_NAME];
     char digest[65];     /* sha256 of the canonical module text */
     Sx *source;          /* the admitted DC.Module form */
+    Sx *raw_source;      /* Monitors: the module as written when Families elaborated it (NULL otherwise) */
     DcCarrier car[32];  size_t ncar;
     DcMap     map[64];  size_t nmap;
     DcMachine mach[16]; size_t nmach;
@@ -92,6 +93,7 @@ typedef struct {
     int stochastic;          /* M4 (opt-in only): Dynamics Stochastic; requests go to stoch.c, nothing tabulated */
     int snapshot;   /* M7 Z01 opt-in: (Carriers Snapshot) in beyond-release; read by ops_m7_snapshot.c */
     int natarith;   /* NatArith (opt-in only): (Use NatArith) in beyond-release; doc03 s3.13 */
+    int monitors;   /* Monitors (opt-in only): (Use Monitors) in beyond-release; doc03 s6.11, ops_mon.c */
     int hyperseed, neural, discovery, bitvectors, finitesets;   /* M7 (opt-in only): (Use X) in beyond-release; read by ops_m7.c */
     int transfers;           /* M6 (opt-in only): (Use Transfers) in beyond-release; MethodSystem/Transfer/Symmetry/TransferHive read by ops_transfers.c from m->source */
     int hives;               /* M6 (opt-in only): (Use Hives) in beyond-release; KernelHive/CrossKernel read by ops_hives.c from m->source */

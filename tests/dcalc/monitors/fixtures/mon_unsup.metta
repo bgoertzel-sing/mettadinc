@@ -1,0 +1,11 @@
+(DC.Module MonUnsup
+  (Profile Stochastic)
+  (Use Decisions Laws Families Monitors)
+  (Carrier One  (Of Symbol) (Enum one))
+  (Carrier Rate (Of Symbol) (Enum low high))
+  (Map rate (From Rate) (To Rational01) (Table (low (Rat 1 4)) (high (Rat 1 2))))
+  (Map half (From One) (To Rational01) (Body ($u) (Rat 1 2)))
+  (Monitor Callmap (Context One) (Null (Coin (rate low))) (Alternative (Coin (half one))) (Columns (observation "x")))
+  (Stream Hot (Source "streams/hot.json") (Digest "sha256:329ae55366ee77dcb37a2f661572ec64be8664c469dad27b391375cd1f5fa221") (Provenance "fixture: eight ones")))
+!(dc.run MonUnsup (CheckMonitor Callmap))
+!(dc.run MonUnsup (Detect Callmap (On Hot) (Level (Rat 1 10))))

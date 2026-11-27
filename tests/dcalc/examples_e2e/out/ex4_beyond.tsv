@@ -28,10 +28,10 @@ NewsLeak	WideLinear	Checked
 NewsLeak	(CheckTrace MergeLeak)	Refuted	
 NewsLeak	(CheckBehavioral MergeLeak)	Refuted	
 NewsLeak	DeskLinear	Checked	
-ShiftMonitors	(CheckMonitor Markouts)	Unsupported	library Monitors is outside the first release
-ShiftMonitors	(CheckMonitor Fills)	Unsupported	library Monitors is outside the first release
-ShiftMonitors	(CheckMonitor FillsToxic)	Unsupported	library Monitors is outside the first release
-ShiftMonitors	(CheckMonitor MarkoutsBuyers)	Unsupported	library Monitors is outside the first release
-ShiftMonitors	(Detect Markouts Fills (On ToxicTape) (Level (Rat 1 100)))	Unsupported	library Monitors is outside the first release
-ShiftMonitors	(Detect Markouts Fills (On BuyersTape) (Level (Rat 1 100)))	Unsupported	library Monitors is outside the first release
-ShiftMonitors	(Detect Markouts Fills (On CalmTape) (Level (Rat 1 100)))	Unsupported	library Monitors is outside the first release
+ShiftMonitors	(CheckMonitor Markouts)	Unsupported	Monitor Markouts: the context carrier One is imported; imported carriers are outside the Monitors fragment
+ShiftMonitors	(CheckMonitor Fills)	Unsupported	Monitor Fills: the context carrier Posted is not an enumerated carrier; only (Enum ..) contexts are executed
+ShiftMonitors	(CheckMonitor FillsToxic)	Unsupported	Monitor FillsToxic: the context carrier Posted is not an enumerated carrier; only (Enum ..) contexts are executed
+ShiftMonitors	(CheckMonitor MarkoutsBuyers)	Unsupported	Monitor MarkoutsBuyers: the context carrier One is imported; imported carriers are outside the Monitors fragment
+ShiftMonitors	(Detect Markouts Fills (On ToxicTape) (Level (Rat 1 100)))	Unsupported	Monitor Markouts: the context carrier One is imported; imported carriers are outside the Monitors fragment
+ShiftMonitors	(Detect Markouts Fills (On BuyersTape) (Level (Rat 1 100)))	Unsupported	Monitor Markouts: the context carrier One is imported; imported carriers are outside the Monitors fragment
+ShiftMonitors	(Detect Markouts Fills (On CalmTape) (Level (Rat 1 100)))	Unsupported	Monitor Markouts: the context carrier One is imported; imported carriers are outside the Monitors fragment

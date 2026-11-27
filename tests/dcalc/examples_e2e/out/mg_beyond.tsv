@@ -88,6 +88,6 @@ MotivationGrid	(CheckImplementation OrderSwapSettled (Grade 1 (Rat 1 4)))	Unsupp
 MotivationGrid	(CheckImplementation NearBoundaryFloor (Grade (Rat 1 2) (Rat 3 4)))	Unsupported	CheckImplementation: Implementation NearBoundaryFloor: Ideal/Actual Map cycle-floor is declared or imported but outside the contract table engine fragment (libraries: NatArith Families Contracts)
 MotivationGrid	(CheckImplementation NearBoundaryFloor (Grade (Rat 1 2) (Rat 1 2)))	Unsupported	CheckImplementation: Implementation NearBoundaryFloor: Ideal/Actual Map cycle-floor is declared or imported but outside the contract table engine fragment (libraries: NatArith Families Contracts)
 MotivationGrid	(CheckImplementation NearBoundaryDamped (Grade (Rat 1 2) (Rat 5 8)))	Unsupported	CheckImplementation: Implementation NearBoundaryDamped: Ideal/Actual Map cycle-damped is declared or imported but outside the contract table engine fragment (libraries: NatArith Families Contracts)
-StaleMonitor	(CheckMonitor Stale)	Unsupported	library Monitors is outside the first release
-StaleMonitor	(Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))	Unsupported	library Monitors is outside the first release
-StaleMonitor	(Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))	Unsupported	library Monitors is outside the first release
+StaleMonitor	(CheckMonitor Stale)	Checked	
+StaleMonitor	(Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))	Estimated	
+StaleMonitor	(Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))	Estimated	
