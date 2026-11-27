@@ -21,6 +21,10 @@ MUTANTS = [
     ('st_ker_dup_outcome', 'stoch.c', 'if (b >= 0 && dc_mr_mark(&mo, b) == DC_MR_DUP) return st_err', 'if (0 && dc_mr_mark(&mo, b) == DC_MR_DUP) return st_err', ['FAIL  st_rules --beyond-release StKerDupOutcome:']),
     ('st_ker_codomain', 'stoch.c', 'if (dc_mr_value(b) || st_rat(ms->items[2], &w)', 'if (b < 0) continue; if (st_rat(ms->items[2], &w)', ['FAIL  st_rules --beyond-release StKerCodomain:']),
     ('st_ker_mass_neg', 'stoch.c', '|| dc_mr_mass_entry(w)) return st_err(err, es, "bad Mass', ') return st_err(err, es, "bad Mass', ['FAIL  st_rules --beyond-release StKerMassNeg:']),
+    # review 1 F1: the Reach restriction checks go through the shared module too; remove each call
+    ('mc_reach_restrict_codomain', 'model.c', 'if (dc_mr_value(j) == DC_MR_CODOMAIN) {   /* R3 on the restricted image', 'if (0) {   /* R3 on the restricted image', ['FAIL  mc_rules rel McReachImage:', 'FAIL  mc_rules --beyond-release McReachImage:']),
+    ('st_reach_restrict_codomain', 'stoch.c', 'if (dc_mr_value(j < C->n ? j : -1)) return -3;', 'if (0) return -3;', ['FAIL  st_rules --beyond-release StReachImage:']),
+    ('st_reach_restrict_mass', 'stoch.c', 'if (ovf || dc_mr_mass_row(sum)) return -3;', 'if (ovf) return -3;', ['FAIL  st_rules --beyond-release StReachMass:']),
     ('st_ker_mass_sum', 'stoch.c', 'if (dc_mr_mass_row(sum)) return st_err(', 'if (0) return st_err(', ['FAIL  st_rules --beyond-release StKerMassSum:']),
     ('mc_table_dup', 'model.c', 'if (rc == DC_MR_DUP) { free(mp->table); return fail(err, es, "Map %s: Table key at row %zu repeated"', 'if (0) { free(mp->table); return fail(err, es, "Map %s: Table key at row %zu repeated"', ['FAIL  mc_rules --beyond-release McTableDup:']),
     ('mc_table_codomain', 'model.c', 'if (rc == DC_MR_CODOMAIN) { free(mp->table); return fail(err, es, "Map %s: Table row %zu value outside carrier', 'if (0) { free(mp->table); return fail(err, es, "Map %s: Table row %zu value outside carrier', ['FAIL  mc_rules --beyond-release McTableCodomain:']),

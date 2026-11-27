@@ -349,7 +349,7 @@ static int restrict_map(DcModule *m, int mp, int sc, int to_sub, char *err, size
         int v = m->map[mp].table[C->sub_idx[i]];
         if (tsub) {
             int j = -1; for (size_t k = 0; k < C->n; k++) if (C->sub_idx[k] == v) { j = (int)k; break; }
-            if (j < 0) {
+            if (dc_mr_value(j) == DC_MR_CODOMAIN) {   /* R3 on the restricted image (maprules.h; review 1 F1) */
                 char *x = sx_print(C->elems[i]), *y = sx_print(m->car[par].elems[v]);
                 fail(err, es, "Map %s: the update sends %s to %s, which leaves carrier %s", m->map[mp].name, x, y, C->name);
                 free(x); free(y); free(tab); return -1;

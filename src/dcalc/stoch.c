@@ -100,7 +100,7 @@ static int st_restrict_map(StMod *s, int mi, int ci, int endo) {
     for (int k = 0; k < ST_MAXE; k++) R->tab[k] = -1;
     for (int i = 0; i < C->n; i++) {
         int y = s->map[mi].tab[C->sub[i]];
-        if (endo) { int j = 0; while (j < C->n && C->sub[j] != y) j++; if (j == C->n) return -3; y = j; }
+        if (endo) { int j = 0; while (j < C->n && C->sub[j] != y) j++; if (dc_mr_value(j < C->n ? j : -1)) return -3; y = j; }   /* R3 (maprules.h; review 1 F1) */
         R->tab[i] = y;
     }
     return s->nmap++;
@@ -112,12 +112,12 @@ static int st_restrict_ker(StMod *s, int ki, int ci) {
     char rn[ST_NM]; snprintf(rn, ST_NM, "%.*s@%.*s", 30, s->ker[ki].name, 30, s->car[ci].name);   /* display only */
     const StCar *C = &s->car[ci]; StKer *R = &s->ker[s->nker]; memset(R, 0, sizeof *R); snprintf(R->name, ST_NM, "%s", rn);
     R->rsrc = ki; R->rcar = ci; R->rrole = 1;
-    R->from = R->to = ci; int ovf = 0; DcQ one = dc_q(1, 1, &ovf);
+    R->from = R->to = ci; int ovf = 0;
     for (int a = 0; a < ST_MAXE; a++) for (int b = 0; b < ST_MAXE; b++) R->p[a][b] = dc_q(0, 1, &ovf);
     for (int i = 0; i < C->n; i++) {
         DcQ sum = dc_q(0, 1, &ovf);
         for (int j = 0; j < C->n; j++) { R->p[i][j] = s->ker[ki].p[C->sub[i]][C->sub[j]]; sum = dc_q_add(sum, R->p[i][j], &ovf); }
-        if (ovf || dc_q_cmp(sum, one)) return -3;   /* the row's mass must stay in the Reach carrier */
+        if (ovf || dc_mr_mass_row(sum)) return -3;   /* R4 (maprules.h; review 1 F1): the row's mass must stay in the Reach carrier */
     }
     return s->nker++;
 }
