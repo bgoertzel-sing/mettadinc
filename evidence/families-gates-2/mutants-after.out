@@ -1,0 +1,5 @@
+PASS  mutant eq_symbols_always_false: caught by run_families (exit 1, 6 FAIL lines; required Fold (release): FE CheckNow R ; Fold (--beyond-release): FE CheckNow R )
+PASS  mutant and_folded_as_or: caught by run_families (exit 1, 2 FAIL lines; required Fold (release): FA CheckNow R ; Fold (--beyond-release): FA CheckNow R )
+PASS  mutant for_drops_last_element: caught by run_families (exit 1, 2 FAIL lines; required For/small (release): FS ; For/small (--beyond-release): FS ; controls still PASS: For/small (release): FT ; For/small (--beyond-release): FT )
+PASS  mutant forall_exists_drops_last_element: caught by run_families (exit 1, 4 FAIL lines; required ForAll/Exists (release): QE ; ForAll/Exists (--beyond-release): QE ; ForAll/Exists (release): QA ; ForAll/Exists (--beyond-release): QA ; controls still PASS: ForAll/Exists (release): QF ; ForAll/Exists (--beyond-release): QF )
+run_families_mutants: PASS

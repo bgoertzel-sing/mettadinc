@@ -62,6 +62,30 @@ for mode in ([], ['--beyond-release']):
         report('Fold (%s): %s CheckNow %s -> %s %s' % (tag, mn, rep, st, dfc),
                len(ln) == 1 and ('(Status %s)' % st) in ln[0] and dfc in ln[0], ln)
 
+# t-2026-11-26-mettadinc-families-gates-2 item 1: For expansion on a small fixture (for_small.metta), exact verdicts.
+# FS needs the LAST element of the For (set.i2 sets bit 2): Refuted at word 4 on HEAD; a For that drops the last
+# element never sets bit 2.  FT (bit 1, not the last element) is a control: Refuted at word 2 either way.
+FOR_EXP = {'FS': ('Bit2Low', 4), 'FT': ('Bit1Low', 2)}
+for mode in ([], ['--beyond-release']):
+    tag = mode[0] if mode else 'release'
+    o = subprocess.run([DC] + mode + [os.path.join(FXD, 'for_small.metta')], capture_output=True, text=True, timeout=120).stdout
+    for mn, (bp, w) in sorted(FOR_EXP.items()):
+        ln = [l for l in o.splitlines() if l.startswith('%s (CheckBlockPartition %s (Of MR)) => ' % (mn, bp))]
+        report('For/small (%s): %s CheckBlockPartition %s -> Refuted, Coverage, witness word %d' % (tag, mn, bp, w),
+               len(ln) == 1 and '(Status Refuted)' in ln[0] and ('(Witness (Word %d) (Obligation Coverage)' % w) in ln[0], ln)
+
+# t-2026-11-26-mettadinc-families-gates-2 item 2: the ForAll / Exists unfolding (forall_exists.metta), exact verdicts.
+# QE (Exists body) and QA (ForAll body) need the LAST element of Ix: Refuted at word 4 on HEAD; an unfolding that
+# drops the last instance answers otherwise.  QF (ForAll, first element) is a control: Refuted at word 1 either way.
+QF_EXP = {'QE': ('Quiet', 4), 'QA': ('Good', 4), 'QF': ('Good', 1)}
+for mode in ([], ['--beyond-release']):
+    tag = mode[0] if mode else 'release'
+    o = subprocess.run([DC] + mode + [os.path.join(FXD, 'forall_exists.metta')], capture_output=True, text=True, timeout=120).stdout
+    for mn, (bp, w) in sorted(QF_EXP.items()):
+        ln = [l for l in o.splitlines() if l.startswith('%s (CheckBlockPartition %s (Of MR)) => ' % (mn, bp))]
+        report('ForAll/Exists (%s): %s CheckBlockPartition %s -> Refuted, Coverage, witness word %d' % (tag, mn, bp, w),
+               len(ln) == 1 and '(Status Refuted)' in ln[0] and ('(Witness (Word %d) (Obligation Coverage)' % w) in ln[0], ln)
+
 # t-2026-11-26-mettadinc-families-followups-v2 step 1: For expansion checked automatically.  ex2 (access policy) is
 # built with For fields; replay.py re-elaborates it independently (replay_families.elaborate) and replays every
 # Checked/Refuted answer.  Required: replay exit 0 with the exact summary, and the exact per-request status list.
@@ -74,7 +98,12 @@ EX2_DD = 'Checked' if EX2_BK else 'Conditional'
 EX2_ST = ['Refuted', 'Refuted', 'Refuted', EX2_DD, 'Unknown', EX2_DD] + ['Unsupported'] * 9
 EX2_SUM = ('replay: 5 replayed, 10 not Checked/Refuted, 0 failed' if EX2_BK
            else 'replay: 3 replayed, 12 not Checked/Refuted, 0 failed')
-for mode in ([], ['--beyond-release']):
+# DCALC_FAMILIES_SKIP_EX2=1 (set only by run_families_mutants.py, t-2026-11-26-mettadinc-families-gates-2 item 1):
+# skip ex2 for a mutant binary; a dropped-last-element For on ex2 peaked at about 4.2 GB RSS.  The unmutated
+# families step always runs it.
+SKIP_EX2 = os.environ.get('DCALC_FAMILIES_SKIP_EX2') == '1'
+if SKIP_EX2: print('SKIP  For/ex2 (both modes): DCALC_FAMILIES_SKIP_EX2=1 (mutant run)')
+for mode in ([] if SKIP_EX2 else [[], ['--beyond-release']]):
     tag = mode[0] if mode else 'release'
     o = subprocess.run([DC] + mode + [EX2], capture_output=True, text=True, timeout=300).stdout
     st = [re.sub(r'^.* => \(Result \(Status ([A-Za-z]+)\).*$', r'\1', l) for l in o.splitlines() if ' => ' in l]

@@ -1,0 +1,45 @@
+PASS  F1 (release): Crisp + Use Families, (Eq low low) in Cases folds to True/False -> not InvalidInput
+PASS  F1 (release): same module without Use Families is unchanged (not InvalidInput)
+PASS  F1 (--beyond-release): Crisp + Use Families, (Eq low low) in Cases folds to True/False -> not InvalidInput
+PASS  F1 (--beyond-release): same module without Use Families is unchanged (not InvalidInput)
+PASS  Init (release): start outside the Invariant -> Refuted, Coverage at word 1 (no induction certificate)
+PASS  Init (release): unbudgeted row Refuted
+PASS  Init (--beyond-release): start outside the Invariant -> Refuted, Coverage at word 1 (no induction certificate)
+PASS  Init (--beyond-release): unbudgeted row Refuted
+PASS  Switch (release): key with its own arm takes it, not Any -> Refuted, witness word 1
+PASS  Switch (release): key without an arm takes the Any arm -> Refuted, witness word 2
+PASS  Switch (--beyond-release): key with its own arm takes it, not Any -> Refuted, witness word 1
+PASS  Switch (--beyond-release): key without an arm takes the Any arm -> Refuted, witness word 2
+PASS  Fold (release): FA CheckNow R -> Refuted (Defect (Interval 1 1))
+PASS  Fold (release): FA CheckNow RH -> Checked (Defect (Interval 0 0))
+PASS  Fold (release): FE CheckNow R -> Refuted (Defect (Interval 1 1))
+PASS  Fold (release): FE CheckNow RH -> Checked (Defect (Interval 0 0))
+PASS  Fold (release): FO CheckNow R -> Refuted (Defect (Interval 1 1))
+PASS  Fold (release): FO CheckNow RH -> Checked (Defect (Interval 0 0))
+PASS  Fold (--beyond-release): FA CheckNow R -> Refuted (Defect (Interval 1 1))
+PASS  Fold (--beyond-release): FA CheckNow RH -> Checked (Defect (Interval 0 0))
+PASS  Fold (--beyond-release): FE CheckNow R -> Refuted (Defect (Interval 1 1))
+PASS  Fold (--beyond-release): FE CheckNow RH -> Checked (Defect (Interval 0 0))
+PASS  Fold (--beyond-release): FO CheckNow R -> Refuted (Defect (Interval 1 1))
+PASS  Fold (--beyond-release): FO CheckNow RH -> Checked (Defect (Interval 0 0))
+PASS  For/small (release): FS CheckBlockPartition Bit2Low -> Refuted, Coverage, witness word 4
+PASS  For/small (release): FT CheckBlockPartition Bit1Low -> Refuted, Coverage, witness word 2
+PASS  For/small (--beyond-release): FS CheckBlockPartition Bit2Low -> Refuted, Coverage, witness word 4
+PASS  For/small (--beyond-release): FT CheckBlockPartition Bit1Low -> Refuted, Coverage, witness word 2
+PASS  ForAll/Exists (release): QA CheckBlockPartition Good -> Refuted, Coverage, witness word 4
+PASS  ForAll/Exists (release): QE CheckBlockPartition Quiet -> Refuted, Coverage, witness word 4
+PASS  ForAll/Exists (release): QF CheckBlockPartition Good -> Refuted, Coverage, witness word 1
+PASS  ForAll/Exists (--beyond-release): QA CheckBlockPartition Good -> Refuted, Coverage, witness word 4
+PASS  ForAll/Exists (--beyond-release): QE CheckBlockPartition Quiet -> Refuted, Coverage, witness word 4
+PASS  ForAll/Exists (--beyond-release): QF CheckBlockPartition Good -> Refuted, Coverage, witness word 1
+PASS  For/ex2 (release, proof backend on): 15 answers with the expected status list
+PASS  For/ex2 (release): replay.py re-elaborates and replays, "replay: 5 replayed, 10 not Checked/Refuted, 0 failed"
+PASS  For/ex2 (--beyond-release, proof backend on): 15 answers with the expected status list
+PASS  For/ex2 (--beyond-release): replay.py re-elaborates and replays, "replay: 5 replayed, 10 not Checked/Refuted, 0 failed"
+PASS  Families+M6/M7 (release): FB0 -> Refuted (Witness (Word 2)
+PASS  Families+M6/M7 (release): FB6 -> Unsupported (Reason "library Contracts is outside the first release")
+PASS  Families+M6/M7 (release): FB7 -> Unsupported (Reason "library Hyperseed is outside the first release")
+PASS  Families+M6/M7 (--beyond-release): FB0 -> Refuted (Witness (Word 2)
+PASS  Families+M6/M7 (--beyond-release): FB6 -> Refuted (Witness (Word 2)
+PASS  Families+M6/M7 (--beyond-release): FB7 -> Refuted (Witness (Word 2)
+run_families: PASS
