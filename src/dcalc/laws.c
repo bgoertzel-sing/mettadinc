@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "laws.h"
+#include "maprules.h"
 #include "model.h"
 
 void dc_law_init(DcLaw *L) { memset(L, 0, sizeof *L); }
@@ -55,7 +56,7 @@ int dc_law_eval(const Sx *e, DcLawLeaf leaf, void *ctx, DcLaw *out, int *ovf, ch
         int ok = 1; Sx *v = leaf(e->items[1], ctx, &ok); DcQ p;
         if (ok != 1 || q_of(v, &p)) { sx_free(v); WHY("the probability of a Coin is not a rational"); }
         sx_free(v);
-        if (dc_q_sign(p) < 0 || dc_q_cmp(p, dc_q(1, 1, ovf)) > 0) WHY("the probability of a Coin is outside [0, 1]");
+        if (dc_mr_mass_entry(p) || dc_mr_mass_entry(dc_q_sub(dc_q(1, 1, ovf), p, ovf))) WHY("the probability of a Coin is outside [0, 1]");   /* R4 (maprules.h): masses p and 1-p are >= 0 */
         Sx *one = sx_sym("1"), *zero = sx_sym("0");
         int r = dc_law_add(out, one, p, ovf) || dc_law_add(out, zero, dc_q_sub(dc_q(1, 1, ovf), p, ovf), ovf);
         sx_free(one); sx_free(zero);
@@ -100,11 +101,11 @@ int dc_law_eval(const Sx *e, DcLawLeaf leaf, void *ctx, DcLaw *out, int *ovf, ch
         DcQ sum = dc_q(0, 1, ovf);
         for (size_t k = 1; k < e->n; k++) {
             const Sx *c = e->items[k]; DcQ q;
-            if (c->kind != SX_LIST || c->n != 2 || q_of(c->items[1], &q) || dc_q_sign(q) < 0) WHY("a mass of a measure is not a non-negative rational");
+            if (c->kind != SX_LIST || c->n != 2 || q_of(c->items[1], &q) || dc_mr_mass_entry(q)) WHY("a mass of a measure is not a non-negative rational");   /* R4 (maprules.h) */
             sum = dc_q_add(sum, q, ovf);
             if (dc_law_add(out, c->items[0], q, ovf)) WHY("out of memory in a law");
         }
-        if (dc_q_cmp(sum, dc_q(1, 1, ovf))) WHY("the masses of a measure do not sum to 1");
+        if (dc_mr_mass_row(sum)) WHY("the masses of a measure do not sum to 1");   /* R4 (maprules.h) */
         return 0;
     }
     /* anything else: a leaf that must itself denote a law (e.g. a map call returning a law) */

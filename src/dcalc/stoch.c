@@ -828,7 +828,7 @@ static int st_lawx(const Sx *e, const StCar *T, DcQ *out, int *ovf) {
     if (dc_law_head(e) || st_has_mapcall(e) || (e->kind == SX_SYM && st_law_src && st_decl(st_law_src, "Measure", e->text))) {   /* library Laws: Indep / Image / LawOf / a measure name over a finite carrier (laws.c); a bare map call reaches the leaf and is flagged */
         DcLaw L; dc_law_init(&L); char why[160];
         if (dc_law_eval(e, st_lawleaf, NULL, &L, ovf, why, sizeof why)) { snprintf(st_law_why, sizeof st_law_why, "%s", st_law_mapcall ? st_law_uwhy : why); dc_law_free(&L); return -1; }
-        for (size_t i = 0; i < L.n; i++) { int j = st_el(T, L.val[i]); if (j < 0) { snprintf(st_law_why, sizeof st_law_why, "a law value is outside the target carrier"); dc_law_free(&L); return -1; } out[j] = L.m[i]; }
+        for (size_t i = 0; i < L.n; i++) { int j = st_el(T, L.val[i]); if (dc_mr_value(j)) { snprintf(st_law_why, sizeof st_law_why, "a law value is outside the target carrier");   /* R3 (maprules.h) */ dc_law_free(&L); return -1; } out[j] = L.m[i]; }
         dc_law_free(&L); return 0;
     }
     return -1;
