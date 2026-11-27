@@ -18,6 +18,10 @@ MUTANTS = [
     ('lawof_measure_masses_flat', 'laws.c', 'if (dc_law_add(out, c->items[0], q, ovf)) WHY(', 'if (dc_law_add(out, c->items[0], dc_q(1, 2, ovf), ovf)) WHY('),
     ('lawof_measure_not_expanded', 'stoch.c', 'Sx *ml = st_measure_law(e); if (ml) return ml;', 'Sx *ml = NULL; (void)st_measure_law; if (ml) return ml;'),
     ('mapcall_not_flagged', 'stoch.c', 'if (st_has_mapcall(e)) { st_law_mapcall = 1;', 'if (0 && st_has_mapcall(e)) { st_law_mapcall = 1;'),
+    # review 2: F1 computed Point value, F2 admitted library form in a law leaf, F4 bare Expect sub-reason
+    ('point_computed_rejected', 'stoch.c', 'if (j >= 0) { out[j] = dc_q(1, 1, ovf); return 0; } }', 'if (j >= 0) { out[j] = dc_q(1, 1, ovf); return 0; } return -1; }'),
+    ('openhead_not_flagged', 'stoch.c', 'if (h) { st_law_mapcall = 1;', 'if (0 && h) { st_law_mapcall = 1;'),
+    ('expect_no_subreason', 'stoch.c', 'if (sx_head_is(e, "Expect")) { snprintf(st_law_why', 'if (0 && sx_head_is(e, "Expect")) { snprintf(st_law_why'),
 ]
 fails = 0
 def report(name, ok, det=''):

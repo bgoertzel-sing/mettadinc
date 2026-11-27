@@ -88,5 +88,16 @@ report('mapcall: dcalc exit 0, 4 requests', rc == 0 and len(out) == 4, (rc, len(
 for i, form in enumerate(['Coin (pr A)', 'Image (inc $b)', 'Indep (lw A)', 'bare (lw A)']):
     got = out[i] if i < len(out) else ('?', {}, None, '')
     report('mapcall: %s is Unsupported, reason names the map call' % form, got[0] == 'Unsupported' and not got[1] and 'map call inside a law term' in got[3], got)
+# ---- review 2: computed Point values, map calls in a Point, admitted library forms in a law leaf, bare Expect
+rc, out = results(os.path.join(HERE, 'fixtures', 'laws_review2.metta'))
+report('review2: dcalc exit 0, 6 requests', rc == 0 and len(out) == 6, (rc, len(out)))
+for i, form in enumerate(['Point (Add 0 1)', 'Point (If (Eq 1 1) 1 0)']):
+    got = out[i] if i < len(out) else ('?', {}, None, '')
+    report('review2: %s is Checked, law {1:1} mean 1' % form, got[0] == 'Checked' and got[1] == {1: F(1)} and got[2] == F(1), got)
+for i, (form, why) in enumerate([('Point (pr A)', 'map call inside a law term'), ('Image (Switch ..) under Families', '(Switch ..) inside a law term'), ('Image (Quot ..) under NatArith', '(Quot ..) inside a law term')]):
+    got = out[i + 2] if i + 2 < len(out) else ('?', {}, None, '')
+    report('review2: %s is Unsupported, reason names %r' % (form, why), got[0] == 'Unsupported' and not got[1] and why in got[3], got)
+got = out[5] if len(out) > 5 else ('?', {}, None, '')
+report('review2: bare (Expect L) case body is InvalidInput with a sub-reason', got[0] == 'InvalidInput' and not got[1] and '(Expect L) is a number, not a law' in got[3], got)
 print('run_laws: %s' % ('PASS' if fails == 0 else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
