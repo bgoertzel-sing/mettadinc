@@ -1,33 +1,33 @@
 module	request	status	reason
-SkillShare	ABchecked	Unsupported	library NatArith is outside the first release
-SkillShare	BCchecked	Unsupported	library NatArith is outside the first release
-SkillShare	CAchecked	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckTransfer CAcal)	Unsupported	library NatArith is outside the first release
-SkillShare	CandidatesCA	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckTransfer NaiveAB)	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckValuePullback NaiveAB)	Unsupported	library NatArith is outside the first release
-SkillShare	RoundTrip	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckTransferHive Strict)	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckTransferHive FullGauge)	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckTransferHive Copied)	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckTransferHive Transported)	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckTransferHive FromBase)	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckKernelCoherence (Output Unsaturated Hive))	Unsupported	library NatArith is outside the first release
-SkillShare	(Holonomy (Output Unsaturated Hive) (Cycle A B C))	Unsupported	library NatArith is outside the first release
-SkillShare	(ConsensusCost (Output Unsaturated Hive))	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckKernelCoherence (Output SaturatedFull Hive))	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckKernelCoherence (Output SaturatedCopied Hive))	Unsupported	library NatArith is outside the first release
-SkillShare	(CheckKernelCoherence (Output SaturatedTransported Hive))	Unsupported	library NatArith is outside the first release
-SkillShare	SkillRoundTrip	Unsupported	library NatArith is outside the first release
-SkillShare	UpRoundTrip	Unsupported	library NatArith is outside the first release
-SkillShareDock	(CheckTransfer CAold)	Unsupported	library NatArith is outside the first release
-SkillShareDock	(CheckTransfer CAold (Metric ExpectedReward) (Within (Rat 1 2)))	Unsupported	library NatArith is outside the first release
-SkillShareDock	(CheckTransfer CAnew)	Unsupported	library NatArith is outside the first release
-SkillShareDock	(CheckTransferHive StaleGauge)	Unsupported	library NatArith is outside the first release
-SkillShareDock	(CheckTransferHive OldLibrary)	Unsupported	library NatArith is outside the first release
-SkillShareDock	(CheckTransferHive Docking)	Unsupported	library NatArith is outside the first release
-SkillShareDock	(CheckKernelCoherence (Output DockSaturated Hive))	Unsupported	library NatArith is outside the first release
-PalletBay	(CheckTransfer ACp)	Unsupported	library NatArith is outside the first release
-PalletBay	(CheckTransfer ACp (Metric ExpectedReward) (Within (Rat 1 2)))	Unsupported	library NatArith is outside the first release
-PalletBay	(CheckTransfer ACp (Metric ExpectedReward) (Within (Rat 1 4)))	Unsupported	library NatArith is outside the first release
-PalletBay	AtoCp	Unsupported	library NatArith is outside the first release
+SkillShare	ABchecked	Unsupported	CheckTransfer: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	BCchecked	Unsupported	CheckTransfer: MethodSystem B: States FreeB / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	CAchecked	Unsupported	CheckTransfer: MethodSystem C: States FreeC / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckTransfer CAcal)	Unsupported	CheckTransfer: MethodSystem C: States FreeC / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	CandidatesCA	Unsupported	request FindTransfers is outside the M0 fragment
+SkillShare	(CheckTransfer NaiveAB)	Unsupported	CheckTransfer: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckValuePullback NaiveAB)	Unsupported	CheckValuePullback: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	RoundTrip	Unsupported	ComposeTransfers: premise Derive ABchecked is Unsupported
+SkillShare	(CheckTransferHive Strict)	Unsupported	CheckTransferHive Strict: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckTransferHive FullGauge)	Unsupported	CheckTransferHive FullGauge: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckTransferHive Copied)	Unsupported	CheckTransferHive Copied: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckTransferHive Transported)	Unsupported	CheckTransferHive Transported: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckTransferHive FromBase)	Unsupported	CheckTransferHive FromBase: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckKernelCoherence (Output Unsaturated Hive))	Unsupported	CheckKernelCoherence: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(Holonomy (Output Unsaturated Hive) (Cycle A B C))	Unsupported	Holonomy: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(ConsensusCost (Output Unsaturated Hive))	Unsupported	ConsensusCost: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckKernelCoherence (Output SaturatedFull Hive))	Unsupported	CheckKernelCoherence: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckKernelCoherence (Output SaturatedCopied Hive))	Unsupported	CheckKernelCoherence: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	(CheckKernelCoherence (Output SaturatedTransported Hive))	Unsupported	CheckKernelCoherence: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShare	SkillRoundTrip	Unsupported	request TransportSkill is outside the M0 fragment
+SkillShare	UpRoundTrip	Unsupported	request TransportSkill is outside the M0 fragment
+SkillShareDock	(CheckTransfer CAold)	Unsupported	CheckTransfer: MethodSystem C: States FreeC / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShareDock	(CheckTransfer CAold (Metric ExpectedReward) (Within (Rat 1 2)))	Unsupported	CheckTransfer: the (Within d) tolerance option is not implemented (library Transfers)
+SkillShareDock	(CheckTransfer CAnew)	Unsupported	CheckTransfer: MethodSystem C: States FreeC / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShareDock	(CheckTransferHive StaleGauge)	Unsupported	CheckTransferHive StaleGauge: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShareDock	(CheckTransferHive OldLibrary)	Unsupported	CheckTransferHive OldLibrary: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShareDock	(CheckTransferHive Docking)	Unsupported	CheckTransferHive Docking: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+SkillShareDock	(CheckKernelCoherence (Output DockSaturated Hive))	Unsupported	CheckKernelCoherence: MethodSystem A: States FreeA / Methods Dir is a carrier outside the transfer table engine fragment (libraries: Transfers Hives NatArith)
+PalletBay	(CheckTransfer ACp)	Unsupported	CheckTransfer: A names no declared MethodSystem (imported via Only; the import inliner copies only Carrier/Map/Tolerance)
+PalletBay	(CheckTransfer ACp (Metric ExpectedReward) (Within (Rat 1 2)))	Unsupported	CheckTransfer: the (Within d) tolerance option is not implemented (library Transfers)
+PalletBay	(CheckTransfer ACp (Metric ExpectedReward) (Within (Rat 1 4)))	Unsupported	CheckTransfer: the (Within d) tolerance option is not implemented (library Transfers)
+PalletBay	AtoCp	Unsupported	ComposeTransfers: ABchecked is an imported Derive; the import inliner copies only Carrier/Map/Tolerance (libraries Transfers, Contracts)

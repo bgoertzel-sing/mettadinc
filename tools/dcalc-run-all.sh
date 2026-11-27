@@ -72,8 +72,8 @@ step families;         $R families "python3 tests/dcalc/families/run_families.py
 step stoch_reach;      $R stoch_reach "python3 tests/dcalc/stoch_reach/run_stoch_reach.py > build/stoch_reach.out; r=\$?; tail -1 build/stoch_reach.out; exit \$r" || rc=1   # stochastic Reach reader (t-2026-11-24-mettadinc-stoch-reach-reader, review-1 F3)
 step families_mutants; $R families_mutants "python3 tests/dcalc/families/run_families_mutants.py > build/families_mutants.out; r=\$?; tail -1 build/families_mutants.out; exit \$r" || rc=1   # source mutants (Eq-false, And-as-Or, For drops last element) must fail run_families (t-2026-11-26-mettadinc-families-followups-v2)
 step differential;     if [ "${DCALC_SKIP_DIFFERENTIAL:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_DIFFERENTIAL=1)"; else $R differential "sh tests/dcalc/differential/gate.sh build/dcalc/dcalc > build/differential_gate.out; r=\$?; tail -1 build/differential_gate.out; exit \$r" || rc=1; fi   # optional differential gate (t-2026-11-18-mettadinc-m4m6-differential)
-step resources;        cat build/dcalc-resources.tsv
 step natarith;         $R natarith "python3 tests/dcalc/natarith/run_natarith.py > build/natarith.out; r=\$?; tail -1 build/natarith.out; exit \$r" || rc=1   # NatArith exact values per primitive (both modes) + explicit-vs-symbolic agreement (t-2026-11-26-mettadinc-natarith-v2)
 step natarith_mutants; $R natarith_mutants "python3 tests/dcalc/natarith/run_natarith_mutants.py > build/natarith_mutants.out; r=\$?; tail -1 build/natarith_mutants.out; exit \$r" || rc=1   # one source mutant per NatArith primitive (model.c + ops_sym.c) must fail run_natarith
+step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc

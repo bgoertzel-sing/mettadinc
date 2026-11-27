@@ -5,6 +5,8 @@
           release: every request Unsupported (NatArith is outside the first release).
   agree:  fixtures/nat_agree.metta -- the same six maps on {0..7} as an explicit Int carrier (NAE) and as
           (BitVector 3) words (NAS); partitions must be identical and equal the known answers below.
+  symlimits: fixtures/nat_symlimits.metta -- forms outside the symbolic fragment (symbolic or zero divisor,
+          constant wider than the word) answer Unsupported with a reason, never InvalidInput (review 1 finding 2).
 DCALC_NATARITH_DC overrides the build dir (run_natarith_mutants.py)."""
 import os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -64,5 +66,17 @@ for d, want in AGREE.items():
     pa, pb = part(a), part(b)
     report('Agree: %s explicit (NAE) = symbolic (NAS) = known answer' % d,
            status(a) == status(b) == 'Checked' and pa == pb == want, ('NAE', status(a), pa, 'NAS', status(b), pb, reason(a)[:80], reason(b)[:80]))
+# review 1 finding 2: symbolic-engine limits answer Unsupported with a reason, never InvalidInput
+SYMLIM = {'D_qv': 'needs a constant divisor', 'D_qz': 'Quot/Rem by zero', 'D_mx9': 'constant wider than the word',
+          'D_qm': 'needs a constant divisor', 'D_qa': 'needs a constant divisor'}
+rc, out = run('nat_symlimits.metta', True)
+report('symlimits (--beyond-release): dcalc exit 0, 6 requests', rc == 0 and len(out) == 6, (rc, len(out)))
+for d, why in SYMLIM.items():
+    l = out.get(('NSL', d), '')
+    report('SymLimits: NSL %s Unsupported naming "%s" (not InvalidInput)' % (d, why),
+           status(l) == 'Unsupported' and why in reason(l), (status(l), reason(l)[:160]))
+l = out.get(('NSE', 'D_qm'), '')
+report('SymLimits: NSE D_qm (Quot 6 (Max $x 1)) explicit Checked with the known partition',
+       status(l) == 'Checked' and part(l) == ((0, 2), (2, 1), (3, 1), (4, 2), (6, 1), (7, 1)), (status(l), part(l), reason(l)[:120]))
 print('run_natarith: %s' % ('PASS' if fails == 0 else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)

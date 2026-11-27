@@ -45,6 +45,18 @@ MUTANTS = [
      [A + 'D_q3']),
     ('sym_rem_as_quot', 'ops_sym.c', 'o->b[k] = quot ? q[k] : (k < dw ? r[k] : 0);', 'o->b[k] = quot ? q[k] : (k < dw ? q[k] : 0);',
      [A + 'D_r3']),
+    # review 1 finding 3: the CNF twin (cnf_term), the concrete replay (sym_ceval) and the cone (sup_term) are
+    # checked by nat_twin_check in dc_req_sym; a wrong twin turns the symbolic agreement rows Unsupported
+    ('cnf_le_as_lt', 'ops_sym.c', 'o->b[0] = le ? -cnf_ult(c, b.b, a.b, w) : cnf_ult(c, a.b, b.b, w);', 'o->b[0] = le ? cnf_ult(c, a.b, b.b, w) : cnf_ult(c, a.b, b.b, w);',
+     [A + 'D_le4']),
+    ('cnf_min_as_max', 'ops_sym.c', 'mn ? cnf_ite(c, lt, a.b[k], b.b[k])', 'mn ? cnf_ite(c, lt, b.b[k], a.b[k])',
+     [A + 'D_mn5']),
+    ('cnf_rem_as_quot', 'ops_sym.c', 'o->b[k] = quot ? q[k] : (k < dw ? r[k] : F);', 'o->b[k] = quot ? q[k] : (k < dw ? q[k] : F);',
+     [A + 'D_r3']),
+    ('ceval_quot_as_rem', 'ops_sym.c', '*v = !strcmp(h, "Quot") ? a / b : a % b;', '*v = !strcmp(h, "Quot") ? a % b : a % b;',
+     [A + 'D_q3']),
+    ('sup_nat_empty_cone', 'ops_sym.c', 'o->w = w; for (int q = 0; q < w; q++) o->m[q] = all; return 0; }', 'o->w = w; for (int q = 0; q < w; q++) o->m[q] = 0; return 0; }',
+     [A + 'D_q3']),
 ]
 fails = 0
 def report(name, ok, det=''):

@@ -503,7 +503,7 @@ static int sym_read(const Sx *src, SymMod *s, char *err, size_t es) {
 static int sym_apply(DcBddMgr *bm, const SymMod *s, int mi, const DcBdd *xv, SymVal *o, char *err, size_t es) {
     const SMap *mp = &s->map[mi];
     SymCtx c = { bm, mp->var->text, xv, s->car[mp->from].width, err, es };
-    if (sym_term(&c, mp->body, o)) return -1;
+    { int r = sym_term(&c, mp->body, o); if (r) return r < -1 ? -2 : -1; }   /* -2: outside the symbolic fragment (Unsupported) */
     widen(o, s->car[mp->to].width);
     if (o->w != s->car[mp->to].width) { snprintf(err, es, "Map %s: Body width %d does not match carrier %s", mp->name, o->w, s->car[mp->to].name); return -1; }
     return 0;
@@ -533,7 +533,7 @@ static uint64_t sv_eval(SymEnv *e, const SymVal *v, uint64_t w) {
     return r;
 }
 static int mach_acts(SymEnv *e, const SymMod *S, const SMach *M, SymVal *av, char *err, size_t es) {
-    for (int a = 0; a < M->nact; a++) if (sym_apply(e->bm, S, M->act[a].map, e->xv, &av[a], err, es)) return -1;
+    for (int a = 0; a < M->nact; a++) { int r = sym_apply(e->bm, S, M->act[a].map, e->xv, &av[a], err, es); if (r) return r; }   /* -1 invalid, -2 fragment */
     return 0;
 }
 /* Forward closure of {start} under the actions, by breadth-first search on concrete
@@ -590,7 +590,7 @@ static int sym_check_partition(SymEnv *e, const SymMod *S, const SMach *M, const
             return sterr(err, es, "expected (Block Name (Body ($x) predicate) representative)", b);
         if (e->W < 64 && (rep[nb] >> e->W)) return sterr(err, es, "representative outside the word width", b);
         SymCtx c = { bm, bd->items[1]->items[0]->text, e->xv, e->W, err, es };
-        SymVal v; if (sym_term(&c, bd->items[2], &v) || to_bool(&c, &v, bd->items[2])) return -1;
+        SymVal v; { int r = sym_term(&c, bd->items[2], &v); if (r) return r < -1 ? -3 : -1; } if (to_bool(&c, &v, bd->items[2])) return -1;
         bn[nb] = b->items[1]->text; B[nb++] = v.b[0];
     }
     if (!nb) return sterr(err, es, "BlockPartition has no blocks", bp);
@@ -626,7 +626,7 @@ static int sym_check_partition(SymEnv *e, const SymMod *S, const SMach *M, const
         if (!dc_bdd_eval(bm, C, rep[i]) || !dc_bdd_eval(bm, B[i], rep[i]))
             FAILW("Membership", rep[i], "representative %llu of block %s is outside %s", (unsigned long long)rep[i], bn[i], dc_bdd_eval(bm, C, rep[i]) ? "the block" : "the scope");
     for (int p = 0; p < M->nobs; p++) {
-        SymVal ob; if (sym_apply(bm, S, M->obs[p].map, e->xv, &ob, err, es)) return -1;
+        SymVal ob; { int r = sym_apply(bm, S, M->obs[p].map, e->xv, &ob, err, es); if (r) return r == -2 ? -3 : -1; }
         for (int i = 0; i < nb; i++) {
             uint64_t t = sv_eval(e, &ob, rep[i]);
             for (int k = 0; k < ob.w; k++) {
@@ -900,7 +900,7 @@ static int sym_induct(SymEnv *e, const SymMod *S, const Sx *bp, const SymVal *ra
     if (iv) {
         const char *in; int mi; SymVal v;
         if (iv->n != 2 || sname(iv, 1, &in) || (mi = sfind_map(S, in)) < 0) return sterr(err, es, "expected (Invariant map)", iv);
-        if (sym_apply(bm, S, mi, e->xv, &v, err, es)) return -1;
+        { int r = sym_apply(bm, S, mi, e->xv, &v, err, es); if (r) return r == -2 ? -3 : -1; }
         if (v.w != 1) return sterr(err, es, "the Invariant map must be Bool-valued", iv);
         J = v.b[0];
     } else
@@ -910,7 +910,7 @@ static int sym_induct(SymEnv *e, const SymMod *S, const Sx *bp, const SymVal *ra
             if (!bd || !sx_head_is(bd, "Body") || bd->n != 3 || bd->items[1]->kind != SX_LIST || bd->items[1]->n != 1 || bd->items[1]->items[0]->kind != SX_SYM)
                 return sterr(err, es, "expected (Block Name (Body ($x) predicate) representative)", b);
             SymCtx c = { bm, bd->items[1]->items[0]->text, e->xv, e->W, err, es };
-            SymVal v; if (sym_term(&c, bd->items[2], &v) || to_bool(&c, &v, bd->items[2])) return -1;
+            SymVal v; { int r = sym_term(&c, bd->items[2], &v); if (r) return r < -1 ? -3 : -1; } if (to_bool(&c, &v, bd->items[2])) return -1;
             J = dc_bdd_or(bm, J, v.b[0]);
         }
     if (!dc_bdd_eval(bm, J, start)) { *cti = start; *cta = -1; return 0; }
@@ -946,7 +946,7 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
     SymEnv E; if (senv_init(&E, S->car[ci].width)) return dc_unsupported(m, "CheckBlockPartition: out of memory");
     SymVal av[SYM_MAXP]; DcBdd C = 1; int nn = 0, rc; SymFail f; RNode *nd = NULL; const SMach *R = NULL;
     int partial = 0, ind = 0; SymFail fi; memset(&fi, 0, sizeof fi);
-    if (mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(E.bm); return dc_invalid(m, "CheckBlockPartition: %s", err); }
+    { int r = mach_acts(&E, S, M, av, err, sizeof err); if (r) { dc_bdd_free(E.bm); return r == -2 ? dc_unsupported(m, "CheckBlockPartition: %s", err) : dc_invalid(m, "CheckBlockPartition: %s", err); } }
     if (S->car[ci].reach) {
         const Sx *rf = S->car[ci].reach; int ri = sfind_mach(S, rf->items[1]->text); uint64_t st; SymVal rav[SYM_MAXP];
         if (ri < 0 || !lit_of(rf->items[2]->items[1], &st)) { dc_bdd_free(E.bm); return dc_invalid(m, "carrier %s: bad (Reach Machine (From word))", cn); }
@@ -967,7 +967,7 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
                 if (sx_head_is(b2, "Block") && b2->n == 4 && lit_of(b2->items[3], &rw) && !dc_bdd_eval(E.bm, C, rw)) repok = 0;
             }
             int ir = repok ? sym_induct(&E, S, bp, rav, R->nact, st, &I, &cti, &cta, ei, sizeof ei) : 0;
-            if (ir < 0) { free(nd); dc_bdd_free(E.bm); return ir == -1 ? dc_invalid(m, "CheckBlockPartition: %s", ei) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
+            if (ir < 0) { free(nd); dc_bdd_free(E.bm); return ir == -1 ? dc_invalid(m, "CheckBlockPartition: %s", ei) : ir == -3 ? dc_unsupported(m, "CheckBlockPartition: %s", ei) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
             if (ir == 0 && repok) {
                 fi.obl = cta < 0 ? "Initiation" : "Consecution"; fi.wit = cti;
                 if (cta < 0) snprintf(fi.what, sizeof fi.what, "the initial word %llu is outside the induction scope", (unsigned long long)cti);
@@ -975,7 +975,7 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
             } else if (ir == 0) { fi.obl = "Membership"; snprintf(fi.what, sizeof fi.what, "a representative is not among the explored words"); }
             else {
                 int ri2 = sym_check_partition(&E, S, M, av, bp, I, &fi, ei, sizeof ei);
-                if (ri2 < 0) { free(nd); dc_bdd_free(E.bm); return ri2 == -1 ? dc_invalid(m, "CheckBlockPartition: %s", ei) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
+                if (ri2 < 0) { free(nd); dc_bdd_free(E.bm); return ri2 == -1 ? dc_invalid(m, "CheckBlockPartition: %s", ei) : ri2 == -3 ? dc_unsupported(m, "CheckBlockPartition: %s", ei) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
                 if (ri2 > 0) { ind = 1; free(nd); nd = NULL; nn = 0; C = I; }
             }
         }
@@ -984,7 +984,7 @@ static Sx *sym_req_partition(DcModule *m, const SymMod *S, const Sx *q) {
     size_t nodes = dc_bdd_nodes(E.bm); dc_bdd_free(E.bm);
     sym_res_words = nn + (rc == 0); sym_res_nodes = nodes;
     for (size_t k = 2; k < bp->n; k++) if (sx_head_is(bp->items[k], "Block")) sym_res_words++;
-    if (rc < 0) { free(nd); return rc == -1 ? dc_invalid(m, "CheckBlockPartition: %s", err) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
+    if (rc < 0) { free(nd); return rc == -1 ? dc_invalid(m, "CheckBlockPartition: %s", err) : rc == -3 ? dc_unsupported(m, "CheckBlockPartition: %s", err) : dc_unsupported(m, "CheckBlockPartition: BDD node limit reached"); }
     if (partial && !ind && rc > 0) {   /* not inductive, and no violation among the explored words */
         free(nd);
         char wb[32]; snprintf(wb, sizeof wb, "%llu", (unsigned long long)fi.wit);
@@ -1119,9 +1119,9 @@ static int sym_refine_from(DcBddMgr *bm, const SymMod *S, const SMach *M, const 
                            STest *T, int *ntp, DcBdd *cl, int *nclp, int p0, int nt0, int ncl0, char *err, size_t es) {
     int nt = nt0, ncl = ncl0, rc = 0;
     if (!ncl) { ncl = 1; cl[0] = 1; nt = 0; p0 = 0; }
-    for (int p = 0; p < p0; p++) if (sym_apply(bm, S, M->obs[p].map, xv, &ob[p], err, es)) return -2;
+    for (int p = 0; p < p0; p++) { int r = sym_apply(bm, S, M->obs[p].map, xv, &ob[p], err, es); if (r) return r == -2 ? -3 : -2; }
     for (int p = p0; p < M->nobs && !rc; p++) {
-        if (sym_apply(bm, S, M->obs[p].map, xv, &ob[p], err, es)) return -2;
+        { int r = sym_apply(bm, S, M->obs[p].map, xv, &ob[p], err, es); if (r) return r == -2 ? -3 : -2; }
         for (int k = 0; k < ob[p].w && !rc; k++) {
             int sp = sym_split(bm, cl, &ncl, ob[p].b[k]);
             if (sp < 0 || (sp && nt == SYM_MAXT)) rc = -1;
@@ -1140,7 +1140,7 @@ static int sym_refine_from(DcBddMgr *bm, const SymMod *S, const SMach *M, const 
     *ntp = nt; *nclp = ncl; return rc;
 }
 static int sym_refine(DcBddMgr *bm, const SymMod *S, const SMach *M, const SymVal *av, SymVal *ob, const DcBdd *xv,
-                      STest *T, int *ntp, DcBdd *cl, int *nclp, char *err, size_t es) {   /* 0 ok, -1 overflow, -2 invalid */
+                      STest *T, int *ntp, DcBdd *cl, int *nclp, char *err, size_t es) {   /* 0 ok, -1 overflow, -2 invalid, -3 outside the symbolic fragment (Unsupported) */
     return sym_refine_from(bm, S, M, av, ob, xv, T, ntp, cl, nclp, 0, 0, 0, err, es);
 }
 
@@ -1399,9 +1399,10 @@ static Sx *sym_req_minimize(DcRun *r, const SymMod *S, const Sx *q, int slot) {
     SymEnv E; if (senv_init(&E, S->car[M->states].width)) return dc_unsupported(m, "%s: out of memory", h);
     DcBddMgr *bm = E.bm; SymVal av[SYM_MAXP], ob[SYM_MAXP];
     static STest T[SYM_MAXT]; DcBdd cl[SYM_MAXCL]; int nt = 0, ncl = 1, rc = 0; cl[0] = 1;
-    if (mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
+    { int r = mach_acts(&E, S, M, av, err, sizeof err); if (r) { dc_bdd_free(bm); return r == -2 ? dc_unsupported(m, "%s: %s", h, err) : dc_invalid(m, "%s: %s", h, err); } }
     rc = sym_refine(bm, S, M, av, ob, E.xv, T, &nt, cl, &ncl, err, sizeof err);
     if (rc == -2) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
+    if (rc == -3) { dc_bdd_free(bm); return dc_unsupported(m, "%s: %s", h, err); }   /* outside the symbolic fragment */
     if (rc || dc_bdd_failed(bm)) { dc_bdd_free(bm); return dc_unsupported(m, "%s: more than %d classes, %d tests or BDD limit", h, SYM_MAXCL, SYM_MAXT); }
     /* independent self-check: observation bits constant and every action maps a class into one class */
     int ok = 1; uint64_t rep[SYM_MAXCL]; double sz[SYM_MAXCL];
@@ -1531,10 +1532,12 @@ static Sx *sym_req_repr(DcRun *r, const SymMod *S, const Sx *q, const char *h) {
     if (ew > 12) return dc_unsupported(m, "%s: an encoding wider than 12 bits is outside this step of M3", h);
     SymEnv E; if (senv_init(&E, S->car[M->states].width)) return dc_unsupported(m, "%s: out of memory", h);
     DcBddMgr *bm = E.bm; SymVal enc, av[SYM_MAXP], ob[SYM_MAXP]; static STest T[SYM_MAXT]; DcBdd cl[SYM_MAXCL]; int nt = 0, ncl = 1, rc = 0;
-    if (sym_apply(bm, S, ei, E.xv, &enc, err, sizeof err) || mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
+    { int r = sym_apply(bm, S, ei, E.xv, &enc, err, sizeof err); if (!r) r = mach_acts(&E, S, M, av, err, sizeof err);
+      if (r) { dc_bdd_free(bm); return r == -2 ? dc_unsupported(m, "%s: %s", h, err) : dc_invalid(m, "%s: %s", h, err); } }
     if (beh) rc = sym_refine(bm, S, M, av, ob, E.xv, T, &nt, cl, &ncl, err, sizeof err);
-    else for (int p = 0; p < M->nobs && !rc; p++) if (sym_apply(bm, S, M->obs[p].map, E.xv, &ob[p], err, sizeof err)) rc = -2;
+    else for (int p = 0; p < M->nobs && !rc; p++) { int r = sym_apply(bm, S, M->obs[p].map, E.xv, &ob[p], err, sizeof err); if (r) rc = r == -2 ? -3 : -2; }
     if (rc == -2) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
+    if (rc == -3) { dc_bdd_free(bm); return dc_unsupported(m, "%s: %s", h, err); }   /* outside the symbolic fragment */
     if (rc || dc_bdd_failed(bm)) { dc_bdd_free(bm); return dc_unsupported(m, "%s: class, test or BDD limit reached", h); }
     int found = 0, port = 0, word[SYM_MAXWD], nw = 0, nfib = 0; uint64_t x = 0, y = 0;
     for (uint64_t c = 0; c < ((uint64_t)1 << ew) && !found; c++) {
@@ -1673,9 +1676,10 @@ static Sx *sym_req_clock_rates(DcRun *r, const SymMod *S, const Sx *q) {
     SymEnv E; if (senv_init(&E, W)) return dc_unsupported(m, "%s: out of memory", h);
     DcBddMgr *bm = E.bm; SymVal av[SYM_MAXP], ob[SYM_MAXP];
     static STest T[SYM_MAXT]; DcBdd cl[SYM_MAXCL]; int nt = 0, ncl = 1; cl[0] = 1;
-    if (mach_acts(&E, S, M, av, err, sizeof err)) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
+    { int r = mach_acts(&E, S, M, av, err, sizeof err); if (r) { dc_bdd_free(bm); return r == -2 ? dc_unsupported(m, "%s: %s", h, err) : dc_invalid(m, "%s: %s", h, err); } }
     int rc = sym_refine(bm, S, M, av, ob, E.xv, T, &nt, cl, &ncl, err, sizeof err);
     if (rc == -2) { dc_bdd_free(bm); return dc_invalid(m, "%s: %s", h, err); }
+    if (rc == -3) { dc_bdd_free(bm); return dc_unsupported(m, "%s: %s", h, err); }   /* outside the symbolic fragment */
     if (rc || dc_bdd_failed(bm)) { dc_bdd_free(bm); return dc_unsupported(m, "%s: more than %d classes, %d tests or BDD limit", h, SYM_MAXCL, SYM_MAXT); }
     Sx *rates = dc_form("Rates", NULL), *exact = dc_form("CoordinateSet", NULL);
     DcBdd sub[SYM_MAXW];
@@ -1709,6 +1713,47 @@ static Sx *sym_policy(Sx *res) {
     return res;
 }
 
+/* NatArith twin self-check (review 1 finding 3).  The CNF twin (cnf_term) and the BDD encoding are
+ * both read through the same obligations, so a wrong twin is self-consistent and the proof cannot
+ * see it.  Before any symbolic request on a NatArith module, every map that mentions a NatArith head
+ * and whose input carrier is at most 10 bits wide is checked on every input word: cnf_map on
+ * constant literals (cnf_and/cnf_xor fold on +-tru, so no SAT call) must equal the independent
+ * concrete evaluator sym_ceval, and the syntactic cone (sup_term) must be sound: flipping an input
+ * bit outside output bit q's mask never changes bit q.  A failure answers Unsupported with the reason. */
+static int nat_has(const Sx *t) {
+    if (!t || t->kind != SX_LIST) return 0;
+    if (t->n && t->items[0]->kind == SX_SYM && nat_symhead(t->items[0]->text)) return 1;
+    for (size_t i = 0; i < t->n; i++) if (nat_has(t->items[i])) return 1;
+    return 0;
+}
+static int nat_twin_check(const SymMod *S, char *err, size_t es) {
+    for (int mi = 0; mi < S->nmap; mi++) {
+        const SMap *mp = &S->map[mi];
+        int W = S->car[mp->from].width, WO = S->car[mp->to].width;
+        if (!nat_has(mp->body) || W > 10 || WO > SYM_MAXW || WO > 63) continue;
+        MVal sup; int hs = !sup_term(mp->body, mp->var->text, W, &sup) && sup.w == WO;
+        for (uint64_t x = 0; x < ((uint64_t)1 << W); x++) {
+            uint64_t v, cv = 0; int w, vec[SYM_MAXW]; Cnf c; CVal o;
+            if (sym_ceval(mp->body, mp->var->text, x, W, &v, &w)) break;   /* outside the concrete fragment: Unsupported later */
+            v &= cmask(WO);
+            if (cnf_init(&c, W)) { cnf_free(&c); break; }
+            for (int k = 0; k < W; k++) vec[k] = ((x >> k) & 1) ? c.tru : -c.tru;
+            int r = cnf_map(&c, S, mi, vec, &o), ok = !r && !c.bad;
+            for (int k = 0; ok && k < WO; k++) { if (o.b[k] == c.tru) cv |= (uint64_t)1 << k; else if (o.b[k] != -c.tru) ok = 0; }
+            cnf_free(&c);
+            if (r) break;   /* outside the CNF fragment: sym_term answers Unsupported for the same form */
+            if (!ok || cv != v) { snprintf(err, es, "map %s at word %llu: concrete evaluator %llu, CNF twin %s%llu", mp->name,
+                                           (unsigned long long)x, (unsigned long long)v, ok ? "" : "non-constant ", (unsigned long long)cv); return -1; }
+            if (hs) for (int q = 0; q < WO; q++) for (int j = 0; j < W; j++) if (!((sup.m[q] >> j) & 1)) {
+                uint64_t v2; int w2;
+                if (!sym_ceval(mp->body, mp->var->text, x ^ ((uint64_t)1 << j), W, &v2, &w2) && (((v2 >> q) ^ (v >> q)) & 1)) {
+                    snprintf(err, es, "map %s: output bit %d depends on input bit %d outside its cone (word %llu)", mp->name, q, j, (unsigned long long)x); return -1; }
+            }
+        }
+    }
+    return 0;
+}
+
 Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     char err[256]; SymMod S;
     sym_res_words = -1; sym_res_nodes = 0; sym_res_xcheck = 0;
@@ -1716,6 +1761,7 @@ Sx *dc_req_sym(DcRun *r, const Sx *q, const char *head, int slot) {
     int rrc = sym_read(r->m->source, &S, err, sizeof err);
     if (rrc == -2) { char ub[160]; return dc_unsupported(r->m, "symbolic module: form outside the symbolic backend fragment (libraries: %s): %s", dc_module_uses(r->m->source, ub, sizeof ub), err); }
     if (rrc) return dc_invalid(r->m, "symbolic module: %s", err);
+    if (sym_nat) { char tw[256]; if (nat_twin_check(&S, tw, sizeof tw)) return dc_unsupported(r->m, "symbolic module: NatArith twin self-check failed: %s", tw); }
     if (!strcmp(head, "CheckBlockPartition")) return sym_policy(sym_req_partition(r->m, &S, q));
     if (!strcmp(head, "ClockRates") && r->m->discovery) return sym_req_clock_rates(r, &S, q);   /* M7 opt-in (F07) */
     if (!strcmp(head, "MinimizeForQueries")) return sym_policy(sym_req_minimize(r, &S, q, slot));
