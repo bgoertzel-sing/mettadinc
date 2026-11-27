@@ -52,7 +52,7 @@ Class legend:
 | mode | match | GATED | GAP | VALUE | BUG | CLI |
 |---|---|---|---|---|---|---|
 | release | 82 (ex3 32 + ex4 36 by s2.6; ex2 1-6 Families; 2 ls fixtures; mg 43-44 AnchorMigration; mg 45-48 TaskResume) | 211 | 12 (ex2 7-15 Families symbolic-engine limit; mg 78-80 CheckBlockPartition) | 1 (mg 49) | 0 | 0 |
-| beyond | 22 (8 ex4 NewsLeak on the stochastic Reach carrier; ex2 1-6 Families; 2 ls fixtures; mg 43-44 AnchorMigration; mg 45-48 TaskResume) | 102 (ex1 3, ex4 28, mg 3, ls 35, wx 33) | 174 (ex1 58, ex2 9, ex3 32, mg 75: with NatArith admitted these rows reach engine and fragment limits; per-row cause in the doc tables) | 8 (mg ) | 0 | 0 |
+| beyond | 22 (8 ex4 NewsLeak on the stochastic Reach carrier; ex2 1-6 Families; 2 ls fixtures; mg 43-44 AnchorMigration; mg 45-48 TaskResume) | 102 (ex1 3, ex4 28, mg 3, ls 35, wx 33) | 174 (ex1 58, ex2 9, ex3 32, mg 75: with NatArith admitted these rows reach engine and fragment limits; per-row cause in the doc tables) | 8 (mg 49-55, 64: the document gives a class count, not a status word) | 0 | 0 |
 
 t-2026-11-26-mettadinc-natarith-v2 recount (review 1 finding 1): tables regenerated with run_e2e.py and make_tables.py from the head binary. Admitting NatArith beyond release (admit.c M4_LIBS) lifts the library gate for ex1, ex3 and mg, so beyond GATED drops from 271 to 102. The rows behind that gate now reach the next engine or lowering limit and answer Unsupported (GAP), never InvalidInput. make_tables.py names each limit instead of using the generic "(g) blocker" label (which is lowered). Release mode is unchanged.
 

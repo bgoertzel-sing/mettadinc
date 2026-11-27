@@ -11,6 +11,7 @@ SRC = os.path.join(ROOT, 'src', 'dcalc')
 OUT = os.path.join(ROOT, 'build', 'natarith_mutants')
 V = 'FAIL  Values (--beyond-release): '
 A = 'FAIL  Agree: '
+S = 'FAIL  SymLimits: '
 MUTANTS = [
     # (name, file, original text, mutated text, gate prefixes that must FAIL)
     ('le_as_lt', 'model.c', 'if (!strcmp(h, "Le")) return sx_sym(a <= c ?', 'if (!strcmp(h, "Le")) return sx_sym(a < c ?',
@@ -55,6 +56,10 @@ MUTANTS = [
      [A + 'D_r3']),
     ('ceval_quot_as_rem', 'ops_sym.c', '*v = !strcmp(h, "Quot") ? a / b : a % b;', '*v = !strcmp(h, "Quot") ? a % b : a % b;',
      [A + 'D_q3']),
+    # review 2 finding 1: an If branch collapses the outside-fragment code to -1 again (nested limit -> InvalidInput)
+    ('sym_if_collapses_code', 'ops_sym.c', '        if ((rc = sym_term(c, t->items[2], &a)) || (rc = sym_term(c, t->items[3], &b))) return rc < -1 ? rc : -1;',
+     '        if ((rc = sym_term(c, t->items[2], &a)) || (rc = sym_term(c, t->items[3], &b))) return -1;',
+     [S + 'NSN D_d2', S + 'NSD D_d6']),
     ('sup_nat_empty_cone', 'ops_sym.c', 'o->w = w; for (int q = 0; q < w; q++) o->m[q] = all; return 0; }', 'o->w = w; for (int q = 0; q < w; q++) o->m[q] = 0; return 0; }',
      [A + 'D_q3']),
 ]

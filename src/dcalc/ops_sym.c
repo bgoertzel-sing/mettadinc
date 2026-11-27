@@ -86,29 +86,29 @@ static int sym_term(SymCtx *c, const Sx *t, SymVal *o) {
     }
     if (t->kind != SX_LIST || t->n == 0 || t->items[0]->kind != SX_SYM) return sterr(c->err, c->es, "bad Body term", t);
     const char *h = t->items[0]->text; size_t n = t->n;
-    SymVal a, b;
+    SymVal a, b; int rc = 0;   /* rev3: a sub-term code below -1 (outside the symbolic fragment) is passed up, not collapsed to -1 */
     if (!strcmp(h, "BitAt") && n == 3) {
-        int i; if (sym_term(c, t->items[1], &a) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i)) return -1;
+        int i; if ((rc = sym_term(c, t->items[1], &a)) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i)) return rc < -1 ? rc : -1;
         o->w = 1; o->b[0] = a.b[i]; return 0;
     }
     if (!strcmp(h, "Slice") && n == 4) {
-        int i, j; if (sym_term(c, t->items[1], &a) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i) || arg_idx(c, t->items[3], a.w, &j)) return -1;
+        int i, j; if ((rc = sym_term(c, t->items[1], &a)) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i) || arg_idx(c, t->items[3], a.w, &j)) return rc < -1 ? rc : -1;
         if (j < i) return sterr(c->err, c->es, "Slice: empty range", t);
         o->w = j - i + 1; for (int k = i; k <= j; k++) o->b[k - i] = a.b[k]; return 0;
     }
     if (!strcmp(h, "SwapBits") && n == 4) {
-        int i, j; if (sym_term(c, t->items[1], &a) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i) || arg_idx(c, t->items[3], a.w, &j)) return -1;
+        int i, j; if ((rc = sym_term(c, t->items[1], &a)) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i) || arg_idx(c, t->items[3], a.w, &j)) return rc < -1 ? rc : -1;
         *o = a; o->b[i] = a.b[j]; o->b[j] = a.b[i]; return 0;
     }
     if (!strcmp(h, "RotateRange") && n == 4) {   /* up by one: bit k <- bit k-1, bit lo <- bit hi */
-        int i, j; if (sym_term(c, t->items[1], &a) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i) || arg_idx(c, t->items[3], a.w, &j)) return -1;
+        int i, j; if ((rc = sym_term(c, t->items[1], &a)) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i) || arg_idx(c, t->items[3], a.w, &j)) return rc < -1 ? rc : -1;
         if (j < i) return sterr(c->err, c->es, "RotateRange: empty range", t);
         *o = a; for (int k = i + 1; k <= j; k++) o->b[k] = a.b[k - 1]; o->b[i] = a.b[j]; return 0;
     }
     if (!strcmp(h, "If") && n == 4) {   /* Core If on words: a bitwise multiplexer (Families elaboration emits it) */
         SymVal cv;
-        if (sym_term(c, t->items[1], &cv) || to_bool(c, &cv, t->items[1])) return -1;
-        if (sym_term(c, t->items[2], &a) || sym_term(c, t->items[3], &b)) return -1;
+        if ((rc = sym_term(c, t->items[1], &cv)) || to_bool(c, &cv, t->items[1])) return rc < -1 ? rc : -1;
+        if ((rc = sym_term(c, t->items[2], &a)) || (rc = sym_term(c, t->items[3], &b))) return rc < -1 ? rc : -1;
         if (a.w < 0 && b.w < 0) { if (a.k > 1 || b.k > 1) return sterr(c->err, c->es, "constant-only term", t); widen(&a, 1); widen(&b, 1); }
         widen(&a, b.w); widen(&b, a.w);
         if (a.w != b.w) return sterr(c->err, c->es, "width mismatch", t);
@@ -117,27 +117,27 @@ static int sym_term(SymCtx *c, const Sx *t, SymVal *o) {
         return 0;
     }
     if (!strcmp(h, "SetBit") && n == 4) {
-        int i; if (sym_term(c, t->items[1], &a) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i)) return -1;
-        if (sym_term(c, t->items[3], &b) || to_bool(c, &b, t->items[3])) return -1;
+        int i; if ((rc = sym_term(c, t->items[1], &a)) || a.w < 0 || arg_idx(c, t->items[2], a.w, &i)) return rc < -1 ? rc : -1;
+        if ((rc = sym_term(c, t->items[3], &b)) || to_bool(c, &b, t->items[3])) return rc < -1 ? rc : -1;
         *o = a; o->b[i] = b.b[0]; return 0;
     }
     if (!strcmp(h, "Parity") && n == 2) {
-        if (sym_term(c, t->items[1], &a) || a.w < 0) return sterr(c->err, c->es, "Parity: expected a vector", t);
+        if ((rc = sym_term(c, t->items[1], &a)) || a.w < 0) return rc < -1 ? rc : sterr(c->err, c->es, "Parity: expected a vector", t);
         DcBdd p = 0; for (int k = 0; k < a.w; k++) p = dc_bdd_xor(bm, p, a.b[k]);
         o->w = 1; o->b[0] = p; return 0;
     }
     if (!strcmp(h, "IsZero") && n == 2) {
-        if (sym_term(c, t->items[1], &a)) return -1;
+        if ((rc = sym_term(c, t->items[1], &a))) return rc < -1 ? rc : -1;
         if (a.w < 0) { o->w = -1; o->k = a.k == 0; return 0; }
         DcBdd z = 1; for (int k = 0; k < a.w; k++) z = dc_bdd_and(bm, z, dc_bdd_not(bm, a.b[k]));
         o->w = 1; o->b[0] = z; return 0;
     }
     if (!strcmp(h, "Not") && n == 2) {
-        if (sym_term(c, t->items[1], &a) || to_bool(c, &a, t->items[1])) return -1;
+        if ((rc = sym_term(c, t->items[1], &a)) || to_bool(c, &a, t->items[1])) return rc < -1 ? rc : -1;
         o->w = 1; o->b[0] = dc_bdd_not(bm, a.b[0]); return 0;
     }
     if ((!strcmp(h, "And") || !strcmp(h, "Or") || !strcmp(h, "Xor")) && n == 3) {
-        if (sym_term(c, t->items[1], &a) || sym_term(c, t->items[2], &b)) return -1;
+        if ((rc = sym_term(c, t->items[1], &a)) || (rc = sym_term(c, t->items[2], &b))) return rc < -1 ? rc : -1;
         if (a.w < 0 && b.w < 0) return sterr(c->err, c->es, "constant-only term", t);
         widen(&a, b.w); widen(&b, a.w);
         if (a.w != b.w) return sterr(c->err, c->es, "width mismatch", t);
@@ -147,7 +147,7 @@ static int sym_term(SymCtx *c, const Sx *t, SymVal *o) {
         return 0;
     }
     if (!strcmp(h, "Eq") && n == 3) {
-        if (sym_term(c, t->items[1], &a) || sym_term(c, t->items[2], &b)) return -1;
+        if ((rc = sym_term(c, t->items[1], &a)) || (rc = sym_term(c, t->items[2], &b))) return rc < -1 ? rc : -1;
         if (a.w < 0 && b.w < 0) { o->w = -1; o->k = a.k == b.k; return 0; }
         int w = a.w >= 0 ? a.w : b.w;
         SymVal *cv = a.w < 0 ? &a : b.w < 0 ? &b : NULL;
@@ -159,7 +159,7 @@ static int sym_term(SymCtx *c, const Sx *t, SymVal *o) {
         o->w = 1; o->b[0] = e; return 0;
     }
     if (sym_nat && nat_symhead(h) && n == 3) {   /* NatArith (doc03 s3.13 l.1170-1172) on unsigned words */
-        if (sym_term(c, t->items[1], &a) || sym_term(c, t->items[2], &b)) return -1;
+        if ((rc = sym_term(c, t->items[1], &a)) || (rc = sym_term(c, t->items[2], &b))) return rc < -1 ? rc : -1;
         int quot = !strcmp(h, "Quot"), rem = !strcmp(h, "Rem");
         if (quot || rem) {   /* doc03 B.1 l.4395-4396: a positive divisor; restoring division by a constant */
             if (b.w >= 0) return sterr_frag(c->err, c->es, "Quot/Rem: the symbolic backend needs a constant divisor", t);
