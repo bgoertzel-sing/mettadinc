@@ -7,6 +7,7 @@
 #include "ops_internal.h"
 #include "ops_run.h"
 #include "model.h"
+#include "maprules.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,8 +64,26 @@ static int m7_inhabits(const DcModule *m, const Sx *t, const Sx *v, int depth) {
 static const char *m7_codomain_bad(const DcModule *m, const Sx *map, const char *const *nm, size_t n) {
     const Sx *to = m7_field(map, "To");
     if (!to || to->n != 2) return n ? nm[0] : "?";
-    for (size_t s = 0; s < n; s++) if (!m7_inhabits(m, to->items[1], m7_case(map, nm[s]), 0)) return nm[s];
+    for (size_t s = 0; s < n; s++) if (dc_mr_value(m7_inhabits(m, to->items[1], m7_case(map, nm[s]), 0) ? 0 : -1) == DC_MR_CODOMAIN) return nm[s];
     return NULL;
+}
+/* Shared map rules (maprules.h) for an M7 Cases map over the n states nm[]: R2 two cases for one state
+ * -> DC_MR_DUP, R1 a state with no case -> DC_MR_PARTIAL; *bad = the state.  Rows whose key is not a state
+ * are skipped, as before (key-in-From is not one of the shared rules this task moves). */
+static int m7_rules(const Sx *map, const char *const *nm, size_t n, const char **bad) {
+    int buf[M7_MAXS]; DcMrTab mr; dc_mr_init(&mr, (int)n, buf);
+    const Sx *cs = m7_field(map, "Cases");
+    for (size_t i = 1; cs && i < cs->n; i++) {
+        const Sx *c = cs->items[i];
+        if (!(c->kind == SX_LIST && c->n == 2 && c->items[0]->kind == SX_SYM)) continue;
+        for (size_t s = 0; s < n; s++) if (!strcmp(c->items[0]->text, nm[s])) {
+            if (dc_mr_mark(&mr, (int)s) == DC_MR_DUP) { *bad = nm[s]; return DC_MR_DUP; }
+            break;
+        }
+    }
+    int miss = -1;
+    if (dc_mr_total(&mr, &miss)) { *bad = nm[miss]; return DC_MR_PARTIAL; }
+    return DC_MR_OK;
 }
 typedef struct { const char *a, *b; } M7Pair;
 static int m7_cmp(const void *x, const void *y) {
@@ -327,9 +346,17 @@ Sx *dc_req_m7(DcRun *r, const Sx *q, const char *h) {
     size_t n = enm->n - 1;
     const char *nm[M7_MAXS];
     for (size_t i = 0; i < n; i++) {
-        if (enm->items[i + 1]->kind != SX_SYM) return m7_unsup(m, &sc, claim, "CheckNow: M7 state carrier elements must be symbols");
+        if (enm->items[i + 1]->kind != SX_SYM) {   /* as before: a missing case among the states before it is reported first */
+            const char *bad = NULL; int rr = m7_rules(code, nm, i, &bad);
+            if (rr == DC_MR_PARTIAL) { sx_free(claim); return dc_invalid(m, "CheckNow: Encode map %s has no case for state %s (a partial Cases map is invalid input)", en->items[1]->text, bad); }
+            if (rr == DC_MR_DUP) { sx_free(claim); return dc_invalid(m, "CheckNow: Encode map %s has two cases for state %s (overlapping cases are invalid input)", en->items[1]->text, bad); }
+            return m7_unsup(m, &sc, claim, "CheckNow: M7 state carrier elements must be symbols");
+        }
         nm[i] = enm->items[i + 1]->text;
-        if (!m7_case(code, nm[i])) { sx_free(claim); return dc_invalid(m, "CheckNow: Encode map %s has no case for state %s (a partial Cases map is invalid input)", en->items[1]->text, nm[i]); }
+    }
+    {   const char *bad = NULL; int rr = m7_rules(code, nm, n, &bad);   /* shared map rules R1/R2 (maprules.h) */
+        if (rr == DC_MR_PARTIAL) { sx_free(claim); return dc_invalid(m, "CheckNow: Encode map %s has no case for state %s (a partial Cases map is invalid input)", en->items[1]->text, bad); }
+        if (rr == DC_MR_DUP) { sx_free(claim); return dc_invalid(m, "CheckNow: Encode map %s has two cases for state %s (overlapping cases are invalid input)", en->items[1]->text, bad); }
     }
     /* observations: (Observe label map ...) pairs */
     const Sx *obsm[16]; const char *obsl[16]; size_t no = 0;
@@ -339,7 +366,10 @@ Sx *dc_req_m7(DcRun *r, const Sx *q, const char *h) {
         for (size_t k = 1; k + 1 < o->n; k += 2) {
             const Sx *mp = o->items[k + 1]->kind == SX_SYM ? m7_decl(m, "Map", o->items[k + 1]->text) : NULL;
             if (!mp || no >= 16) return m7_unsup(m, &sc, claim, "CheckNow: M7 observation maps must be declared Maps (<= 16)");
-            for (size_t s = 0; s < n; s++) if (!m7_case(mp, nm[s])) { sx_free(claim); return dc_invalid(m, "CheckNow: observation map %s has no case for state %s (a partial Cases map is invalid input)", o->items[k + 1]->text, nm[s]); }
+            {   const char *bad = NULL; int rr = m7_rules(mp, nm, n, &bad);   /* shared map rules R1/R2 (maprules.h) */
+                if (rr == DC_MR_PARTIAL) { sx_free(claim); return dc_invalid(m, "CheckNow: observation map %s has no case for state %s (a partial Cases map is invalid input)", o->items[k + 1]->text, bad); }
+                if (rr == DC_MR_DUP) { sx_free(claim); return dc_invalid(m, "CheckNow: observation map %s has two cases for state %s (overlapping cases are invalid input)", o->items[k + 1]->text, bad); }
+            }
             obsl[no] = o->items[k]->kind == SX_SYM ? o->items[k]->text : "?"; obsm[no++] = mp;
         }
     }

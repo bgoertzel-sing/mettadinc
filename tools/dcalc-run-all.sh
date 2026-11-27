@@ -74,6 +74,8 @@ step families_mutants; $R families_mutants "python3 tests/dcalc/families/run_fam
 step differential;     if [ "${DCALC_SKIP_DIFFERENTIAL:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_DIFFERENTIAL=1)"; else $R differential "sh tests/dcalc/differential/gate.sh build/dcalc/dcalc > build/differential_gate.out; r=\$?; tail -1 build/differential_gate.out; exit \$r" || rc=1; fi   # optional differential gate (t-2026-11-18-mettadinc-m4m6-differential)
 step natarith;         $R natarith "python3 tests/dcalc/natarith/run_natarith.py > build/natarith.out; r=\$?; tail -1 build/natarith.out; exit \$r" || rc=1   # NatArith exact values per primitive (both modes) + explicit-vs-symbolic agreement (t-2026-11-26-mettadinc-natarith-v2)
 step natarith_mutants; $R natarith_mutants "python3 tests/dcalc/natarith/run_natarith_mutants.py > build/natarith_mutants.out; r=\$?; tail -1 build/natarith_mutants.out; exit \$r" || rc=1   # one source mutant per NatArith primitive (model.c + ops_sym.c) must fail run_natarith
+step maprules;         $R maprules "python3 tests/dcalc/maprules/run_maprules.py > build/maprules.out; r=\$?; tail -1 build/maprules.out; exit \$r" || rc=1   # shared map rules (maprules.h): one map per rule per loader/profile gives InvalidInput, controls decided, both modes (t-2026-11-26-mettadinc-shared-loader)
+step maprules_mutants; $R maprules_mutants "python3 tests/dcalc/maprules/run_maprules_mutants.py > build/maprules_mutants.out; r=\$?; tail -1 build/maprules_mutants.out; exit \$r" || rc=1   # one build per rule x loader with the shared call removed must fail run_maprules on that rule's row (t-2026-11-26-mettadinc-shared-loader)
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc

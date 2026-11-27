@@ -18,6 +18,7 @@
  * And with a 0 operand, Or dropping 0 operands; True/False are 1/0 in Symbolic modules.  Anything else the elaborator cannot
  * rewrite makes the request Unsupported with the reason, never InvalidInput. */
 #include "families.h"
+#include "maprules.h"
 #include "ops_internal.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -39,6 +40,9 @@ typedef struct {
     char *why; size_t wn; int bad, depth, sym;   /* sym: (Carriers Symbolic) module */
 } Fe;
 
+static void fe_invalid(Fe *f, const char *fmt, ...) {   /* a shared map rule broken: InvalidInput (bad = 2, expand returns -3) */
+    if (!f->bad) { va_list ap; va_start(ap, fmt); vsnprintf(f->why, f->wn, fmt, ap); va_end(ap); f->bad = 2; }
+}
 static Sx *fe_fail(Fe *f, const char *fmt, ...) {
     if (!f->bad) { va_list ap; va_start(ap, fmt); vsnprintf(f->why, f->wn, fmt, ap); va_end(ap); f->bad = 1; }
     return NULL;
@@ -306,6 +310,28 @@ static void inline_types(Sx *o) {   /* (From|To (BitVector k)) on a Map: a carri
     }
     sx_free(add);
 }
+/* Shared map rules (maprules.h) on a Table over a symbol carrier.  A Symbolic module folds such a map and drops
+ * it before admission, so no loader ever saw it (t-2026-11-26-mettadinc-shared-loader): R2 duplicate, R3 codomain
+ * (when To is a symbol carrier), R1 totality, in model.c's Table order and texts.  Rows that are not pairs, and
+ * keys outside the From carrier, are left to the fold as before (not one of the moved rules). */
+static void fe_table_rules(Fe *f, const Sx *d) {
+    const char *nm = d->items[1]->text;
+    const Sx *fr = field(d, "From"), *to = field(d, "To"), *tb = field(d, "Table");
+    const Sx *en = sym_enum(f, fr->items[1]->text);
+    const Sx *ten = to && to->n == 2 && to->items[1]->kind == SX_SYM ? sym_enum(f, to->items[1]->text) : NULL;
+    for (size_t j = 1; j < tb->n; j++) if (tb->items[j]->kind != SX_LIST || tb->items[j]->n != 2) return;
+    int n = en ? (int)en->n - 1 : 0, *buf = malloc((n ? n : 1) * sizeof(int)); DcMrTab mr; dc_mr_init(&mr, n, buf);
+    for (size_t j = 1; j < tb->n; j++) {
+        const Sx *row = tb->items[j]; int a = -1;
+        for (int k = 0; k < n; k++) if (sx_equal(en->items[k + 1], row->items[0])) { a = k; break; }
+        int rc = dc_mr_put(&mr, a, ten && !in_enum(ten, row->items[1]) ? -1 : 0);
+        if (rc == DC_MR_CODOMAIN) { fe_invalid(f, "Map %s: Table row %zu value outside carrier %s", nm, j - 1, to->items[1]->text); free(buf); return; }
+        if (rc == DC_MR_DUP) { fe_invalid(f, "Map %s: Table key at row %zu repeated", nm, j - 1); free(buf); return; }
+    }
+    int miss = -1;
+    if (dc_mr_total(&mr, &miss)) { char *s = sx_print(en->items[miss + 1]); fe_invalid(f, "Map %s: not total; no value for %s", nm, s); free(s); }
+    free(buf);
+}
 int dc_families_expand(const Sx *all, const Sx *raw, Sx **out, char *why, size_t wn) {
     *out = NULL;
     if (!raw || !uses_families(raw)) return 0;
@@ -327,6 +353,10 @@ int dc_families_expand(const Sx *all, const Sx *raw, Sx **out, char *why, size_t
     for (int i = 0; i < f->nd; i++) if (sx_head_is(f->d[i], "Profile") || sx_head_is(f->d[i], "Use")) sx_push(o, sx_copy(f->d[i]));
     for (int i = 0; i < f->nd; i++) if (sx_head_is(f->d[i], "Profile"))
         for (size_t k = 1; k < f->d[i]->n; k++) { const Sx *q = f->d[i]->items[k]; if (sx_head_is(q, "Carriers") && q->n == 2 && sx_is_sym(q->items[1], "Symbolic")) f->sym = 1; }
+    if (f->sym) for (int i = 0; i < f->nd && !f->bad; i++) {   /* shared map rules on the Tables the fold drops */
+        const Sx *d = f->d[i];
+        if (sx_head_is(d, "Map") && d->n >= 2 && d->items[1]->kind == SX_SYM && sym_table(f, d->items[1]->text)) fe_table_rules(f, d);
+    }
     if (f->sym && !decl(f, "Carrier", "Bool")) sx_push(o, dc_form("Carrier", dc_sym("Bool"), dc_form("Of", dc_sym("Nat"), NULL), dc_form("Enum", dc_sym("0"), dc_sym("1"), NULL), NULL));
     Env e0; e0.n = 0;
     for (int i = 0; i < f->nd && !f->bad; i++) {
@@ -346,7 +376,7 @@ int dc_families_expand(const Sx *all, const Sx *raw, Sx **out, char *why, size_t
     for (int i = 0; i < f->nmach; i++) free(f->mach[i].e);
     for (int i = 0; i < f->ni; i++) free(f->ikey[i]);
     int bad = f->bad, sym = f->sym; free(f);
-    if (bad) { sx_free(o); return -2; }
+    if (bad) { sx_free(o); return bad == 2 ? -3 : -2; }
     if (sym) inline_types(o);
     *out = o; return 0;
 }

@@ -7,6 +7,7 @@
 #include "model.h"
 #include "rat.h"
 #include "qrat.h"
+#include "maprules.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -153,15 +154,15 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                 if (!cs || s->ncar == ST_MAXD) return st_err(err, es, "structured map needs (Cases ...) and a free carrier slot:", nm);
                 StCar *c = &s->car[s->ncar]; memset(c, 0, sizeof *c); snprintf(c->name, ST_NM, "%.*s#", (int)ST_NM - 2, nm); c->syn = 1;   /* display name only, see st_car */
                 for (int k = 0; k < ST_MAXE; k++) mp->tab[k] = -1;
+                DcMrTab mr; dc_mr_init(&mr, s->car[mp->from].n, mp->tab);   /* shared map rules (maprules.h) */
                 for (size_t k = 1; k < cs->n; k++) {
                     const Sx *cc = cs->items[k];
                     int a = cc->kind == SX_LIST && cc->n == 2 ? st_el(&s->car[mp->from], cc->items[0]) : -1, j = 0;
-                    if (a < 0 || mp->tab[a] >= 0) return st_err(err, es, "bad or duplicate case in map", nm);
-                    while (j < c->n && !sx_equal(vals[j], cc->items[1])) j++;
+                    if (a >= 0) while (j < c->n && !sx_equal(vals[j], cc->items[1])) j++;
+                    if (dc_mr_put(&mr, a, j)) return st_err(err, es, "bad or duplicate case in map", nm);
                     if (j == c->n) { vals[j] = cc->items[1]; snprintf(c->el[j], ST_NM, "v%d", j); c->n++; }
-                    mp->tab[a] = j;
                 }
-                for (int k = 0; k < s->car[mp->from].n; k++) if (mp->tab[k] < 0) return st_err(err, es, "map is not total:", nm);
+                if (dc_mr_total(&mr, NULL)) return st_err(err, es, "map is not total:", nm);
                 mp->to = s->ncar++; s->nmap++; continue;
             }
             const Sx *cs = st_field(d, "Cases");
@@ -171,14 +172,14 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                 return st_err(err, es, "map needs (From C) (To C) (Cases ...):", nm);
             }
             for (int k = 0; k < ST_MAXE; k++) mp->tab[k] = -1;
+            DcMrTab mr; dc_mr_init(&mr, s->car[mp->from].n, mp->tab);   /* shared map rules (maprules.h) */
             for (size_t k = 1; k < cs->n; k++) {
                 const Sx *cc = cs->items[k];
                 int a = cc->kind == SX_LIST && cc->n == 2 ? st_el(&s->car[mp->from], cc->items[0]) : -1;
                 int b = a >= 0 ? st_el(&s->car[mp->to], cc->items[1]) : -1;
-                if (a < 0 || b < 0 || mp->tab[a] >= 0) return st_err(err, es, "bad or duplicate case in map", nm);
-                mp->tab[a] = b;
+                if (dc_mr_put(&mr, a, b)) return st_err(err, es, "bad or duplicate case in map", nm);
             }
-            for (int k = 0; k < s->car[mp->from].n; k++) if (mp->tab[k] < 0) return st_err(err, es, "map is not total:", nm);
+            if (dc_mr_total(&mr, NULL)) return st_err(err, es, "map is not total:", nm);
             s->nmap++;
         } else if (!strcmp(h, "TransitionKernel")) {
             if (s->nker == ST_MAXD) return st_err(err, es, "too many kernels at", nm);
@@ -189,26 +190,25 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                 if ((K->from >= 0 || st_known(src, kf)) && (K->to >= 0 || st_known(src, kt))) return st_frag(err, es, "kernel needs (From C) (To C):", nm);
                 return st_err(err, es, "kernel needs (From C) (To C):", nm);
             }
-            int seen[ST_MAXE] = {0}, ovf = 0;
+            int seen[ST_MAXE], ovf = 0; DcMrTab mr; dc_mr_init(&mr, s->car[K->from].n, seen);   /* shared map rules (maprules.h) */
             for (int a = 0; a < ST_MAXE; a++) for (int b = 0; b < ST_MAXE; b++) K->p[a][b] = dc_q(0, 1, &ovf);
             for (size_t k = 2; k < d->n; k++) {
                 const Sx *rw = d->items[k]; if (!sx_head_is(rw, "Row")) continue;
                 int a = rw->n >= 2 ? st_el(&s->car[K->from], rw->items[1]) : -1;
-                if (a < 0 || seen[a]) return st_err(err, es, "bad or duplicate Row in kernel", nm);
-                seen[a] = 1; DcQ sum = dc_q(0, 1, &ovf); int got[ST_MAXE] = {0};
+                if (dc_mr_mark(&mr, a)) return st_err(err, es, "bad or duplicate Row in kernel", nm);
+                DcQ sum = dc_q(0, 1, &ovf); int got[ST_MAXE]; DcMrTab mo; dc_mr_init(&mo, s->car[K->to].n, got);
                 for (size_t j = 2; j < rw->n; j++) {
                     const Sx *ms = rw->items[j]; DcQ w;
                     int b = sx_head_is(ms, "Mass") && ms->n == 3 ? st_el(&s->car[K->to], ms->items[1]) : -1;
-                    if (b >= 0 && got[b]) return st_err(err, es, "duplicate outcome key in kernel", nm);
-                    if (b >= 0) got[b] = 1;
+                    if (b >= 0 && dc_mr_mark(&mo, b) == DC_MR_DUP) return st_err(err, es, "duplicate outcome key in kernel", nm);
                     if (b >= 0 && ms->items[2]->kind == SX_SYM && strpbrk(ms->items[2]->text, ".eE")) return st_err(err, es, "float probability (use (Rat p q)) in kernel", nm);
-                    if (b < 0 || st_rat(ms->items[2], &w) || w.n < 0) return st_err(err, es, "bad Mass (nonnegative rational) in kernel", nm);
+                    if (dc_mr_value(b) || st_rat(ms->items[2], &w) || dc_mr_mass_entry(w)) return st_err(err, es, "bad Mass (nonnegative rational) in kernel", nm);   /* R3 outcome in To, R4 mass >= 0 */
                     K->p[a][b] = dc_q_add(K->p[a][b], w, &ovf); sum = dc_q_add(sum, w, &ovf);
                 }
                 if (ovf) return st_err(err, es, "exact rational limit (bignum memory cap or division by zero) in kernel", nm);
-                if (dc_q_cmp(sum, dc_q(1, 1, &ovf))) return st_err(err, es, "row mass is not exactly 1 in kernel", nm);
+                if (dc_mr_mass_row(sum)) return st_err(err, es, "row mass is not exactly 1 in kernel", nm);
             }
-            for (int a = 0; a < s->car[K->from].n; a++) if (!seen[a]) return st_err(err, es, "kernel has a missing Row:", nm);
+            if (dc_mr_total(&mr, NULL)) return st_err(err, es, "kernel has a missing Row:", nm);
             s->nker++;
         } else if (!strcmp(h, "Machine")) {
             if (s->nmach == ST_MAXD) return st_err(err, es, "too many machines at", nm);
@@ -299,13 +299,12 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                 return st_err(err, es, "linear arrow needs (Source M) (Target M) (Kind K) (Matrix (Rows ...)):", nm);
             snprintf(L->kind, ST_NM, "%s", kd);
             const StCar *cs = &s->car[s->mach[L->src].states], *ct = &s->car[s->mach[L->tgt].states];
-            int seen[ST_MAXE] = {0}, ovf = 0;
+            int seen[ST_MAXE], ovf = 0; DcMrTab mr; dc_mr_init(&mr, cs->n, seen);   /* shared map rules (maprules.h) */
             for (int a = 0; a < ST_MAXE; a++) for (int b = 0; b < ST_MAXE; b++) L->a[a][b] = dc_q(0, 1, &ovf);
             for (size_t k = 1; k < rows->n; k++) {
                 const Sx *rw = rows->items[k];
                 int a = rw->kind == SX_LIST && rw->n >= 1 ? st_el(cs, rw->items[0]) : -1;
-                if (a < 0 || seen[a]) return st_err(err, es, "bad or duplicate row in linear arrow", nm);
-                seen[a] = 1;
+                if (dc_mr_mark(&mr, a)) return st_err(err, es, "bad or duplicate row in linear arrow", nm);
                 for (size_t j = 1; j < rw->n; j++) {
                     const Sx *e = rw->items[j]; DcQ w;
                     int b = e->kind == SX_LIST && e->n == 2 ? st_el(ct, e->items[0]) : -1;
@@ -767,13 +766,13 @@ static int st_lawx(const Sx *e, const StCar *T, DcQ *out, int *ovf) {
 static int st_measure(StMod *s, const Sx *src, const char *nm, int car, DcQ *mu, int *ovf) {
     const Sx *d = st_decl(src, "Measure", nm), *ms = d ? st_field(d, "Masses") : NULL;
     if (!ms || car < 0 || st_car(s, st_name(st_field(d, "On"), 1)) != car) return -1;
-    const StCar *C = &s->car[car]; int got[ST_MAXE] = {0}; DcQ sum = dc_q(0, 1, ovf);
+    const StCar *C = &s->car[car]; int got[ST_MAXE]; DcMrTab mr; dc_mr_init(&mr, C->n, got); DcQ sum = dc_q(0, 1, ovf);   /* shared map rules (maprules.h) */
     for (int x = 0; x < C->n; x++) mu[x] = dc_q(0, 1, ovf);
     for (size_t k = 1; k < ms->n; k++) { const Sx *e = ms->items[k]; DcQ w;
         int x = e->kind == SX_LIST && e->n == 2 ? st_el(C, e->items[0]) : -1;
-        if (x < 0 || got[x] || st_rat(e->items[1], &w) || w.n < 0) return -1;
-        got[x] = 1; mu[x] = w; sum = dc_q_add(sum, w, ovf); }
-    return dc_q_cmp(sum, dc_q(1, 1, ovf)) ? -1 : 0;
+        if (dc_mr_mark(&mr, x) || st_rat(e->items[1], &w) || dc_mr_mass_entry(w)) return -1;
+        mu[x] = w; sum = dc_q_add(sum, w, ovf); }
+    return dc_mr_mass_row(sum) ? -1 : 0;
 }
 typedef struct { int sc, ac, tc; DcQ law[ST_MAXE][ST_MAXE][ST_MAXE], er[ST_MAXE][ST_MAXE]; } StDM;
 static int st_dm(StMod *s, const Sx *src, const char *nm, StDM *D, char *why, size_t ws, int *ovf) {
@@ -787,17 +786,18 @@ static int st_dm(StMod *s, const Sx *src, const char *nm, StDM *D, char *why, si
         || !sx_head_is(lw, "Law") || lw->n != 2 || (D->tc = st_car(s, st_name(lw, 1))) < 0) {
         snprintf(why, ws, "decision model %s needs (States S) (Actions A) and a RewardLaw map (From (Product S A)) (To (Law T))", nm); return -1; }
     const StCar *SC = &s->car[D->sc], *AC = &s->car[D->ac], *TC = &s->car[D->tc];
-    static int seen[ST_MAXE][ST_MAXE]; memset(seen, 0, sizeof seen);
+    static int seen[ST_MAXE * ST_MAXE]; DcMrTab mr; dc_mr_init(&mr, SC->n * AC->n, seen);   /* shared map rules (maprules.h), key x*|A|+a */
     const Sx *bd = st_field(mp, "Body"), *cs = st_field(mp, "Cases");
     for (int x = 0; x < SC->n; x++) for (int a = 0; a < AC->n; a++)
-        if (bd && bd->n == 3 && !st_lawx(bd->items[2], TC, D->law[x][a], ovf)) seen[x][a] = 1;
+        if (bd && bd->n == 3 && !st_lawx(bd->items[2], TC, D->law[x][a], ovf)) dc_mr_mark(&mr, x * AC->n + a);
     for (size_t k = 1; cs && k < cs->n; k++) { const Sx *c = cs->items[k];
         const Sx *t = c->kind == SX_LIST && c->n == 2 ? c->items[0] : NULL;
         int x = sx_head_is(t, "Tuple") && t->n == 3 ? st_el(SC, t->items[1]) : -1, a = x >= 0 ? st_el(AC, t->items[2]) : -1;
-        if (a < 0 || seen[x][a] || st_lawx(c->items[1], TC, D->law[x][a], ovf)) { snprintf(why, ws, "bad or duplicate case in the reward law of %s", nm); return -1; }
-        seen[x][a] = 1; }
+        if (a < 0 || dc_mr_mark(&mr, x * AC->n + a) || st_lawx(c->items[1], TC, D->law[x][a], ovf)) { snprintf(why, ws, "bad or duplicate case in the reward law of %s", nm); return -1; }
+    }
+    int miss = -1; if (!dc_mr_total(&mr, &miss)) miss = -1;   /* first missing key, row-major = the loop order below */
     for (int x = 0; x < SC->n; x++) for (int a = 0; a < AC->n; a++) {
-        if (!seen[x][a]) { snprintf(why, ws, "reward law of %s is not total", nm); return -1; }
+        if (x * AC->n + a == miss) { snprintf(why, ws, "reward law of %s is not total", nm); return -1; }   /* same position as before: errors on earlier (x,a) still come first */
         D->er[x][a] = dc_q(0, 1, ovf);
         for (int t = 0; t < TC->n; t++) { DcQ v; if (dc_q_is_zero(D->law[x][a][t])) continue;
             if (st_elval(TC, t, &v, ovf)) { snprintf(why, ws, "reward outcomes of %s must be integers", nm); return -1; }
