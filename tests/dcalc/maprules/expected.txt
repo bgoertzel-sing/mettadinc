@@ -15,6 +15,9 @@ st_rules|rel|StKerDupOutcome|Unsupported|Profile Dynamics Stochastic is outside 
 st_rules|rel|StKerCodomain|Unsupported|Profile Dynamics Stochastic is outside the first release
 st_rules|rel|StKerMassNeg|Unsupported|Profile Dynamics Stochastic is outside the first release
 st_rules|rel|StKerMassSum|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StReachMass|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StReachImage|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StReachControl|Unsupported|Profile Dynamics Stochastic is outside the first release
 st_rules|rel|StControl|Unsupported|Profile Dynamics Stochastic is outside the first release
 st_rules|--beyond-release|StMapTotal|InvalidInput|stochastic module: map is not total: obs
 st_rules|--beyond-release|StMapCodomain|InvalidInput|stochastic module: bad or duplicate case in map obs
@@ -24,6 +27,9 @@ st_rules|--beyond-release|StKerDupOutcome|InvalidInput|stochastic module: duplic
 st_rules|--beyond-release|StKerCodomain|InvalidInput|stochastic module: bad Mass (nonnegative rational) in kernel K
 st_rules|--beyond-release|StKerMassNeg|InvalidInput|stochastic module: bad Mass (nonnegative rational) in kernel K
 st_rules|--beyond-release|StKerMassSum|InvalidInput|stochastic module: row mass is not exactly 1 in kernel K
+st_rules|--beyond-release|StReachMass|InvalidInput|stochastic module: an action's mass leaves the Reach carrier in machine M
+st_rules|--beyond-release|StReachImage|InvalidInput|stochastic module: an action's image leaves the Reach carrier in machine M
+st_rules|--beyond-release|StReachControl|Checked|
 st_rules|--beyond-release|StControl|Checked|
 mc_rules|rel|McTableDup|InvalidInput|Map id: Table key at row 2 repeated
 mc_rules|rel|McTableTotal|InvalidInput|Map id: not total; no value for b
@@ -31,6 +37,8 @@ mc_rules|rel|McTableCodomain|InvalidInput|Map id: Table row 1 value outside carr
 mc_rules|rel|McCasesOverlap|InvalidInput|Map id: input a matches Cases rows 0 and 1; overlapping cases are rejected
 mc_rules|rel|McCasesTotal|InvalidInput|Map id: not total; no value for b
 mc_rules|rel|McCasesCodomain|InvalidInput|Map id: Cases row 1 gives a value outside carrier S
+mc_rules|rel|McReachImage|InvalidInput|Map flip: the update sends a to b, which leaves carrier R0
+mc_rules|rel|McReachControl|Checked|
 mc_rules|rel|McControl|Checked|
 mc_rules|--beyond-release|McTableDup|InvalidInput|Map id: Table key at row 2 repeated
 mc_rules|--beyond-release|McTableTotal|InvalidInput|Map id: not total; no value for b
@@ -38,6 +46,8 @@ mc_rules|--beyond-release|McTableCodomain|InvalidInput|Map id: Table row 1 value
 mc_rules|--beyond-release|McCasesOverlap|InvalidInput|Map id: input a matches Cases rows 0 and 1; overlapping cases are rejected
 mc_rules|--beyond-release|McCasesTotal|InvalidInput|Map id: not total; no value for b
 mc_rules|--beyond-release|McCasesCodomain|InvalidInput|Map id: Cases row 1 gives a value outside carrier S
+mc_rules|--beyond-release|McReachImage|InvalidInput|Map flip: the update sends a to b, which leaves carrier R0
+mc_rules|--beyond-release|McReachControl|Checked|
 mc_rules|--beyond-release|McControl|Checked|
 tm_rules|rel|TmOverlap|InvalidInput|Map ob: input a matches Cases rows 0 and 1; overlapping cases are rejected
 tm_rules|rel|TmTotal|InvalidInput|Map ob: not total on carrier S; no value for b
