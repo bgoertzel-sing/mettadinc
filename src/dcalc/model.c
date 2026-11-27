@@ -894,7 +894,14 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 if (ok == 2 && logic_why[0]) { sx_free(v); free(mp->table); fail(err, es, "[M0] Map %s: Cases row %zu: %s", nm, j - 1, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
                 if (ok == 2) { sx_free(v); free(mp->table); return fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1); }
                 if (ok == 3) { sx_free(v); free(mp->table); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, j - 1); }
-                int b = ok ? (T->value ? dc_value_add(T, v) : dc_carrier_index(T, v)) : -1; sx_free(v);
+                int b = ok ? (T->value ? dc_value_add(T, v) : dc_carrier_index(T, v)) : -1;
+                if (ok == 1 && b < 0 && nat_failed(v)) {   /* t-2026-11-27-mettadinc-engine-limits-unsupported review 1: same engine limit as the Body branch, the tagged failure value has no carrier yet */
+                    char *xs = sx_print(F->elems[i]), *vs = sx_print(v);
+                    fail(err, es, "[M0] Map %s: Cases row %zu on %s gives the tagged failure value %s, which the engine cannot yet hold in carrier %s", nm, j - 1, xs, vs, T->name);
+                    snprintf(pending_why, sizeof pending_why, "%s", err + 5);
+                    free(xs); free(vs); sx_free(v); free(mp->table); return -1;
+                }
+                sx_free(v);
                 if (dc_mr_put(&mr, (int)i, b) == DC_MR_CODOMAIN) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu gives a value outside carrier %s", nm, j - 1, T->name); }
                 /* spec 5.4: every input matches exactly one case; overlapping cases are
                  * rejected even when they agree (source order never decides a value) */

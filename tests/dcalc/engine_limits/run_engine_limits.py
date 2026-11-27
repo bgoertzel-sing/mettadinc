@@ -6,6 +6,9 @@ a real module error stays InvalidInput. fixtures/el_cases.metta, both modes:
   EL_ZQ  (Quot x 0) = (Failed NonPositiveDivisor), spec l.1858-1860 / doc03 B.1 -> beyond: Unsupported naming it;
          release: Unsupported (NatArith outside the first release)
   EL_BAD (Quot 7 2) = 3, an ordinary value outside carrier {7} -> beyond: InvalidInput (negative); release: Unsupported
+  EL_CZQ/EL_CZV/EL_CRN  Cases form: (Quot 7 0), (Quot $x 0), (Rem 7 -2) -> beyond: Unsupported naming the failure value
+         (review 1: the Cases branch of admit_map); release: Unsupported (NatArith outside the first release)
+  EL_CBAD Cases form, (Quot 7 2) = 3 outside carrier {7} -> beyond: InvalidInput (negative); release: Unsupported
 DCALC_EL_DC overrides the build dir."""
 import os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -32,12 +35,16 @@ M9 = 'too many machines: the symbolic engine holds at most 8, the module declare
 ZQ = 'gives the tagged failure value (Failed NonPositiveDivisor), which the engine cannot yet hold in carrier A0'
 REL = 'library NatArith is outside the first release'
 BAD = 'Map m0: Body sends 7 to 3, which is not in carrier A0'
-WANT = {False: {'EL_M9': ('Unsupported', M9), 'EL_M8': ('Checked', None), 'EL_ZQ': ('Unsupported', REL), 'EL_BAD': ('Unsupported', REL)},
-        True:  {'EL_M9': ('Unsupported', M9), 'EL_M8': ('Checked', None), 'EL_ZQ': ('Unsupported', ZQ), 'EL_BAD': ('InvalidInput', BAD)}}
+CZQ = 'Cases row 0 on 7 gives the tagged failure value (Failed NonPositiveDivisor), which the engine cannot yet hold in carrier A0'
+CBAD = 'Map m0: Cases row 0 gives a value outside carrier A0'
+WANT = {False: {'EL_M9': ('Unsupported', M9), 'EL_M8': ('Checked', None), 'EL_ZQ': ('Unsupported', REL), 'EL_BAD': ('Unsupported', REL),
+               'EL_CZQ': ('Unsupported', REL), 'EL_CZV': ('Unsupported', REL), 'EL_CRN': ('Unsupported', REL), 'EL_CBAD': ('Unsupported', REL)},
+        True:  {'EL_M9': ('Unsupported', M9), 'EL_M8': ('Checked', None), 'EL_ZQ': ('Unsupported', ZQ), 'EL_BAD': ('InvalidInput', BAD),
+               'EL_CZQ': ('Unsupported', CZQ), 'EL_CZV': ('Unsupported', CZQ), 'EL_CRN': ('Unsupported', CZQ), 'EL_CBAD': ('InvalidInput', CBAD)}}
 for beyond in (False, True):
     mode = '--beyond-release' if beyond else 'release'
     rc, out = run(beyond)
-    report('el_cases (%s): dcalc exit 0, 4 requests' % mode, rc == 0 and len(out) == 4, (rc, sorted(out)))
+    report('el_cases (%s): dcalc exit 0, 8 requests' % mode, rc == 0 and len(out) == 8, (rc, sorted(out)))
     for mod, (st, why) in WANT[beyond].items():
         l = out.get(mod, '')
         ok = status(l) == st and (why is None or why in reason(l))
