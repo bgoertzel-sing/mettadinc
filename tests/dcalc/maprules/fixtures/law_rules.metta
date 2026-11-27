@@ -1,0 +1,36 @@
+;; t-2026-11-27-mettadinc-rebase-shared-loader review 1 F1: the literal Coin branch of st_lawx (stoch.c) decides
+;; R3 (0 and 1 in the target carrier) and R4 (p in [0, 1]) through maprules.  Each module breaks exactly one rule;
+;; StLawCoinControl answers a law.  Template: tests/dcalc/laws/fixtures/laws_neg.metta.
+(DC.Module StLawCoinLit
+  (Profile Stochastic)
+  (Use Decisions)
+  (Use Laws)
+  (Carrier S (Of Symbol) (Enum A))
+  (Carrier Act (Of Symbol) (Enum K))
+  (Carrier Bit (Of Nat) (Enum 0 1))
+  (Map r (From (Product S Act)) (To (Law Bit)) (Cases ((Tuple A K) (Coin (Rat 3 2)))))
+  (Measure P (On S) (Masses (A 1)))
+  (DecisionModel M (States S) (Actions Act) (RewardLaw r) (Prior P)))
+(DC.Module StLawCoinNegLit
+  (Profile Stochastic)
+  (Use Decisions)
+  (Use Laws)
+  (Carrier S (Of Symbol) (Enum A))
+  (Carrier Act (Of Symbol) (Enum K))
+  (Carrier Bit (Of Nat) (Enum 0 1))
+  (Map r (From (Product S Act)) (To (Law Bit)) (Cases ((Tuple A K) (Coin (Rat -1 2)))))
+  (Measure P (On S) (Masses (A 1)))
+  (DecisionModel M (States S) (Actions Act) (RewardLaw r) (Prior P)))
+(DC.Module StLawCoinControl
+  (Profile Stochastic)
+  (Use Decisions)
+  (Use Laws)
+  (Carrier S (Of Symbol) (Enum A))
+  (Carrier Act (Of Symbol) (Enum K))
+  (Carrier Bit (Of Nat) (Enum 0 1))
+  (Map r (From (Product S Act)) (To (Law Bit)) (Cases ((Tuple A K) (Coin (Rat 1 2)))))
+  (Measure P (On S) (Masses (A 1)))
+  (DecisionModel M (States S) (Actions Act) (RewardLaw r) (Prior P)))
+!(dc.run StLawCoinLit (AverageModel M (Under P)))
+!(dc.run StLawCoinNegLit (AverageModel M (Under P)))
+!(dc.run StLawCoinControl (AverageModel M (Under P)))

@@ -1,0 +1,81 @@
+# file|mode|module|status|reason  (captured from the new binary 2026-11-27 10:39; reviewed by hand against each fixture comment)
+nd_rules|rel|NdDup|Unsupported|Profile Dynamics Nondeterministic is outside the first release
+nd_rules|rel|NdTotal|Unsupported|Profile Dynamics Nondeterministic is outside the first release
+nd_rules|rel|NdCodomain|Unsupported|Profile Dynamics Nondeterministic is outside the first release
+nd_rules|rel|NdControl|Unsupported|Profile Dynamics Nondeterministic is outside the first release
+nd_rules|--beyond-release|NdDup|InvalidInput|nondeterministic module: Map st: A has two cases
+nd_rules|--beyond-release|NdTotal|InvalidInput|nondeterministic module: Map st: not total on its From carrier
+nd_rules|--beyond-release|NdCodomain|InvalidInput|nondeterministic module: Map st: X is not in its To carrier
+nd_rules|--beyond-release|NdControl|Checked|
+st_rules|rel|StMapTotal|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StMapCodomain|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StKerDupRow|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StKerMissingRow|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StKerDupOutcome|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StKerCodomain|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StKerMassNeg|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StKerMassSum|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StReachMass|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StReachImage|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StReachControl|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StControl|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|--beyond-release|StMapTotal|InvalidInput|stochastic module: map is not total: obs
+st_rules|--beyond-release|StMapCodomain|InvalidInput|stochastic module: bad or duplicate case in map obs
+st_rules|--beyond-release|StKerDupRow|InvalidInput|stochastic module: bad or duplicate Row in kernel K
+st_rules|--beyond-release|StKerMissingRow|InvalidInput|stochastic module: kernel has a missing Row: K
+st_rules|--beyond-release|StKerDupOutcome|InvalidInput|stochastic module: duplicate outcome key in kernel K
+st_rules|--beyond-release|StKerCodomain|InvalidInput|stochastic module: bad Mass (nonnegative rational) in kernel K
+st_rules|--beyond-release|StKerMassNeg|InvalidInput|stochastic module: bad Mass (nonnegative rational) in kernel K
+st_rules|--beyond-release|StKerMassSum|InvalidInput|stochastic module: row mass is not exactly 1 in kernel K
+st_rules|--beyond-release|StReachMass|InvalidInput|stochastic module: an action's mass leaves the Reach carrier in machine M
+st_rules|--beyond-release|StReachImage|InvalidInput|stochastic module: an action's image leaves the Reach carrier in machine M
+st_rules|--beyond-release|StReachControl|Checked|
+st_rules|--beyond-release|StControl|Checked|
+mc_rules|rel|McTableDup|InvalidInput|Map id: Table key at row 2 repeated
+mc_rules|rel|McTableTotal|InvalidInput|Map id: not total; no value for b
+mc_rules|rel|McTableCodomain|InvalidInput|Map id: Table row 1 value outside carrier S
+mc_rules|rel|McCasesOverlap|InvalidInput|Map id: input a matches Cases rows 0 and 1; overlapping cases are rejected
+mc_rules|rel|McCasesTotal|InvalidInput|Map id: not total; no value for b
+mc_rules|rel|McCasesCodomain|InvalidInput|Map id: Cases row 1 gives a value outside carrier S
+mc_rules|rel|McReachImage|InvalidInput|Map flip: the update sends a to b, which leaves carrier R0
+mc_rules|rel|McReachControl|Checked|
+mc_rules|rel|McControl|Checked|
+mc_rules|--beyond-release|McTableDup|InvalidInput|Map id: Table key at row 2 repeated
+mc_rules|--beyond-release|McTableTotal|InvalidInput|Map id: not total; no value for b
+mc_rules|--beyond-release|McTableCodomain|InvalidInput|Map id: Table row 1 value outside carrier S
+mc_rules|--beyond-release|McCasesOverlap|InvalidInput|Map id: input a matches Cases rows 0 and 1; overlapping cases are rejected
+mc_rules|--beyond-release|McCasesTotal|InvalidInput|Map id: not total; no value for b
+mc_rules|--beyond-release|McCasesCodomain|InvalidInput|Map id: Cases row 1 gives a value outside carrier S
+mc_rules|--beyond-release|McReachImage|InvalidInput|Map flip: the update sends a to b, which leaves carrier R0
+mc_rules|--beyond-release|McReachControl|Checked|
+mc_rules|--beyond-release|McControl|Checked|
+tm_rules|rel|TmOverlap|InvalidInput|Map ob: input a matches Cases rows 0 and 1; overlapping cases are rejected
+tm_rules|rel|TmTotal|InvalidInput|Map ob: not total on carrier S; no value for b
+tm_rules|rel|TmCodomain|InvalidInput|Map ob: row 1 gives yes on b, which is not of the To type (Tuple Symbol Symbol)
+tm_rules|rel|TmControl|Checked|
+tm_rules|--beyond-release|TmOverlap|InvalidInput|Map ob: input a matches Cases rows 0 and 1; overlapping cases are rejected
+tm_rules|--beyond-release|TmTotal|InvalidInput|Map ob: not total on carrier S; no value for b
+tm_rules|--beyond-release|TmCodomain|InvalidInput|Map ob: row 1 gives yes on b, which is not of the To type (Tuple Symbol Symbol)
+tm_rules|--beyond-release|TmControl|Checked|
+m7_rules|rel|M7EncPartial|Unsupported|library Hyperseed is outside the first release
+m7_rules|rel|M7ObsPartial|Unsupported|library Hyperseed is outside the first release
+m7_rules|rel|M7EncCodomain|Unsupported|library Hyperseed is outside the first release
+m7_rules|rel|M7Control|Unsupported|library Hyperseed is outside the first release
+m7_rules|--beyond-release|M7EncPartial|InvalidInput|CheckNow: Encode map bias has no case for state Both (a partial Cases map is invalid input)
+m7_rules|--beyond-release|M7ObsPartial|InvalidInput|CheckNow: observation map report has no case for state Both (a partial Cases map is invalid input)
+m7_rules|--beyond-release|M7EncCodomain|InvalidInput|CheckNow: map bias: the case for Absent is not a value of its declared To type (an unavailable report is never read as another value)
+m7_rules|--beyond-release|M7Control|Refuted|
+fm_rules|rel|FmTableDup|InvalidInput|Map idx: Table key at row 3 repeated
+fm_rules|rel|FmTableTotal|InvalidInput|Map idx: not total; no value for i2
+fm_rules|rel|FmTableCodomain|InvalidInput|Map tag: Table row 2 value outside carrier K
+fm_rules|rel|FmControl|Refuted|
+fm_rules|--beyond-release|FmTableDup|InvalidInput|Map idx: Table key at row 3 repeated
+fm_rules|--beyond-release|FmTableTotal|InvalidInput|Map idx: not total; no value for i2
+fm_rules|--beyond-release|FmTableCodomain|InvalidInput|Map tag: Table row 2 value outside carrier K
+fm_rules|--beyond-release|FmControl|Refuted|
+law_rules|rel|StLawCoinLit|Unsupported|Profile Dynamics Stochastic is outside the first release
+law_rules|rel|StLawCoinNegLit|Unsupported|Profile Dynamics Stochastic is outside the first release
+law_rules|rel|StLawCoinControl|Unsupported|Profile Dynamics Stochastic is outside the first release
+law_rules|--beyond-release|StLawCoinLit|InvalidInput|AverageModel: bad or duplicate case in the reward law of M
+law_rules|--beyond-release|StLawCoinNegLit|InvalidInput|AverageModel: bad or duplicate case in the reward law of M
+law_rules|--beyond-release|StLawCoinControl|Checked|
