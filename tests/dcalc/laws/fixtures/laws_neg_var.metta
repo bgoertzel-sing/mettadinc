@@ -1,0 +1,11 @@
+(DC.Module LawsNegVar
+  (Profile Stochastic)
+  (Use Decisions)
+  (Use Laws)
+  (Carrier S (Of Symbol) (Enum A))
+  (Carrier Act (Of Symbol) (Enum K))
+  (Carrier Bit (Of Nat) (Enum 0 1))
+  (Map rv (From (Product S Act)) (To (Law Bit)) (Cases ((Tuple A K) (Image $b (Add $b $q) (Coin (Rat 1 2))))))
+  (Measure P (On S) (Masses (A 1)))
+  (DecisionModel Mv (States S) (Actions Act) (RewardLaw rv) (Prior P)))
+!(dc.run LawsNegVar (AverageModel Mv (Under P)))

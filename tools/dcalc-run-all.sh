@@ -74,6 +74,8 @@ step families_mutants; $R families_mutants "python3 tests/dcalc/families/run_fam
 step differential;     if [ "${DCALC_SKIP_DIFFERENTIAL:-0}" = 1 ]; then echo "skipped (DCALC_SKIP_DIFFERENTIAL=1)"; else $R differential "sh tests/dcalc/differential/gate.sh build/dcalc/dcalc > build/differential_gate.out; r=\$?; tail -1 build/differential_gate.out; exit \$r" || rc=1; fi   # optional differential gate (t-2026-11-18-mettadinc-m4m6-differential)
 step natarith;         $R natarith "python3 tests/dcalc/natarith/run_natarith.py > build/natarith.out; r=\$?; tail -1 build/natarith.out; exit \$r" || rc=1   # NatArith exact values per primitive (both modes) + explicit-vs-symbolic agreement (t-2026-11-26-mettadinc-natarith-v2)
 step natarith_mutants; $R natarith_mutants "python3 tests/dcalc/natarith/run_natarith_mutants.py > build/natarith_mutants.out; r=\$?; tail -1 build/natarith_mutants.out; exit \$r" || rc=1   # one source mutant per NatArith primitive (model.c + ops_sym.c) must fail run_natarith
+step laws;             $R laws "python3 tests/dcalc/laws/run_laws.py > build/laws.out; r=\$?; tail -1 build/laws.out; exit \$r" || rc=1   # Laws exact law/mean values (Point/Coin/Indep/Image/LawOf/Expect, computed bodies) vs hand rationals + docs/e0 metta_eval.py reference (t-2026-11-27-mettadinc-laws)
+step laws_mutants;     $R laws_mutants "python3 tests/dcalc/laws/run_laws_mutants.py > build/laws_mutants.out; r=\$?; tail -1 build/laws_mutants.out; exit \$r" || rc=1   # one source mutant per Laws primitive (laws.c) must fail run_laws
 step resources;        cat build/dcalc-resources.tsv
 echo "dcalc-run-all: $([ $rc = 0 ] && echo PASS || echo FAIL)"
 exit $rc

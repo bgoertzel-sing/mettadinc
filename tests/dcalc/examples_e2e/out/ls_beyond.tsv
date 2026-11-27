@@ -29,10 +29,10 @@ LiveMotivation	(CheckBlockPartition SafeFloor (Of FloorWatch))	Unsupported	libra
 LiveMotivation	(CheckImplementation OrderSwapGoals (Grade 1 (Rat 9 10)))	Unsupported	library RationalArith is outside the first release
 LiveMotivation	(CheckImplementation OrderSwapGoals (Grade 1 (Rat 4 5)))	Unsupported	library RationalArith is outside the first release
 LiveMotivation	(CheckImplementation OrderSwapSettled (Grade 1 0))	Unsupported	library RationalArith is outside the first release
-LiveReceipts	"(EstimateRate (On ContextReceipts) (Column ""relevance_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
-LiveReceipts	"(EstimateRate (On ContextReceipts) (Column ""consumer_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
-LiveReceipts	"(CompareRates (On ContextReceipts) (First ""relevance_A"") (Second ""consumer_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
-LiveReceipts	"(EstimateRate (On LiveSuggestions) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Laws is outside the first release
-LiveReceipts	(CheckMonitor StaleFifth)	Unsupported	library Laws is outside the first release
-LiveReceipts	(Detect StaleFifth (On TenPercent) (Level (Rat 1 100)))	Unsupported	library Laws is outside the first release
-LiveReceipts	(Detect StaleTenth StaleFifth StaleTwoFifths (On TenPercent) (Level (Rat 1 100)) (Combine Mixture))	Unsupported	library Laws is outside the first release
+LiveReceipts	"(EstimateRate (On ContextReceipts) (Column ""relevance_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
+LiveReceipts	"(EstimateRate (On ContextReceipts) (Column ""consumer_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
+LiveReceipts	"(CompareRates (On ContextReceipts) (First ""relevance_A"") (Second ""consumer_A"") (Equals 0) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
+LiveReceipts	"(EstimateRate (On LiveSuggestions) (Column ""stale"") (Equals 1) (Level (Rat 1 100)))"	Unsupported	library Monitors is outside the first release
+LiveReceipts	(CheckMonitor StaleFifth)	Unsupported	library Monitors is outside the first release
+LiveReceipts	(Detect StaleFifth (On TenPercent) (Level (Rat 1 100)))	Unsupported	library Monitors is outside the first release
+LiveReceipts	(Detect StaleTenth StaleFifth StaleTwoFifths (On TenPercent) (Level (Rat 1 100)) (Combine Mixture))	Unsupported	library Monitors is outside the first release

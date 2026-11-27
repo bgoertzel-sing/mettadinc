@@ -70,6 +70,10 @@ def classify(rid, mode, st, reason, doc):
         return 'GAP: (Within d) tolerance option not implemented in the transfer engine; Unsupported, not InvalidInput'
     if st == 'Unsupported' and reason.startswith('Families:') and 'not a declared map with a Body' in reason:
         return 'GAP: Families port map is not a declared Body map (lowering limit); Unsupported, not InvalidInput'
+    # t-2026-11-27-mettadinc-laws review 2 F3: a Families port map applied to fewer arguments than its parameters
+    # plus the argument (partial application, families.c:137); ex4 rows 1-21 stop here before any Laws limit
+    if st == 'Unsupported' and re.search(r'^Families: map \S+ applied to \d+ arguments; it takes \d+ parameters and the argument', reason):
+        return 'GAP: Families map applied partially (fewer arguments than its parameters plus the argument; families.c:137 has no partial application); Unsupported, not InvalidInput'
     if st == 'Unsupported' and 'the import inliner copies only' in reason:
         return 'GAP: the import inliner copies only Carrier/Map/Tolerance, so an imported MethodSystem or Derive is not visible; Unsupported, not InvalidInput'
     if st == 'Unsupported' and re.search(r'premise Derive \S+ is Unsupported', reason):
