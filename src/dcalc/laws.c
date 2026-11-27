@@ -23,7 +23,7 @@ int dc_law_add(DcLaw *L, const Sx *v, DcQ m, int *ovf) {
     return 0;
 }
 int dc_law_head(const Sx *e) {
-    return sx_head_is(e, "Point") || sx_head_is(e, "Coin") || sx_head_is(e, "Indep") || sx_head_is(e, "Image") || sx_head_is(e, "LawOf");
+    return sx_head_is(e, "Point") || sx_head_is(e, "Coin") || sx_head_is(e, "Indep") || sx_head_is(e, "Image") || sx_head_is(e, "LawOf") || sx_head_is(e, "%Masses");
 }
 static int q_of(const Sx *v, DcQ *o) {
     DcRat r; if (dc_sx_rat(v, &r)) return -1; *o = dc_q_from_rat(r); return 0;
@@ -94,6 +94,17 @@ int dc_law_eval(const Sx *e, DcLawLeaf leaf, void *ctx, DcLaw *out, int *ovf, ch
             if (r) { dc_law_free(&in); WHY("out of memory in a law"); }
         }
         dc_law_free(&in);
+        return 0;
+    }
+    if (sx_head_is(e, "%Masses")) {   /* a declared measure as the leaf expands it: (%Masses (v q) ..) */
+        DcQ sum = dc_q(0, 1, ovf);
+        for (size_t k = 1; k < e->n; k++) {
+            const Sx *c = e->items[k]; DcQ q;
+            if (c->kind != SX_LIST || c->n != 2 || q_of(c->items[1], &q) || dc_q_sign(q) < 0) WHY("a mass of a measure is not a non-negative rational");
+            sum = dc_q_add(sum, q, ovf);
+            if (dc_law_add(out, c->items[0], q, ovf)) WHY("out of memory in a law");
+        }
+        if (dc_q_cmp(sum, dc_q(1, 1, ovf))) WHY("the masses of a measure do not sum to 1");
         return 0;
     }
     /* anything else: a leaf that must itself denote a law (e.g. a map call returning a law) */

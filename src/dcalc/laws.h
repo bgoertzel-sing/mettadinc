@@ -1,11 +1,20 @@
 /* Library Laws (t-2026-11-27-mettadinc-laws): finite laws with exact rational masses.
- * Reference semantics: docs/e0 metta_eval.py l.223-248.
+ * Spec (docs/e0 .../03_four_worked_examples/mettadinc_worked_examples.tex l.2172-2175):
+ *   "(Indep L1 L2) is the product law, (Image $v e L) is the law of the expression e when $v is drawn
+ *    from L, (Expect L) is a mean, and (LawOf m) is the law of a declared measure; Coin and Point
+ *    remain the elementary laws."
+ * Release placement (same file l.2180): "(Use Decisions Laws Families NatArith) ; Laws, DecisionProcess:
+ *   PROPOSED" -> Laws is admitted beyond the first release only (registry opt-in, admit.c).
+ * Implemented meaning (agrees with the reference evaluator metta_eval.py l.150-152, 223-258):
  *   (Point v)            -> {v:1}
- *   (Coin p)             -> {1:p, 0:1-p}, zero masses dropped
+ *   (Coin p)             -> {1:p, 0:1-p}, zero masses dropped; p a closed rational in [0,1]
  *   (Indep L1 .. Ln)     -> product law, values (Tuple v1 .. vn), masses multiplied
  *   (Image $x body L)    -> pushforward of L through body, equal values merged
  *   (Expect L)           -> sum of v*m over the support (values must be rationals)
- *   (LawOf e)            -> the law denoted by e
+ *   (LawOf m)            -> the Masses of the declared (Measure m (On C) (Masses ..)); the caller's leaf
+ *                           expands a measure name to the internal form (%Masses (v q) ..), checked here
+ *                           (masses non-negative, summing to 1)
+ * Outside the fragment: a map call inside a law term (stoch.c answers Unsupported, not InvalidInput).
  * A DcLaw holds its support in insertion order; equal values (sx_equal) are merged. */
 #ifndef DCALC_LAWS_H
 #define DCALC_LAWS_H

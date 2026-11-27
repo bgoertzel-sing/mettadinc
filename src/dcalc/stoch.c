@@ -756,15 +756,47 @@ static int st_elval(const StCar *T, int j, DcQ *v, int *ovf) {
 }
 /* leaf values inside a law term: closed exact arithmetic (dc_law_arith: numerals, Rat, Tuple/GetTuple,
  * If/Eq/Lt/Le/And/Or/Not, Add/Sub/Mul/Div/Min/Max); no map calls or free variables here */
+static const Sx *st_law_src;   /* module source for the law leaf (set by st_dm) */
+static int st_law_mapcall;     /* the last st_lawx failed on a map call inside a law term */
+static int st_has_mapcall(const Sx *e) {
+    if (!st_law_src || e->kind != SX_LIST) return 0;
+    if (e->n && e->items[0]->kind == SX_SYM && st_decl(st_law_src, "Map", e->items[0]->text)) return 1;
+    for (size_t i = 0; i < e->n; i++) if (st_has_mapcall(e->items[i])) return 1;
+    return 0;
+}
+/* a symbol naming a declared (Measure N (On C) (Masses (v q) ..)) denotes its law (metta_eval.py l.150-152, l.255-258) */
+static Sx *st_measure_law(const Sx *e) {
+    const Sx *d = st_law_src && e->kind == SX_SYM ? st_decl(st_law_src, "Measure", e->text) : NULL, *ms = d ? st_field(d, "Masses") : NULL;
+    if (!ms) return NULL;
+    Sx *l = sx_list(); sx_push(l, sx_sym("%Masses"));
+    for (size_t k = 1; k < ms->n; k++) { const Sx *c = ms->items[k]; int ok = 1, ovf = 0;
+        if (c->kind != SX_LIST || c->n != 2) { sx_free(l); return NULL; }
+        Sx *pr = sx_list(); sx_push(pr, dc_law_arith(c->items[0], &ok, &ovf)); sx_push(pr, dc_law_arith(c->items[1], &ok, &ovf)); sx_push(l, pr);
+        if (ok != 1 || ovf) { sx_free(l); return NULL; } }
+    return l;
+}
+/* replace a measure name in a law position ((LawOf N), (Indep .. N ..), (Image $x b N), (Expect N)) by its law,
+ * so closed arithmetic such as (Coin (Expect (LawOf Z))) sees an explicit law */
+static int st_lawpos(const Sx *e, size_t i) {
+    return (sx_head_is(e, "LawOf") && i == 1) || (sx_head_is(e, "Indep") && i >= 1) || (sx_head_is(e, "Image") && i == 3) || (sx_head_is(e, "Expect") && i == 1);
+}
+static Sx *st_law_expand(const Sx *e) {
+    if (e->kind != SX_LIST) return sx_copy(e);
+    Sx *l = sx_list();
+    for (size_t i = 0; i < e->n; i++) { Sx *ml = st_lawpos(e, i) ? st_measure_law(e->items[i]) : NULL; sx_push(l, ml ? ml : st_law_expand(e->items[i])); }
+    return l;
+}
 static Sx *st_lawleaf(const Sx *e, void *ctx, int *ok) {
     int ovf = 0; (void)ctx;
-    Sx *v = dc_law_arith(e, ok, &ovf);
+    if (st_has_mapcall(e)) { st_law_mapcall = 1; *ok = 0; return sx_copy(e); }   /* Unsupported, not InvalidInput */
+    Sx *ml = st_measure_law(e); if (ml) return ml;
+    Sx *x = st_law_expand(e), *v = dc_law_arith(x, ok, &ovf); sx_free(x);
     if (ovf) *ok = 0;
     return v;
 }
 static char st_law_why[160];   /* why the last st_lawx failed inside laws.c; "" otherwise */
 static int st_lawx(const Sx *e, const StCar *T, DcQ *out, int *ovf) {
-    st_law_why[0] = 0;
+    st_law_why[0] = 0; st_law_mapcall = 0;
     for (int j = 0; j < T->n; j++) out[j] = dc_q(0, 1, ovf);
     if (sx_head_is(e, "Point") && e->n == 2) { int j = st_el(T, e->items[1]); if (j < 0) return -1; out[j] = dc_q(1, 1, ovf); return 0; }
     if (sx_head_is(e, "Coin") && e->n == 2) {
@@ -776,9 +808,9 @@ static int st_lawx(const Sx *e, const StCar *T, DcQ *out, int *ovf) {
             out[j1] = p; out[j0] = dc_q_sub(dc_q(1, 1, ovf), p, ovf); return 0;
         }
     }
-    if (dc_law_head(e)) {   /* library Laws: Indep / Image / LawOf over a finite carrier (laws.c) */
+    if (dc_law_head(e) || st_has_mapcall(e) || (e->kind == SX_SYM && st_law_src && st_decl(st_law_src, "Measure", e->text))) {   /* library Laws: Indep / Image / LawOf / a measure name over a finite carrier (laws.c); a bare map call reaches the leaf and is flagged */
         DcLaw L; dc_law_init(&L); char why[160];
-        if (dc_law_eval(e, st_lawleaf, NULL, &L, ovf, why, sizeof why)) { snprintf(st_law_why, sizeof st_law_why, "%s", why); dc_law_free(&L); return -1; }
+        if (dc_law_eval(e, st_lawleaf, NULL, &L, ovf, why, sizeof why)) { snprintf(st_law_why, sizeof st_law_why, "%s", st_law_mapcall ? "a map call inside a law term is outside the Laws fragment" : why); dc_law_free(&L); return -1; }
         for (size_t i = 0; i < L.n; i++) { int j = st_el(T, L.val[i]); if (j < 0) { snprintf(st_law_why, sizeof st_law_why, "a law value is outside the target carrier"); dc_law_free(&L); return -1; } out[j] = L.m[i]; }
         dc_law_free(&L); return 0;
     }
@@ -797,6 +829,7 @@ static int st_measure(StMod *s, const Sx *src, const char *nm, int car, DcQ *mu,
 }
 typedef struct { int sc, ac, tc; DcQ law[ST_MAXE][ST_MAXE][ST_MAXE], er[ST_MAXE][ST_MAXE]; } StDM;
 static int st_dm(StMod *s, const Sx *src, const char *nm, StDM *D, char *why, size_t ws, int *ovf) {
+    st_law_mapcall = 0;   /* callers read it after a failure; never stale */
     const Sx *d = st_decl(src, "DecisionModel", nm);
     if (!d) { snprintf(why, ws, "%s names no decision model", nm ? nm : "?"); return -1; }
     D->sc = st_car(s, st_name(st_field(d, "States"), 1)); D->ac = st_car(s, st_name(st_field(d, "Actions"), 1)); D->tc = -1;
@@ -808,15 +841,19 @@ static int st_dm(StMod *s, const Sx *src, const char *nm, StDM *D, char *why, si
         snprintf(why, ws, "decision model %s needs (States S) (Actions A) and a RewardLaw map (From (Product S A)) (To (Law T))", nm); return -1; }
     const StCar *SC = &s->car[D->sc], *AC = &s->car[D->ac], *TC = &s->car[D->tc];
     static int seen[ST_MAXE][ST_MAXE]; memset(seen, 0, sizeof seen);
+    int bmc = 0; st_law_src = src; st_law_mapcall = 0;
     const Sx *bd = st_field(mp, "Body"), *cs = st_field(mp, "Cases");
     for (int x = 0; x < SC->n; x++) for (int a = 0; a < AC->n; a++)
-        if (bd && bd->n == 3 && !st_lawx(bd->items[2], TC, D->law[x][a], ovf)) seen[x][a] = 1;
+        if (bd && bd->n == 3) { if (!st_lawx(bd->items[2], TC, D->law[x][a], ovf)) seen[x][a] = 1; else bmc |= st_law_mapcall; }
     for (size_t k = 1; cs && k < cs->n; k++) { const Sx *c = cs->items[k];
         const Sx *t = c->kind == SX_LIST && c->n == 2 ? c->items[0] : NULL;
         int x = sx_head_is(t, "Tuple") && t->n == 3 ? st_el(SC, t->items[1]) : -1, a = x >= 0 ? st_el(AC, t->items[2]) : -1;
+        if (a >= 0 && !seen[x][a] && st_lawx(c->items[1], TC, D->law[x][a], ovf) && st_law_mapcall) { snprintf(why, ws, "reward law of %.40s: %.100s", nm, st_law_why); return -1; }
+        st_law_mapcall = 0;
         if (a < 0 || seen[x][a] || st_lawx(c->items[1], TC, D->law[x][a], ovf)) { snprintf(why, ws, "bad or duplicate case in the reward law of %.40s%s%.100s", nm, a >= 0 && !seen[x][a] && st_law_why[0] ? ": " : "", a >= 0 && !seen[x][a] ? st_law_why : ""); return -1; }
         seen[x][a] = 1; }
     for (int x = 0; x < SC->n; x++) for (int a = 0; a < AC->n; a++) {
+        if (!seen[x][a] && bmc) { st_law_mapcall = 1; snprintf(why, ws, "reward law of %.40s: a map call inside a law term is outside the Laws fragment", nm); return -1; }
         if (!seen[x][a]) { snprintf(why, ws, "reward law of %s is not total", nm); return -1; }
         D->er[x][a] = dc_q(0, 1, ovf);
         for (int t = 0; t < TC->n; t++) { DcQ v; if (dc_q_is_zero(D->law[x][a][t])) continue;
@@ -1669,7 +1706,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
         for (int k = 0; k < ns; k++) {
             const Sx *e = sides[k], *u = st_opt(e, "Under");
             if (!sx_head_is(e, "AverageModel") || e->n != 3) return dc_invalid(m, "%s: expected (AverageModel D (Under P))", head);
-            if (st_dm(&S, m->source, st_name(e, 1), &DD[k], why, sizeof why, &ovf)) return ovf ? dc_unsupported(m, "%s: exact rational limit (bignum memory cap or division by zero)", head) : dc_invalid(m, "%s: %s", head, why);
+            if (st_dm(&S, m->source, st_name(e, 1), &DD[k], why, sizeof why, &ovf)) return ovf ? dc_unsupported(m, "%s: exact rational limit (bignum memory cap or division by zero)", head) : st_law_mapcall ? dc_unsupported(m, "%s: %s", head, why) : dc_invalid(m, "%s: %s", head, why);
             if (!u || st_measure(&S, m->source, st_name(u, 1), DD[k].sc, mu, &ovf)) return dc_invalid(m, "%s: (Under P) must name a probability Measure on the states of %s", head, st_name(e, 1));
             st_avg(&S, &DD[k], mu, AV[k], &ovf);
         }
@@ -1703,7 +1740,7 @@ Sx *dc_req_stoch(DcRun *r, const Sx *q, const char *head, int slot) {
     }
     if (!strcmp(head, "OptimizePolicy") || !strcmp(head, "EvaluatePolicy")) {   /* R04, R05, R06 */
         static StDM D; DcQ mu[ST_MAXE]; char why[200] = ""; const Sx *u = st_opt(q, "Under");
-        if (st_dm(&S, m->source, a1, &D, why, sizeof why, &ovf)) return ovf ? dc_unsupported(m, "%s: exact rational limit (bignum memory cap or division by zero)", head) : dc_invalid(m, "%s: %s", head, why);
+        if (st_dm(&S, m->source, a1, &D, why, sizeof why, &ovf)) return ovf ? dc_unsupported(m, "%s: exact rational limit (bignum memory cap or division by zero)", head) : st_law_mapcall ? dc_unsupported(m, "%s: %s", head, why) : dc_invalid(m, "%s: %s", head, why);
         if (!u || st_measure(&S, m->source, st_name(u, 1), D.sc, mu, &ovf)) return dc_invalid(m, "%s: (Under P) must name a probability Measure on the states of %s", head, a1);
         const StCar *SC = &S.car[D.sc], *AC = &S.car[D.ac]; int n = SC->n;
         DcQ base = dc_q(0, 1, &ovf); int ba = 0;   /* uninformed optimum */

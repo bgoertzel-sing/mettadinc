@@ -65,5 +65,28 @@ for i, (m, why) in enumerate(NEG):
 rc, out = results(os.path.join(HERE, 'fixtures', 'laws_neg_var.metta'))
 got = out[0] if out else ('?', {}, None, '')
 report('neg: free variable in an Image body is InvalidInput at admission (unbound variable $q)', len(out) == 1 and got[0] == 'InvalidInput' and not got[1] and 'unbound variable $q' in got[3], (rc, out))
+# ---- review 1: LawOf of a declared measure (doc03 l.2174), Expect over zero-mass outcomes, a failing Indep
+R1 = os.path.join(HERE, 'fixtures', 'laws_review1.metta')
+WANT1 = [({0: F(1, 4), 1: F(3, 4)}, F(3, 4)),   # (LawOf Half): the masses of measure Half
+         ({0: F(1)}, F(0)),                     # (Coin (Expect (Coin 0))): outcome 1 has mass 0
+         ({1: F(1)}, F(1)),                     # (Coin (Expect (LawOf Z))): Z has a zero-mass outcome 0
+         ({0: F(1, 2), 1: F(1, 2)}, F(1, 2))]   # (Coin (Expect (Image $b (Mul $b 1/2) (Coin 1))))
+rc, out = results(R1)
+report('review1: dcalc exit 0, 5 requests', rc == 0 and len(out) == 5, (rc, len(out)))
+for i, (law, mean) in enumerate(WANT1):
+    got = out[i] if i < len(out) else ('?', {}, None, '')
+    report('review1: request %d Checked, law %s mean %s' % (i + 1, law, mean), got[0] == 'Checked' and got[1] == law and got[2] == mean, got)
+W1 = World(R1); _, rl1 = W1.lookup('LawsR1', 'rl')
+for i, s_ in enumerate('ABCD'):
+    ref = {v: m for v, m in W1.apply('LawsR1', rl1, [(s_, 'K')]).items() if m}
+    report('review1: ref evaluator law of rl(%s, K) = dcalc' % s_, i < len(out) and ref == out[i][1], (ref, out[i][1] if i < len(out) else None))
+got = out[4] if len(out) > 4 else ('?', {}, None, '')
+report('review1: failing Indep (non-law argument) is InvalidInput, no law', got[0] == 'InvalidInput' and not got[1] and 'not a law' in got[3], got)
+# ---- review 1: a map call inside a law term is Unsupported with a reason, never InvalidInput or a value
+rc, out = results(os.path.join(HERE, 'fixtures', 'laws_mapcall.metta'))
+report('mapcall: dcalc exit 0, 4 requests', rc == 0 and len(out) == 4, (rc, len(out)))
+for i, form in enumerate(['Coin (pr A)', 'Image (inc $b)', 'Indep (lw A)', 'bare (lw A)']):
+    got = out[i] if i < len(out) else ('?', {}, None, '')
+    report('mapcall: %s is Unsupported, reason names the map call' % form, got[0] == 'Unsupported' and not got[1] and 'map call inside a law term' in got[3], got)
 print('run_laws: %s' % ('PASS' if fails == 0 else 'FAIL (%d)' % fails))
 sys.exit(1 if fails else 0)
