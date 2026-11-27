@@ -199,6 +199,7 @@ Sx *dc_eval_request(const Sx *all, const char *basedir, const char *mn, const Sx
             frc = dc_families_expand(all, g, &e2, fw, sizeof fw); sx_free(g);
             if (e2) { sx_free(inl); inl = e2; fam = 1; } }
         if (frc == -2) res = bare("Unsupported", mn, fw);
+        else if (frc == -3) res = bare("InvalidInput", mn, fw);   /* a shared map rule (maprules.h) broken in a folded Table */
         else if (dc_admit(inl ? inl : raw, m, err, sizeof err) != 0) {
             res = bare(strncmp(err, "[M0]", 4) ? "InvalidInput" : "Unsupported", mn, err);
             dc_module_free(m);   /* review 2 F6: release partially admitted carrier tables */

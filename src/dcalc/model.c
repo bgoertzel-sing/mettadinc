@@ -1,5 +1,6 @@
 /* Admission of DC.Module sources into the enumerated deterministic model. */
 #include "model.h"
+#include "maprules.h"
 #include "api.h"   /* M4 opt-in flag */
 #include <errno.h>
 #include <stdio.h>
@@ -756,46 +757,48 @@ static int typed_map_on(DcModule *m, const char *nm, int dom, int tgt, char *err
     if (m->nmap >= sizeof m->map / sizeof m->map[0]) return fail(err, es, "Map %s: too many maps", nm);
     DcCarrier *T = &m->car[tc];
     int *tab = malloc((D->n ? D->n : 1) * sizeof(int)), cases = sx_head_is(body, "Cases");
+    int *hitb = malloc((D->n ? D->n : 1) * sizeof(int));   /* shared map rules (maprules.h): mr = values, ov = inputs already matched by a row */
+    DcMrTab mr, ov; dc_mr_init(&mr, (int)D->n, tab); dc_mr_init(&ov, (int)D->n, hitb);
     const char *bvar = body_var(body);   /* a Body map (shape checked by admit_typed_map): one case, $v bound to the input */
     char lab[32];   /* where a value comes from, for the reasons: "row N" or "Body" */
     for (size_t i = 0; i < D->n; i++) {
         size_t hit = 0; const Sx *out = NULL; Env e = {0};
-        if (bvar) { hit = 1; out = body->items[2]; e.var[0] = bvar; e.val[0] = D->elems[i]; e.n = 1; }
+        if (bvar) { hit = 1; out = body->items[2]; e.var[0] = bvar; e.val[0] = D->elems[i]; e.n = 1; dc_mr_mark(&ov, (int)i); }
         for (size_t j = 1; !bvar && j < body->n; j++) {
             const Sx *row = body->items[j]; Env e1 = {0};
             if (!(cases ? match(row->items[0], D->elems[i], &e1) : sx_equal(row->items[0], D->elems[i]))) continue;
-            if (hit) {
+            if (dc_mr_mark(&ov, (int)i) == DC_MR_DUP) {
                 char *xs = sx_print(D->elems[i]);
                 fail(err, es, cases ? "Map %s: input %s matches Cases rows %zu and %zu; overlapping cases are rejected" : "Map %s: input %s has Table rows %zu and %zu", nm, xs, hit - 1, j - 1);
-                free(xs); free(tab); return -1;
+                free(xs); free(tab); free(hitb); return -1;
             }
             hit = j; out = row->items[1]; e = e1;
         }
-        if (!hit) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: not total on carrier %s; no value for %s", nm, D->name, xs); free(xs); free(tab); return -1; }
+        if (dc_mr_missing(&ov, (int)i)) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: not total on carrier %s; no value for %s", nm, D->name, xs); free(xs); free(tab); free(hitb); return -1; }
         if (bvar) snprintf(lab, sizeof lab, "Body"); else snprintf(lab, sizeof lab, "row %zu", hit - 1);
         int ok = 1; allow_xor = m->neural; allow_nat = m->natarith; logic_on(m); Sx *v = cases || bvar ? eval_body(out, &e, &ok) : sx_copy(out); allow_xor = 0; allow_nat = 0; logic_off();
-        if (ok == 4) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: %s%s on %s: %s", nm, bvar ? "" : "Cases ", lab, xs, logic_why); free(xs); sx_free(v); free(tab); return -1; }
-        if (ok == 2 && logic_why[0]) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: %s%s: %s", nm, bvar ? "" : "Cases ", lab, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
-        if (ok == 2) { sx_free(v); free(tab); fail(err, es, "[M0] Map %s: %s%s uses an operator outside the M0 fragment", nm, bvar ? "" : "Cases ", lab); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
-        if (ok == 3) { sx_free(v); free(tab); return fail(err, es, "Map %s: %s%s: integer overflow or out-of-range literal in Add/Mul", nm, bvar ? "" : "Cases ", lab); }
-        if (ok != 1 || (totype && !has_type(v, totype))) {
+        if (ok == 4) { char *xs = sx_print(D->elems[i]); fail(err, es, "Map %s: %s%s on %s: %s", nm, bvar ? "" : "Cases ", lab, xs, logic_why); free(xs); sx_free(v); free(tab); free(hitb); return -1; }
+        if (ok == 2 && logic_why[0]) { sx_free(v); free(tab); free(hitb); fail(err, es, "[M0] Map %s: %s%s: %s", nm, bvar ? "" : "Cases ", lab, logic_why); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
+        if (ok == 2) { sx_free(v); free(tab); free(hitb); fail(err, es, "[M0] Map %s: %s%s uses an operator outside the M0 fragment", nm, bvar ? "" : "Cases ", lab); snprintf(pending_why, sizeof pending_why, "%s", err + 5); return -1; }
+        if (ok == 3) { sx_free(v); free(tab); free(hitb); return fail(err, es, "Map %s: %s%s: integer overflow or out-of-range literal in Add/Mul", nm, bvar ? "" : "Cases ", lab); }
+        if (ok != 1 || (totype && dc_mr_value(has_type(v, totype) ? 0 : -1) == DC_MR_CODOMAIN)) {   /* R3 To type (maprules.h) */
             char *xs = sx_print(D->elems[i]), *vs = sx_print(v), *ts = totype ? sx_print(totype) : NULL;
             if (ok != 1 && bvar) fail(err, es, "Map %s: Body has no value on %s, so the map is not total on carrier %s", nm, xs, D->name);
             else if (ok != 1) fail(err, es, "Map %s: %s gives no value on %s", nm, lab, xs);
             else fail(err, es, "Map %s: %s gives %s on %s, which is not of the To type %s", nm, lab, vs, xs, ts);
-            free(xs); free(vs); free(ts); sx_free(v); free(tab); return -1;
+            free(xs); free(vs); free(ts); sx_free(v); free(tab); free(hitb); return -1;
         }
         int b = T->image ? image_add(T, v) : dc_carrier_index(T, v);
-        if (b < 0) {
+        if (dc_mr_value(b) == DC_MR_CODOMAIN) {
             char *xs = sx_print(D->elems[i]), *vs = sx_print(v);
             if (T->image) { fail(err, es, "[M0] Map %s: more than 4096 values of type %s", nm, T->name); snprintf(pending_why, sizeof pending_why, "%s", err + 5); }
             else fail(err, es, "Map %s: sends %s to %s, which leaves carrier %s", nm, xs, vs, T->name);
-            free(xs); free(vs); sx_free(v); free(tab); return -1;
+            free(xs); free(vs); sx_free(v); free(tab); free(hitb); return -1;
         }
-        sx_free(v); tab[i] = b;
+        sx_free(v); (void)dc_mr_put(&mr, (int)i, b);
     }
     DcMap *mp = &m->map[m->nmap]; memset(mp, 0, sizeof *mp);
-    snprintf(mp->name, sizeof mp->name, "%s", nm); mp->from = dom; mp->to = tc; mp->table = tab;
+    snprintf(mp->name, sizeof mp->name, "%s", nm); mp->from = dom; mp->to = tc; mp->table = tab; free(hitb);
     return (int)m->nmap++;
 }
 /* Admission of a Crisp map with a type form in From or To (the other side a declared carrier
@@ -830,7 +833,7 @@ static int admit_typed_map(DcModule *m, const Sx *d, const char *nm, char *err, 
             fail(err, es, "Map %s: %s row %zu: %s cannot be a value of the From type %s", nm, cases ? "Cases" : "Table", j - 1, ps, ts);
             free(ps); free(ts); return -1;
         }
-        if (!cases && to->kind == SX_LIST && !has_type(row->items[1], to)) {
+        if (!cases && to->kind == SX_LIST && dc_mr_value(has_type(row->items[1], to) ? 0 : -1) == DC_MR_CODOMAIN) {   /* R3 To type (maprules.h) */
             char *vs = sx_print(row->items[1]), *ts = sx_print(to);
             fail(err, es, "Map %s: Table row %zu: %s is not of the To type %s", nm, j - 1, vs, ts);
             free(vs); free(ts); return -1;
@@ -869,16 +872,16 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
     DcMap *mp = &m->map[m->nmap]; memset(mp, 0, sizeof *mp);
     snprintf(mp->name, sizeof mp->name, "%s", nm); mp->from = f; mp->to = t;
     mp->table = malloc((F->n ? F->n : 1) * sizeof(int));
-    for (size_t i = 0; i < F->n; i++) mp->table[i] = -1;
+    DcMrTab mr; dc_mr_init(&mr, (int)F->n, mp->table);   /* shared map rules (maprules.h) */
     if (sx_head_is(body, "Table")) {
         for (size_t j = 1; j < body->n; j++) {
             const Sx *row = body->items[j];
             if (row->kind != SX_LIST || row->n != 2) { free(mp->table); return fail(err, es, "Map %s: Table row %zu is not a pair", nm, j - 1); }
             int a = dc_carrier_index(F, row->items[0]), b = T->value ? dc_value_add(T, row->items[1]) : dc_carrier_index(T, row->items[1]);
-            if (a < 0) { free(mp->table); return fail(err, es, "Map %s: Table row %zu key outside carrier %s", nm, j - 1, F->name); }
-            if (b < 0) { free(mp->table); return fail(err, es, "Map %s: Table row %zu value outside carrier %s", nm, j - 1, T->name); }
-            if (mp->table[a] >= 0) { free(mp->table); return fail(err, es, "Map %s: Table key at row %zu repeated", nm, j - 1); }
-            mp->table[a] = b;
+            int rc = dc_mr_put(&mr, a, b);
+            if (rc == DC_MR_KEY) { free(mp->table); return fail(err, es, "Map %s: Table row %zu key outside carrier %s", nm, j - 1, F->name); }
+            if (rc == DC_MR_CODOMAIN) { free(mp->table); return fail(err, es, "Map %s: Table row %zu value outside carrier %s", nm, j - 1, T->name); }
+            if (rc == DC_MR_DUP) { free(mp->table); return fail(err, es, "Map %s: Table key at row %zu repeated", nm, j - 1); }
         }
     } else if (sx_head_is(body, "Cases")) {
         for (size_t i = 0; i < F->n; i++) {
@@ -892,19 +895,19 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 if (ok == 2) { sx_free(v); free(mp->table); return fail(err, es, "[M0] Map %s: Cases row %zu uses an operator outside the M0 fragment", nm, j - 1); }
                 if (ok == 3) { sx_free(v); free(mp->table); return fail(err, es, "Map %s: Cases row %zu: integer overflow or out-of-range literal in Add/Mul", nm, j - 1); }
                 int b = ok ? (T->value ? dc_value_add(T, v) : dc_carrier_index(T, v)) : -1; sx_free(v);
-                if (b < 0) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu gives a value outside carrier %s", nm, j - 1, T->name); }
+                if (dc_mr_put(&mr, (int)i, b) == DC_MR_CODOMAIN) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu gives a value outside carrier %s", nm, j - 1, T->name); }
                 /* spec 5.4: every input matches exactly one case; overlapping cases are
                  * rejected even when they agree (source order never decides a value) */
                 for (size_t j2 = j + 1; j2 < body->n; j2++) {
                     const Sx *r2 = body->items[j2]; Env e2 = {0};
                     if (r2->kind != SX_LIST || r2->n != 2) { free(mp->table); return fail(err, es, "Map %s: Cases row %zu is not a pair", nm, j2 - 1); }
-                    if (match(r2->items[0], F->elems[i], &e2)) {
+                    if (match(r2->items[0], F->elems[i], &e2) && dc_mr_mark(&mr, (int)i) == DC_MR_DUP) {   /* a second row for input i */
                         char *xs = sx_print(F->elems[i]);
                         fail(err, es, "Map %s: input %s matches Cases rows %zu and %zu; overlapping cases are rejected", nm, xs, j - 1, j2 - 1);
                         free(xs); free(mp->table); return -1;
                     }
                 }
-                mp->table[i] = b; break;
+                break;
             }
         }
     } else if (sx_head_is(body, "Body") && !strcmp(m->profile, "Crisp")) {   /* t-2026-11-24-mettadinc-m0-body-maps */
@@ -921,7 +924,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
             if (ok == 1 && b < 0) { char *vs = sx_print(v); fail(err, es, "Map %s: Body sends %s to %s, which is not in carrier %s", nm, xs, vs, T->name); free(vs); }
             free(xs); sx_free(v);
             if (b < 0) { free(mp->table); return -1; }
-            mp->table[i] = b;
+            (void)dc_mr_put(&mr, (int)i, b);
         }
     } else if (sx_head_is(body, "Body") && body->n == 3 && !strcmp(m->profile, "Graded") && uses_lib(m, "FiniteSets") && !(m->contracts && T->value)
                && body->items[1]->kind == SX_LIST && body->items[1]->n == 1 && body->items[1]->items[0]->kind == SX_SYM
@@ -936,7 +939,7 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 fail(err, es, "Map %s: Body sends %s to %s, which is not in carrier %s", nm, xs, vs, T->name);
                 free(xs); free(vs); sx_free(v); free(mp->table); return -1;
             }
-            sx_free(v); mp->table[i] = b;
+            sx_free(v); (void)dc_mr_put(&mr, (int)i, b);
         }
     } else if (sx_head_is(body, "Body") && body->n == 3 && m->contracts && T->value && body->items[1]->kind == SX_LIST
                && body->items[1]->n == 1 && body->items[1]->items[0]->kind == SX_SYM && body->items[1]->items[0]->text[0] == '$') {   /* M6 opt-in */
@@ -948,11 +951,12 @@ static int admit_map(DcModule *m, const Sx *d, char *err, size_t es) {
                 char *xs = sx_print(F->elems[i]); fail(err, es, "Map %s: Body has no rational value in %s on %s", nm, T->name, xs);
                 free(xs); sx_free(v); free(mp->table); return -1;
             }
-            sx_free(v); mp->table[i] = b;
+            sx_free(v); (void)dc_mr_put(&mr, (int)i, b);
         }
     } else { free(mp->table); return fail(err, es, "[M0] Map %s: only Table and Cases maps are in the M0 deterministic fragment", nm); }
-    for (size_t i = 0; i < F->n; i++) if (mp->table[i] < 0) {
-        char *s = sx_print(F->elems[i]); fail(err, es, "Map %s: not total; no value for %s", nm, s); free(s); free(mp->table); return -1;
+    int miss = -1;
+    if (dc_mr_total(&mr, &miss)) {
+        char *s = sx_print(F->elems[miss]); fail(err, es, "Map %s: not total; no value for %s", nm, s); free(s); free(mp->table); return -1;
     }
     m->nmap++; return 0;
 }

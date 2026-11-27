@@ -1,0 +1,38 @@
+;; t-2026-11-26-mettadinc-shared-loader: shared map rules, Nondeterministic profile (ops_nondet.c nd_read_map).
+;; Each module breaks exactly one rule in a Choice map (Choice rows are not seen by the admit.c Cases lint).
+(DC.Module NdDup
+  (Profile Nondeterministic)
+  (Use Simulation)
+  (Carrier S (Of Symbol) (Enum A B))
+  (Carrier O (Of Symbol) (Enum X))
+  (Map ob (From S) (To O) (Cases (A X) (B X)))
+  (Map st (From S) (To S) (Choice (A A B) (B A) (A B)))
+  (Machine M (States S) (Observe o ob) (Action t st)))
+(DC.Module NdTotal
+  (Profile Nondeterministic)
+  (Use Simulation)
+  (Carrier S (Of Symbol) (Enum A B))
+  (Carrier O (Of Symbol) (Enum X))
+  (Map ob (From S) (To O) (Cases (A X) (B X)))
+  (Map st (From S) (To S) (Choice (A A B)))
+  (Machine M (States S) (Observe o ob) (Action t st)))
+(DC.Module NdCodomain
+  (Profile Nondeterministic)
+  (Use Simulation)
+  (Carrier S (Of Symbol) (Enum A B))
+  (Carrier O (Of Symbol) (Enum X))
+  (Map ob (From S) (To O) (Cases (A X) (B X)))
+  (Map st (From S) (To S) (Choice (A A X) (B A)))
+  (Machine M (States S) (Observe o ob) (Action t st)))
+(DC.Module NdControl
+  (Profile Nondeterministic)
+  (Use Simulation)
+  (Carrier S (Of Symbol) (Enum A B))
+  (Carrier O (Of Symbol) (Enum X))
+  (Map ob (From S) (To O) (Cases (A X) (B X)))
+  (Map st (From S) (To S) (Choice (A A B) (B A)))
+  (Machine M (States S) (Observe o ob) (Action t st)))
+!(dc.run NdDup (Outcomes M (From A) (After (Do t)) (Observe o)))
+!(dc.run NdTotal (Outcomes M (From A) (After (Do t)) (Observe o)))
+!(dc.run NdCodomain (Outcomes M (From A) (After (Do t)) (Observe o)))
+!(dc.run NdControl (Outcomes M (From A) (After (Do t)) (Observe o)))

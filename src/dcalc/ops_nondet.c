@@ -6,6 +6,7 @@
 #include "ops_run.h"
 #include "model.h"
 #include "rat.h"
+#include "maprules.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,22 +67,20 @@ static int nd_read_map(NdMod *s, const Sx *d, char *err, size_t es) {
     if (!b) { b = fld(d, "Choice"); M->choice = 1; }
     if (!b) return nd_err(err, es, "Map %s: needs (Cases ..) or (Choice ..)%s", M->name, NULL);
     const NdCar *F = &s->car[M->from], *T = &s->car[M->to];
-    NdSet seen = 0;
+    int tb[ND_MAXC]; DcMrTab mr; dc_mr_init(&mr, F->n, tb);   /* shared map rules (maprules.h) */
     for (size_t i = 1; i < b->n; i++) {
         const Sx *c = b->items[i];
         if (c->kind != SX_LIST || c->n < 2 || (!M->choice && c->n != 2)) return nd_err(err, es, "Map %s: malformed case%s", M->name, NULL);
-        int x = nd_el(F, nm_of(c->items[0]));
-        if (x < 0) return nd_err(err, es, "Map %s: %s is not in its From carrier", M->name, nm_of(c->items[0]));
-        if (seen & ((NdSet)1 << x)) return nd_err(err, es, "Map %s: %s has two cases", M->name, F->el[x]);
-        seen |= (NdSet)1 << x;
+        int x = nd_el(F, nm_of(c->items[0])), rc = dc_mr_mark(&mr, x);
+        if (rc == DC_MR_KEY) return nd_err(err, es, "Map %s: %s is not in its From carrier", M->name, nm_of(c->items[0]));
+        if (rc == DC_MR_DUP) return nd_err(err, es, "Map %s: %s has two cases", M->name, F->el[x]);
         for (size_t k = 1; k < c->n; k++) {
             int y = nd_el(T, nm_of(c->items[k]));
-            if (y < 0) return nd_err(err, es, "Map %s: %s is not in its To carrier", M->name, nm_of(c->items[k]));
+            if (dc_mr_value(y) == DC_MR_CODOMAIN) return nd_err(err, es, "Map %s: %s is not in its To carrier", M->name, nm_of(c->items[k]));
             M->img[x] |= (NdSet)1 << y;
         }
     }
-    NdSet all = F->n == 64 ? ~(NdSet)0 : (((NdSet)1 << F->n) - 1);
-    if (seen != all) return nd_err(err, es, "Map %s: not total on its From carrier%s", M->name, NULL);
+    if (dc_mr_total(&mr, NULL) == DC_MR_PARTIAL) return nd_err(err, es, "Map %s: not total on its From carrier%s", M->name, NULL);
     s->nmap++; return 0;
 }
 static int nd_read_named(NdMod *s, const Sx *f, NdNamed *v, int *n, const char *mn, char *err, size_t es) {

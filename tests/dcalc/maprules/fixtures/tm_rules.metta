@@ -1,0 +1,38 @@
+;; t-2026-11-26-mettadinc-shared-loader: shared map rules, Crisp type-form maps (model.c typed_map_on).
+;; Observe map ob has a type-form To; each module breaks one rule; TmControl answers Checked.
+(DC.Module TmOverlap
+  (Profile Crisp)
+  (Carrier S (Of Symbol) (Enum a b))
+  (Carrier O (Of Symbol) (Enum yes no))
+  (Map id (From S) (To S) (Table (a a) (b b)))
+  (Map ob (From S) (To (Tuple Symbol Symbol)) (Cases (a (Tuple yes yes)) ($s (Tuple no no))))
+  (Machine M (States S) (Observe ob ob) (Action id id))
+  (Representation R (Of M) (Encode id)))
+(DC.Module TmTotal
+  (Profile Crisp)
+  (Carrier S (Of Symbol) (Enum a b))
+  (Carrier O (Of Symbol) (Enum yes no))
+  (Map id (From S) (To S) (Table (a a) (b b)))
+  (Map ob (From S) (To (Tuple Symbol Symbol)) (Cases (a (Tuple yes yes))))
+  (Machine M (States S) (Observe ob ob) (Action id id))
+  (Representation R (Of M) (Encode id)))
+(DC.Module TmCodomain
+  (Profile Crisp)
+  (Carrier S (Of Symbol) (Enum a b))
+  (Carrier O (Of Symbol) (Enum yes no))
+  (Map id (From S) (To S) (Table (a a) (b b)))
+  (Map ob (From S) (To (Tuple Symbol Symbol)) (Cases (a (Tuple yes yes)) (b yes)))
+  (Machine M (States S) (Observe ob ob) (Action id id))
+  (Representation R (Of M) (Encode id)))
+(DC.Module TmControl
+  (Profile Crisp)
+  (Carrier S (Of Symbol) (Enum a b))
+  (Carrier O (Of Symbol) (Enum yes no))
+  (Map id (From S) (To S) (Table (a a) (b b)))
+  (Map ob (From S) (To (Tuple Symbol Symbol)) (Cases (a (Tuple yes yes)) (b (Tuple no no))))
+  (Machine M (States S) (Observe ob ob) (Action id id))
+  (Representation R (Of M) (Encode id)))
+!(dc.run TmOverlap (CheckNow R))
+!(dc.run TmTotal (CheckNow R))
+!(dc.run TmCodomain (CheckNow R))
+!(dc.run TmControl (CheckNow R))
