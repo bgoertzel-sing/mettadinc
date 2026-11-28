@@ -97,8 +97,12 @@ mon_rules|rel|MonRulesDupSwap|Unsupported|Profile Dynamics Stochastic is outside
 mon_rules|rel|MonRulesTotal|Unsupported|Profile Dynamics Stochastic is outside the first release
 mon_rules|rel|MonRulesCodomain|Unsupported|Profile Dynamics Stochastic is outside the first release
 mon_rules|rel|MonRulesControl|Unsupported|Profile Dynamics Stochastic is outside the first release
+mon_rules|rel|MonRulesNatTo|Unsupported|Profile Dynamics Stochastic is outside the first release
+mon_rules|rel|MonRulesNatToControl|Unsupported|Profile Dynamics Stochastic is outside the first release
 mon_rules|--beyond-release|MonRulesDup|InvalidInput|Map rate: Table key at row 1 repeated
 mon_rules|--beyond-release|MonRulesDupSwap|InvalidInput|Map rate: Table key at row 1 repeated
 mon_rules|--beyond-release|MonRulesTotal|InvalidInput|Map rate: not total; no value for high
 mon_rules|--beyond-release|MonRulesCodomain|InvalidInput|Map rate: Table row 1 value outside carrier Rational01
 mon_rules|--beyond-release|MonRulesControl|Checked|
+mon_rules|--beyond-release|MonRulesNatTo|InvalidInput|Map cnt: Table row 1 value outside carrier Nat
+mon_rules|--beyond-release|MonRulesNatToControl|Checked|

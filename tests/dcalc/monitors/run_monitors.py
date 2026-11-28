@@ -23,18 +23,26 @@ WANT = [
  ('CheckMonitor Up',      ['(Status Checked)', '(Valid True)', '(Blind False)', '(ChiSquare (Table (Row one (Rat 1 3))))', '(NullMean (Table (Row one 1)))']),
  ('CheckMonitor Same',    ['(Status Checked)', '(Blind True)', '(ChiSquare (Table (Row one 0)))']),
  ('CheckMonitor Direct',  ['(Status Checked)', '(Blind False)', '(ChiSquare (Table (Row one (Rat 1 3))))']),
- ('Detect Up fires on Hot (2^4 >= 10)', ['(Status Estimated)', '(Fired Up) (Step 4) (Observations 4) (EValue 16) (Threshold 10)', '(Ground Statistical)']),
+ ('Detect Up fires on Hot (2^4 >= 10)', ['(Status Estimated)', '(Fired Up) (Step 4) (Observations 4) (EValue 16) (Threshold 10)', '(Estimand "whether stream Hot follows the null law of monitor Up (Union', '(Ground Statistical)']),
  ('Detect Up never fires on Cold', ['(Status Estimated)', '(Fired None) (Step None) (Observations 6) (EValue (Rat 64 243)) (Largest 2) (LargestAt 1) (Threshold 10)']),
  ('Detect Up Same, Union k/Level = 20', ['(Status Estimated)', '(Fired Up) (Step 5) (Observations 5) (EValue 32) (Threshold 20)', '(Combine Union)']),
- ('Detect Up Same, Mixture (32+1)/2 >= 10', ['(Status Estimated)', '(Fired Mixture) (Step 5) (Observations 5) (EValue (Rat 33 2)) (Threshold 10)', '(Combine Mixture)']),
+ ('Detect Up Same, Mixture (32+1)/2 >= 10', ['(Status Estimated)', '(Fired Mixture) (Step 5) (Observations 5) (EValue (Rat 33 2)) (Threshold 10)', '(Estimand "whether stream Hot follows the null laws of monitors Up, Same (Mixture', '(Combine Mixture)']),
  ('Detect Scheme ShiryaevRoberts', ['(Status Unsupported)', 'Scheme ShiryaevRoberts is outside the executed Monitors fragment']),
  ('Detect Level 0',       ['(Status InvalidInput)', 'Level must be a rational in (0,1)']),
+ # monitors-followups item 2: Union, no firing: EValue is the e-value of the monitor largest at the end
+ # (Same at 1, Up at 64/243), not the first monitor's
+ ('Detect Up Same on Cold, Union, none fires: EValue of the largest-at-end monitor', ['(Status Estimated)', '(Fired None) (Step None) (Observations 6) (EValue 1) (Largest 2) (LargestAt 1) (Threshold 20)', '(Estimand "whether stream Cold follows the null laws of monitors Up, Same (Union']),
 ]
 rc, out = run(os.path.join(FIX, 'mon_values.metta'))
 report('values: dcalc exit 0, %d requests' % len(WANT), rc == 0 and len(out) == len(WANT), (rc, len(out)))
 for i, (nm, frags) in enumerate(WANT):
     got = out[i] if i < len(out) else ''
     report('values: ' + nm, has(got, *frags), got)
+# monitors-followups item 3: a two-element context carrier with an If-bodied law; CheckMonitor's per-context
+# loop runs once per context (Contexts 2, one ChiSquare row per context, different values)
+rc, out = run(os.path.join(FIX, 'mon_ctx.metta'))
+report('context: CheckMonitor Split runs both contexts', len(out) == 2 and has(out[0], '(Status Checked)', '(Blind False)', '(ChiSquare (Table (Row a (Rat 1 3)) (Row b 0)))', '(NullMean (Table (Row a 1) (Row b 1)))', '(Contexts 2)'), out[:1])
+report('context: CheckMonitor Flat is blind in both contexts', len(out) == 2 and has(out[1], '(Status Checked)', '(Blind True)', '(ChiSquare (Table (Row a 0) (Row b 0)))', '(Contexts 2)'), out[1:2])
 rc, out = run(os.path.join(FIX, 'mon_unsup.metta'))
 for i, nm in enumerate(['CheckMonitor', 'Detect']):
     got = out[i] if i < len(out) else ''
