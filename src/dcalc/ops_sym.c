@@ -474,7 +474,11 @@ static int sym_read(const Sx *src, SymMod *s, char *err, size_t es) {
                 return sfield(d, "Cases") || sfield(d, "Parameters") || sfield(d, "Table") || sfield(d, "Choice") ? sterr_frag(err, es, "Map: expected (Body ($x) term)", d) : sterr(err, es, "Map: expected (Body ($x) term)", d);
             mp->var = b->items[1]->items[0]; mp->body = b->items[2]; s->nmap++;
         } else if (!strcmp(h, "Machine")) {
-            if (s->nmach == 8) return sterr(err, es, "too many machines", d);
+            if (s->nmach == 8) {   /* t-2026-11-27-mettadinc-engine-limits-unsupported: an engine limit, not a module error */
+                int nm8 = 0; for (size_t j = 2; j < src->n; j++) if (sx_head_is(src->items[j], "Machine")) nm8++;
+                char mb[96]; snprintf(mb, sizeof mb, "too many machines: the symbolic engine holds at most 8, the module declares %d", nm8);
+                return sterr_frag(err, es, mb, d);
+            }
             SMach *M = &s->mach[s->nmach]; snprintf(M->name, SYM_NM, "%s", nm);
             const Sx *st = sfield(d, "States");
             if (sname(st, 1, &t) || (M->states = sfind_car(s, t)) < 0) return sterr_name(err, es, "Machine: States names no carrier", d, src, st);

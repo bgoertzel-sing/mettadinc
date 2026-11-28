@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """t-2026-11-26-mettadinc-natarith-v2 gates for the NatArith library (doc03 s3.13 l.1166-1172, B.1 l.4395-4398).
   values: fixtures/nat_values.metta -- one exact value per primitive (zero/negative divisor, equal operands,
-          If whose untaken branch is Quot by zero); beyond-release: Checked / InvalidInput naming the failure value;
+          If whose untaken branch is Quot by zero); beyond-release: Checked / Unsupported naming the failure value;
           release: every request Unsupported (NatArith is outside the first release).
   agree:  fixtures/nat_agree.metta -- the same six maps on {0..7} as an explicit Int carrier (NAE) and as
           (BitVector 3) words (NAS); partitions must be identical and equal the known answers below.
@@ -17,7 +17,7 @@ DC = os.path.join(BD, 'dcalc')
 FX = os.path.join(HERE, 'fixtures')
 FAILV = '(Failed NonPositiveDivisor)'
 VALUES = {'NQ': 'Checked', 'NR': 'Checked', 'NMN': 'Checked', 'NMX': 'Checked', 'NLE': 'Checked', 'NLT': 'Checked',
-          'NIF': 'Checked', 'NZQ': 'InvalidInput', 'NZR': 'InvalidInput', 'NNQ': 'InvalidInput'}
+          'NIF': 'Checked', 'NZQ': 'Unsupported', 'NZR': 'Unsupported', 'NNQ': 'Unsupported'}
 # known answers (hand-checked): blocks as (min element, size); action x -> Max(Quot x 2, 1)
 AGREE = {'D_q3': ((0, 3), (3, 3), (6, 2)),
          'D_r3': ((0, 2), (1, 1), (2, 1), (4, 1), (5, 1), (6, 1), (7, 1)),
@@ -58,8 +58,10 @@ for beyond in (False, True):
         elif want == 'Checked':
             report('Values (--beyond-release): %s CheckNow R Checked' % mod, status(l) == 'Checked', (status(l), reason(l)[:160]))
         else:
-            ok = status(l) == 'InvalidInput' and FAILV in reason(l)
-            report('Values (--beyond-release): %s CheckNow R InvalidInput naming %s' % (mod, FAILV), ok, (status(l), reason(l)[:160]))
+            # t-2026-11-27-mettadinc-engine-limits-unsupported: the failure value is defined by the spec (l.1858-1860, doc03 B.1);
+            # no carrier can hold it yet, an engine limit -> Unsupported naming it (was InvalidInput)
+            ok = status(l) == want == 'Unsupported' and FAILV in reason(l) and 'cannot yet hold' in reason(l)
+            report('Values (--beyond-release): %s CheckNow R Unsupported naming %s' % (mod, FAILV), ok, (status(l), reason(l)[:160]))
 rc, out = run('nat_agree.metta', True)
 report('agree (--beyond-release): dcalc exit 0, 12 requests', rc == 0 and len(out) == 12, (rc, len(out)))
 for d, want in AGREE.items():

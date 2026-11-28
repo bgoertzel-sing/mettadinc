@@ -1,6 +1,8 @@
 ;; NatArith exact-value gates (t-2026-11-26-mettadinc-natarith-v2), doc03 s3.13 l.1166-1172, B.1 l.4395-4398.
 ;; Every case is a map from a singleton carrier into a singleton carrier holding the expected value, so a wrong
 ;; value is InvalidInput naming it and the right one is Checked. Release mode: Unsupported (NatArith beyond-only).
+;; Exception (t-2026-11-27-mettadinc-engine-limits-unsupported): the tagged failure value (Failed NonPositiveDivisor)
+;; is defined by the spec but no carrier can hold it yet, so NZQ/NZR/NNQ answer Unsupported naming it.
 ;; NQ: (Quot -7 2) = -4; (Quot 7 2) = 3; (Quot 6 3) = 2; (Quot 0 5) = 0; (Quot -1 3) = -1
 (DC.Module NQ
   (Profile Crisp)
@@ -115,7 +117,7 @@
   (Machine M (States A0) (Observe o m0) (Action a id))
   (Representation R (Of M) (Encode m0)))
 !(dc.run NLT (CheckNow R))
-;; NZQ: (Quot 5 0) = (Failed NonPositiveDivisor): InvalidInput naming the failure value
+;; NZQ: (Quot 5 0) = (Failed NonPositiveDivisor): Unsupported naming the failure value (engine limit: no carrier holds it yet)
 (DC.Module NZQ
   (Profile Crisp)
   (Use NatArith)
@@ -125,7 +127,7 @@
   (Machine M (States A0) (Observe o m0) (Action a id))
   (Representation R (Of M) (Encode m0)))
 !(dc.run NZQ (CheckNow R))
-;; NZR: (Rem 5 0) = (Failed NonPositiveDivisor): InvalidInput naming the failure value
+;; NZR: (Rem 5 0) = (Failed NonPositiveDivisor): Unsupported naming the failure value (engine limit: no carrier holds it yet)
 (DC.Module NZR
   (Profile Crisp)
   (Use NatArith)
@@ -135,7 +137,7 @@
   (Machine M (States A0) (Observe o m0) (Action a id))
   (Representation R (Of M) (Encode m0)))
 !(dc.run NZR (CheckNow R))
-;; NNQ: (Quot 5 -2) = (Failed NonPositiveDivisor): InvalidInput naming the failure value
+;; NNQ: (Quot 5 -2) = (Failed NonPositiveDivisor): Unsupported naming the failure value (engine limit: no carrier holds it yet)
 (DC.Module NNQ
   (Profile Crisp)
   (Use NatArith)
