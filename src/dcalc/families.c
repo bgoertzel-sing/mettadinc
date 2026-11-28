@@ -60,6 +60,10 @@ static const Sx *sym_enum(const Fe *f, const char *c) {   /* the Enum of a symbo
     if (!of || of->n != 2 || !sx_is_sym(of->items[1], "Symbol")) return NULL;
     return field(d, "Enum");
 }
+static const Sx *enum_of(const Fe *f, const char *c) {   /* the Enum of any Enum carrier (symbol or Nat), or NULL */
+    const Sx *d = decl(f, "Carrier", c);
+    return d ? field(d, "Enum") : NULL;
+}
 static const Sx *sym_table(const Fe *f, const char *nm) {   /* the Table of a map on a symbol carrier, or NULL */
     const Sx *d = decl(f, "Map", nm), *fr = d ? field(d, "From") : NULL, *tb = d ? field(d, "Table") : NULL;
     if (!tb || !fr || fr->n != 2 || fr->items[1]->kind != SX_SYM || !sym_enum(f, fr->items[1]->text)) return NULL;
@@ -312,17 +316,18 @@ static void inline_types(Sx *o) {   /* (From|To (BitVector k)) on a Map: a carri
 }
 /* Shared map rules (maprules.h) on a Table over a symbol carrier.  A Symbolic module folds such a map and drops
  * it before admission, so no loader ever saw it (t-2026-11-26-mettadinc-shared-loader): R2 duplicate, R3 codomain
- * (when To is a symbol carrier), R1 totality, in model.c's Table order and texts.  Rows that are not pairs, and
- * keys outside the From carrier, are left to the fold as before (not one of the moved rules). */
+ * (when To is an Enum carrier, symbol or Nat), R1 totality, in model.c's Table order and texts.  A row that is not
+ * a pair is InvalidInput at that row, as in model.c (t-2026-11-27-mettadinc-loader-followups F1); keys outside the
+ * From carrier are left to the fold as before (not one of the moved rules). */
 static void fe_table_rules(Fe *f, const Sx *d) {
     const char *nm = d->items[1]->text;
     const Sx *fr = field(d, "From"), *to = field(d, "To"), *tb = field(d, "Table");
     const Sx *en = sym_enum(f, fr->items[1]->text);
-    const Sx *ten = to && to->n == 2 && to->items[1]->kind == SX_SYM ? sym_enum(f, to->items[1]->text) : NULL;
-    for (size_t j = 1; j < tb->n; j++) if (tb->items[j]->kind != SX_LIST || tb->items[j]->n != 2) return;
+    const Sx *ten = to && to->n == 2 && to->items[1]->kind == SX_SYM ? enum_of(f, to->items[1]->text) : NULL;   /* F2: any Enum carrier */
     int n = en ? (int)en->n - 1 : 0, *buf = malloc((n ? n : 1) * sizeof(int)); DcMrTab mr; dc_mr_init(&mr, n, buf);
     for (size_t j = 1; j < tb->n; j++) {
         const Sx *row = tb->items[j]; int a = -1;
+        if (row->kind != SX_LIST || row->n != 2) { fe_invalid(f, "Map %s: Table row %zu is not a pair", nm, j - 1); free(buf); return; }   /* F1: model.c's answer and text */
         for (int k = 0; k < n; k++) if (sx_equal(en->items[k + 1], row->items[0])) { a = k; break; }
         int rc = dc_mr_put(&mr, a, ten && !in_enum(ten, row->items[1]) ? -1 : 0);
         if (rc == DC_MR_CODOMAIN) { fe_invalid(f, "Map %s: Table row %zu value outside carrier %s", nm, j - 1, to->items[1]->text); free(buf); return; }

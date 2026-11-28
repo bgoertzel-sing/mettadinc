@@ -309,7 +309,7 @@ static int st_read(const Sx *src, StMod *s, char *err, size_t es) {
                 for (size_t j = 1; j < rw->n; j++) {
                     const Sx *e = rw->items[j]; DcQ w;
                     int b = e->kind == SX_LIST && e->n == 2 ? st_el(ct, e->items[0]) : -1;
-                    if (b < 0 || st_rat(e->items[1], &w)) return st_err(err, es, "bad matrix entry in linear arrow", nm);
+                    if (dc_mr_value(b) || st_rat(e->items[1], &w)) return st_err(err, es, "bad matrix entry in linear arrow", nm);   /* R3 column in Target (maprules.h): t-2026-11-27-mettadinc-loader-followups item 4 */
                     L->a[a][b] = dc_q_add(L->a[a][b], w, &ovf);
                 }
             }

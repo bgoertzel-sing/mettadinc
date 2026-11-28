@@ -79,3 +79,16 @@ law_rules|rel|StLawCoinControl|Unsupported|Profile Dynamics Stochastic is outsid
 law_rules|--beyond-release|StLawCoinLit|InvalidInput|AverageModel: bad or duplicate case in the reward law of M
 law_rules|--beyond-release|StLawCoinNegLit|InvalidInput|AverageModel: bad or duplicate case in the reward law of M
 law_rules|--beyond-release|StLawCoinControl|Checked|
+# t-2026-11-27-mettadinc-loader-followups items 1-4
+fm_rules|rel|FmTableNonPair|InvalidInput|Map idx: Table row 1 is not a pair
+fm_rules|rel|FmTableNatCodomain|InvalidInput|Map tbit: Table row 2 value outside carrier Bit
+fm_rules|--beyond-release|FmTableNonPair|InvalidInput|Map idx: Table row 1 is not a pair
+fm_rules|--beyond-release|FmTableNatCodomain|InvalidInput|Map tbit: Table row 2 value outside carrier Bit
+law_rules|rel|LawMeasureDupKey|Unsupported|Profile Dynamics Stochastic is outside the first release
+law_rules|rel|LawMeasureControl|Unsupported|Profile Dynamics Stochastic is outside the first release
+law_rules|--beyond-release|LawMeasureDupKey|InvalidInput|AverageModel: bad or duplicate case in the reward law of M: a key of a measure is repeated
+law_rules|--beyond-release|LawMeasureControl|Checked|
+st_rules|rel|StLinBadCol|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|rel|StLinControl|Unsupported|Profile Dynamics Stochastic is outside the first release
+st_rules|--beyond-release|StLinBadCol|InvalidInput|stochastic module: bad matrix entry in linear arrow L
+st_rules|--beyond-release|StLinControl|Checked|

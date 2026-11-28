@@ -38,11 +38,16 @@ MUTANTS = [
     ('m7_obs_total', 'ops_m7.c', 'if (rr == DC_MR_PARTIAL) { sx_free(claim); return dc_invalid(m, "CheckNow: observation map', 'if (0) { sx_free(claim); return dc_invalid(m, "CheckNow: observation map', ['FAIL  m7_rules --beyond-release M7ObsPartial:']),
     ('m7_codomain', 'ops_m7.c', 'if (dc_mr_value(m7_inhabits(m, to->items[1], m7_case(map, nm[s]), 0) ? 0 : -1) == DC_MR_CODOMAIN) return nm[s];', 'if (0) return nm[s];', ['FAIL  m7_rules --beyond-release M7EncCodomain:']),
     ('fm_dup', 'families.c', 'if (rc == DC_MR_DUP) { fe_invalid(f, "Map %s: Table key at row %zu repeated"', 'if (0) { fe_invalid(f, "Map %s: Table key at row %zu repeated"', ['FAIL  fm_rules --beyond-release FmTableDup:']),
-    ('fm_codomain', 'families.c', 'if (rc == DC_MR_CODOMAIN) { fe_invalid(f,', 'if (0) { fe_invalid(f,', ['FAIL  fm_rules --beyond-release FmTableCodomain:']),
+    ('fm_codomain', 'families.c', 'if (rc == DC_MR_CODOMAIN) { fe_invalid(f,', 'if (0) { fe_invalid(f,', ['FAIL  fm_rules --beyond-release FmTableCodomain:', 'FAIL  fm_rules --beyond-release FmTableNatCodomain:']),   # F2 row (rel variant added by the runner) is a codomain row too
     ('fm_total', 'families.c', 'if (dc_mr_total(&mr, &miss)) { char *s = sx_print(en->items[miss + 1]); fe_invalid', 'if (0) { char *s = sx_print(en->items[miss + 1]); fe_invalid', ['FAIL  fm_rules --beyond-release FmTableTotal:']),
     # rebase review 1 F1: the literal Coin branch of st_lawx decides R4 through the shared module; remove each call
     ('st_law_coin_lit_neg', 'stoch.c', 'if (dc_mr_mass_entry(p)) return -1;   /* R4 (maprules.h): p >= 0 */', 'if (0) return -1;   /* R4 (maprules.h): p >= 0 */', ['FAIL  law_rules --beyond-release StLawCoinNegLit:']),
     ('st_law_coin_lit_gt1', 'stoch.c', 'if (dc_mr_mass_entry(q)) return -1;   /* R4 (maprules.h): 1 - p >= 0, i.e. p <= 1 */', 'if (0) return -1;   /* R4 (maprules.h): 1 - p >= 0, i.e. p <= 1 */', ['FAIL  law_rules --beyond-release StLawCoinLit:']),
+    # t-2026-11-27-mettadinc-loader-followups items 1-4: remove each new shared-rule call / fix
+    ('fm_nonpair', 'families.c', 'if (row->kind != SX_LIST || row->n != 2) { fe_invalid(f, "Map %s: Table row %zu is not a pair"', 'if (row->kind != SX_LIST || row->n != 2) { free(buf); return; } if (0) { fe_invalid(f, "Map %s: Table row %zu is not a pair"', ['FAIL  fm_rules --beyond-release FmTableNonPair:']),
+    ('fm_enum_codomain', 'families.c', '? enum_of(f, to->items[1]->text) : NULL;', '? sym_enum(f, to->items[1]->text) : NULL;', ['FAIL  fm_rules --beyond-release FmTableNatCodomain:']),
+    ('law_measure_dup', 'laws.c', 'if (dc_mr_mark(&mr, (int)j - 1)) { free(seen); WHY("a key of a measure is repeated"); }', 'if (0 && dc_mr_mark(&mr, (int)j - 1)) { free(seen); WHY("a key of a measure is repeated"); }', ['FAIL  law_rules --beyond-release LawMeasureDupKey:']),
+    ('st_lin_col', 'stoch.c', 'if (dc_mr_value(b) || st_rat(e->items[1], &w)) return st_err(err, es, "bad matrix entry in linear arrow", nm);', 'if (b < 0) continue; if (st_rat(e->items[1], &w)) return st_err(err, es, "bad matrix entry in linear arrow", nm);', ['FAIL  st_rules --beyond-release StLinBadCol:']),
 ]
 fails = 0
 def report(name, ok, det=''):
