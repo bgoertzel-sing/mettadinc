@@ -64,6 +64,41 @@ static Sx *mn_subst(const Sx *e, const char *var, const Sx *val) {
     for (size_t i = 0; i < e->n; i++) sx_push(r, mn_subst(e->items[i], var, val));
     return r;
 }
+/* Shared map rules (maprules.h) on a Table map read by a monitor law (review 1 of
+ * t-2026-11-27-mettadinc-rebase-monitors).  In a Stochastic module with (Use .. Families) no other loader runs
+ * dc_mr_put on such a Table (families.c passes it through, model.c does not tabulate maps in a Stochastic
+ * profile), so Monitors admits it here, in model.c's Table order and texts: row shape, key in From, R3 codomain
+ * (To an enumerated local carrier, or Rational01 on a literal rational), R2 duplicate key, R1 totality.
+ * Without this, source order decided a duplicated row.  All are InvalidInput, as on model.c's loader. */
+static int mn_table_rules(MonCtx *c, const Sx *mp, const char *f) {
+    const Sx *tb = mn_field(mp, "Table"), *fr = mn_arg1(mp, "From"), *to = mn_arg1(mp, "To");
+    const Sx *fc = fr && fr->kind == SX_SYM ? mn_decl(c->m, "Carrier", fr->text) : NULL, *en = fc ? mn_field(fc, "Enum") : NULL;
+    const Sx *tc = to && to->kind == SX_SYM ? mn_decl(c->m, "Carrier", to->text) : NULL, *ten = tc ? mn_field(tc, "Enum") : NULL;
+    int r01 = to && to->kind == SX_SYM && !strcmp(to->text, "Rational01");
+    char w[320]; w[0] = 0;
+    if (!en) {
+        mn_why(c, 1, "Monitors: the table map %s reads from %s, which is not an enumerated local carrier; only such tables are executed",
+               f, fr && fr->kind == SX_SYM ? fr->text : "?");
+        return -1;
+    }
+    int n = (int)en->n - 1, *buf = malloc((n ? n : 1) * sizeof(int)); DcMrTab mr; dc_mr_init(&mr, n, buf);
+    for (size_t j = 1; j < tb->n && !w[0]; j++) {
+        const Sx *row = tb->items[j]; int a = -1, b = 0;
+        if (row->kind != SX_LIST || row->n != 2) { snprintf(w, sizeof w, "Map %s: Table row %zu is not a pair", f, j - 1); break; }
+        for (int k = 0; k < n; k++) if (sx_equal(en->items[k + 1], row->items[0])) { a = k; break; }
+        if (ten) { b = -1; for (size_t k = 1; k < ten->n; k++) if (sx_equal(ten->items[k], row->items[1])) { b = 0; break; } }
+        else if (r01) { DcRat q; if (!dc_sx_rat(row->items[1], &q) && (q.n < 0 || q.n > q.d)) b = -1; }
+        int rc = dc_mr_put(&mr, a, b);
+        if (rc == DC_MR_KEY) snprintf(w, sizeof w, "Map %s: Table row %zu key outside carrier %s", f, j - 1, fr->text);
+        else if (rc == DC_MR_CODOMAIN) snprintf(w, sizeof w, "Map %s: Table row %zu value outside carrier %s", f, j - 1, to->text);
+        else if (rc == DC_MR_DUP) snprintf(w, sizeof w, "Map %s: Table key at row %zu repeated", f, j - 1);
+    }
+    int miss = -1;
+    if (!w[0] && dc_mr_total(&mr, &miss)) { char *s = sx_print(en->items[miss + 1]); snprintf(w, sizeof w, "Map %s: not total; no value for %s", f, s); free(s); }
+    free(buf);
+    if (w[0]) { mn_why(c, 0, "%s%s", w, ""); return -1; }
+    return 0;
+}
 /* replace calls of Table maps on constants by their rows; any other map call: Unsupported */
 static Sx *mn_tables(MonCtx *c, const Sx *e) {
     if (e->kind != SX_LIST) return sx_copy(e);
@@ -72,6 +107,7 @@ static Sx *mn_tables(MonCtx *c, const Sx *e) {
         const Sx *mp = mn_decl(c->m, "Map", f);
         const Sx *tb = mp ? mn_field(mp, "Table") : NULL;
         if (tb && e->n == 2) {
+            if (mn_table_rules(c, mp, f)) return NULL;
             Sx *a = mn_tables(c, e->items[1]);
             if (!a) return NULL;
             for (size_t k = 1; k < tb->n; k++) {

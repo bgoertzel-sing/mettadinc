@@ -43,6 +43,10 @@ MUTANTS = [
     # rebase review 1 F1: the literal Coin branch of st_lawx decides R4 through the shared module; remove each call
     ('st_law_coin_lit_neg', 'stoch.c', 'if (dc_mr_mass_entry(p)) return -1;   /* R4 (maprules.h): p >= 0 */', 'if (0) return -1;   /* R4 (maprules.h): p >= 0 */', ['FAIL  law_rules --beyond-release StLawCoinNegLit:']),
     ('st_law_coin_lit_gt1', 'stoch.c', 'if (dc_mr_mass_entry(q)) return -1;   /* R4 (maprules.h): 1 - p >= 0, i.e. p <= 1 */', 'if (0) return -1;   /* R4 (maprules.h): 1 - p >= 0, i.e. p <= 1 */', ['FAIL  law_rules --beyond-release StLawCoinLit:']),
+    # rebase-monitors review 1 F1: the Monitors Table reader (ops_mon.c mn_table_rules) decides R1-R3 through maprules
+    ('mon_dup', 'ops_mon.c', 'else if (rc == DC_MR_DUP) snprintf(w, sizeof w,', 'else if (0) snprintf(w, sizeof w,', ['FAIL  mon_rules --beyond-release MonRulesDup:', 'FAIL  mon_rules --beyond-release MonRulesDupSwap:']),
+    ('mon_codomain', 'ops_mon.c', 'else if (rc == DC_MR_CODOMAIN) snprintf(w, sizeof w,', 'else if (0) snprintf(w, sizeof w,', ['FAIL  mon_rules --beyond-release MonRulesCodomain:']),
+    ('mon_total', 'ops_mon.c', 'if (!w[0] && dc_mr_total(&mr, &miss))', 'if (!w[0] && 0 && dc_mr_total(&mr, &miss))', ['FAIL  mon_rules --beyond-release MonRulesTotal:']),
 ]
 fails = 0
 def report(name, ok, det=''):
