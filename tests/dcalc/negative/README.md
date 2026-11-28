@@ -4,6 +4,9 @@
 negative acceptance suite in `docs/e0/MILESTONES.md` (M0 section) through the
 `build/dcalc/dcalc` CLI and exits 0 only if every entry passes.
 
+Each bundle run has a 180 s timeout (set `DCALC_NEGATIVE_TIMEOUT` to change it). It was 60 s,
+but the ex2 access-policy bundle took 58-61 s when the host was loaded.
+
 The rule from the milestone text: an entry whose request needs a later
 milestone is answered Unsupported until that milestone, and a binding
 failure is InvalidInput from M0 on. Entries 9 and 10 may also be Unknown.

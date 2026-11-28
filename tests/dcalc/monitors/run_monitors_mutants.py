@@ -22,6 +22,10 @@ MUTANTS = [
     ('union_threshold_not_k', 'ops_mon.c', 'DcQ thr = mix ? dc_q_div(one, L, &ovf) : dc_q_div(kk, L, &ovf);', 'DcQ thr = mix ? dc_q_div(one, L, &ovf) : dc_q_div(one, L, &ovf);'),
     ('mixture_sum_not_average', 'ops_mon.c', 'stat = dc_q_div(stat, kk, &ovf);', 'stat = dc_q_div(stat, one, &ovf);'),
     ('scheme_not_checked', 'ops_mon.c', 'if (sc && (sc->kind == SX_LIST || strcmp(sc->text, "Ville")))', 'if (0 && sc && (sc->kind == SX_LIST || strcmp(sc->text, "Ville")))'),
+    # monitors-followups item 1: the Estimand must depend on the request (a constant one is caught)
+    ('estimand_constant', 'ops_mon.c', 'sx_push(det, dc_form("Estimand", sx_str(estm), NULL));', 'sx_push(det, dc_form("Estimand", sx_str("constant"), NULL));'),
+    # monitors-followups item 2: Union with no firing reports the largest-at-end monitor, not the first
+    ('union_evalue_first', 'ops_mon.c', 'mn_qsx(mix ? stat : E[endj])', 'mn_qsx(mix ? stat : E[0])'),
     # admission and dispatch
     ('not_dispatched', 'ops_dispatch.c', 'm->monitors && !m->profile_unsupported[0]) return dc_req_monitors(r, q, h);', '0 && m->monitors && !m->profile_unsupported[0]) return dc_req_monitors(r, q, h);'),
     ('not_admitted', 'admit.c', '"NatArith", "Laws", "Monitors", NULL };', '"NatArith", "Laws", NULL };'),

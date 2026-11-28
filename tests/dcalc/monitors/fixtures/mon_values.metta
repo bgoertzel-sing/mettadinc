@@ -19,3 +19,4 @@
 !(dc.run MonFix (Detect Up Same (On Hot) (Level (Rat 1 10)) (Combine Mixture)))
 !(dc.run MonFix (Detect Up (On Hot) (Level (Rat 1 10)) (Scheme ShiryaevRoberts)))
 !(dc.run MonFix (Detect Up (On Hot) (Level 0)))
+!(dc.run MonFix (Detect Up Same (On Cold) (Level (Rat 1 10))))

@@ -70,6 +70,20 @@ static Sx *mn_subst(const Sx *e, const char *var, const Sx *val) {
  * profile), so Monitors admits it here, in model.c's Table order and texts: row shape, key in From, R3 codomain
  * (To an enumerated local carrier, or Rational01 on a literal rational), R2 duplicate key, R1 totality.
  * Without this, source order decided a duplicated row.  All are InvalidInput, as on model.c's loader. */
+/* monitors-followups item 4: R3 on a builtin To carrier (as Families applies R3 to every Enum carrier
+ * since PR 67, and as model.c's has_type reads Nat, Int and Bool): 1 in, 0 out, -1 not such a builtin */
+static int mn_builtin_has(const char *t, const Sx *v) {
+    int nat = !strcmp(t, "Nat");
+    if (nat || !strcmp(t, "Int")) {
+        if (!v || v->kind != SX_SYM) return 0;
+        const char *p = v->text; if (*p == '-') { if (nat) return 0; p++; }
+        if (!*p) return 0;
+        for (; *p; p++) if (*p < '0' || *p > '9') return 0;
+        return 1;
+    }
+    if (!strcmp(t, "Bool")) return sx_is_sym(v, "True") || sx_is_sym(v, "False");
+    return -1;
+}
 static int mn_table_rules(MonCtx *c, const Sx *mp, const char *f) {
     const Sx *tb = mn_field(mp, "Table"), *fr = mn_arg1(mp, "From"), *to = mn_arg1(mp, "To");
     const Sx *fc = fr && fr->kind == SX_SYM ? mn_decl(c->m, "Carrier", fr->text) : NULL, *en = fc ? mn_field(fc, "Enum") : NULL;
@@ -88,6 +102,7 @@ static int mn_table_rules(MonCtx *c, const Sx *mp, const char *f) {
         for (int k = 0; k < n; k++) if (sx_equal(en->items[k + 1], row->items[0])) { a = k; break; }
         if (ten) { b = -1; for (size_t k = 1; k < ten->n; k++) if (sx_equal(ten->items[k], row->items[1])) { b = 0; break; } }
         else if (r01) { DcRat q; if (!dc_sx_rat(row->items[1], &q) && (q.n < 0 || q.n > q.d)) b = -1; }
+        else if (to && to->kind == SX_SYM && !tc && mn_builtin_has(to->text, row->items[1]) == 0) b = -1;
         int rc = dc_mr_put(&mr, a, b);
         if (rc == DC_MR_KEY) snprintf(w, sizeof w, "Map %s: Table row %zu key outside carrier %s", f, j - 1, fr->text);
         else if (rc == DC_MR_CODOMAIN) snprintf(w, sizeof w, "Map %s: Table row %zu value outside carrier %s", f, j - 1, to->text);
@@ -364,11 +379,23 @@ static Sx *mn_detect(DcRun *r, const Sx *q) {
             sx_push(det, dc_form("Fired", dc_sym("None"), NULL));
             sx_push(det, dc_form("Step", dc_sym("None"), NULL));
             sx_push(det, dc_form("Observations", dc_int((long)rows), NULL));
-            sx_push(det, dc_form("EValue", mn_qsx(mix ? stat : E[0]), NULL));
+            {   /* monitors-followups item 2: with no firing, Union reports the e-value of the monitor that is
+             * largest at the end (doc03 gives no definition; this matches Largest/LargestAt); ties: first listed */
+                size_t endj = 0;
+                for (size_t j = 1; j < k; j++) if (dc_q_cmp(E[j], E[endj]) > 0) endj = j;
+                sx_push(det, dc_form("EValue", mn_qsx(mix ? stat : E[endj]), NULL));
+            }
             sx_push(det, dc_form("Largest", mn_qsx(best), NULL));
             sx_push(det, dc_form("LargestAt", dc_int((long)bestat), NULL));
         }
         sx_push(det, dc_form("Threshold", mn_qsx(thr), NULL));
+        {   /* monitors-followups item 1: Estimand (registry result type, doc03 Table 24), as RateEstimate does */
+            char estm[1024]; size_t o = 0;
+            o += (size_t)snprintf(estm, sizeof estm, "whether stream %s follows the null law%s of monitor%s", on->text, k > 1 ? "s" : "", k > 1 ? "s" : "");
+            for (size_t j = 0; j < k && o < sizeof estm; j++) o += (size_t)snprintf(estm + o, sizeof estm - o, "%s %s", j ? "," : "", D[j].name);
+            if (o < sizeof estm) snprintf(estm + o, sizeof estm - o, " (%s), each observation given the context posted before it", mix ? "Mixture: their average e-process" : "Union: each monitor's own e-process");
+            sx_push(det, dc_form("Estimand", sx_str(estm), NULL));
+        }
         sx_push(det, dc_form("Scheme", dc_sym("Ville"), NULL));
         sx_push(det, dc_form("Procedure", dc_form("LikelihoodRatioEProcess", dc_form("Combine", dc_sym(mix ? "Mixture" : "Union"), NULL), dc_form("Level", sx_copy(lv), NULL), NULL), NULL));
         sx_push(det, dc_form("Assumptions", sx_str("under the null, each observation follows the monitor's null law given the context posted before it"), NULL));

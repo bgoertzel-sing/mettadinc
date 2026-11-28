@@ -50,8 +50,10 @@ MUTANTS = [
     ('st_lin_col', 'stoch.c', 'if (dc_mr_value(b) || st_rat(e->items[1], &w)) return st_err(err, es, "bad matrix entry in linear arrow", nm);', 'if (b < 0) continue; if (st_rat(e->items[1], &w)) return st_err(err, es, "bad matrix entry in linear arrow", nm);', ['FAIL  st_rules --beyond-release StLinBadCol:']),
     # rebase-monitors review 1 F1: the Monitors Table reader (ops_mon.c mn_table_rules) decides R1-R3 through maprules
     ('mon_dup', 'ops_mon.c', 'else if (rc == DC_MR_DUP) snprintf(w, sizeof w,', 'else if (0) snprintf(w, sizeof w,', ['FAIL  mon_rules --beyond-release MonRulesDup:', 'FAIL  mon_rules --beyond-release MonRulesDupSwap:']),
-    ('mon_codomain', 'ops_mon.c', 'else if (rc == DC_MR_CODOMAIN) snprintf(w, sizeof w,', 'else if (0) snprintf(w, sizeof w,', ['FAIL  mon_rules --beyond-release MonRulesCodomain:']),
+    ('mon_codomain', 'ops_mon.c', 'else if (rc == DC_MR_CODOMAIN) snprintf(w, sizeof w,', 'else if (0) snprintf(w, sizeof w,', ['FAIL  mon_rules --beyond-release MonRulesCodomain:', 'FAIL  mon_rules --beyond-release MonRulesNatTo:']),
     ('mon_total', 'ops_mon.c', 'if (!w[0] && dc_mr_total(&mr, &miss))', 'if (!w[0] && 0 && dc_mr_total(&mr, &miss))', ['FAIL  mon_rules --beyond-release MonRulesTotal:']),
+    # monitors-followups item 4: R3 on a builtin To carrier (Nat) in a monitor Table
+    ('mon_builtin_r3', 'ops_mon.c', 'else if (to && to->kind == SX_SYM && !tc && mn_builtin_has(to->text, row->items[1]) == 0) b = -1;', 'else if (0) b = -1;', ['FAIL  mon_rules --beyond-release MonRulesNatTo:']),
 ]
 fails = 0
 def report(name, ok, det=''):

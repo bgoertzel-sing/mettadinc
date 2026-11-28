@@ -13,6 +13,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 DOCS = os.path.join(ROOT, 'docs/e0/docs')
 DCALC = os.environ.get('DCALC', os.path.join(ROOT, 'build/dcalc/dcalc'))
+# per-bundle dcalc timeout in seconds (monitors-followups item 5: ex2 ran 58-61 s against 60 s under host load)
+TIMEOUT = float(os.environ.get('DCALC_NEGATIVE_TIMEOUT', '180'))
 LM = '05_live_memory_part2/validation_bundle/live_memory.metta'
 WX = '06_wmtm_worked_example/validation_bundle/wmtm_example.metta'
 AP = '03_four_worked_examples/validation_bundles/ex2_access_policy/access_policy.metta'
@@ -50,7 +52,7 @@ def tampered_copy(tmp):
     return os.path.join(dst, os.path.basename(WX))
 
 def run(path):
-    p = subprocess.run([DCALC, path], capture_output=True, text=True, timeout=60)
+    p = subprocess.run([DCALC, path], capture_output=True, text=True, timeout=TIMEOUT)
     if p.returncode: raise RuntimeError('dcalc rc=%d on %s' % (p.returncode, path))
     out = []
     for line in p.stdout.splitlines():
