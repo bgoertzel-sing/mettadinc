@@ -24,6 +24,7 @@
 #include "records.h"
 #include "estimates.h"
 #include "laws.h"
+#include "maprules.h"
 #include "qrat.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -143,8 +144,8 @@ static int mn_side(MonCtx *c, const Sx *e, const Sx *cx, DcLaw *out) {
     sx_free(t);
     if (rc) { if (!c->why[0]) mn_why(c, 1, "Monitors: the monitor law does not evaluate in the Laws fragment: %.300s%s", why[0] ? why : (ovf ? "overflow" : "unknown"), ""); return -1; }
     DcQ s = dc_q(0, 1, &ovf);
-    for (size_t i = 0; i < out->n; i++) { if (dc_q_sign(out->m[i]) < 0) { mn_why(c, 0, "Monitors: a monitor law has a negative mass%s%s", "", ""); return -1; } s = dc_q_add(s, out->m[i], &ovf); }
-    if (ovf || dc_q_cmp(s, dc_q(1, 1, &ovf))) { mn_why(c, 0, "Monitors: a monitor law's masses do not sum to 1%s%s", "", ""); return -1; }
+    for (size_t i = 0; i < out->n; i++) { if (dc_mr_mass_entry(out->m[i]) != DC_MR_OK) { mn_why(c, 0, "Monitors: a monitor law has a negative mass%s%s", "", ""); return -1; } s = dc_q_add(s, out->m[i], &ovf); }
+    if (ovf || dc_mr_mass_row(s) != DC_MR_OK) { mn_why(c, 0, "Monitors: a monitor law's masses do not sum to 1%s%s", "", ""); return -1; }
     return 0;
 }
 static void mn_def_free(MonDef *d) { for (size_t i = 0; i < d->nc; i++) { dc_law_free(&d->N[i]); dc_law_free(&d->A[i]); } d->nc = 0; }
