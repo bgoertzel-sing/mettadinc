@@ -93,16 +93,15 @@ Columns: the document's answer (with its source), our answer in release and in -
 | mg | 87 | MotivationGrid | `(CheckImplementation NearBoundaryFloor (Grade (Rat 1 2) (Rat 3 4)))` | Checked (inferred: least eta 3/4) | doc04 l.2288 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GAP: contract-engine limit (Ideal/Actual Map outside the contract table engine fragment); Unsupported, not InvalidInput | CheckImplementation: Implementation NearBoundaryFloor: Ideal/Actual Map cycle-floor is declared or imported but outside the contract table engine fragment (libraries: NatArith Families Contracts) |
 | mg | 88 | MotivationGrid | `(CheckImplementation NearBoundaryFloor (Grade (Rat 1 2) (Rat 1 2)))` | Refuted | doc04 l.2289 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GAP: contract-engine limit (Ideal/Actual Map outside the contract table engine fragment); Unsupported, not InvalidInput | CheckImplementation: Implementation NearBoundaryFloor: Ideal/Actual Map cycle-floor is declared or imported but outside the contract table engine fragment (libraries: NatArith Families Contracts) |
 | mg | 89 | MotivationGrid | `(CheckImplementation NearBoundaryDamped (Grade (Rat 1 2) (Rat 5 8)))` | Checked (inferred: least eta 5/8) | doc04 l.2288 | Unsupported | Unsupported | GATED: PROPOSED library NatArith admitted by no milestone | GAP: contract-engine limit (Ideal/Actual Map outside the contract table engine fragment); Unsupported, not InvalidInput | CheckImplementation: Implementation NearBoundaryDamped: Ideal/Actual Map cycle-damped is declared or imported but outside the contract table engine fragment (libraries: NatArith Families Contracts) |
-| mg | 90 | StaleMonitor | `(CheckMonitor Stale)` | Checked | doc04 l.2356 | Unsupported | Unsupported | GATED: stochastic profile outside the first release (doc03 s2.6: first release covers deterministic dynamics) | GATED: PROPOSED library Monitors admitted by no milestone | library Monitors is outside the first release |
-| mg | 91 | StaleMonitor | `(Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))` | Estimated (fires at suggestion 21) | doc04 s11.3 l.2358 | Unsupported | Unsupported | GATED: stochastic profile outside the first release (doc03 s2.6: first release covers deterministic dynamics) | GATED: PROPOSED library Monitors admitted by no milestone | library Monitors is outside the first release |
-| mg | 92 | StaleMonitor | `(Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))` | Estimated (never fires) | doc04 s11.3 l.2360 | Unsupported | Unsupported | GATED: stochastic profile outside the first release (doc03 s2.6: first release covers deterministic dynamics) | GATED: PROPOSED library Monitors admitted by no milestone | library Monitors is outside the first release |
+| mg | 90 | StaleMonitor | `(CheckMonitor Stale)` | Checked | doc04 l.2356 | Unsupported | Checked | GATED: stochastic profile outside the first release (doc03 s2.6: first release covers deterministic dynamics) | match |  |
+| mg | 91 | StaleMonitor | `(Detect Stale (On LiveSuggestions) (Level (Rat 1 100)))` | Estimated (fires at suggestion 21) | doc04 s11.3 l.2358 | Unsupported | Estimated | GATED: stochastic profile outside the first release (doc03 s2.6: first release covers deterministic dynamics) | match |  |
+| mg | 92 | StaleMonitor | `(Detect Stale (On QuietSuggestions) (Level (Rat 1 100)))` | Estimated (never fires) | doc04 s11.3 l.2360 | Unsupported | Estimated | GATED: stochastic profile outside the first release (doc03 s2.6: first release covers deterministic dynamics) | match |  |
 
 ## Class totals (mode, class): count
 
 - beyond GAP: 75
-- beyond GATED: 3
 - beyond VALUE: 8
-- beyond match: 6
+- beyond match: 9
 - release GAP: 3
 - release GATED: 82
 - release VALUE: 1

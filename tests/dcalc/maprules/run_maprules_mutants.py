@@ -48,6 +48,10 @@ MUTANTS = [
     ('fm_enum_codomain', 'families.c', '? enum_of(f, to->items[1]->text) : NULL;', '? sym_enum(f, to->items[1]->text) : NULL;', ['FAIL  fm_rules --beyond-release FmTableNatCodomain:']),
     ('law_measure_dup', 'laws.c', 'if (dc_mr_mark(&mr, (int)j - 1)) { free(seen); WHY("a key of a measure is repeated"); }', 'if (0 && dc_mr_mark(&mr, (int)j - 1)) { free(seen); WHY("a key of a measure is repeated"); }', ['FAIL  law_rules --beyond-release LawMeasureDupKey:']),
     ('st_lin_col', 'stoch.c', 'if (dc_mr_value(b) || st_rat(e->items[1], &w)) return st_err(err, es, "bad matrix entry in linear arrow", nm);', 'if (b < 0) continue; if (st_rat(e->items[1], &w)) return st_err(err, es, "bad matrix entry in linear arrow", nm);', ['FAIL  st_rules --beyond-release StLinBadCol:']),
+    # rebase-monitors review 1 F1: the Monitors Table reader (ops_mon.c mn_table_rules) decides R1-R3 through maprules
+    ('mon_dup', 'ops_mon.c', 'else if (rc == DC_MR_DUP) snprintf(w, sizeof w,', 'else if (0) snprintf(w, sizeof w,', ['FAIL  mon_rules --beyond-release MonRulesDup:', 'FAIL  mon_rules --beyond-release MonRulesDupSwap:']),
+    ('mon_codomain', 'ops_mon.c', 'else if (rc == DC_MR_CODOMAIN) snprintf(w, sizeof w,', 'else if (0) snprintf(w, sizeof w,', ['FAIL  mon_rules --beyond-release MonRulesCodomain:']),
+    ('mon_total', 'ops_mon.c', 'if (!w[0] && dc_mr_total(&mr, &miss))', 'if (!w[0] && 0 && dc_mr_total(&mr, &miss))', ['FAIL  mon_rules --beyond-release MonRulesTotal:']),
 ]
 fails = 0
 def report(name, ok, det=''):

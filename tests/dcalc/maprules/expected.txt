@@ -92,3 +92,13 @@ st_rules|rel|StLinBadCol|Unsupported|Profile Dynamics Stochastic is outside the 
 st_rules|rel|StLinControl|Unsupported|Profile Dynamics Stochastic is outside the first release
 st_rules|--beyond-release|StLinBadCol|InvalidInput|stochastic module: bad matrix entry in linear arrow L
 st_rules|--beyond-release|StLinControl|Checked|
+mon_rules|rel|MonRulesDup|Unsupported|Profile Dynamics Stochastic is outside the first release
+mon_rules|rel|MonRulesDupSwap|Unsupported|Profile Dynamics Stochastic is outside the first release
+mon_rules|rel|MonRulesTotal|Unsupported|Profile Dynamics Stochastic is outside the first release
+mon_rules|rel|MonRulesCodomain|Unsupported|Profile Dynamics Stochastic is outside the first release
+mon_rules|rel|MonRulesControl|Unsupported|Profile Dynamics Stochastic is outside the first release
+mon_rules|--beyond-release|MonRulesDup|InvalidInput|Map rate: Table key at row 1 repeated
+mon_rules|--beyond-release|MonRulesDupSwap|InvalidInput|Map rate: Table key at row 1 repeated
+mon_rules|--beyond-release|MonRulesTotal|InvalidInput|Map rate: not total; no value for high
+mon_rules|--beyond-release|MonRulesCodomain|InvalidInput|Map rate: Table row 1 value outside carrier Rational01
+mon_rules|--beyond-release|MonRulesControl|Checked|

@@ -56,4 +56,5 @@ int dc_kernel_of(const DcModule *m, const Sx *req, const char **names, int *cars
 /* M4-estimates (ops_est.c): EstimateRate over a frozen Stream; Estimated, never Checked. */
 Sx *dc_req_estimates(DcRun *r, const Sx *q, const char *head);
 Sx *dc_req_separated(DcRun *run, const Sx *q);   /* review 1 F3 */
+Sx *dc_req_monitors(DcRun *r, const Sx *q, const char *head);   /* library Monitors: CheckMonitor, Detect (ops_mon.c) */
 #endif
