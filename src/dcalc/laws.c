@@ -99,12 +99,18 @@ int dc_law_eval(const Sx *e, DcLawLeaf leaf, void *ctx, DcLaw *out, int *ovf, ch
     }
     if (sx_head_is(e, "%Masses")) {   /* a declared measure as the leaf expands it: (%Masses (v q) ..) */
         DcQ sum = dc_q(0, 1, ovf);
+        int *seen = malloc((e->n > 1 ? e->n - 1 : 1) * sizeof *seen); DcMrTab mr;   /* shared map rules (maprules.h) */
+        if (!seen) WHY("out of memory in a law");
+        dc_mr_init(&mr, e->n > 1 ? (int)e->n - 1 : 0, seen);
         for (size_t k = 1; k < e->n; k++) {
             const Sx *c = e->items[k]; DcQ q;
-            if (c->kind != SX_LIST || c->n != 2 || q_of(c->items[1], &q) || dc_mr_mass_entry(q)) WHY("a mass of a measure is not a non-negative rational");   /* R4 (maprules.h) */
+            if (c->kind != SX_LIST || c->n != 2 || q_of(c->items[1], &q) || dc_mr_mass_entry(q)) { free(seen); WHY("a mass of a measure is not a non-negative rational"); }   /* R4 (maprules.h) */
+            size_t j = 1; while (j < k && !sx_equal(e->items[j]->items[0], c->items[0])) j++;   /* key = its first equal entry */
+            if (dc_mr_mark(&mr, (int)j - 1)) { free(seen); WHY("a key of a measure is repeated"); }   /* R2 (maprules.h), as st_measure: t-2026-11-27-mettadinc-loader-followups item 3 */
             sum = dc_q_add(sum, q, ovf);
-            if (dc_law_add(out, c->items[0], q, ovf)) WHY("out of memory in a law");
+            if (dc_law_add(out, c->items[0], q, ovf)) { free(seen); WHY("out of memory in a law"); }
         }
+        free(seen);
         if (dc_mr_mass_row(sum)) WHY("the masses of a measure do not sum to 1");   /* R4 (maprules.h) */
         return 0;
     }

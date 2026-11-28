@@ -15,7 +15,7 @@ MUTANTS = [
     ('image_ignores_body', 'laws.c', 'int r = dc_law_add(out, w, in.m[i], ovf);', 'int r = dc_law_add(out, in.val[i], in.m[i], ovf);'),
     ('div_as_mul', 'laws.c', 'return q_sx(dc_q_div(a, b, ovf));', 'return q_sx(dc_q_mul(a, b, ovf));'),
     ('expect_doubled', 'laws.c', '        return q_sx(x);', '        return q_sx(dc_q_add(x, x, ovf));'),
-    ('lawof_measure_masses_flat', 'laws.c', 'if (dc_law_add(out, c->items[0], q, ovf)) WHY(', 'if (dc_law_add(out, c->items[0], dc_q(1, 2, ovf), ovf)) WHY('),
+    ('lawof_measure_masses_flat', 'laws.c', 'if (dc_law_add(out, c->items[0], q, ovf)) { free(seen); WHY(', 'if (dc_law_add(out, c->items[0], dc_q(1, 2, ovf), ovf)) { free(seen); WHY('),   # site text follows item 3 (free(seen))
     ('lawof_measure_not_expanded', 'stoch.c', 'Sx *ml = st_measure_law(e); if (ml) return ml;', 'Sx *ml = NULL; (void)st_measure_law; if (ml) return ml;'),
     ('mapcall_not_flagged', 'stoch.c', 'if (st_has_mapcall(e)) { st_law_mapcall = 1;', 'if (0 && st_has_mapcall(e)) { st_law_mapcall = 1;'),
     # review 2: F1 computed Point value, F2 admitted library form in a law leaf, F4 bare Expect sub-reason
