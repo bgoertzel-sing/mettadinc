@@ -1,0 +1,48 @@
+;; t-2026-11-27-mettadinc-rebase-monitors review 1 F1: a Table map read by a monitor law in a Stochastic module with
+;; (Use .. Families) is admitted only by Monitors (ops_mon.c mn_table_rules), so the shared rules R1-R3 run there.
+;; Each module breaks exactly one rule; MonRulesControl answers.  Template: tests/dcalc/monitors/fixtures/mon_values.metta.
+(DC.Module MonRulesDup
+  (Profile Stochastic)
+  (Use Decisions Laws Families Monitors)
+  (Carrier One  (Of Symbol) (Enum one))
+  (Carrier Rate (Of Symbol) (Enum low high))
+  (Map rate (From Rate) (To Rational01) (Table (low (Rat 1 4)) (low (Rat 1 2)) (high (Rat 1 2))))
+  (Map flag (Parameters ($r Rate)) (From One) (To (Law Nat)) (Body ($u) (Coin (rate $r))))
+  (Monitor Up (Context One) (Null (flag low)) (Alternative (flag high)) (Columns (observation "x"))))
+(DC.Module MonRulesDupSwap
+  (Profile Stochastic)
+  (Use Decisions Laws Families Monitors)
+  (Carrier One  (Of Symbol) (Enum one))
+  (Carrier Rate (Of Symbol) (Enum low high))
+  (Map rate (From Rate) (To Rational01) (Table (low (Rat 1 2)) (low (Rat 1 4)) (high (Rat 1 2))))
+  (Map flag (Parameters ($r Rate)) (From One) (To (Law Nat)) (Body ($u) (Coin (rate $r))))
+  (Monitor Up (Context One) (Null (flag low)) (Alternative (flag high)) (Columns (observation "x"))))
+(DC.Module MonRulesTotal
+  (Profile Stochastic)
+  (Use Decisions Laws Families Monitors)
+  (Carrier One  (Of Symbol) (Enum one))
+  (Carrier Rate (Of Symbol) (Enum low high))
+  (Map rate (From Rate) (To Rational01) (Table (low (Rat 1 4))))
+  (Map flag (Parameters ($r Rate)) (From One) (To (Law Nat)) (Body ($u) (Coin (rate $r))))
+  (Monitor Up (Context One) (Null (flag low)) (Alternative (flag high)) (Columns (observation "x"))))
+(DC.Module MonRulesCodomain
+  (Profile Stochastic)
+  (Use Decisions Laws Families Monitors)
+  (Carrier One  (Of Symbol) (Enum one))
+  (Carrier Rate (Of Symbol) (Enum low high))
+  (Map rate (From Rate) (To Rational01) (Table (low (Rat 1 4)) (high (Rat 3 2))))
+  (Map flag (Parameters ($r Rate)) (From One) (To (Law Nat)) (Body ($u) (Coin (rate $r))))
+  (Monitor Up (Context One) (Null (flag low)) (Alternative (flag high)) (Columns (observation "x"))))
+(DC.Module MonRulesControl
+  (Profile Stochastic)
+  (Use Decisions Laws Families Monitors)
+  (Carrier One  (Of Symbol) (Enum one))
+  (Carrier Rate (Of Symbol) (Enum low high))
+  (Map rate (From Rate) (To Rational01) (Table (low (Rat 1 4)) (high (Rat 1 2))))
+  (Map flag (Parameters ($r Rate)) (From One) (To (Law Nat)) (Body ($u) (Coin (rate $r))))
+  (Monitor Up (Context One) (Null (flag low)) (Alternative (flag high)) (Columns (observation "x"))))
+!(dc.run MonRulesDup (CheckMonitor Up))
+!(dc.run MonRulesDupSwap (CheckMonitor Up))
+!(dc.run MonRulesTotal (CheckMonitor Up))
+!(dc.run MonRulesCodomain (CheckMonitor Up))
+!(dc.run MonRulesControl (CheckMonitor Up))
